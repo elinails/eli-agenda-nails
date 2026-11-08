@@ -884,6 +884,10 @@
             cursor: pointer;
         }
         .fab:hover { background: var(--btn-primary-hover); }
+        /* I23: .hidden debe ganarle a .fab (misma especificidad, nuestro <style> va despues) */
+        .fab.hidden { display: none; }
+        /* I23: por vista, aunque el JS lo muestre */
+        body:has(#new-appointment-view:not(.hidden)) .fab { display: none; }
         @media (min-width: 1024px) { .fab { display: none !important; } }
 
         /* ── secciones y paneles ── */
@@ -1470,7 +1474,7 @@
         
         <!-- New Appointment Form View -->
         <div id="new-appointment-view" class="view-section hidden bg-surface rounded-xl shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-bold text-eli-dark mb-6">Nuevo Turno</h2>
+            <h2 id="form-title" class="text-2xl font-bold text-eli-dark mb-6">Nuevo Turno</h2>
             
             <form id="appointment-form" class="space-y-7">
                 <input type="hidden" id="appointment-id">
@@ -2408,7 +2412,14 @@
             }
 
             document.querySelectorAll('.nav-item[data-section]').forEach(function(item) {
-                item.addEventListener('click', function() { mostrarSeccion(item.dataset.section); });
+                item.addEventListener('click', function() {
+                    // I23: entrar a Agenda desde el menu siempre deja el calendario limpio
+                    if (item.dataset.section === 'agenda' && newAppointmentView &&
+                        !newAppointmentView.classList.contains('hidden')) {
+                        showView('calendar');
+                    }
+                    mostrarSeccion(item.dataset.section);
+                });
             });
 
             document.querySelectorAll('.seg [data-view]').forEach(function(tab) {
@@ -2447,6 +2458,8 @@
                 const servicioIdReset = document.getElementById('appointment-servicio-id');
                 if (clienteIdReset) clienteIdReset.value = '';
                 if (servicioIdReset) servicioIdReset.value = '';
+                const tituloForm = document.getElementById('form-title');
+                if (tituloForm) tituloForm.textContent = 'Nuevo Turno';
                 saveBtn.classList.remove('hidden');
                 updateBtn.classList.add('hidden');
                 deleteBtn.classList.add('hidden');
@@ -5050,6 +5063,8 @@
                 appointmentNotesInput.value = appointment.notes || '';
                 appointmentStatusInput.value = appointment.status;
                 
+                const tituloForm = document.getElementById('form-title');
+                if (tituloForm) tituloForm.textContent = 'Editar turno';
                 saveBtn.classList.add('hidden');
                 updateBtn.classList.remove('hidden');
                 deleteBtn.classList.remove('hidden');
