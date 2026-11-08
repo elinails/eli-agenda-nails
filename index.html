@@ -138,6 +138,9 @@
             --overlay: rgba(59, 47, 53, .55);
             --sticky-bg: linear-gradient(to top, var(--surface) 72%, rgba(255, 255, 255, 0));
             --shadow-row: 0 1px 1px rgba(59, 47, 53, .03), 0 6px 18px rgba(59, 47, 53, .045);
+
+            --complete-bg: #3F6B4A;
+            --complete-ink: #FFFFFF;
         }
 
         /* ── A1b · modo oscuro ── */
@@ -182,6 +185,9 @@
             --overlay: rgba(20, 14, 18, .72);
             --sticky-bg: linear-gradient(to top, var(--surface) 72%, rgba(58, 40, 48, 0));
             --shadow-row: 0 1px 1px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .35);
+
+            --complete-bg: #9CCB9C;
+            --complete-ink: #12240F;
         }
         /* ══ I10 · paletas de color ══ */
         /* Salvia Studio */
@@ -1016,7 +1022,47 @@
             border-radius: 10px;
             font-size: 13.5px;
             min-width: 0;
-        }        @media (prefers-reduced-motion: reduce) {
+        }
+        /* ── I16 · FAB, sticky y acciones del modal ── */
+        /* El FAB no tapa ningún modal abierto */
+        body:has(.modal-overlay:not(.hidden)) .fab { display: none; }
+
+        /* La barra de acciones del formulario flota por encima del bottom-nav */
+        @media (max-width: 1023px) {
+            html .form-actions {
+                bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+                z-index: 35;
+            }
+        }
+
+        /* Acciones del modal de detalles: 2 columnas, todo táctil */
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 24px;
+        }
+        .modal-actions > button:not(.hidden) {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #modal-complete-btn,
+        #modal-close-btn { grid-column: 1 / -1; }
+
+        .btn-complete {
+            background-color: var(--complete-bg);
+            color: var(--complete-ink);
+            font-weight: 600;
+            border: 0;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: filter .16s ease;
+        }
+        .btn-complete:hover { filter: brightness(1.06); }
+        .btn-complete:disabled { opacity: .6; cursor: not-allowed; }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -1573,14 +1619,17 @@
                     </div>
                 </div>
                 
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button id="modal-edit-btn" class="btn-primary px-4 py-2 rounded-lg font-medium text-sm">
+                <div class="modal-actions">
+                    <button type="button" id="modal-complete-btn" class="btn-complete text-sm">
+                        <i class="fas fa-check" aria-hidden="true"></i> Marcar como Realizado
+                    </button>
+                    <button type="button" id="modal-edit-btn" class="btn-primary px-4 py-2 rounded-lg font-medium text-sm">
                         <i class="fas fa-edit mr-2"></i> Editar
                     </button>
-                    <button id="modal-whatsapp-btn" class="whatsapp-btn px-4 py-2 rounded-lg text-[#0B3D1E] font-medium text-sm">
+                    <button type="button" id="modal-whatsapp-btn" class="whatsapp-btn px-4 py-2 rounded-lg text-[#0B3D1E] font-medium text-sm">
                         <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                     </button>
-                    <button id="modal-close-btn" class="bg-surface border border-line px-4 py-2 rounded-lg font-medium text-sm">
+                    <button type="button" id="modal-close-btn" class="bg-surface border border-line px-4 py-2 rounded-lg font-medium text-sm">
                         Cerrar
                     </button>
                 </div>
@@ -1788,6 +1837,7 @@
                     newAppointmentView.classList.remove('hidden');
                     resetForm();
                 }
+                if (fabNuevo) fabNuevo.classList.toggle('hidden', view === 'new');
             }
 
             // ─────────────────────────────────────────────────────────────
@@ -3807,7 +3857,30 @@
             }
             
             // Show appointment details in modal
-            function showAppointmentDetails(appointment) {
+            let marcandoRealizado = false;
+
+            async function marcarRealizado(turno) {
+                if (marcandoRealizado) return;
+                const boton = document.getElementById('modal-complete-btn');
+                marcandoRealizado = true;
+                if (boton) boton.disabled = true;
+                try {
+                    const { error } = await supabase.from('turnos')
+                        .update({ status: 'completed' })
+                        .eq('id', turno.id);
+                    if (error) throw error;
+                    appointmentModal.classList.add('hidden');
+                    await loadAppointments();
+                    await recargar('turnos');
+                    mostrarBanner('Turno marcado como realizado.', 'ok');
+                } catch (error) {
+                    console.error('Error marcando el turno:', error);
+                    mostrarBanner('No se pudo marcar como realizado: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    marcandoRealizado = false;
+                    if (boton) boton.disabled = false;
+                }
+            }            function showAppointmentDetails(appointment) {
                 document.getElementById('modal-title').textContent = `Turno #${appointment.id}`;
                 document.getElementById('modal-client').textContent = appointment.clientName;
                 document.getElementById('modal-service').textContent = appointment.serviceType;
@@ -3833,6 +3906,12 @@
                 document.getElementById('modal-whatsapp-btn').onclick = function() {
                     sendWhatsApp(appointment);
                 };
+
+                const completarBtn = document.getElementById('modal-complete-btn');
+                if (completarBtn) {
+                    completarBtn.classList.toggle('hidden', appointment.status === 'completed');
+                    completarBtn.onclick = function() { marcarRealizado(appointment); };
+                }
                 
                 document.getElementById('modal-close-btn').onclick = function() {
                     appointmentModal.classList.add('hidden');
