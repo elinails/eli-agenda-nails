@@ -1298,6 +1298,7 @@
                 over_email_send_rate_limit: 'Demasiados intentos. Esperá unos minutos.',
                 over_request_rate_limit: 'Demasiados intentos. Esperá unos minutos.',
                 signup_disabled: 'El registro está deshabilitado.',
+                registro_restringido: 'No se pudo crear la cuenta: el registro está restringido. Pedí que autoricen este email antes de registrarte.',
                 validation_failed: 'Revisá el email y la contraseña.'
             };
 
@@ -1309,6 +1310,10 @@
                 if (/invalid login credentials/i.test(msg)) return AUTH_ERR.invalid_credentials;
                 if (/email not confirmed/i.test(msg)) return AUTH_ERR.email_not_confirmed;
                 if (/already registered|already been registered/i.test(msg)) return AUTH_ERR.user_already_exists;
+                // Trigger de allowlist (acceso_permitido): Supabase devuelve un 500 genérico
+                if (/database error saving new user|registro no autorizado/i.test(msg)) {
+                    return AUTH_ERR.registro_restringido;
+                }
                 return msg || 'No se pudo completar la operación.';
             }
 
