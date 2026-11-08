@@ -1403,7 +1403,7 @@
                 <img data-logo alt="Eli M. Nails" class="brand-logo" width="56" height="56">
             </div>
             <nav class="sidebar-nav" aria-label="Secciones">
-                <button type="button" class="nav-item" data-section="finanzas">
+                <button type="button" class="nav-item" data-section="inicio">
                     <i class="fas fa-chart-line" aria-hidden="true"></i> Inicio
                 </button>
                 <button type="button" class="nav-item active" data-section="agenda">
@@ -1412,8 +1412,8 @@
                 <button type="button" class="nav-item" data-section="clientes">
                     <i class="fas fa-user-friends" aria-hidden="true"></i> Clientes
                 </button>
-                <button type="button" class="nav-item" data-section="servicios">
-                    <i class="fas fa-spa" aria-hidden="true"></i> Servicios
+                <button type="button" class="nav-item" data-section="finanzas">
+                    <i class="fas fa-wallet" aria-hidden="true"></i> Finanzas
                 </button>
                 <button type="button" class="nav-item" data-section="ajustes">
                     <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
@@ -1627,22 +1627,72 @@
         </section>
 
         <!-- Servicios -->
-        <section class="section hidden" data-section="servicios">
-            <div class="panel">
-                <div class="section-toolbar justify-end">
-                    <button type="button" id="nuevo-servicio-btn" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
-                        <i class="fas fa-plus mr-2"></i> Nuevo servicio
-                    </button>
-                </div>
-                <div id="servicios-list" class="space-y-3" aria-busy="true"></div>
-            </div>
-        </section>
 
         <!-- Inicio (dashboard) -->
-        <section class="section hidden" data-section="finanzas">
+        <section class="section hidden" data-section="inicio">
             <div class="dash">
                 <div class="dash-hero" id="dash-proximo"></div>
 
+                <h3 class="dash-title" id="inicio-mes">Este mes</h3>
+
+                <div class="dash-kpis">
+                    <div class="fin-card">
+                        <span class="fin-label">Ingresos</span>
+                        <strong class="fin-value" id="ini-ingresos">$ 0</strong>
+                        <span class="fin-hint">Turnos realizados</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Gastos</span>
+                        <strong class="fin-value fin-value-gastos" id="ini-gastos">$ 0</strong>
+                        <span class="fin-hint" id="ini-gastos-hint">Del mes</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Ganancia neta</span>
+                        <strong class="fin-value" id="ini-balance">$ 0</strong>
+                        <span class="fin-hint">Ingresos menos gastos</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Realizados</span>
+                        <strong class="fin-value" id="ini-realizados">0</strong>
+                        <span class="fin-hint">Turnos completados</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Cancelados</span>
+                        <strong class="fin-value" id="ini-cancelados">0</strong>
+                        <span class="fin-hint">Turnos cancelados</span>
+                    </div>
+                </div>
+
+                <div class="dash-acciones">
+                    <button type="button" id="ver-finanzas-btn" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-wallet mr-2" aria-hidden="true"></i>Ver Finanzas completas
+                    </button>
+                </div>
+
+                <div class="dash-panel">
+                    <h3 class="dash-title">Evolución de ingresos</h3>
+                    <div class="barras" id="dash-evolucion"></div>
+                </div>
+
+                <div class="dash-cols">
+                    <div class="dash-panel">
+                        <h3 class="dash-title">Servicios del mes</h3>
+                        <div class="dona-wrap">
+                            <div class="dona" id="dash-dona" role="img" aria-label="Distribución de ingresos por servicio"></div>
+                            <ul class="dona-leyenda" id="dash-leyenda"></ul>
+                        </div>
+                    </div>
+                    <div class="dash-panel">
+                        <h3 class="dash-title">Top 3 clientas</h3>
+                        <div id="dash-top" class="top-lista"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Finanzas (caja) -->
+        <section class="section hidden" data-section="finanzas">
+            <div class="dash">
                 <div class="dash-mesbar">
                     <button type="button" id="fin-prev" class="icon-btn" aria-label="Período anterior">
                         <i class="fas fa-chevron-left" aria-hidden="true"></i>
@@ -1667,7 +1717,7 @@
                     <div class="fin-card">
                         <span class="fin-label">Gastos</span>
                         <strong class="fin-value fin-value-gastos" id="fin-gastos">$ 0</strong>
-                        <span class="fin-hint" id="fin-gastos-hint">Cargados este mes</span>
+                        <span class="fin-hint" id="fin-gastos-hint">Del período</span>
                     </div>
                     <div class="fin-card">
                         <span class="fin-label">Ganancia neta</span>
@@ -1693,23 +1743,6 @@
                     <button type="button" id="abrir-deuda-btn" class="btn-primary px-3 py-2 rounded-lg text-sm font-medium">
                         <i class="fas fa-plus mr-2" aria-hidden="true"></i>Deuda
                     </button>
-                </div>                <div class="dash-panel">
-                    <h3 class="dash-title">Evolución de ingresos</h3>
-                    <div class="barras" id="dash-evolucion"></div>
-                </div>
-
-                <div class="dash-cols">
-                    <div class="dash-panel">
-                        <h3 class="dash-title">Servicios del mes</h3>
-                        <div class="dona-wrap">
-                            <div class="dona" id="dash-dona" role="img" aria-label="Distribución de ingresos por servicio"></div>
-                            <ul class="dona-leyenda" id="dash-leyenda"></ul>
-                        </div>
-                    </div>
-                    <div class="dash-panel">
-                        <h3 class="dash-title">Top 3 clientas</h3>
-                        <div id="dash-top" class="top-lista"></div>
-                    </div>
                 </div>
 
                 <div class="dash-panel">
@@ -1814,6 +1847,17 @@
                         <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
                     </button>
                 </div>
+
+                <div>
+                    <h2 class="panel-title">Servicios</h2>
+                    <p class="setting-note">Precios base y duración. Se usan al agendar y para calcular la tarjeta.</p>
+                    <div class="flex justify-end mt-3">
+                        <button type="button" id="nuevo-servicio-btn" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
+                            <i class="fas fa-plus mr-2"></i> Nuevo servicio
+                        </button>
+                    </div>
+                    <div id="servicios-list" class="space-y-3 mt-3" aria-busy="true"></div>
+                </div>
             </div>
         </section>
         <!-- Footer -->
@@ -1825,7 +1869,7 @@
 
         <!-- Bottom nav (mobile) -->
         <nav id="bottom-nav" class="bottom-nav" aria-label="Secciones">
-            <button type="button" class="nav-item" data-section="finanzas">
+            <button type="button" class="nav-item" data-section="inicio">
                 <i class="fas fa-chart-line" aria-hidden="true"></i> Inicio
             </button>
             <button type="button" class="nav-item active" data-section="agenda">
@@ -1834,8 +1878,8 @@
             <button type="button" class="nav-item" data-section="clientes">
                 <i class="fas fa-user-friends" aria-hidden="true"></i> Clientes
             </button>
-            <button type="button" class="nav-item" data-section="servicios">
-                <i class="fas fa-spa" aria-hidden="true"></i> Servicios
+            <button type="button" class="nav-item" data-section="finanzas">
+                <i class="fas fa-wallet" aria-hidden="true"></i> Finanzas
             </button>
             <button type="button" class="nav-item" data-section="ajustes">
                 <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
@@ -2397,17 +2441,18 @@
             function pintarSecciones() {
                 renderClientes();
                 renderServicios();
-                renderFinanzas();
+                renderInicio();
+                renderCaja();
                 poblarSelectsTurno();
             }
 
             // ── navegación entre secciones ──
             const SECCIONES = {
+                inicio: { titulo: 'Inicio', sub: 'Resumen del día a día' },
                 agenda: { titulo: 'Agenda', sub: 'Calendario y turnos' },
                 clientes: { titulo: 'Clientes', sub: 'Fichas, contacto e historial' },
-                servicios: { titulo: 'Servicios', sub: 'Precios base y duración' },
-                finanzas: { titulo: 'Inicio', sub: 'Resumen, deudas y gastos' },
-                ajustes: { titulo: 'Ajustes', sub: 'Apariencia, datos y cuenta' }
+                finanzas: { titulo: 'Finanzas', sub: 'Caja, gastos y deudas' },
+                ajustes: { titulo: 'Ajustes', sub: 'Apariencia, servicios y cuenta' }
             };
 
             let seccionActual = 'agenda';
@@ -4137,12 +4182,25 @@
                 try { localStorage.setItem(CLAVE_PERIODO, periodoModo); } catch (error) { /* modo privado */ }
             }
 
-            function enPeriodo(fecha) {
+            function enPeriodo(fecha, contexto) {
                 const iso = String(fecha || '').slice(0, 10);
                 if (!iso) return false;
-                if (periodoModo === 'todo') return true;
-                if (periodoModo === 'anio') return iso.slice(0, 4) === String(finAnio);
-                return iso.slice(0, 7) === finAnio + '-' + String(finMesNum).padStart(2, '0');
+                const modo = contexto ? contexto.modo : periodoModo;
+                const anio = contexto ? contexto.anio : finAnio;
+                const mes = contexto ? contexto.mes : finMesNum;
+                if (modo === 'todo') return true;
+                if (modo === 'anio') return iso.slice(0, 4) === String(anio);
+                return iso.slice(0, 7) === anio + '-' + String(mes).padStart(2, '0');
+            }
+
+            function hoyPartes() {
+                const iso = todayISO();
+                return { anio: Number(iso.slice(0, 4)), mes: Number(iso.slice(5, 7)) };
+            }
+
+            function setTexto(id, valor) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = valor;
             }
 
             function etiquetaPeriodo() {
@@ -4218,15 +4276,16 @@
                 cont.appendChild(acciones);
             }
 
-            function renderEvolucion() {
+            function renderEvolucion(ctx) {
                 const cont = document.getElementById('dash-evolucion');
                 if (!cont) return;
                 cont.innerHTML = '';
-                const cantidad = periodoModo === 'todo' ? 12 : 6;
+                const base = ctx || { anio: finAnio, mes: finMesNum, cantidad: periodoModo === 'todo' ? 12 : 6 };
+                const cantidad = base.cantidad || 6;
                 const meses = [];
                 for (let i = cantidad - 1; i >= 0; i--) {
-                    let anio = finAnio;
-                    let mes = finMesNum - i;
+                    let anio = base.anio;
+                    let mes = base.mes - i;
                     while (mes < 1) { mes += 12; anio -= 1; }
                     const prefijo = anio + '-' + String(mes).padStart(2, '0');
                     const total = (store.turnos || []).filter(function (t) {
@@ -4415,7 +4474,7 @@
                 try {
                     await api.deudas.update(deuda.id, { pagado: true });
                     await recargar('deudas');
-                    renderFinanzas();
+                    refrescarPaneles();
                     mostrarBanner('Deuda marcada como pagada.', 'ok', {
                         duracion: 6000,
                         accion: {
@@ -4434,7 +4493,7 @@
                 try {
                     await api.deudas.update(id, { pagado: false });
                     await recargar('deudas');
-                    renderFinanzas();
+                    refrescarPaneles();
                     mostrarBanner('Cambio deshecho.', 'ok');
                 } catch (error) {
                     mostrarBanner('No se pudo deshacer: ' + (error.message || 'error de conexión'), 'error');
@@ -4446,7 +4505,7 @@
                     try {
                         await api.deudas.remove(id);
                         await recargar('deudas');
-                        renderFinanzas();
+                        refrescarPaneles();
                         mostrarBanner('Deuda eliminada.', 'ok');
                     } catch (error) {
                         mostrarBanner('No se pudo borrar la deuda: ' + (error.message || 'error de conexión'), 'error');
@@ -4482,7 +4541,7 @@
                     await api.gastos.create({ descripcion: descripcion, monto: monto, fecha: fecha });
                     cerrarModal(document.getElementById('gasto-modal'));
                     await recargar('gastos');
-                    renderFinanzas();
+                    refrescarPaneles();
                     mostrarBanner('Gasto agregado.', 'ok');
                 } catch (error) {
                     fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
@@ -4519,7 +4578,7 @@
                     await api.deudas.create({ descripcion: descripcion, monto: monto, fecha: fecha, pagado: false });
                     cerrarModal(document.getElementById('deuda-modal'));
                     await recargar('deudas');
-                    renderFinanzas();
+                    refrescarPaneles();
                     mostrarBanner('Deuda agregada.', 'ok');
                 } catch (error) {
                     fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
@@ -4531,6 +4590,9 @@
             cargarPeriodo();
 
             (function conectarDashboard() {
+                const verFinanzas = document.getElementById('ver-finanzas-btn');
+                if (verFinanzas) verFinanzas.addEventListener('click', function () { mostrarSeccion('finanzas'); });
+
                 const abrirGasto = document.getElementById('abrir-gasto-btn');
                 if (abrirGasto) abrirGasto.addEventListener('click', abrirGastoModal);
                 const formGasto = document.getElementById('gasto-form-modal');
@@ -4551,10 +4613,48 @@
                     select.addEventListener('change', function () {
                         periodoModo = select.value;
                         guardarPeriodo();
-                        renderFinanzas();
+                        refrescarPaneles();
                     });
                 }
-            })();            function renderFinanzas() {
+            })();            function renderInicio() {
+                const partes = hoyPartes();
+                const ctx = { modo: 'mes', anio: partes.anio, mes: partes.mes };
+
+                const tituloMes = document.getElementById('inicio-mes');
+                if (tituloMes) {
+                    const texto = new Date(partes.anio, partes.mes - 1, 1)
+                        .toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+                    tituloMes.textContent = 'Este mes · ' + texto;
+                }
+
+                const delMes = (store.turnos || []).filter(function (turno) { return enPeriodo(fechaDeFila(turno), ctx); });
+                const realizados = delMes.filter(function (t) { return t.status === 'completed'; });
+                const cancelados = delMes.filter(function (t) { return t.status === 'cancelled'; });
+                const ingresos = realizados.reduce(function (suma, t) { return suma + (Number(t.price) || 0); }, 0);
+
+                const gastosMes = (store.gastos || []).filter(function (gasto) { return enPeriodo(gasto.fecha, ctx); });
+                const gastosPropios = gastosMes.reduce(function (suma, g) { return suma + (Number(g.monto) || 0); }, 0);
+                const pagadas = deudasPagadas().filter(function (d) { return enPeriodo(d.fecha, ctx); });
+                const totalDeudas = pagadas.reduce(function (suma, d) { return suma + (Number(d.monto) || 0); }, 0);
+                const totalGastos = gastosPropios + totalDeudas;
+
+                setTexto('ini-ingresos', money(ingresos));
+                setTexto('ini-gastos', money(totalGastos));
+                setTexto('ini-balance', money(ingresos - totalGastos));
+                setTexto('ini-realizados', String(realizados.length));
+                setTexto('ini-cancelados', String(cancelados.length));
+                const pista = document.getElementById('ini-gastos-hint');
+                if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' de deudas') : 'Del mes';
+                const balanceEl = document.getElementById('ini-balance');
+                if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
+
+                renderProximoTurno();
+                renderEvolucion({ anio: partes.anio, mes: partes.mes, cantidad: 6 });
+                renderServiciosMes(realizados);
+                renderTopClientas(realizados);
+            }
+
+            function renderCaja() {
                 const etiqueta = document.getElementById('fin-mes');
                 const ingresosEl = document.getElementById('fin-ingresos');
                 if (!etiqueta || !ingresosEl) return;
@@ -4579,26 +4679,22 @@
                 const totalGastos = gastosPropios + totalDeudas;
 
                 ingresosEl.textContent = money(ingresos);
-                const gastosEl = document.getElementById('fin-gastos');
-                if (gastosEl) gastosEl.textContent = money(totalGastos);
+                setTexto('fin-gastos', money(totalGastos));
+                setTexto('fin-balance', money(ingresos - totalGastos));
+                setTexto('fin-realizados', String(realizados.length));
+                setTexto('fin-cancelados', String(cancelados.length));
                 const pista = document.getElementById('fin-gastos-hint');
                 if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' de deudas pagadas') : 'Del período';
                 const balanceEl = document.getElementById('fin-balance');
-                if (balanceEl) {
-                    balanceEl.textContent = money(ingresos - totalGastos);
-                    balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
-                }
-                const realizadosEl = document.getElementById('fin-realizados');
-                if (realizadosEl) realizadosEl.textContent = String(realizados.length);
-                const canceladosEl = document.getElementById('fin-cancelados');
-                if (canceladosEl) canceladosEl.textContent = String(cancelados.length);
+                if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
 
                 renderGastos(gastosMes);
-                renderProximoTurno();
-                renderEvolucion();
-                renderServiciosMes(realizados);
-                renderTopClientas(realizados);
                 renderDeudas();
+            }
+
+            function refrescarPaneles() {
+                renderInicio();
+                renderCaja();
             }
 
             function renderGastos(gastosMes) {
@@ -4664,7 +4760,7 @@
                     if (finMesNum < 1) { finMesNum = 12; finAnio -= 1; }
                     if (finMesNum > 12) { finMesNum = 1; finAnio += 1; }
                 }
-                renderFinanzas();
+                refrescarPaneles();
             }
 
             const finPrevBtn = document.getElementById('fin-prev');
