@@ -624,7 +624,70 @@
         }
         .empty-state { text-align: center; padding: 32px 16px; color: var(--ink-soft); }
         .empty-state i { display: block; margin-bottom: 10px; font-size: 26px; color: var(--gold); }
-        .empty-state p { margin: 0; font-size: 13.5px; }        @media (prefers-reduced-motion: reduce) {
+        .empty-state p { margin: 0; font-size: 13.5px; }        /* ── listados de datos (I6b) ── */
+        .panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .section-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+        .section-toolbar input[type="search"] {
+            flex: 1 1 220px;
+            min-width: 0;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 13.5px;
+        }
+        .data-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 13px 16px;
+            box-shadow: var(--shadow-row);
+        }
+        @media (min-width: 640px) {
+            .data-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+        }
+        .data-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .data-meta { margin-top: 2px; font-size: 12.5px; color: var(--ink-soft); }
+        .data-value {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--gold-ink);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .row-actions { display: flex; gap: 6px; justify-self: end; }
+        @media (max-width: 639px) {
+            .data-row .row-actions { grid-column: 1 / -1; }
+        }
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: var(--surface);
+            color: var(--ink-soft);
+            cursor: pointer;
+            transition: background-color .16s ease, color .16s ease;
+        }
+        .icon-btn:hover { background: var(--blush-2); color: var(--ink); }
+        .icon-btn.danger:hover { background: var(--cancelled-tint); color: var(--cancelled); }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -889,18 +952,25 @@
         <!-- Clientes -->
         <section class="section hidden" data-section="clientes">
             <div class="panel">
-                <h2 class="panel-title">Clientes</h2>
-                <p class="panel-note">Fichas, contacto e historial de turnos.</p>
-                <div id="clientes-list" class="mt-4 space-y-3" aria-busy="true"></div>
+                <div class="section-toolbar">
+                    <input type="search" id="clientes-search" placeholder="Buscar por nombre o teléfono" autocomplete="off" aria-label="Buscar clientes">
+                    <button type="button" id="nuevo-cliente-btn" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
+                        <i class="fas fa-plus mr-2"></i> Nuevo cliente
+                    </button>
+                </div>
+                <div id="clientes-list" class="space-y-3" aria-busy="true"></div>
             </div>
         </section>
 
         <!-- Servicios -->
         <section class="section hidden" data-section="servicios">
             <div class="panel">
-                <h2 class="panel-title">Servicios</h2>
-                <p class="panel-note">Precios base y duración.</p>
-                <div id="servicios-list" class="mt-4 space-y-3" aria-busy="true"></div>
+                <div class="section-toolbar justify-end">
+                    <button type="button" id="nuevo-servicio-btn" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
+                        <i class="fas fa-plus mr-2"></i> Nuevo servicio
+                    </button>
+                </div>
+                <div id="servicios-list" class="space-y-3" aria-busy="true"></div>
             </div>
         </section>
 
@@ -1119,7 +1189,84 @@
         </div>
     </div>
     
-    <script>
+    <!-- I6b: modal de servicio -->
+    <div id="servicio-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay p-4">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-line">
+                <h3 class="text-xl font-bold text-ink m-0" id="servicio-modal-title">Nuevo servicio</h3>
+                <button type="button" id="servicio-modal-close" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <form id="servicio-form" class="p-6 space-y-4" novalidate>
+                <input type="hidden" id="servicio-id">
+                <div>
+                    <label for="servicio-nombre" class="block text-sm font-medium text-ink-soft mb-1">Nombre <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                    <input type="text" id="servicio-nombre" required minlength="2" maxlength="60" autocomplete="off"
+                           class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="servicio-precio" class="block text-sm font-medium text-ink-soft mb-1">Precio base ($) <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                        <input type="number" id="servicio-precio" required min="0" step="100" inputmode="decimal"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="servicio-duracion" class="block text-sm font-medium text-ink-soft mb-1">Duración (min) <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                        <input type="number" id="servicio-duracion" required min="15" max="600" step="5" inputmode="numeric"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                </div>
+                <p id="servicio-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="servicio-cancel" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium">Cancelar</button>
+                    <button type="submit" id="servicio-save" class="btn-primary px-5 py-2.5 rounded-lg font-medium">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- I6b: modal de cliente -->
+    <div id="cliente-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay p-4">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-line">
+                <h3 class="text-xl font-bold text-ink m-0" id="cliente-modal-title">Nuevo cliente</h3>
+                <button type="button" id="cliente-modal-close" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <form id="cliente-form" class="p-6 space-y-4" novalidate>
+                <input type="hidden" id="cliente-id">
+                <div>
+                    <label for="cliente-nombre" class="block text-sm font-medium text-ink-soft mb-1">Nombre <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                    <input type="text" id="cliente-nombre" required minlength="2" maxlength="80" autocomplete="name"
+                           class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="cliente-telefono" class="block text-sm font-medium text-ink-soft mb-1">Teléfono</label>
+                        <input type="tel" id="cliente-telefono" maxlength="30" autocomplete="tel"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="cliente-email" class="block text-sm font-medium text-ink-soft mb-1">Email</label>
+                        <input type="email" id="cliente-email" maxlength="120" autocomplete="email"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label for="cliente-notas" class="block text-sm font-medium text-ink-soft mb-1">Notas</label>
+                    <textarea id="cliente-notas" rows="3" maxlength="500"
+                              class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none"></textarea>
+                </div>
+                <p id="cliente-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cliente-cancel" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium">Cancelar</button>
+                    <button type="submit" id="cliente-save" class="btn-primary px-5 py-2.5 rounded-lg font-medium">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize database
             let db;
@@ -1330,8 +1477,8 @@
             }
 
             function pintarSecciones() {
-                pintarResumen(document.getElementById('clientes-list'), 'clientes', 'fa-user-friends', 'Todavía no cargaste clientes.', 'clientes');
-                pintarResumen(document.getElementById('servicios-list'), 'servicios', 'fa-spa', 'Todavía no cargaste servicios.', 'servicios');
+                renderClientes();
+                renderServicios();
                 pintarResumen(document.getElementById('finanzas-list'), 'gastos', 'fa-receipt', 'Todavía no cargaste gastos.', 'gastos');
             }
 
@@ -2261,6 +2408,385 @@
             });
 
             // ─────────────────────────────────────────────────────────────
+            // I6b · CRUD de Clientes y Servicios
+            // ─────────────────────────────────────────────────────────────
+            const servicioModal = document.getElementById('servicio-modal');
+            const servicioForm = document.getElementById('servicio-form');
+            const servicioIdInput = document.getElementById('servicio-id');
+            const servicioNombreInput = document.getElementById('servicio-nombre');
+            const servicioPrecioInput = document.getElementById('servicio-precio');
+            const servicioDuracionInput = document.getElementById('servicio-duracion');
+            const servicioErrorEl = document.getElementById('servicio-error');
+            const servicioTitulo = document.getElementById('servicio-modal-title');
+            const servicioSaveBtn = document.getElementById('servicio-save');
+
+            const clienteModal = document.getElementById('cliente-modal');
+            const clienteForm = document.getElementById('cliente-form');
+            const clienteIdInput = document.getElementById('cliente-id');
+            const clienteNombreInput = document.getElementById('cliente-nombre');
+            const clienteTelefonoInput = document.getElementById('cliente-telefono');
+            const clienteEmailInput = document.getElementById('cliente-email');
+            const clienteNotasInput = document.getElementById('cliente-notas');
+            const clienteErrorEl = document.getElementById('cliente-error');
+            const clienteTitulo = document.getElementById('cliente-modal-title');
+            const clienteSaveBtn = document.getElementById('cliente-save');
+            const clientesSearch = document.getElementById('clientes-search');
+
+            let filtroClientes = '';
+            let clienteCallback = null;
+
+            function setErrorModal(elemento, mensaje) {
+                if (!elemento) return;
+                elemento.textContent = mensaje || '';
+                elemento.classList.toggle('hidden', !mensaje);
+            }
+
+            function money(valor) {
+                return '$ ' + (Number(valor) || 0).toLocaleString('es-AR');
+            }
+
+            function normalizar(texto) {
+                // sin tildes, minúsculas y espacios colapsados (para comparar "Lucía" con "lucia")
+                return String(texto || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, ' ');
+            }
+
+            function botonAccion(icono, etiqueta, alClick, peligro) {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'icon-btn' + (peligro ? ' danger' : '');
+                boton.setAttribute('aria-label', etiqueta);
+                boton.title = etiqueta;
+                const i = document.createElement('i');
+                i.className = 'fas ' + icono;
+                i.setAttribute('aria-hidden', 'true');
+                boton.appendChild(i);
+                boton.addEventListener('click', alClick);
+                return boton;
+            }
+
+            async function recargar(clave) {
+                store.cargando[clave] = true;
+                try {
+                    store[clave] = await api[clave].list();
+                    store.cargado[clave] = true;
+                } catch (error) {
+                    store.cargado[clave] = false;
+                    mostrarBanner('No se pudo actualizar ' + clave + ': ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    store.cargando[clave] = false;
+                }
+                pintarSecciones();
+            }
+
+            // ── servicios ──
+            function renderServicios() {
+                const cont = document.getElementById('servicios-list');
+                if (!cont) return;
+                cont.setAttribute('aria-busy', store.cargando.servicios ? 'true' : 'false');
+                if (store.cargando.servicios) { pintarEsqueleto(cont, 3); return; }
+                if (!store.cargado.servicios) {
+                    pintarVacio(cont, 'fa-triangle-exclamation', 'No se pudieron cargar los servicios. Revisá la conexión.');
+                    return;
+                }
+                cont.innerHTML = '';
+                if (!store.servicios.length) {
+                    pintarVacio(cont, 'fa-spa', 'Todavía no cargaste servicios. Agregá el primero con "Nuevo servicio".');
+                    return;
+                }
+                store.servicios.forEach(function(servicio) {
+                    const fila = document.createElement('div');
+                    fila.className = 'data-row';
+
+                    const info = document.createElement('div');
+                    const nombre = document.createElement('div');
+                    nombre.className = 'data-title';
+                    nombre.textContent = servicio.nombre || 'Sin nombre';
+                    const meta = document.createElement('div');
+                    meta.className = 'data-meta';
+                    meta.textContent = (servicio.duracion_minutos || 0) + ' min';
+                    info.appendChild(nombre);
+                    info.appendChild(meta);
+
+                    const precio = document.createElement('div');
+                    precio.className = 'data-value';
+                    precio.textContent = money(servicio.precio_base);
+
+                    const acciones = document.createElement('div');
+                    acciones.className = 'row-actions';
+                    acciones.appendChild(botonAccion('fa-pen', 'Editar ' + (servicio.nombre || ''), function() { abrirServicio(servicio.id); }));
+                    acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (servicio.nombre || ''), function() { borrarServicio(servicio.id); }, true));
+
+                    fila.appendChild(info);
+                    fila.appendChild(precio);
+                    fila.appendChild(acciones);
+                    cont.appendChild(fila);
+                });
+            }
+
+            function abrirServicio(id) {
+                servicioForm.reset();
+                servicioIdInput.value = '';
+                setErrorModal(servicioErrorEl, '');
+                if (id) {
+                    const servicio = store.servicios.find(function(s) { return s.id === id; });
+                    if (!servicio) return;
+                    servicioIdInput.value = servicio.id;
+                    servicioNombreInput.value = servicio.nombre || '';
+                    servicioPrecioInput.value = servicio.precio_base != null ? servicio.precio_base : '';
+                    servicioDuracionInput.value = servicio.duracion_minutos != null ? servicio.duracion_minutos : '';
+                    servicioTitulo.textContent = 'Editar servicio';
+                } else {
+                    servicioDuracionInput.value = 60;
+                    servicioTitulo.textContent = 'Nuevo servicio';
+                }
+                servicioModal.classList.remove('hidden');
+                servicioNombreInput.focus();
+            }
+
+            function cerrarServicio() { servicioModal.classList.add('hidden'); }
+
+            function validarServicio(nombre, precio, duracion) {
+                if (!nombre || nombre.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
+                if (servicioPrecioInput.value.trim() === '' || !isFinite(precio) || precio < 0) {
+                    return 'El precio debe ser un número mayor o igual a 0.';
+                }
+                if (servicioDuracionInput.value.trim() === '' || !isFinite(duracion) || duracion < 15 || duracion > 600) {
+                    return 'La duración debe estar entre 15 y 600 minutos.';
+                }
+                return null;
+            }
+
+            servicioForm.addEventListener('submit', async function(evento) {
+                evento.preventDefault();
+                const nombre = servicioNombreInput.value.trim();
+                const precio = Number(servicioPrecioInput.value);
+                const duracion = Number(servicioDuracionInput.value);
+                const problema = validarServicio(nombre, precio, duracion);
+                if (problema) { setErrorModal(servicioErrorEl, problema); return; }
+                const id = servicioIdInput.value;
+                const fila = { nombre: nombre, precio_base: precio, duracion_minutos: duracion };
+                servicioSaveBtn.disabled = true;
+                try {
+                    if (id) await api.servicios.update(id, fila);
+                    else await api.servicios.create(fila);
+                    await recargar('servicios');
+                    cerrarServicio();
+                    mostrarBanner(id ? 'Servicio actualizado.' : 'Servicio creado.', 'ok');
+                } catch (error) {
+                    setErrorModal(servicioErrorEl, 'No se pudo guardar: ' + (error.message || 'error de conexión'));
+                } finally {
+                    servicioSaveBtn.disabled = false;
+                }
+            });
+
+            function borrarServicio(id) {
+                const servicio = store.servicios.find(function(s) { return s.id === id; });
+                if (!servicio) return;
+                const asociados = store.turnos.filter(function(turno) {
+                    if (turno.servicio_id != null) return turno.servicio_id === id;
+                    return normalizar(turno.service_type) === normalizar(servicio.nombre);
+                }).length;
+                if (asociados > 0) {
+                    mostrarBanner('No se puede borrar "' + servicio.nombre + '": tiene ' + asociados + ' turno(s) asociados.', 'error');
+                    return;
+                }
+                pedirConfirmacion('Borrar servicio', '¿Borrar "' + servicio.nombre + '"? Esta acción no se puede deshacer.', 'Borrar', async function() {
+                    try {
+                        await api.servicios.remove(id);
+                        await recargar('servicios');
+                        mostrarBanner('Servicio eliminado.', 'ok');
+                    } catch (error) {
+                        mostrarBanner('No se pudo borrar: ' + (error.message || 'error de conexión'), 'error');
+                    }
+                });
+            }
+
+            // ── clientes ──
+            function turnosDeCliente(cliente) {
+                const nombre = normalizar(cliente.nombre);
+                return store.turnos.filter(function(turno) {
+                    if (turno.cliente_id != null) return turno.cliente_id === cliente.id;
+                    return normalizar(turno.client_name) === nombre;
+                });
+            }
+
+            function renderClientes() {
+                const cont = document.getElementById('clientes-list');
+                if (!cont) return;
+                cont.setAttribute('aria-busy', store.cargando.clientes ? 'true' : 'false');
+                if (store.cargando.clientes) { pintarEsqueleto(cont, 3); return; }
+                if (!store.cargado.clientes) {
+                    pintarVacio(cont, 'fa-triangle-exclamation', 'No se pudieron cargar los clientes. Revisá la conexión.');
+                    return;
+                }
+                const filtro = normalizar(filtroClientes);
+                const lista = store.clientes.filter(function(cliente) {
+                    if (!filtro) return true;
+                    return normalizar(cliente.nombre).indexOf(filtro) >= 0 ||
+                           normalizar(cliente.telefono).indexOf(filtro) >= 0 ||
+                           normalizar(cliente.email).indexOf(filtro) >= 0;
+                });
+                cont.innerHTML = '';
+                if (!lista.length) {
+                    pintarVacio(cont, 'fa-user-friends', filtro
+                        ? 'No hay clientes que coincidan con la búsqueda.'
+                        : 'Todavía no cargaste clientes. Agregá el primero con "Nuevo cliente".');
+                    return;
+                }
+                lista.forEach(function(cliente) {
+                    const turnos = turnosDeCliente(cliente);
+                    const cobrado = turnos.filter(function(t) { return t.status === 'completed'; })
+                        .reduce(function(suma, t) { return suma + (Number(t.price) || 0); }, 0);
+
+                    const fila = document.createElement('div');
+                    fila.className = 'data-row';
+
+                    const info = document.createElement('div');
+                    const nombre = document.createElement('div');
+                    nombre.className = 'data-title';
+                    nombre.textContent = cliente.nombre || 'Sin nombre';
+                    const meta = document.createElement('div');
+                    meta.className = 'data-meta';
+                    meta.textContent = cliente.telefono || cliente.email || 'Sin datos de contacto';
+                    info.appendChild(nombre);
+                    info.appendChild(meta);
+
+                    const stats = document.createElement('div');
+                    stats.className = 'data-value';
+                    stats.textContent = turnos.length + (turnos.length === 1 ? ' turno' : ' turnos') + ' · ' + money(cobrado);
+                    stats.title = 'Turnos que hizo y total cobrado (realizados)';
+
+                    const acciones = document.createElement('div');
+                    acciones.className = 'row-actions';
+                    acciones.appendChild(botonAccion('fa-pen', 'Editar ' + (cliente.nombre || ''), function() { abrirCliente(cliente.id); }));
+                    acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (cliente.nombre || ''), function() { borrarCliente(cliente.id); }, true));
+
+                    fila.appendChild(info);
+                    fila.appendChild(stats);
+                    fila.appendChild(acciones);
+                    cont.appendChild(fila);
+                });
+            }
+
+            function abrirCliente(id, callback) {
+                clienteForm.reset();
+                clienteIdInput.value = '';
+                setErrorModal(clienteErrorEl, '');
+                clienteCallback = callback || null;
+                if (id) {
+                    const cliente = store.clientes.find(function(c) { return c.id === id; });
+                    if (!cliente) return;
+                    clienteIdInput.value = cliente.id;
+                    clienteNombreInput.value = cliente.nombre || '';
+                    clienteTelefonoInput.value = cliente.telefono || '';
+                    clienteEmailInput.value = cliente.email || '';
+                    clienteNotasInput.value = cliente.notas || '';
+                    clienteTitulo.textContent = 'Editar cliente';
+                } else {
+                    clienteTitulo.textContent = 'Nuevo cliente';
+                }
+                clienteModal.classList.remove('hidden');
+                clienteNombreInput.focus();
+            }
+
+            function cerrarCliente() {
+                clienteModal.classList.add('hidden');
+                clienteCallback = null;
+            }
+
+            clienteForm.addEventListener('submit', async function(evento) {
+                evento.preventDefault();
+                const nombre = clienteNombreInput.value.trim();
+                const email = clienteEmailInput.value.trim();
+                if (nombre.length < 2) { setErrorModal(clienteErrorEl, 'El nombre debe tener al menos 2 caracteres.'); return; }
+                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+                    setErrorModal(clienteErrorEl, 'El email no parece válido.');
+                    return;
+                }
+
+                const id = clienteIdInput.value;
+                const duplicado = store.clientes.some(function(c) {
+                    if (String(c.id) === String(id)) return false;
+                    return normalizar(c.nombre) === normalizar(nombre);
+                });
+                if (duplicado) {
+                    setErrorModal(clienteErrorEl, 'Ya existe un cliente con ese nombre.');
+                    return;
+                }
+
+                const fila = {
+                    nombre: nombre,
+                    telefono: clienteTelefonoInput.value.trim(),
+                    email: clienteEmailInput.value.trim(),
+                    notas: clienteNotasInput.value.trim()
+                };
+                clienteSaveBtn.disabled = true;
+                try {
+                    let guardado;
+                    if (id) guardado = await api.clientes.update(id, fila);
+                    else guardado = await api.clientes.create(fila);
+                    await recargar('clientes');
+                    cerrarCliente();
+                    mostrarBanner(id ? 'Cliente actualizado.' : 'Cliente creado.', 'ok');
+                    if (clienteCallback && guardado) clienteCallback(guardado);
+                } catch (error) {
+                    setErrorModal(clienteErrorEl, 'No se pudo guardar: ' + (error.message || 'error de conexión'));
+                } finally {
+                    clienteSaveBtn.disabled = false;
+                }
+            });
+
+            function borrarCliente(id) {
+                const cliente = store.clientes.find(function(c) { return c.id === id; });
+                if (!cliente) return;
+                const turnos = turnosDeCliente(cliente).length;
+                const aviso = turnos > 0
+                    ? '¿Borrar a "' + cliente.nombre + '"? Tiene ' + turnos + ' turno(s): se conservan, pero quedan sin cliente asignado.'
+                    : '¿Borrar a "' + cliente.nombre + '"? Esta acción no se puede deshacer.';
+                pedirConfirmacion('Borrar cliente', aviso, 'Borrar', async function() {
+                    try {
+                        await api.clientes.remove(id);
+                        await recargar('clientes');
+                        if (turnos > 0) await recargar('turnos');
+                        mostrarBanner('Cliente eliminado.', 'ok');
+                    } catch (error) {
+                        mostrarBanner('No se pudo borrar: ' + (error.message || 'error de conexión'), 'error');
+                    }
+                });
+            }
+
+            // ── listeners de la sección ──
+            const nuevoServicioBtn = document.getElementById('nuevo-servicio-btn');
+            const nuevoClienteBtn = document.getElementById('nuevo-cliente-btn');
+
+            if (nuevoServicioBtn) nuevoServicioBtn.addEventListener('click', function() { abrirServicio(null); });
+            if (nuevoClienteBtn) nuevoClienteBtn.addEventListener('click', function() { abrirCliente(null); });
+
+            document.getElementById('servicio-modal-close').addEventListener('click', cerrarServicio);
+            document.getElementById('servicio-cancel').addEventListener('click', cerrarServicio);
+            document.getElementById('cliente-modal-close').addEventListener('click', cerrarCliente);
+            document.getElementById('cliente-cancel').addEventListener('click', cerrarCliente);
+
+            servicioModal.addEventListener('click', function(evento) { if (evento.target === servicioModal) cerrarServicio(); });
+            clienteModal.addEventListener('click', function(evento) { if (evento.target === clienteModal) cerrarCliente(); });
+
+            document.addEventListener('keydown', function(evento) {
+                if (evento.key !== 'Escape') return;
+                if (servicioModal && !servicioModal.classList.contains('hidden')) cerrarServicio();
+                if (clienteModal && !clienteModal.classList.contains('hidden')) cerrarCliente();
+            });
+
+            if (clientesSearch) {
+                clientesSearch.addEventListener('input', function() {
+                    filtroClientes = clientesSearch.value;
+                    renderClientes();
+                });
+            }            // ─────────────────────────────────────────────────────────────
             // Tema claro / oscuro
             // ─────────────────────────────────────────────────────────────
             const TEMA_KEY = 'eli_theme';
