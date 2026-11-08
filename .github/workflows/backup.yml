@@ -1,0 +1,75 @@
+name: Backup semanal
+
+# Domingo 23:00 en Argentina (UTC-3) = lunes 02:00 UTC.
+# Argentina no tiene horario de verano, así que el horario es estable todo el año.
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: pg_dump de Supabase
+    runs-on: ubuntu-latest
+    # Misma versión mayor que el servidor: pg_dump nuevo puede leer un servidor viejo,
+    # al revés falla con "server version mismatch".
+    container:
+      image: postgres:17
+
+    steps:
+      - name: Comprobar el secret
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Falta el secret DATABASE_URL (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+      - name: Generar el respaldo
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/backup"
+          FECHA="$(date -u +%Y-%m-%d)"
+          ARCHIVO="eli_${FECHA}.sql.gz"
+          pg_dump "$DATABASE_URL" \
+            --schema=public \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            --format=plain \
+            | gzip -9 > "$GITHUB_WORKSPACE/backup/${ARCHIVO}"
+          echo "FECHA=${FECHA}" >> "$GITHUB_ENV"
+          echo "ARCHIVO=${ARCHIVO}" >> "$GITHUB_ENV"
+
+      - name: Verificar el respaldo
+        run: |
+          set -euo pipefail
+          RUTA="$GITHUB_WORKSPACE/backup/${ARCHIVO}"
+          if [ ! -s "$RUTA" ]; then
+            echo "::error::El respaldo quedó vacío."
+            exit 1
+          fi
+          gzip -t "$RUTA"
+          LINEAS="$(gunzip -c "$RUTA" | wc -l)"
+          TAMANO="$(du -h "$RUTA" | cut -f1)"
+          echo "Respaldo: ${ARCHIVO} · ${TAMANO} · ${LINEAS} líneas SQL"
+          if [ "$LINEAS" -lt 10 ]; then
+            echo "::error::El respaldo tiene muy pocas líneas. Revisar la conexión."
+            exit 1
+          fi
+
+      - name: Subir el artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eli-backup-${{ env.FECHA }}
+          path: ${{ github.workspace }}/backup/*.sql.gz
+          retention-days: 90
+          if-no-files-found: error
