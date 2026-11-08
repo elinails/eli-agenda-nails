@@ -10,8 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- P2: Supabase SDK (version pineada para evitar cambios silenciosos) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+    <!-- P2: Supabase SDK (UMD explicito, version pineada) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -386,9 +386,9 @@
             <h1 class="text-2xl font-bold text-eli-dark mb-1">Eli M. Nails</h1>
             <p class="text-sm text-gray-600 mb-6">Agenda de turnos</p>
             <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
-                <i class="fab fa-google"></i> Entrar con Google
+                <i class="fab fa-google"></i> Iniciar sesión con Google
             </button>
-            <p id="auth-error" class="mt-4 text-sm text-red-600" role="alert"></p>
+            <p id="auth-error" class="hidden mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
         </div>
     </div>
 
@@ -631,7 +631,7 @@
                     showView('appointments');
                 } catch (error) {
                     console.error('Error guardando el turno:', error);
-                    alert('No se pudo guardar el turno: ' + (error.message || 'error de conexión'));
+                    mostrarBanner('No se pudo guardar el turno: ' + (error.message || 'error de conexión'), 'error');
                 }
             }
             
@@ -824,7 +824,7 @@
                     XLSX.writeFile(wb, 'Turnos_Eli_Nails_' + todayISO() + '.xlsx');
                 } catch (error) {
                     console.error('Error exportando:', error);
-                    alert('No se pudo exportar el Excel.');
+                    mostrarBanner('No se pudo exportar el Excel.', 'error');
                 }
             });
             
@@ -1180,6 +1180,7 @@
             function mostrarLogin(mensaje) {
                 appIniciada = false;
                 authError.textContent = mensaje || '';
+                authError.classList.toggle('hidden', !mensaje);
                 googleLoginBtn.disabled = false;
                 authScreen.classList.remove('hidden');
             }
@@ -1289,7 +1290,7 @@
                                 mostrarBanner('Migrados ' + locales.length + ' turnos locales.', 'ok');
                             } catch (error) {
                                 console.error(error);
-                                alert('No se pudieron migrar los turnos: ' + (error.message || 'error de conexión'));
+                                mostrarBanner('No se pudieron migrar los turnos: ' + (error.message || 'error de conexión'), 'error');
                             }
                         }
                     );
@@ -1437,7 +1438,7 @@
                     resetForm();
                 } catch (error) {
                     console.error('Error eliminando el turno:', error);
-                    alert('No se pudo eliminar el turno: ' + (error.message || 'error de conexión'));
+                    mostrarBanner('No se pudo eliminar el turno: ' + (error.message || 'error de conexión'), 'error');
                 }
             }
             
