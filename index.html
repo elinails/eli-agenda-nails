@@ -3202,6 +3202,30 @@
 
             // ── Auth ──
             let appIniciada = false;
+
+            // I24: firma del modo de vista (movil <-> escritorio) para intentar
+            // recuperar la sesion cuando el navegador cambia de contexto.
+            const CLAVE_MODO = 'eli_modo_vista';
+            let cambioDeModo = false;
+            let reintentoHecho = false;
+
+            function firmaDeModo() {
+                const ancho = window.innerWidth >= 1024 ? 'D' : 'M';
+                const ua = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'm' : 'd';
+                return ancho + ua;
+            }
+
+            (function detectarCambioDeModo() {
+                const actual = firmaDeModo();
+                try {
+                    const previa = localStorage.getItem(CLAVE_MODO);
+                    cambioDeModo = !!previa && previa !== actual;
+                    localStorage.setItem(CLAVE_MODO, actual);
+                } catch (error) {
+                    cambioDeModo = false;
+                }
+            })();
+
             let calendarioIniciado = false;
 
             function mostrarLogin(mensaje) {
@@ -3252,8 +3276,28 @@
                 try {
                     const { data, error } = await supabase.auth.getSession();
                     if (error) { mostrarLogin('No se pudo comprobar la sesión: ' + error.message); return; }
-                    if (data && data.session) { await iniciarApp(data.session); }
-                    else { mostrarLogin(); }
+                    if (data && data.session) { await iniciarApp(data.session); return; }
+
+                    // I24: cambió el modo de vista y no hay sesión -> un reintento
+                    if (cambioDeModo && !reintentoHecho) {
+                        reintentoHecho = true;
+                        try {
+                            await supabase.auth.refreshSession();
+                            const segunda = await supabase.auth.getSession();
+                            if (segunda && segunda.data && segunda.data.session) {
+                                await iniciarApp(segunda.data.session);
+                                return;
+                            }
+                        } catch (errorReintento) {
+                            console.error('No se pudo renovar la sesión:', errorReintento);
+                            mostrarLogin('No se pudo recuperar la sesión. Revisá la conexión y volvé a iniciar sesión.');
+                            return;
+                        }
+                        mostrarLogin('Parece que cambiaste el modo de vista y se perdió la sesión. Volvé a iniciar sesión.');
+                        return;
+                    }
+
+                    mostrarLogin();
                 } catch (error) {
                     console.error(error);
                     mostrarLogin('Error de conexión con el servidor.');
