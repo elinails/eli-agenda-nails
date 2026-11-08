@@ -1579,6 +1579,13 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="mt-4">
+                            <label for="appointment-sena" class="block text-sm font-medium text-ink-soft mb-1">Seña ($)</label>
+                            <input type="number" id="appointment-sena" min="0" step="1" inputmode="decimal" placeholder="0"
+                                   class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                            <p id="sena-ayuda" class="hidden text-xs text-ink-soft mt-1"></p>
+                        </div>
                     </div>
                 </section>
 
@@ -1969,6 +1976,16 @@
                         <p class="text-sm text-ink-soft">Precio</p>
                         <p class="font-medium" id="modal-price"></p>
                     </div>
+
+                    <div id="modal-sena-bloque" class="hidden">
+                        <p class="text-sm text-ink-soft">Seña abonada</p>
+                        <p class="font-medium" id="modal-sena"></p>
+                    </div>
+
+                    <div id="modal-saldo-bloque" class="hidden">
+                        <p class="text-sm text-ink-soft">Saldo pendiente</p>
+                        <p class="font-medium text-gold-ink" id="modal-saldo"></p>
+                    </div>
                     
                     <div>
                         <p class="text-sm text-ink-soft">Estado</p>
@@ -2243,6 +2260,8 @@
             const appointmentDateInput = document.getElementById('appointment-date');
             const appointmentTimeInput = document.getElementById('appointment-time');
             const appointmentPriceInput = document.getElementById('appointment-price');
+                const appointmentSenaInput = document.getElementById('appointment-sena');
+                const senaAyuda = document.getElementById('sena-ayuda');
             const appointmentNotesInput = document.getElementById('appointment-notes');
             const appointmentStatusInput = document.getElementById('appointment-status');
             const appointmentIdInput = document.getElementById('appointment-id');
@@ -2517,6 +2536,28 @@
             
             clearBtn.addEventListener('click', resetForm);
             
+            function saldoPendiente(precio, sena) {
+                return Math.max(0, (Number(precio) || 0) - (Number(sena) || 0));
+            }
+
+            function actualizarAyudaSena() {
+                if (!senaAyuda) return;
+                const sena = Number(appointmentSenaInput && appointmentSenaInput.value) || 0;
+                const precio = Number(appointmentPriceInput && appointmentPriceInput.value) || 0;
+                if (sena > 0) {
+                    senaAyuda.textContent = 'Saldo pendiente: ' + money(saldoPendiente(precio, sena));
+                    senaAyuda.classList.remove('hidden');
+                } else {
+                    senaAyuda.textContent = '';
+                    senaAyuda.classList.add('hidden');
+                }
+            }
+
+            if (appointmentForm) {
+                appointmentForm.addEventListener('input', actualizarAyudaSena);
+                appointmentForm.addEventListener('change', actualizarAyudaSena);
+            }
+
             function resetForm() {
                 appointmentForm.reset();
                 appointmentIdInput.value = '';
@@ -2526,6 +2567,8 @@
                 if (servicioIdReset) servicioIdReset.value = '';
                 const tituloForm = document.getElementById('form-title');
                 if (tituloForm) tituloForm.textContent = 'Nuevo Turno';
+                if (appointmentSenaInput) appointmentSenaInput.value = '';
+                actualizarAyudaSena();
                 saveBtn.classList.remove('hidden');
                 updateBtn.classList.add('hidden');
                 deleteBtn.classList.add('hidden');
@@ -2591,12 +2634,22 @@
                     date: appointmentDateInput.value,
                     time: appointmentTimeInput.value,
                     price: appointmentPriceInput.value ? parseInt(appointmentPriceInput.value) : 0,
+                    sena: appointmentSenaInput && appointmentSenaInput.value ? parseInt(appointmentSenaInput.value) : 0,
                     notes: appointmentNotesInput.value.trim(),
                     status: appointmentStatusInput.value
                 };
 
                 if (!appointment.clientName || !appointment.serviceType || !appointment.date || !appointment.time) {
                     mostrarBanner('Completá clienta, servicio, fecha y hora.', 'error');
+                    return;
+                }
+
+                if (appointment.sena < 0) {
+                    mostrarBanner('La seña no puede ser negativa.', 'error');
+                    return;
+                }
+                if (appointment.sena > appointment.price) {
+                    mostrarBanner('La seña no puede ser mayor al precio del turno.', 'error');
                     return;
                 }
 
@@ -2769,7 +2822,8 @@
                     name.textContent = appointment.clientName;
                     const meta = document.createElement('div');
                     meta.className = 'appt-meta';
-                    meta.textContent = appointment.serviceType;
+                    meta.textContent = appointment.serviceType +
+                        (Number(appointment.sena) > 0 ? ' · Seña: ' + money(appointment.sena) : '');
                     who.appendChild(name);
                     who.appendChild(meta);
                     
@@ -3234,8 +3288,8 @@
                     clienteId: r.cliente_id != null ? r.cliente_id : null,
                     servicioId: r.servicio_id != null ? r.servicio_id : null,
                     date: fecha,
-                    time: hora,
-                    price: r.price || 0,
+                    time: hora,                    price: r.price || 0,
+                    sena: Number(r.sena) || 0,
                     notes: r.notes || '',
                     status: normalizarEstado(r.status),
                     timestamp: new Date(fecha + 'T' + hora + ':00').getTime()
@@ -3249,6 +3303,7 @@
                     cliente_id: a.clienteId != null ? a.clienteId : null,
                     servicio_id: a.servicioId != null ? a.servicioId : null,
                     price: a.price,
+                    sena: a.sena != null ? Number(a.sena) : 0,
                     notes: a.notes,
                     status: normalizarEstado(a.status)
                 };
@@ -5174,6 +5229,20 @@
                 document.getElementById('modal-date').textContent = formatDate(appointment.date);
                 document.getElementById('modal-time').textContent = appointment.time;
                 document.getElementById('modal-price').textContent = `$${appointment.price || '--'}`;
+                const senaTurno = Number(appointment.sena) || 0;
+                const bloqueSena = document.getElementById('modal-sena-bloque');
+                const bloqueSaldo = document.getElementById('modal-saldo-bloque');
+                if (bloqueSena && bloqueSaldo) {
+                    if (senaTurno > 0) {
+                        document.getElementById('modal-sena').textContent = money(senaTurno);
+                        document.getElementById('modal-saldo').textContent = money(saldoPendiente(appointment.price, senaTurno));
+                        bloqueSena.classList.remove('hidden');
+                        bloqueSaldo.classList.remove('hidden');
+                    } else {
+                        bloqueSena.classList.add('hidden');
+                        bloqueSaldo.classList.add('hidden');
+                    }
+                }
                 document.getElementById('modal-status').textContent = getStatusText(appointment.status);
                 document.getElementById('modal-notes').textContent = appointment.notes || '--';
                 
@@ -5225,6 +5294,8 @@
                 appointmentDateInput.value = appointment.date;
                 appointmentTimeInput.value = appointment.time;
                 appointmentPriceInput.value = appointment.price;
+                if (appointmentSenaInput) appointmentSenaInput.value = Number(appointment.sena) > 0 ? appointment.sena : '';
+                actualizarAyudaSena();
                 appointmentNotesInput.value = appointment.notes || '';
                 appointmentStatusInput.value = appointment.status;
                 
@@ -5363,8 +5434,11 @@
             }
 
             async function generarTarjetaTurno(turno) {
+                const sena = Number(turno.sena) || 0;
+                const precioTurno = Number(turno.price) || 0;
+                const extras = sena > 0 ? 2 : 0;
                 const ANCHO = 800;
-                const ALTO = 1000;
+                const ALTO = 1000 + extras * 68;
                 const canvas = document.createElement('canvas');
                 canvas.width = ANCHO;
                 canvas.height = ALTO;
@@ -5457,11 +5531,12 @@
                 ctx.font = '22px ' + sans;
                 ctx.fillText('Tu turno está confirmado', ANCHO / 2, ySub);
 
+                const altoTarjeta = 336 + extras * 68;
                 const yCard = ySub + 46;
                 ctx.fillStyle = COLOR.surface;
                 ctx.strokeStyle = COLOR.line;
                 ctx.lineWidth = 2;
-                rectRedondeado(ctx, 90, yCard, 620, 336, 22);
+                rectRedondeado(ctx, 90, yCard, 620, altoTarjeta, 22);
                 ctx.fill();
                 ctx.stroke();
 
@@ -5471,6 +5546,10 @@
                     ['HORA', turno.time || '--']
                 ];
                 if (turno.price) filas.push(['PRECIO', '$ ' + Number(turno.price).toLocaleString('es-AR')]);
+                if (sena > 0) {
+                    filas.push(['SEÑA ABONADA', '$ ' + sena.toLocaleString('es-AR')]);
+                    filas.push(['SALDO A ABONAR', '$ ' + saldoPendiente(precioTurno, sena).toLocaleString('es-AR')]);
+                }
 
                 let yFila = yCard + 58;
                 filas.forEach(function(fila) {
@@ -5485,7 +5564,7 @@
                     yFila += 68;
                 });
 
-                const yPie = yCard + 336 + 44;
+                const yPie = yCard + altoTarjeta + 44;
                 ctx.textAlign = 'center';
                 ctx.strokeStyle = COLOR.blush2;
                 ctx.beginPath();
