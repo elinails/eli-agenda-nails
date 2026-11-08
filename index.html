@@ -1245,7 +1245,58 @@
         .deuda-pagos { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
         .deuda-pago { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-soft); }
         .deuda-pago strong { color: var(--ink); font-weight: 600; }
-        .vacio-dash { font-size: 13px; color: var(--ink-soft); }        @media (prefers-reduced-motion: reduce) {
+        .vacio-dash { font-size: 13px; color: var(--ink-soft); }
+        /* ── I21 · pegar desde el portapapeles ── */
+        .campo-con-pegar { position: relative; }
+        .campo-con-pegar input { padding-right: 44px; }
+        .btn-pegar {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--ink-soft);
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color .16s ease, color .16s ease;
+        }
+        .btn-pegar:hover { background: var(--surface-2); color: var(--ink); }
+        .clip-sugerencia { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .clip-sugerencia.hidden { display: none; }
+        .clip-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            padding: 5px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-2);
+            color: var(--ink);
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color .16s ease;
+        }
+        .clip-chip:hover { border-color: var(--gold-ink); }
+        .clip-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .clip-x {
+            border: 0;
+            background: transparent;
+            color: var(--ink-soft);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+        .clip-x:hover { background: var(--surface-2); color: var(--ink); }
+        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -2015,14 +2066,28 @@
                 <input type="hidden" id="cliente-id">
                 <div>
                     <label for="cliente-nombre" class="block text-sm font-medium text-ink-soft mb-1">Nombre <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
-                    <input type="text" id="cliente-nombre" required minlength="2" maxlength="80" autocomplete="name"
-                           class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    <div class="campo-con-pegar">
+                        <input type="text" id="cliente-nombre" required minlength="2" maxlength="80" autocomplete="name"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                        <button type="button" class="btn-pegar" data-pegar="cliente-nombre"
+                                aria-label="Pegar nombre desde el portapapeles" title="Pegar">
+                            <i class="fas fa-clipboard" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div id="clip-nombre" class="clip-sugerencia hidden"></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="cliente-telefono" class="block text-sm font-medium text-ink-soft mb-1">Teléfono</label>
-                        <input type="tel" id="cliente-telefono" maxlength="30" autocomplete="tel"
-                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                        <div class="campo-con-pegar">
+                            <input type="tel" id="cliente-telefono" maxlength="30" autocomplete="tel"
+                                   class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                            <button type="button" class="btn-pegar" data-pegar="cliente-telefono"
+                                    aria-label="Pegar teléfono desde el portapapeles" title="Pegar">
+                                <i class="fas fa-clipboard" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div id="clip-telefono" class="clip-sugerencia hidden"></div>
                     </div>
                     <div>
                         <label for="cliente-email" class="block text-sm font-medium text-ink-soft mb-1">Email</label>
@@ -3633,7 +3698,160 @@
                 });
             }
 
-            function abrirCliente(id, callback) {
+            // ─────────────────────────────────────────────────────────────
+            // I21 · Pegar desde el portapapeles en el modal de clientes
+            // ─────────────────────────────────────────────────────────────
+            const CLIP_MAX_CHARS = 22;
+            let clipDescartado = false;
+
+            async function leerPortapapeles() {
+                try {
+                    if (!navigator.clipboard || !navigator.clipboard.readText) return '';
+                    const texto = await navigator.clipboard.readText();
+                    return String(texto || '').trim().slice(0, 120);
+                } catch (error) {
+                    return '';
+                }
+            }
+
+            function pareceTelefono(texto) {
+                const limpio = String(texto || '').trim();
+                if (!limpio || limpio.length > 30) return null;
+                if (!/^\+?[\d\s\-().]+$/.test(limpio)) return null;
+                const digitos = limpio.replace(/\D/g, '');
+                if (digitos.length < 6 || digitos.length > 15) return null;
+                return limpio;
+            }
+
+            function pareceNombre(texto) {
+                const limpio = String(texto || '').trim().replace(/\s+/g, ' ');
+                if (limpio.length < 3 || limpio.length > 60) return null;
+                if (/\d/.test(limpio)) return null;
+                if (!/[A-Za-zÀ-ÿ]/.test(limpio)) return null;
+                if (!/^[A-Za-zÀ-ÿ\s.'-]+$/.test(limpio)) return null;
+                return limpio;
+            }
+
+            function extraerTelefono(texto) {
+                const coincidencia = String(texto || '').match(/\+?\d[\d\s\-().]{4,}\d/);
+                if (!coincidencia) return null;
+                return pareceTelefono(coincidencia[0]);
+            }
+
+            function clasificarPortapapeles(texto) {
+                const limpio = String(texto || '').trim();
+                if (!limpio) return null;
+                const soloTelefono = pareceTelefono(limpio);
+                if (soloTelefono) return { telefono: soloTelefono, nombre: null };
+                const soloNombre = pareceNombre(limpio);
+                if (soloNombre) return { telefono: null, nombre: soloNombre };
+                const telefono = extraerTelefono(limpio);
+                if (telefono) {
+                    const resto = limpio.split(telefono).join(' ').replace(/\s+/g, ' ').trim().replace(/^[-–:·]+|[-–:·]+$/g, '').trim();
+                    return { telefono: telefono, nombre: pareceNombre(resto) };
+                }
+                return null;
+            }
+
+            function campoDeClip(que) {
+                return document.getElementById(que === 'nombre' ? 'cliente-nombre' : 'cliente-telefono');
+            }
+
+            function ocultarSugerencia(que) {
+                const cont = document.getElementById('clip-' + que);
+                if (!cont) return;
+                cont.innerHTML = '';
+                cont.classList.add('hidden');
+            }
+
+            function ocultarSugerencias() {
+                ocultarSugerencia('nombre');
+                ocultarSugerencia('telefono');
+            }
+
+            function aplicarSugerencia(que, valor) {
+                const input = campoDeClip(que);
+                if (!input) return;
+                input.value = valor;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                ocultarSugerencia(que);
+                const siguiente = que === 'nombre' ? campoDeClip('telefono') : document.getElementById('cliente-email');
+                if (siguiente) siguiente.focus();
+            }
+
+            function mostrarSugerencia(que, valor) {
+                const cont = document.getElementById('clip-' + que);
+                const input = campoDeClip(que);
+                if (!cont || !input) return;
+                if (!valor || input.value.trim() || clipDescartado) {
+                    cont.classList.add('hidden');
+                    return;
+                }
+                cont.innerHTML = '';
+
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'clip-chip';
+                const icono = document.createElement('i');
+                icono.className = 'fas fa-clipboard';
+                icono.setAttribute('aria-hidden', 'true');
+                const texto = document.createElement('span');
+                const corto = valor.length > CLIP_MAX_CHARS ? valor.slice(0, CLIP_MAX_CHARS - 1) + '…' : valor;
+                texto.textContent = 'Pegar ' + corto;
+                chip.appendChild(icono);
+                chip.appendChild(texto);
+                chip.addEventListener('click', function () { aplicarSugerencia(que, valor); });
+
+                const cerrar = document.createElement('button');
+                cerrar.type = 'button';
+                cerrar.className = 'clip-x';
+                cerrar.setAttribute('aria-label', 'Descartar sugerencia');
+                cerrar.textContent = '✕';
+                cerrar.addEventListener('click', function () {
+                    clipDescartado = true;
+                    ocultarSugerencias();
+                });
+
+                cont.appendChild(chip);
+                cont.appendChild(cerrar);
+                cont.classList.remove('hidden');
+            }
+
+            async function sugerirDesdePortapapeles() {
+                if (clipDescartado) return;
+                const datos = clasificarPortapapeles(await leerPortapapeles());
+                if (!datos) return;
+                if (datos.nombre) mostrarSugerencia('nombre', datos.nombre);
+                if (datos.telefono) mostrarSugerencia('telefono', datos.telefono);
+            }
+
+            async function pegarEnCampo(idInput) {
+                const input = document.getElementById(idInput);
+                if (!input) return;
+                const texto = await leerPortapapeles();
+                if (!texto) {
+                    mostrarBanner('No se pudo leer el portapapeles. Copiá el dato y volvé a intentar.', 'error');
+                    return;
+                }
+                if (idInput === 'cliente-nombre') {
+                    const nombre = pareceNombre(texto);
+                    if (!nombre) {
+                        mostrarBanner('Lo copiado no parece un nombre.', 'ok');
+                        return;
+                    }
+                    input.value = nombre;
+                } else {
+                    const telefono = pareceTelefono(texto) || extraerTelefono(texto);
+                    if (!telefono) {
+                        mostrarBanner('Lo copiado no parece un teléfono.', 'ok');
+                        return;
+                    }
+                    input.value = telefono;
+                }
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                ocultarSugerencia(idInput === 'cliente-nombre' ? 'nombre' : 'telefono');
+                input.focus();
+            }            function abrirCliente(id, callback) {
                 clienteForm.reset();
                 clienteIdInput.value = '';
                 setErrorModal(clienteErrorEl, '');
@@ -3650,13 +3868,17 @@
                 } else {
                     clienteTitulo.textContent = 'Nuevo cliente';
                 }
+                ocultarSugerencias();
+                clipDescartado = false;
                 abrirModal(clienteModal);
                 clienteNombreInput.focus();
+                if (!id) sugerirDesdePortapapeles();
             }
 
             function cerrarCliente() {
                 cerrarModal(clienteModal);
                 clienteCallback = null;
+                ocultarSugerencias();
             }
 
             clienteForm.addEventListener('submit', async function(evento) {
@@ -3731,6 +3953,10 @@
             document.getElementById('servicio-modal-close').addEventListener('click', cerrarServicio);
             document.getElementById('servicio-cancel').addEventListener('click', cerrarServicio);
             document.getElementById('cliente-modal-close').addEventListener('click', cerrarCliente);
+
+            document.querySelectorAll('.btn-pegar[data-pegar]').forEach(function(boton) {
+                boton.addEventListener('click', function() { pegarEnCampo(boton.dataset.pegar); });
+            });
             document.getElementById('cliente-cancel').addEventListener('click', cerrarCliente);
 
             servicioModal.addEventListener('click', function(evento) { if (evento.target === servicioModal) cerrarServicio(); });
