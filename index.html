@@ -3666,7 +3666,7 @@
 
                 if (archivo && navigator.canShare && navigator.canShare({ files: [archivo] })) {
                     try {
-                        await navigator.share({ files: [archivo], title: 'Eli M. Nails', text: texto });
+                        await navigator.share({ files: [archivo] });
                         return;
                     } catch (error) {
                         if (error && error.name === 'AbortError') return;
