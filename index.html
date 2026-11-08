@@ -1831,6 +1831,10 @@
                 <div class="dash-panel">
                     <h3 class="dash-title">Deudas</h3>
                     <p id="deuda-pendiente-hint" class="vacio-dash"></p>
+                    <div class="seg mb-3" role="tablist" aria-label="Filtro de deudas" id="deudas-filtro">
+                        <button type="button" class="nav-tab active" data-filtro="pendientes" role="tab" aria-selected="true">Pendientes</button>
+                        <button type="button" class="nav-tab" data-filtro="todas" role="tab" aria-selected="false">Todas</button>
+                    </div>
                     <div id="deudas-list" class="space-y-3" aria-busy="true"></div>
                 </div>
 
@@ -2143,6 +2147,11 @@
                         <label class="text-sm text-ink-soft block mb-1" for="deuda-descripcion">Descripción</label>
                         <input id="deuda-descripcion" type="text" maxlength="80" required
                                class="w-full px-4 py-2 rounded-lg border border-line" placeholder="Ej: Lámpara UV">
+                    </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="deuda-acreedor">Acreedor / Proveedor <span class="text-xs text-ink-soft font-normal">(opcional)</span></label>
+                        <input id="deuda-acreedor" type="text" maxlength="80"
+                               class="w-full px-4 py-2 rounded-lg border border-line" placeholder="Ej: Franco Maldonado">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -2980,7 +2989,10 @@
                     const meta = document.createElement('div');
                     meta.className = 'appt-meta';
                     meta.textContent = appointment.serviceType +
-                        (Number(appointment.sena) > 0 ? ' · Seña: ' + money(appointment.sena) : '');
+                        (Number(appointment.sena) > 0
+                            ? ' · Seña: ' + money(appointment.sena) +
+                              ' · Saldo: ' + money(Math.max(0, (Number(appointment.price) || 0) - (Number(appointment.sena) || 0)))
+                            : '');
                     who.appendChild(name);
                     who.appendChild(meta);
                     
@@ -3117,6 +3129,7 @@
                     const deudasFilas = (store.deudas || []).map(function (d) {
                         return {
                             'Descripción': d.descripcion || '',
+                            'Acreedor': d.acreedor || '',
                             'Monto total': totalDeDeuda(d),
                             'Cuotas': Number(d.cuotas_totales) || 1,
                             'Pagado': pagadoDeDeuda(d.id),
@@ -3356,7 +3369,9 @@
                     if (cuotas === null) return { ok: false, error: 'Deuda ' + n + ': cuotas inválidas.' };
                     const inicio = fechaValida(r.fecha_inicio);
                     if (!inicio) return { ok: false, error: 'Deuda ' + n + ': fecha de inicio inválida.' };
-                    const fila = { descripcion: descripcion, monto_total: Math.round(total), cuotas_totales: Math.round(cuotas), fecha_inicio: inicio };
+                    const acreedor = r.acreedor == null ? '' : textoLimpio(r.acreedor, 80);
+                    if (acreedor === null) return { ok: false, error: 'Deuda ' + n + ': acreedor inválido.' };
+                    const fila = { descripcion: descripcion, acreedor: acreedor, monto_total: Math.round(total), cuotas_totales: Math.round(cuotas), fecha_inicio: inicio };
                     if (r.id != null) fila.id = r.id;
                     return { ok: true, fila: fila };
                 },
@@ -3715,6 +3730,8 @@
             }
 
             async function arrancar() {
+                cargarPeriodo();
+                cargarFiltroDeudas();
                 await dbReady;
                 if (!calendarioIniciado) { initCalendar(); calendarioIniciado = true; }
                 await detectarColumnas();
@@ -3723,6 +3740,7 @@
                 await evaluarMigracion();
                 showView('calendar');
                 dateFilter.value = todayISO();
+                pintarFiltroDeudas();
             }
 
             async function iniciarApp(session) {
@@ -4576,7 +4594,29 @@
             // ─────────────────────────────────────────────────────────────
             const NOMBRES_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
             const CLAVE_PERIODO = 'eli_periodo';
+            const CLAVE_FILTRO_DEUDAS = 'eli_filtro_deudas';
             let periodoModo = 'mes';
+            let filtroDeudas = 'pendientes';
+
+            function cargarFiltroDeudas() {
+                try {
+                    const guardado = localStorage.getItem(CLAVE_FILTRO_DEUDAS);
+                    if (guardado === 'todas' || guardado === 'pendientes') filtroDeudas = guardado;
+                } catch (error) { /* modo privado */ }
+            }
+
+            function guardarFiltroDeudas() {
+                try { localStorage.setItem(CLAVE_FILTRO_DEUDAS, filtroDeudas); } catch (error) { /* modo privado */ }
+            }
+
+            function pintarFiltroDeudas() {
+                const botones = document.querySelectorAll('#deudas-filtro [data-filtro]');
+                Array.prototype.forEach.call(botones, function (boton) {
+                    const activo = boton.dataset.filtro === filtroDeudas;
+                    boton.classList.toggle('active', activo);
+                    boton.setAttribute('aria-selected', activo ? 'true' : 'false');
+                });
+            }
             let marcandoDeuda = false;
 
             function cargarPeriodo() {
@@ -4656,8 +4696,12 @@
             }
 
             function cuotasFaltantes(deuda) {
-                const cuota = cuotaDeDeuda(deuda) || 1;
-                return Math.max(0, Math.ceil(saldoDeDeuda(deuda) / cuota));
+                // Nunca mas que el total de cuotas ni menos que 0.
+                const total = Math.max(1, Number(deuda.cuotas_totales) || 1);
+                const saldo = saldoDeDeuda(deuda);
+                if (saldo <= 0) return 0;
+                const porSaldo = Math.ceil(saldo / (cuotaDeDeuda(deuda) || 1));
+                return Math.max(0, Math.min(total, porSaldo));
             }
 
             function deudaEstaPagada(deuda) {
@@ -4862,14 +4906,26 @@
                     return;
                 }
 
-                todas.sort(function (a, b) {
+                const visibles = filtroDeudas === 'todas'
+                    ? todas
+                    : todas.filter(function (d) { return !deudaEstaPagada(d); });
+
+                if (!visibles.length) {
+                    const p = document.createElement('p');
+                    p.className = 'vacio-dash';
+                    p.textContent = 'No tenés deudas pendientes. Tocá "Todas" para ver las que ya pagaste.';
+                    cont.appendChild(p);
+                    return;
+                }
+
+                visibles.sort(function (a, b) {
                     const pa = deudaEstaPagada(a) ? 1 : 0;
                     const pb = deudaEstaPagada(b) ? 1 : 0;
                     if (pa !== pb) return pa - pb;
                     return String(b.fecha_inicio || '').localeCompare(String(a.fecha_inicio || ''));
                 });
 
-                todas.forEach(function (deuda) {
+                visibles.forEach(function (deuda) {
                     const total = totalDeDeuda(deuda);
                     const pagado = pagadoDeDeuda(deuda.id);
                     const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
@@ -4894,7 +4950,8 @@
                     arriba.className = 'deuda-top';
                     const titulo = document.createElement('span');
                     titulo.className = 'deuda-titulo';
-                    titulo.textContent = deuda.descripcion || 'Deuda';
+                    const acreedor = String(deuda.acreedor || '').trim();
+                    titulo.textContent = (deuda.descripcion || 'Deuda') + (acreedor ? ' · ' + acreedor : '');
                     const estado = document.createElement('span');
                     estado.className = 'badge ' + (pagada ? 'completed' : 'pending');
                     const punto = document.createElement('span');
@@ -4943,7 +5000,9 @@
 
                 setTexto('detalle-titulo', deuda.descripcion || 'Deuda');
                 setTexto('detalle-monto', money(total));
-                setTexto('detalle-meta', cuotas + (cuotas === 1 ? ' cuota' : ' cuotas') +
+                const acreedorDetalle = String(deuda.acreedor || '').trim();
+                setTexto('detalle-meta', (acreedorDetalle ? acreedorDetalle + ' · ' : '') +
+                    cuotas + (cuotas === 1 ? ' cuota' : ' cuotas') +
                     ' · desde ' + formatearFechaCorta(deuda.fecha_inicio));
                 const barra = document.getElementById('detalle-barra');
                 if (barra) barra.style.width = pct + '%';
@@ -5043,6 +5102,9 @@
                         ['SALDO PENDIENTE', money(saldo)]
                     ];
                 }
+
+                const acreedorComprobante = String(deuda.acreedor || '').trim();
+                if (acreedorComprobante) filas.unshift(['ACREEDOR', acreedorComprobante]);
 
                 const ANCHO = 800;
                 const estilos = getComputedStyle(document.documentElement);
@@ -5430,8 +5492,10 @@
                 if (errorEl) errorEl.classList.add('hidden');
                 if (boton) boton.disabled = true;
                 try {
+                    const acreedor = String((document.getElementById('deuda-acreedor') || {}).value || '').trim().slice(0, 80);
                     await api.deudas.create({
                         descripcion: descripcion,
+                        acreedor: acreedor,
                         monto_total: montoTotal,
                         cuotas_totales: cuotasTotales,
                         fecha_inicio: fecha
@@ -5458,6 +5522,16 @@
 
                 const abrirDeuda = document.getElementById('abrir-deuda-btn');
                 if (abrirDeuda) abrirDeuda.addEventListener('click', abrirNuevaDeuda);
+
+                const botonesFiltroDeudas = document.querySelectorAll('#deudas-filtro [data-filtro]');
+                Array.prototype.forEach.call(botonesFiltroDeudas, function (boton) {
+                    boton.addEventListener('click', function () {
+                        filtroDeudas = boton.dataset.filtro === 'todas' ? 'todas' : 'pendientes';
+                        guardarFiltroDeudas();
+                        pintarFiltroDeudas();
+                        renderDeudas();
+                    });
+                });
 
                 const cerrarDetalle = document.getElementById('close-detalle-deuda');
                 if (cerrarDetalle) cerrarDetalle.addEventListener('click', cerrarDetalleDeuda);
