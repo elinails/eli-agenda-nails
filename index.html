@@ -21,7 +21,7 @@
     <script>
         // A1b/I10: fijar modo y paleta antes del primer render (evita el flash)
         (function () {
-            var PALETAS = ['blush', 'salvia', 'mauve'];
+            var PALETAS = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold'];
             try {
                 var guardado = localStorage.getItem('eli_theme');
                 var sistema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -247,11 +247,107 @@
             --btn-secondary-hover: #503D51;
             --export-hover: #503D51;
         }
+        /* ── I15 · paletas doradas ── */
+        /* Rosé Gold */
+        :root[data-tema="rose-gold"] {
+            --paper: #FDF6F4;
+            --surface: #FFFFFF;
+            --surface-2: #FAEDEA;
+            --blush: #F3D9D2;
+            --blush-2: #F9E8E4;
+            --ink: #2E2320;
+            --ink-soft: #6F5B55;
+            --line: #EEDCD6;
+            --gold: #C9A227;
+            --gold-ink: #8A6A12;
+            --btn-primary-hover: #EBC6BD;
+            --btn-secondary-hover: #F6DFDA;
+            --export-hover: #F6DFDA;
+        }
+        :root[data-tema="rose-gold"][data-theme="dark"] {
+            --paper: #241C1B;
+            --surface: #322624;
+            --surface-2: #3E2E2B;
+            --blush: #6E4A44;
+            --blush-2: #4A3532;
+            --ink: #F7EDEA;
+            --ink-soft: #C3AEA8;
+            --line: #4A3733;
+            --gold: #E3C46A;
+            --gold-ink: #E3C46A;
+            --btn-primary-hover: #7E5750;
+            --btn-secondary-hover: #523A37;
+            --export-hover: #523A37;
+        }
+
+        /* Golden Glam */
+        :root[data-tema="golden-glam"] {
+            --paper: #FBF7EC;
+            --surface: #FFFFFF;
+            --surface-2: #F5EDD8;
+            --blush: #E8C874;
+            --blush-2: #F4E6C0;
+            --ink: #2B2418;
+            --ink-soft: #6B5F45;
+            --line: #EBE0C6;
+            --gold: #C8A64B;
+            --gold-ink: #866A1F;
+            --btn-primary-hover: #DFBB62;
+            --btn-secondary-hover: #EEDCB2;
+            --export-hover: #EEDCB2;
+        }
+        :root[data-tema="golden-glam"][data-theme="dark"] {
+            --paper: #1F1A10;
+            --surface: #2B2416;
+            --surface-2: #382F1D;
+            --blush: #6B5726;
+            --blush-2: #42371D;
+            --ink: #F8F1DF;
+            --ink-soft: #C9B995;
+            --line: #453A22;
+            --gold: #E2C275;
+            --gold-ink: #E2C275;
+            --btn-primary-hover: #7A6430;
+            --btn-secondary-hover: #4A3E22;
+            --export-hover: #4A3E22;
+        }
+
+        /* Nude Elegance */
+        :root[data-tema="nude-gold"] {
+            --paper: #F7F1E8;
+            --surface: #FFFFFF;
+            --surface-2: #F1E8DA;
+            --blush: #E4CFB4;
+            --blush-2: #F2E7D8;
+            --ink: #33291F;
+            --ink-soft: #6F5F4D;
+            --line: #E8DCC9;
+            --gold: #C9A96A;
+            --gold-ink: #85652E;
+            --btn-primary-hover: #D8BE9E;
+            --btn-secondary-hover: #EADDCB;
+            --export-hover: #EADDCB;
+        }
+        :root[data-tema="nude-gold"][data-theme="dark"] {
+            --paper: #221B14;
+            --surface: #2E251B;
+            --surface-2: #3A2F22;
+            --blush: #6E573B;
+            --blush-2: #443626;
+            --ink: #F7EFE3;
+            --ink-soft: #C9B79E;
+            --line: #463A2A;
+            --gold: #DDC08A;
+            --gold-ink: #DDC08A;
+            --btn-primary-hover: #7E6646;
+            --btn-secondary-hover: #4B3D2C;
+            --export-hover: #4B3D2C;
+        }
 
         /* ── selector de paletas ── */
         .paletas {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
             margin-top: 10px;
         }
@@ -292,6 +388,15 @@
         .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(1) { background: #F7F3F6; }
         .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(2) { background: #DCCBD9; }
         .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(3) { background: #C6A97C; }
+        .paleta[data-paleta="rose-gold"] .paleta-muestras i:nth-child(1) { background: #FDF6F4; }
+        .paleta[data-paleta="rose-gold"] .paleta-muestras i:nth-child(2) { background: #F3D9D2; }
+        .paleta[data-paleta="rose-gold"] .paleta-muestras i:nth-child(3) { background: #C9A227; }
+        .paleta[data-paleta="golden-glam"] .paleta-muestras i:nth-child(1) { background: #FBF7EC; }
+        .paleta[data-paleta="golden-glam"] .paleta-muestras i:nth-child(2) { background: #E8C874; }
+        .paleta[data-paleta="golden-glam"] .paleta-muestras i:nth-child(3) { background: #C8A64B; }
+        .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(1) { background: #F7F1E8; }
+        .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(2) { background: #E4CFB4; }
+        .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(3) { background: #C9A96A; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -1296,6 +1401,18 @@
                             <button type="button" class="paleta" data-paleta="mauve" role="radio" aria-checked="false">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Mauve Luxe</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="rose-gold" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Rosé Gold</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="golden-glam" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Golden Glam</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="nude-gold" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Nude Elegance</span>
                             </button>
                         </div>
                     </div>                <div>
@@ -3540,7 +3657,7 @@
             // ─────────────────────────────────────────────────────────────
             // I10 · Paletas de color (Blush / Salvia / Mauve)
             // ─────────────────────────────────────────────────────────────
-            const PALETAS_DISENO = ['blush', 'salvia', 'mauve'];
+            const PALETAS_DISENO = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold'];
             const CLAVE_PALETA = 'eli_design_theme';
 
             function paletaActual() {
