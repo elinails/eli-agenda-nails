@@ -2123,6 +2123,16 @@
                             <input id="gasto-fecha" type="date" required class="w-full px-4 py-2 rounded-lg border border-line">
                         </div>
                     </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="gasto-categoria">Categoría</label>
+                        <select id="gasto-categoria" class="w-full px-4 py-2 rounded-lg border border-line">
+                            <option value="General" selected>General</option>
+                            <option value="Insumos">Insumos</option>
+                            <option value="Alquiler">Alquiler</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                    </div>
                     <p id="gasto-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
                     <button type="submit" id="gasto-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
                         Guardar gasto
@@ -3122,6 +3132,7 @@
                     const gastosFilas = (store.gastos || []).map(function (g) {
                         return {
                             'Descripción': g.descripcion || '',
+                            'Categoría': categoriaValida(g.categoria),
                             'Monto': Number(g.monto) || 0,
                             'Fecha': formatDate(g.fecha)
                         };
@@ -3356,7 +3367,9 @@
                     if (monto === null) return { ok: false, error: 'Gasto ' + n + ': monto inválido.' };
                     const fecha = fechaValida(r.fecha);
                     if (!fecha) return { ok: false, error: 'Gasto ' + n + ': fecha inválida.' };
-                    const fila = { descripcion: descripcion, monto: Math.round(monto), fecha: fecha };
+                    const categoriaCruda = r.categoria == null ? '' : textoLimpio(r.categoria, 40);
+                    if (categoriaCruda === null) return { ok: false, error: 'Gasto ' + n + ': categoría inválida.' };
+                    const fila = { descripcion: descripcion, monto: Math.round(monto), fecha: fecha, categoria: categoriaValida(categoriaCruda) };
                     if (r.id != null) fila.id = r.id;
                     return { ok: true, fila: fila };
                 },
@@ -5104,7 +5117,6 @@
                 }
 
                 const acreedorComprobante = String(deuda.acreedor || '').trim();
-                if (acreedorComprobante) filas.unshift(['ACREEDOR', acreedorComprobante]);
 
                 const ANCHO = 800;
                 const estilos = getComputedStyle(document.documentElement);
@@ -5142,7 +5154,8 @@
                 if (logo) y = 46 + 190 + 32;
                 const yTitulo = y + 76;
                 const ySub = yTitulo + 40;
-                const yCard = ySub + 46;
+                const yAcreedor = ySub + 32;
+                const yCard = (acreedorComprobante ? yAcreedor : ySub) + 46;
                 const altoTarjeta = 58 + filas.length * 68 + 14;
                 const yPie = yCard + altoTarjeta + 44;
                 const ALTO = yPie + 70 + 90;
@@ -5201,6 +5214,14 @@
                 ctx.fillStyle = COLOR.soft;
                 ctx.font = '400 ' + tamSub + 'px ' + sans;
                 ctx.fillText(nombreDeuda, ANCHO / 2, ySub);
+
+                if (acreedorComprobante) {
+                    const lineaAcreedor = 'Acreedor: ' + acreedorComprobante;
+                    const tamAcreedor = ajustarFuente(ctx, lineaAcreedor, 620, 18, sans, '500');
+                    ctx.fillStyle = COLOR.goldInk;
+                    ctx.font = '500 ' + tamAcreedor + 'px ' + sans;
+                    ctx.fillText(lineaAcreedor, ANCHO / 2, yAcreedor);
+                }
 
                 ctx.fillStyle = COLOR.surface;
                 ctx.strokeStyle = COLOR.line;
@@ -5412,13 +5433,42 @@
                         }
                     }
                 });
-            }            function abrirGastoModal() {
+            }
+
+            const CATEGORIAS = ['General', 'Insumos', 'Alquiler', 'Servicios', 'Marketing'];
+
+            function categoriaValida(valor) {
+                const texto = String(valor == null ? '' : valor).trim();
+                return CATEGORIAS.indexOf(texto) >= 0 ? texto : 'General';
+            }
+
+            let gastoEditandoId = null;
+
+            function abrirGastoModal(gasto) {
+                gastoEditandoId = gasto && gasto.id != null ? gasto.id : null;
                 const form = document.getElementById('gasto-form-modal');
                 if (form) form.reset();
+                const descripcion = document.getElementById('gasto-descripcion');
+                const monto = document.getElementById('gasto-monto');
                 const fecha = document.getElementById('gasto-fecha');
-                if (fecha) fecha.value = todayISO();
+                const categoria = document.getElementById('gasto-categoria');
+                const titulo = document.getElementById('gasto-modal-title');
+                const boton = document.getElementById('gasto-save');
+                if (gastoEditandoId) {
+                    if (descripcion) descripcion.value = gasto.descripcion || '';
+                    if (monto) monto.value = Number(gasto.monto) || '';
+                    if (fecha) fecha.value = String(gasto.fecha || '').slice(0, 10) || todayISO();
+                    if (categoria) categoria.value = categoriaValida(gasto.categoria);
+                    if (titulo) titulo.textContent = 'Editar gasto';
+                    if (boton) boton.textContent = 'Guardar cambios';
+                } else {
+                    if (fecha) fecha.value = todayISO();
+                    if (categoria) categoria.value = 'General';
+                    if (titulo) titulo.textContent = 'Nuevo gasto';
+                    if (boton) boton.textContent = 'Guardar gasto';
+                }
                 const error = document.getElementById('gasto-error');
-                if (error) error.classList.add('hidden');
+                if (error) { error.textContent = ''; error.classList.add('hidden'); }
                 abrirModal(document.getElementById('gasto-modal'));
             }
 
@@ -5436,12 +5486,20 @@
                 if (!fecha) { fallo('Elegí una fecha.'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
                 if (boton) boton.disabled = true;
+                const categoria = categoriaValida((document.getElementById('gasto-categoria') || {}).value);
+                const datos = { descripcion: descripcion, monto: monto, fecha: fecha, categoria: categoria };
+                const editando = gastoEditandoId;
                 try {
-                    await api.gastos.create({ descripcion: descripcion, monto: monto, fecha: fecha });
+                    if (editando) {
+                        await api.gastos.update(editando, datos);
+                    } else {
+                        await api.gastos.create(datos);
+                    }
+                    gastoEditandoId = null;
                     cerrarModal(document.getElementById('gasto-modal'));
                     await recargar('gastos');
                     refrescarPaneles();
-                    mostrarBanner('Gasto agregado.', 'ok');
+                    mostrarBanner(editando ? 'Gasto actualizado.' : 'Gasto agregado.', 'ok');
                 } catch (error) {
                     fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
                 } finally {
@@ -5514,11 +5572,14 @@
                 if (verFinanzas) verFinanzas.addEventListener('click', function () { mostrarSeccion('finanzas'); });
 
                 const abrirGasto = document.getElementById('abrir-gasto-btn');
-                if (abrirGasto) abrirGasto.addEventListener('click', abrirGastoModal);
+                if (abrirGasto) abrirGasto.addEventListener('click', function () { abrirGastoModal(); });
                 const formGasto = document.getElementById('gasto-form-modal');
                 if (formGasto) formGasto.addEventListener('submit', function (evento) { evento.preventDefault(); guardarGastoModal(); });
                 const cerrarGasto = document.getElementById('close-gasto-modal');
-                if (cerrarGasto) cerrarGasto.addEventListener('click', function () { cerrarModal(document.getElementById('gasto-modal')); });
+                if (cerrarGasto) cerrarGasto.addEventListener('click', function () {
+                    gastoEditandoId = null;
+                    cerrarModal(document.getElementById('gasto-modal'));
+                });
 
                 const abrirDeuda = document.getElementById('abrir-deuda-btn');
                 if (abrirDeuda) abrirDeuda.addEventListener('click', abrirNuevaDeuda);
@@ -5686,7 +5747,7 @@
                 cont.innerHTML = '';
 
                 const movimientos = (gastosMes || []).map(function (g) {
-                    return { tipo: 'gasto', id: g.id, fecha: g.fecha, titulo: g.descripcion || 'Gasto', monto: Number(g.monto) || 0 };
+                    return { tipo: 'gasto', id: g.id, fecha: g.fecha, titulo: g.descripcion || 'Gasto', monto: Number(g.monto) || 0, categoria: g.categoria, gasto: g };
                 }).concat((pagosMes || []).map(function (p) {
                     const deuda = (store.deudas || []).find(function (d) { return String(d.id) === String(p.deuda_id); });
                     return { tipo: 'pago', id: p.id, fecha: p.fecha, titulo: deuda ? (deuda.descripcion || 'Deuda') : 'Deuda', monto: Number(p.monto) || 0 };
@@ -5708,7 +5769,9 @@
                     const info = document.createElement('div');
                     const titulo = document.createElement('div');
                     titulo.className = 'data-title';
-                    titulo.textContent = mov.titulo;
+                    titulo.textContent = mov.tipo === 'gasto'
+                        ? mov.titulo + ' · ' + categoriaValida(mov.categoria)
+                        : mov.titulo;
                     if (mov.tipo === 'pago') {
                         const chip = document.createElement('span');
                         chip.className = 'chip-pago';
@@ -5730,6 +5793,7 @@
                     if (mov.tipo === 'pago') {
                         acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar pago', function () { borrarPago(mov.id); }, true));
                     } else {
+                        acciones.appendChild(botonAccion('fa-pen', 'Editar ' + mov.titulo, function () { abrirGastoModal(mov.gasto); }));
                         acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + mov.titulo, function () { borrarGasto(mov.id); }, true));
                     }
 
