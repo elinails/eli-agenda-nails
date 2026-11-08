@@ -2,10 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#FAF6F3">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="shortcut icon" href="favicon-32.png">
@@ -37,7 +42,6 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- P2: Supabase SDK (UMD explicito, version pineada) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script>
@@ -1099,18 +1103,30 @@
                                 <label for="appointment-time" class="block text-sm font-medium text-ink-soft mb-1">Hora <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
                                 <select id="appointment-time" required
                                         class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
-                                    <option value="">Seleccionar hora</option>
+                                                                        <option value="">Seleccionar hora</option>
                                     <option value="09:00">09:00</option>
+                                    <option value="09:30">09:30</option>
                                     <option value="10:00">10:00</option>
+                                    <option value="10:30">10:30</option>
                                     <option value="11:00">11:00</option>
+                                    <option value="11:30">11:30</option>
                                     <option value="12:00">12:00</option>
+                                    <option value="12:30">12:30</option>
                                     <option value="13:00">13:00</option>
+                                    <option value="13:30">13:30</option>
                                     <option value="14:00">14:00</option>
+                                    <option value="14:30">14:30</option>
                                     <option value="15:00">15:00</option>
+                                    <option value="15:30">15:30</option>
                                     <option value="16:00">16:00</option>
+                                    <option value="16:30">16:30</option>
                                     <option value="17:00">17:00</option>
+                                    <option value="17:30">17:30</option>
                                     <option value="18:00">18:00</option>
+                                    <option value="18:30">18:30</option>
                                     <option value="19:00">19:00</option>
+                                    <option value="19:30">19:30</option>
+                                    <option value="20:00">20:00</option>
                                 </select>
                             </div>
                         </div>
@@ -1857,7 +1873,51 @@
                 appointmentStatusInput.value = 'pending';
             }
             
+            // ─────────────────────────────────────────────────────────────
+            // I13 · Validaciones del turno (duplicados + solapamiento)
+            // ─────────────────────────────────────────────────────────────
+            let guardandoTurno = false;
+
+            function minutosDeHora(hora) {
+                const partes = String(hora || '').split(':').map(Number);
+                if (partes.length < 2 || !isFinite(partes[0]) || !isFinite(partes[1])) return null;
+                return partes[0] * 60 + partes[1];
+            }
+
+            function horaDesdeMinutos(minutos) {
+                const total = ((minutos % 1440) + 1440) % 1440;
+                const hh = String(Math.floor(total / 60)).padStart(2, '0');
+                const mm = String(total % 60).padStart(2, '0');
+                return hh + ':' + mm;
+            }
+
+            function buscarSolapamiento(turno) {
+                const inicio = minutosDeHora(turno.time);
+                if (inicio == null) return null;
+                const fin = inicio + duracionDeTurno(turno);
+                const idActual = appointmentIdInput.value;
+                for (let i = 0; i < cache.length; i++) {
+                    const otro = cache[i];
+                    if (String(otro.id) === String(idActual)) continue;
+                    if (otro.date !== turno.date) continue;
+                    if (otro.status === 'cancelled') continue;
+                    const inicioOtro = minutosDeHora(otro.time);
+                    if (inicioOtro == null) continue;
+                    const finOtro = inicioOtro + duracionDeTurno(otro);
+                    if (inicio < finOtro && inicioOtro < fin) {
+                        return {
+                            nombre: otro.clientName || 'otra clienta',
+                            desde: inicioOtro,
+                            hasta: finOtro
+                        };
+                    }
+                }
+                return null;
+            }
+
             async function saveAppointment() {
+                if (guardandoTurno) return;
+
                 const appointment = {
                     clientName: clientNameInput.value.trim(),
                     serviceType: serviceTypeInput.value,
@@ -1869,13 +1929,26 @@
                     notes: appointmentNotesInput.value.trim(),
                     status: appointmentStatusInput.value
                 };
-                
+
                 if (!appointment.clientName || !appointment.serviceType || !appointment.date || !appointment.time) {
-                    alert('Por favor complete todos los campos obligatorios');
+                    mostrarBanner('Completá clienta, servicio, fecha y hora.', 'error');
                     return;
                 }
-                
+
+                const choque = buscarSolapamiento(appointment);
+                if (choque) {
+                    mostrarBanner(
+                        'Ya tenés un turno de ' + horaDesdeMinutos(choque.desde) + ' a ' +
+                        horaDesdeMinutos(choque.hasta) + ' con ' + choque.nombre + '.',
+                        'error'
+                    );
+                    return;
+                }
+
                 const editando = appointmentIdInput.value;
+                guardandoTurno = true;
+                saveBtn.disabled = true;
+                updateBtn.disabled = true;
                 try {
                     if (editando) {
                         const { error } = await supabase.from('turnos')
@@ -1893,6 +1966,10 @@
                 } catch (error) {
                     console.error('Error guardando el turno:', error);
                     mostrarBanner('No se pudo guardar el turno: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    guardandoTurno = false;
+                    saveBtn.disabled = false;
+                    updateBtn.disabled = false;
                 }
             }
             
@@ -2082,11 +2159,35 @@
             });
             
             // Export to Excel (P2: desde el cache, ya no desde IndexedDB)
-            exportExcelBtn.addEventListener('click', function() {
+            // I13: la librería de Excel se carga recién al exportar (pesa ~880 KB)
+            let xlsxPromesa = null;
+            function cargarLibreriaExcel() {
+                if (window.XLSX) return Promise.resolve(window.XLSX);
+                if (xlsxPromesa) return xlsxPromesa;
+                xlsxPromesa = new Promise(function(resolve, reject) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                    script.async = true;
+                    script.onload = function() {
+                        if (window.XLSX) resolve(window.XLSX);
+                        else { xlsxPromesa = null; reject(new Error('La librería de Excel no se inicializó')); }
+                    };
+                    script.onerror = function() {
+                        xlsxPromesa = null;
+                        reject(new Error('No se pudo descargar la librería de Excel'));
+                    };
+                    document.head.appendChild(script);
+                });
+                return xlsxPromesa;
+            }
+
+            exportExcelBtn.addEventListener('click', async function() {
+                const boton = exportExcelBtn;
+                boton.disabled = true;
                 try {
+                    const xlsx = await cargarLibreriaExcel();
                     const appointments = cache.slice();
-                    
-                    // Prepare data for Excel
+
                     const excelData = appointments.map(app => ({
                         'Nombre': app.clientName,
                         'Servicio': app.serviceType,
@@ -2096,19 +2197,16 @@
                         'Notas': app.notes || '',
                         'Estado': getStatusText(app.status)
                     }));
-                    
-                    // Create worksheet
-                    const ws = XLSX.utils.json_to_sheet(excelData);
-                    
-                    // Create workbook
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'Turnos');
-                    
-                    // Export to file
-                    XLSX.writeFile(wb, 'Turnos_Eli_Nails_' + todayISO() + '.xlsx');
+
+                    const ws = xlsx.utils.json_to_sheet(excelData);
+                    const wb = xlsx.utils.book_new();
+                    xlsx.utils.book_append_sheet(wb, ws, 'Turnos');
+                    xlsx.writeFile(wb, 'Turnos_Eli_Nails_' + todayISO() + '.xlsx');
                 } catch (error) {
                     console.error('Error exportando:', error);
-                    mostrarBanner('No se pudo exportar el Excel.', 'error');
+                    mostrarBanner('No se pudo exportar el Excel: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    boton.disabled = false;
                 }
             });
             
@@ -2260,12 +2358,22 @@
             }
 
             async function reemplazarTurnos(rows) {
-                // P2: reemplaza la agenda en la nube (RLS limita a las filas propias)
-                const borrado = await supabase.from('turnos').delete().gte('id', 0);
-                if (borrado.error) throw borrado.error;
+                // I13: primero insertamos, después borramos los anteriores.
+                // Si el insert falla, la agenda original queda intacta.
+                const actuales = await supabase.from('turnos').select('id');
+                if (actuales.error) throw actuales.error;
+                const idsViejos = (actuales.data || []).map(function(fila) { return fila.id; });
+
                 if (rows.length) {
                     const insertado = await supabase.from('turnos').insert(rows.map(toDb));
                     if (insertado.error) throw insertado.error;
+                }
+
+                if (idsViejos.length) {
+                    const borrado = await supabase.from('turnos').delete().in('id', idsViejos);
+                    if (borrado.error) {
+                        throw new Error('Se restauraron los turnos pero no se pudieron borrar los anteriores: ' + borrado.error.message);
+                    }
                 }
                 return rows.length;
             }
@@ -4021,6 +4129,12 @@
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             }
 
+            // I13: WhatsApp/Instagram abren el link en su propio navegador,
+            // donde "Agregar a pantalla de inicio" no existe.
+            function esNavegadorInApp() {
+                return /WhatsApp|Instagram|FBAN|FBAV|FB_IAB|Line\/|Twitter/i.test(navigator.userAgent);
+            }
+
             window.addEventListener('beforeinstallprompt', function(evento) {
                 evento.preventDefault();
                 promptInstalacion = evento;
@@ -4041,9 +4155,13 @@
                         return;
                     }
                     if (instalarHint) {
-                        instalarHint.textContent = esIOS()
-                            ? 'En iPhone/iPad: tocá el botón Compartir y elegí "Agregar a pantalla de inicio".'
-                            : 'En Chrome/Edge: abrí el menú (⋮) y elegí "Instalar aplicación" o "Agregar a pantalla principal".';
+                        if (esIOS() && esNavegadorInApp()) {
+                            instalarHint.textContent = 'Estás dentro de WhatsApp/Instagram. Tocá "⋯" y elegí "Abrir en Safari"; después Compartir → "Agregar a pantalla de inicio".';
+                        } else if (esIOS()) {
+                            instalarHint.textContent = 'En iPhone/iPad: tocá el botón Compartir y elegí "Agregar a pantalla de inicio".';
+                        } else {
+                            instalarHint.textContent = 'En Chrome/Edge: abrí el menú (⋮) y elegí "Instalar aplicación" o "Agregar a pantalla principal".';
+                        }
                     }
                 });
             }
@@ -4060,5 +4178,5 @@
             // caja) y el filtro debe poder consultar el historial.
         });
     </script>
-<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Francofsm84/eli-m-nails" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</body>
 </html>

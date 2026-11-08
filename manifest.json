@@ -1,10 +1,11 @@
 {
+  "id": "/",
   "name": "Eli M. Nails — Agenda de turnos",
   "short_name": "Eli Nails",
   "description": "Agenda de turnos, clientes, servicios y finanzas.",
   "lang": "es-AR",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#FAF6F3",
