@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FAF6F3">
+    <script>
+        // A1b: fijar el tema antes del primer render (evita el flash)
+        (function () {
+            try {
+                var guardado = localStorage.getItem('eli_theme');
+                var sistema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = guardado || (sistema ? 'dark' : 'light');
+            } catch (e) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
     <title>Eli M. Nails - Agenda de Turnos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,27 +30,27 @@
             theme: {
                 extend: {
                     colors: {
-                        // A1b · Blush Atelier
-                        'paper':    '#FAF6F3',
-                        'surface':  '#FFFFFF',
-                        'ink':      '#3B2F35',
-                        'ink-soft': '#776569',
-                        'line':     '#EADFDB',
-                        'blush':    '#E9D3DC',
-                        'blush-2':  '#F4E7EC',
-                        'gold':     '#BE9E6F',
-                        'gold-ink': '#8C6B3A',
-                        'st-pending':   '#8E5B73',
-                        'st-confirmed': '#6E8F6E',
-                        'st-done':      '#7C5C88',
-                        'st-cancelled': '#A8575F',
+                        // A1b · Blush Atelier (siguen el tema claro/oscuro)
+                        'paper':    'var(--paper)',
+                        'surface':  'var(--surface)',
+                        'ink':      'var(--ink)',
+                        'ink-soft': 'var(--ink-soft)',
+                        'line':     'var(--line)',
+                        'blush':    'var(--blush)',
+                        'blush-2':  'var(--blush-2)',
+                        'gold':     'var(--gold)',
+                        'gold-ink': 'var(--gold-ink)',
+                        'st-pending':   'var(--pending)',
+                        'st-confirmed': 'var(--confirmed)',
+                        'st-done':      'var(--done)',
+                        'st-cancelled': 'var(--cancelled)',
                         // compatibilidad con los nombres anteriores
-                        'eli-pink':  '#F4E7EC',
-                        'eli-lilac': '#E9D3DC',
-                        'eli-gold':  '#BE9E6F',
-                        'eli-green': '#E3EDE3',
-                        'eli-gray':  '#EDE7E6',
-                        'eli-dark':  '#3B2F35',
+                        'eli-pink':  'var(--blush-2)',
+                        'eli-lilac': 'var(--blush)',
+                        'eli-gold':  'var(--gold)',
+                        'eli-green': 'var(--confirmed-tint)',
+                        'eli-gray':  'var(--cancelled-tint)',
+                        'eli-dark':  'var(--ink)',
                     },
                     fontFamily: {
                         'display': ['"Cormorant Garamond"', 'Georgia', 'serif'],
@@ -66,8 +79,10 @@
 
         /* ── A1b · Blush Atelier ── */
         :root {
+            color-scheme: light;
             --paper: #FAF6F3;
             --surface: #FFFFFF;
+            --surface-2: #F7EFEC;
             --blush: #E9D3DC;
             --blush-2: #F4E7EC;
             --ink: #3B2F35;
@@ -79,7 +94,75 @@
             --confirmed: #6E8F6E;
             --done: #7C5C88;
             --cancelled: #A8575F;
+
+            --pending-tint: #FBECF1;
+            --pending-tint-ink: #5C3A4A;
+            --confirmed-tint: #E9F0E9;
+            --confirmed-tint-ink: #3F5A3F;
+            --done-tint: #F0EAF3;
+            --done-tint-ink: #553D60;
+            --cancelled-tint: #F6E9EA;
+            --cancelled-tint-ink: #6B353B;
+
+            --danger-bg: #FDECEC;
+            --danger-ink: #9B2C2C;
+            --ok-bg: #E9F5E9;
+            --ok-ink: #2F6B2F;
+
+            --btn-primary-hover: #DFC2CE;
+            --btn-secondary-hover: #EEDCE4;
+            --btn-danger-bg: #F7E7E7;
+            --btn-danger-ink: #7A2E36;
+            --btn-danger-hover: #F1D6D6;
+            --export-hover: #EEDCE4;
+
+            --overlay: rgba(59, 47, 53, .55);
+            --sticky-bg: linear-gradient(to top, var(--surface) 72%, rgba(255, 255, 255, 0));
             --shadow-row: 0 1px 1px rgba(59, 47, 53, .03), 0 6px 18px rgba(59, 47, 53, .045);
+        }
+
+        /* ── A1b · modo oscuro ── */
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --paper: #2B1F26;
+            --surface: #3A2830;
+            --surface-2: #452F3A;
+            --blush: #6E4A5E;
+            --blush-2: #4A3340;
+            --ink: #F5EFF1;
+            --ink-soft: #BBA8B3;
+            --line: #4E3A44;
+            --gold: #D9BE8E;
+            --gold-ink: #D9BE8E;
+            --pending: #C98BA6;
+            --confirmed: #8FB78F;
+            --done: #A98BB8;
+            --cancelled: #C97A80;
+
+            --pending-tint: #4A2F3A;
+            --pending-tint-ink: #F0DCE6;
+            --confirmed-tint: #2F3D31;
+            --confirmed-tint-ink: #D6E6D6;
+            --done-tint: #3A3042;
+            --done-tint-ink: #E6D9EE;
+            --cancelled-tint: #43292D;
+            --cancelled-tint-ink: #F1D7D9;
+
+            --danger-bg: #43292D;
+            --danger-ink: #F2A6A6;
+            --ok-bg: #2F3D31;
+            --ok-ink: #A8D5A8;
+
+            --btn-primary-hover: #7C566B;
+            --btn-secondary-hover: #55394A;
+            --btn-danger-bg: #4A2B30;
+            --btn-danger-ink: #F5C7C7;
+            --btn-danger-hover: #57333A;
+            --export-hover: #55394A;
+
+            --overlay: rgba(20, 14, 18, .72);
+            --sticky-bg: linear-gradient(to top, var(--surface) 72%, rgba(58, 40, 48, 0));
+            --shadow-row: 0 1px 1px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .35);
         }
 
         body {
@@ -131,23 +214,28 @@
             min-height: 44px;
             transition: background-color .16s ease;
         }
-        .btn-primary:hover { background-color: #DFC2CE; }
+        .btn-primary:hover { background-color: var(--btn-primary-hover); }
 
         .btn-secondary {
             background-color: var(--blush-2);
             color: var(--ink);
             transition: background-color .16s ease;
         }
-        .btn-secondary:hover { background-color: #EEDCE4; }
+        .btn-secondary:hover { background-color: var(--btn-secondary-hover); }
 
         .btn-danger {
-            background-color: #F7E7E7;
-            color: #7A2E36;
+            background-color: var(--btn-danger-bg);
+            color: var(--btn-danger-ink);
             transition: background-color .16s ease;
         }
-        .btn-danger:hover { background-color: #F1D6D6; }
+        .btn-danger:hover { background-color: var(--btn-danger-hover); }
 
         /* ── inputs ── */
+        input, select, textarea {
+            background-color: var(--surface);
+            color: var(--ink);
+        }
+        input::placeholder, textarea::placeholder { color: var(--ink-soft); }
         .input-field { min-height: 44px; }
         .input-field:focus {
             border-color: var(--gold-ink);
@@ -210,8 +298,8 @@
             text-transform: uppercase;
             letter-spacing: .08em;
             font-weight: 600;
-            background: var(--blush-2);
-            color: #5C3A4A;
+            background: var(--pending-tint);
+            color: var(--pending-tint-ink);
             padding: 6px 10px;
             border-radius: 999px;
             white-space: nowrap;
@@ -223,11 +311,11 @@
             background: var(--pending);
             display: inline-block;
         }
-        .badge.confirmed { background: #E9F0E9; color: #3F5A3F; }
+        .badge.confirmed { background: var(--confirmed-tint); color: var(--confirmed-tint-ink); }
         .badge.confirmed .badge-dot { background: var(--confirmed); }
-        .badge.completed { background: #F0EAF3; color: #553D60; }
+        .badge.completed { background: var(--done-tint); color: var(--done-tint-ink); }
         .badge.completed .badge-dot { background: var(--done); }
-        .badge.cancelled { background: #F6E9EA; color: #6B353B; }
+        .badge.cancelled { background: var(--cancelled-tint); color: var(--cancelled-tint-ink); }
         .badge.cancelled .badge-dot { background: var(--cancelled); }
 
         /* ── calendario ── */
@@ -268,7 +356,7 @@
             font-weight: 500;
         }
         .fc .fc-daygrid-day-number { color: var(--ink-soft); font-size: 12px; }
-        .fc .fc-day-today { background: #FBF1F4 !important; }
+        .fc .fc-day-today { background: var(--blush-2) !important; }
         .fc .fc-day-today .fc-daygrid-day-number { color: var(--pending); font-weight: 600; }
         .fc .fc-event {
             border: 0 !important;
@@ -277,10 +365,10 @@
             padding: 2px 5px;
             font-size: 11px;
         }
-        .fc-event-pending   { background-color: #FBECF1 !important; border-left-color: var(--pending) !important; color: #5C3A4A; }
-        .fc-event-confirmed { background-color: #EAF3EA !important; border-left-color: var(--confirmed) !important; color: #3F5A3F; }
-        .fc-event-completed { background-color: #F1EAF4 !important; border-left-color: var(--done) !important; color: #553D60; }
-        .fc-event-cancelled { background-color: #F4E9EA !important; border-left-color: var(--cancelled) !important; color: #6B353B; }
+        .fc-event-pending   { background-color: var(--pending-tint) !important; border-left-color: var(--pending) !important; color: var(--pending-tint-ink); }
+        .fc-event-confirmed { background-color: var(--confirmed-tint) !important; border-left-color: var(--confirmed) !important; color: var(--confirmed-tint-ink); }
+        .fc-event-completed { background-color: var(--done-tint) !important; border-left-color: var(--done) !important; color: var(--done-tint-ink); }
+        .fc-event-cancelled { background-color: var(--cancelled-tint) !important; border-left-color: var(--cancelled) !important; color: var(--cancelled-tint-ink); }
         .fc-button-group { border-radius: 8px; overflow: hidden; }
 
         /* ── vista agenda (mobile) ── */
@@ -301,7 +389,7 @@
 
         /* ── modales ── */
         .modal-overlay {
-            background-color: rgba(59, 47, 53, .55);
+            background-color: var(--overlay);
             backdrop-filter: blur(2px);
         }
         .modal-content { animation: slide-up .28s ease-out; }
@@ -310,9 +398,39 @@
         .whatsapp-btn { background-color: #25D366; min-height: 44px; transition: background-color .16s ease; }
         .whatsapp-btn:hover { background-color: #1FA855; }
         .export-btn { background-color: var(--blush-2); color: var(--ink); min-height: 44px; transition: background-color .16s ease; }
-        .export-btn:hover { background-color: #EEDCE4; }
+        .export-btn:hover { background-color: var(--export-hover); }
 
-        @media (prefers-reduced-motion: reduce) {
+        /* ── botón de tema ── */
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+        }
+        .theme-toggle:hover { background: var(--blush-2); }
+        .theme-toggle i { font-size: 17px; }
+        .theme-toggle .icon-sun { display: none; }
+        :root[data-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
+        :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+        /* ── banners y avisos ── */
+        .banner-error { background: var(--danger-bg); color: var(--danger-ink); }
+        .banner-ok { background: var(--ok-bg); color: var(--ok-ink); }
+        .text-danger { color: var(--danger-ink); }
+        .text-ok { color: var(--ok-ink); }
+
+        /* ── transición de tema ── */
+        body, .appt-row, .fc, .fc .fc-button, .modal-content, .form-actions, .badge, .theme-toggle {
+            transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+        }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -361,7 +479,7 @@
             flex-wrap: wrap;
             gap: 10px;
             padding: 14px 0 6px;
-            background: linear-gradient(to top, var(--surface) 72%, rgba(255, 255, 255, 0));
+            background: var(--sticky-bg);
             border-top: 1px solid var(--line);
         }
         .export-btn {
@@ -378,9 +496,16 @@
         <div id="app-banner" class="hidden mb-4 rounded-lg px-4 py-3 text-sm" role="alert"></div>
 
         <!-- Header -->
-        <header class="mb-6">
+        <header class="mb-6 flex items-start justify-between gap-4">
+            <div>
             <h1 class="brand"><span class="brand-star" aria-hidden="true">✦</span> Eli M. Nails</h1>
             <p class="brand-sub">Agenda de turnos personal</p>
+            </div>
+            <button type="button" id="theme-toggle" class="theme-toggle"
+                    aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+                <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
+                <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
+            </button>
         </header>
         
         <!-- Navigation Tabs -->
@@ -397,7 +522,7 @@
         </div>
         
         <!-- Calendar View -->
-        <div id="calendar-view" class="view-section bg-white rounded-xl shadow-md p-4 mb-6">
+        <div id="calendar-view" class="view-section bg-surface rounded-xl shadow-md p-4 mb-6">
             <div id="calendar" class="animate-fade-in"></div>
         </div>
         
@@ -407,26 +532,26 @@
                 <div class="w-full md:w-auto mb-4 md:mb-0">
                     <div class="relative">
                         <input type="text" id="search-input" placeholder="Buscar clienta o servicio" 
-                               class="w-full md:w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                               class="w-full md:w-64 pl-10 pr-4 py-2 rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-ink-soft"></i>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                    <select id="status-filter" class="flex-1 md:flex-none min-w-0 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                    <select id="status-filter" class="flex-1 md:flex-none min-w-0 px-4 py-2 rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
                         <option value="all">Todos los estados</option>
                         <option value="pending">Pendiente</option>
                         <option value="confirmed">Confirmado</option>
                         <option value="completed">Realizado</option>
                         <option value="cancelled">Cancelado</option>
                     </select>
-                    <input type="date" id="date-filter" class="flex-1 md:flex-none min-w-0 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                    <input type="date" id="date-filter" class="flex-1 md:flex-none min-w-0 px-4 py-2 rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
                     <button id="export-excel" class="export-btn w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-file-excel mr-2"></i> Exportar
                     </button>
-                    <button type="button" id="backup-btn" class="bg-white border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
+                    <button type="button" id="backup-btn" class="bg-surface border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
                         <i class="fas fa-download mr-2"></i> Respaldar
                     </button>
-                    <button type="button" id="restore-btn" class="bg-white border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
+                    <button type="button" id="restore-btn" class="bg-surface border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
                         <i class="fas fa-upload mr-2"></i> Restaurar
                     </button>
                     <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
@@ -443,7 +568,7 @@
         </div>
         
         <!-- New Appointment Form View -->
-        <div id="new-appointment-view" class="view-section hidden bg-white rounded-xl shadow-md p-6 mb-6">
+        <div id="new-appointment-view" class="view-section hidden bg-surface rounded-xl shadow-md p-6 mb-6">
             <h2 class="text-2xl font-bold text-eli-dark mb-6">Nuevo Turno</h2>
             
             <form id="appointment-form" class="space-y-7">
@@ -540,7 +665,7 @@
                     <button type="button" id="whatsapp-btn" class="whatsapp-btn px-6 py-2.5 rounded-lg text-[#0B3D1E] font-medium hidden">
                         <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                     </button>
-                    <button type="button" id="clear-btn" class="bg-white border border-line px-6 py-2.5 rounded-lg font-medium">
+                    <button type="button" id="clear-btn" class="bg-surface border border-line px-6 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-times mr-2"></i> Limpiar
                     </button>
                 </div>
@@ -548,15 +673,15 @@
         </div>
         
         <!-- Footer -->
-        <footer class="mt-12 text-center text-sm text-gray-600">
+        <footer class="mt-12 text-center text-sm text-ink-soft">
             <p>Creado con <i class="fas fa-heart text-red-400"></i> por @Jacinto.Cards</p>
-            <button type="button" id="logout-btn" class="mt-2 text-xs text-gray-400 hover:text-gray-600 underline">Cerrar sesión</button>
+            <button type="button" id="logout-btn" class="mt-2 text-xs text-ink-soft hover:text-ink-soft underline">Cerrar sesión</button>
         </footer>
     </div>
     
     <!-- P2: pantalla de login -->
     <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
+        <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
             <div class="text-center mb-6">
                 <div class="brand-star text-2xl mb-1" aria-hidden="true">✦</div>
                 <h1 class="text-3xl font-semibold text-ink m-0 leading-tight">Eli M. Nails</h1>
@@ -577,7 +702,7 @@
                 <button type="submit" id="email-login-btn" class="btn-primary w-full px-4 py-3 rounded-lg font-medium">
                     Iniciar sesión
                 </button>
-                <button type="button" id="email-signup-btn" class="w-full px-4 py-3 rounded-lg border border-line bg-white font-medium text-ink">
+                <button type="button" id="email-signup-btn" class="w-full px-4 py-3 rounded-lg border border-line bg-surface font-medium text-ink">
                     Registrarse
                 </button>
             </form>
@@ -588,59 +713,59 @@
                 <span class="h-px flex-1 bg-line"></span>
             </div>
 
-            <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-line bg-white font-medium text-ink">
+            <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-line bg-surface font-medium text-ink">
                 <i class="fab fa-google"></i> Iniciar sesión con Google
             </button>
 
-            <p id="auth-error" class="hidden mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
+            <p id="auth-error" class="hidden mt-4 rounded-lg banner-error px-3 py-2 text-sm" role="alert"></p>
         </div>
     </div>
 
     <!-- Appointment Details Modal -->
     <div id="appointment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="modal-title">Detalles del Turno</h3>
-                    <button type="button" id="close-modal" class="text-gray-500 hover:text-gray-700" aria-label="Cerrar">
+                    <button type="button" id="close-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
                 <div class="space-y-3">
                     <div>
-                        <p class="text-sm text-gray-500">Cliente</p>
+                        <p class="text-sm text-ink-soft">Cliente</p>
                         <p class="font-medium" id="modal-client"></p>
                     </div>
                     
                     <div>
-                        <p class="text-sm text-gray-500">Servicio</p>
+                        <p class="text-sm text-ink-soft">Servicio</p>
                         <p class="font-medium" id="modal-service"></p>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-sm text-gray-500">Fecha</p>
+                            <p class="text-sm text-ink-soft">Fecha</p>
                             <p class="font-medium" id="modal-date"></p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Hora</p>
+                            <p class="text-sm text-ink-soft">Hora</p>
                             <p class="font-medium" id="modal-time"></p>
                         </div>
                     </div>
                     
                     <div>
-                        <p class="text-sm text-gray-500">Precio</p>
+                        <p class="text-sm text-ink-soft">Precio</p>
                         <p class="font-medium" id="modal-price"></p>
                     </div>
                     
                     <div>
-                        <p class="text-sm text-gray-500">Estado</p>
+                        <p class="text-sm text-ink-soft">Estado</p>
                         <p class="font-medium" id="modal-status"></p>
                     </div>
                     
                     <div>
-                        <p class="text-sm text-gray-500">Notas</p>
+                        <p class="text-sm text-ink-soft">Notas</p>
                         <p class="font-medium" id="modal-notes"></p>
                     </div>
                 </div>
@@ -652,7 +777,7 @@
                     <button id="modal-whatsapp-btn" class="whatsapp-btn px-4 py-2 rounded-lg text-[#0B3D1E] font-medium text-sm">
                         <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                     </button>
-                    <button id="modal-close-btn" class="bg-gray-200 px-4 py-2 rounded-lg font-medium text-sm">
+                    <button id="modal-close-btn" class="bg-surface border border-line px-4 py-2 rounded-lg font-medium text-sm">
                         Cerrar
                     </button>
                 </div>
@@ -662,11 +787,11 @@
     
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="confirm-title">Confirmar acción</h3>
-                    <button type="button" id="close-confirm-modal" class="text-gray-500 hover:text-gray-700" aria-label="Cerrar">
+                    <button type="button" id="close-confirm-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -674,7 +799,7 @@
                 <p class="mb-6" id="confirm-message">¿Estás seguro que deseas eliminar este turno?</p>
                 
                 <div class="flex justify-end space-x-3">
-                    <button id="confirm-cancel-btn" class="bg-gray-200 px-4 py-2 rounded-lg font-medium text-sm">
+                    <button id="confirm-cancel-btn" class="bg-surface border border-line px-4 py-2 rounded-lg font-medium text-sm">
                         Cancelar
                     </button>
                     <button id="confirm-action-btn" class="btn-danger px-4 py-2 rounded-lg font-medium text-sm">
@@ -1071,7 +1196,7 @@
             let dataStatusTimer = null;
             function setDataStatus(kind, text) {
                 dataStatus.textContent = text;
-                dataStatus.className = 'mt-3 text-sm ' + (kind === 'error' ? 'text-red-600' : 'text-green-700');
+                dataStatus.className = 'mt-3 text-sm ' + (kind === 'error' ? 'text-danger' : 'text-ok');
                 dataStatus.hidden = false;
                 clearTimeout(dataStatusTimer);
                 dataStatusTimer = setTimeout(function () {
@@ -1352,7 +1477,7 @@
             function mostrarBanner(mensaje, tipo) {
                 appBanner.textContent = mensaje;
                 appBanner.className = 'mb-4 rounded-lg px-4 py-3 text-sm ' +
-                    (tipo === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700');
+                    (tipo === 'ok' ? 'banner-ok' : 'banner-error');
                 appBanner.hidden = false;
                 clearTimeout(bannerTimer);
                 bannerTimer = setTimeout(function() { appBanner.hidden = true; }, 8000);
@@ -1647,7 +1772,40 @@
                 } catch (error) { console.error(error); }
             });
 
-            // Initialize FullCalendar
+            // ─────────────────────────────────────────────────────────────
+            // Tema claro / oscuro
+            // ─────────────────────────────────────────────────────────────
+            const TEMA_KEY = 'eli_theme';
+            const themeToggle = document.getElementById('theme-toggle');
+            const mqTema = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+            function temaActual() {
+                return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+            }
+
+            function aplicarTema(tema) {
+                document.documentElement.dataset.theme = tema;
+                if (themeToggle) themeToggle.setAttribute('aria-pressed', tema === 'dark' ? 'true' : 'false');
+                const meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) meta.setAttribute('content', tema === 'dark' ? '#2B1F26' : '#FAF6F3');
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const nuevo = temaActual() === 'dark' ? 'light' : 'dark';
+                    try { localStorage.setItem(TEMA_KEY, nuevo); } catch (error) { /* modo privado */ }
+                    aplicarTema(nuevo);
+                });
+                aplicarTema(temaActual());
+            }
+
+            if (mqTema && mqTema.addEventListener) {
+                mqTema.addEventListener('change', function (evento) {
+                    let guardado = null;
+                    try { guardado = localStorage.getItem(TEMA_KEY); } catch (error) {}
+                    if (!guardado) aplicarTema(evento.matches ? 'dark' : 'light');
+                });
+            }            // Initialize FullCalendar
             let calendar;
             
             function initCalendar() {
@@ -1885,7 +2043,7 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
                     case 'pending': return 'bg-eli-pink text-eli-dark';
                     case 'confirmed': return 'bg-eli-green text-eli-dark';
                     case 'completed': return 'bg-eli-lilac text-eli-dark';
-                    case 'cancelled': return 'bg-eli-gray text-gray-700';
+                    case 'cancelled': return 'bg-eli-gray text-ink';
                     default: return '';
                 }
             }
