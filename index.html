@@ -1190,7 +1190,7 @@
         [data-tema^="mono"] .fc-event-pending   { border-style: dashed; }
         [data-tema^="mono"] .fc-event-cancelled { border-style: dotted; }
         /* ── I20 · Dashboard ── */
-        .dash { display: grid; gap: 14px; }
+        .dash { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
         .dash-hero {
             background: var(--surface);
             border: 1px solid var(--line);
@@ -1204,7 +1204,15 @@
         .dash-hero-acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
         .dash-hero-vacio { color: var(--ink-soft); font-size: 14px; }
 
-        .dash-mesbar { display: flex; align-items: center; gap: 8px; }
+        .dash-mesbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .dash-mesbar .fin-mes {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .dash-mesbar .periodo-select { flex: 0 0 auto; max-width: 100%; }
         .dash-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .dash-kpis > :first-child { grid-column: 1 / -1; }
         @media (min-width: 700px) {
@@ -1314,6 +1322,19 @@
         .dash-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
         .dash-acciones > button { min-height: 44px; }
         .dash-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+        /* ── I25 · anti-desborde horizontal ── */
+        .dash-hero, .dash-panel, .dash { min-width: 0; }
+        .dash-hero-ojo, .dash-hero-titulo, .dash-hero-cuando { overflow-wrap: anywhere; }
+        .appt-row { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+        .appt-who { min-width: 0; overflow: hidden; }
+        .appt-name, .appt-meta, .data-title, .data-meta, .deuda-nombre, .deuda-meta {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #modal-notes, #confirm-message { overflow-wrap: anywhere; }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1869,7 +1890,7 @@
 
     <!-- Appointment Details Modal -->
     <div id="appointment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="modal-title">Detalles del Turno</h3>
@@ -1936,7 +1957,7 @@
     
     <!-- I22 · Nuevo gasto -->
     <div id="gasto-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold" id="gasto-modal-title">Nuevo gasto</h3>
@@ -1972,7 +1993,7 @@
 
     <!-- I22 · Nueva deuda -->
     <div id="deuda-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold" id="deuda-modal-title">Nueva deuda</h3>
@@ -2006,7 +2027,7 @@
         </div>
     </div>    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="confirm-title">Confirmar acción</h3>
@@ -2031,7 +2052,7 @@
     
     <!-- I6b: modal de servicio -->
     <div id="servicio-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay p-4">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="flex items-center justify-between p-6 border-b border-line">
                 <h3 class="text-xl font-bold text-ink m-0" id="servicio-modal-title">Nuevo servicio</h3>
                 <button type="button" id="servicio-modal-close" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
@@ -2068,7 +2089,7 @@
 
     <!-- I6b: modal de cliente -->
     <div id="cliente-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay p-4">
-        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="flex items-center justify-between p-6 border-b border-line">
                 <h3 class="text-xl font-bold text-ink m-0" id="cliente-modal-title">Nuevo cliente</h3>
                 <button type="button" id="cliente-modal-close" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
@@ -4002,7 +4023,11 @@
                         if (turnos > 0) await recargar('turnos');
                         mostrarBanner('Cliente eliminado.', 'ok');
                     } catch (error) {
-                        mostrarBanner('No se pudo borrar: ' + (error.message || 'error de conexión'), 'error');
+                        if (String((error && error.code) || '') === '23503') {
+                            mostrarBanner('No se puede borrar: la clienta tiene turnos asociados.', 'error');
+                        } else {
+                            mostrarBanner('No se pudo borrar: ' + (error.message || 'error de conexión'), 'error');
+                        }
                     }
                 });
             }
