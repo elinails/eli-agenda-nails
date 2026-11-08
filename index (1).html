@@ -341,8 +341,8 @@
     </div>
     
     <!-- Appointment Details Modal -->
-    <div id="appointment-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
-        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+    <div id="appointment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="modal-title">Detalles del Turno</h3>
@@ -405,8 +405,8 @@
     </div>
     
     <!-- Confirmation Modal -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
-        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-eli-dark" id="confirm-title">Confirmar acción</h3>
@@ -450,8 +450,9 @@
             
             request.onsuccess = function(event) {
                 db = event.target.result;
-                loadAppointments();
+                // Calendario primero: loadAppointments() necesita la instancia creada.
                 initCalendar();
+                loadAppointments();
             };
             
             request.onerror = function(event) {
@@ -509,7 +510,7 @@
                 if (view === 'calendar') {
                     calendarTab.classList.add('active');
                     calendarView.classList.remove('hidden');
-                    calendar.render();
+                    if (calendar) calendar.render();
                 } else if (view === 'appointments') {
                     appointmentsTab.classList.add('active');
                     appointmentsView.classList.remove('hidden');
@@ -537,10 +538,8 @@
                 deleteBtn.classList.add('hidden');
                 whatsappBtn.classList.add('hidden');
                 
-                // Set default date to today
-                const today = new Date();
-                const formattedDate = today.toISOString().split('T')[0];
-                appointmentDateInput.value = formattedDate;
+                // Set default date to today (local Buenos Aires time, not UTC)
+                appointmentDateInput.value = todayISO();
                 
                 // Set default status to pending
                 appointmentStatusInput.value = 'pending';
@@ -606,7 +605,7 @@
                     const appointments = request.result;
                     
                     // Update calendar if it exists
-                    if (window.calendar) {
+                    if (calendar) {
                         calendar.removeAllEvents();
                         
                         appointments.forEach(appointment => {
@@ -783,7 +782,7 @@
                     XLSX.utils.book_append_sheet(wb, ws, 'Turnos');
                     
                     // Export to file
-                    XLSX.writeFile(wb, `Turnos_Eli_Nails_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                    XLSX.writeFile(wb, `Turnos_Eli_Nails_${todayISO()}.xlsx`);
                 };
                 
                 request.onerror = function(event) {
@@ -852,7 +851,7 @@
                 
                 // Set status color
                 const statusElement = document.getElementById('modal-status');
-                statusElement.className = 'font-medium ' + getStatusBadgeClass(appointment.status);
+                statusElement.className = 'inline-block px-2 py-1 rounded-full text-xs font-medium ' + getStatusBadgeClass(appointment.status);
                 
                 // Show modal
                 appointmentModal.classList.remove('hidden');
@@ -961,9 +960,26 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
             }
             
             // Helper functions
+            // Fechas: siempre en hora local de Buenos Aires.
+            // No usar toISOString() ni new Date('YYYY-MM-DD') para fechas sin hora:
+            // ambos se interpretan en UTC y en UTC-3 muestran el dia anterior.
+            const TZ = 'America/Argentina/Buenos_Aires';
+
+            function todayISO() {
+                return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+            }
+
+            function parseLocalDate(dateString) {
+                const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateString ?? ''));
+                if (!match) return null;
+                const parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+                return isNaN(parsed.getTime()) ? null : parsed;
+            }
+
             function formatDate(dateString) {
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                return new Date(dateString).toLocaleDateString('es-AR', options);
+                const date = parseLocalDate(dateString);
+                return date ? date.toLocaleDateString('es-AR', options) : '--';
             }
             
             function getStatusClass(status) {
@@ -999,14 +1015,12 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
             // Initialize with calendar view
             showView('calendar');
             
-            // Set today's date as default in date filter
-            const today = new Date();
-            dateFilter.valueAsDate = today;
+            // Set today's date as default in date filter (local time).
+            // valueAsDate interpreta el Date en UTC: a las 22:40 daria manana.
+            dateFilter.value = todayISO();
             
-            // Set minimum date to today in date inputs
-            const todayStr = today.toISOString().split('T')[0];
-            appointmentDateInput.min = todayStr;
-            dateFilter.min = todayStr;
+            // Sin min en los inputs: los turnos pasados son validos (registro de
+            // caja) y el filtro debe poder consultar el historial.
         });
     </script>
 <p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Francofsm84/eli-m-nails" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
