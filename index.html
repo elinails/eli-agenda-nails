@@ -17,15 +17,31 @@
             theme: {
                 extend: {
                     colors: {
-                        'eli-pink': '#FFD6E7',
-                        'eli-lilac': '#E2D1F9',
-                        'eli-gold': '#F7D488',
-                        'eli-green': '#C8E7C3',
-                        'eli-gray': '#E5E5E5',
-                        'eli-dark': '#5A3D5A',
+                        // A1b · Blush Atelier
+                        'paper':    '#FAF6F3',
+                        'surface':  '#FFFFFF',
+                        'ink':      '#3B2F35',
+                        'ink-soft': '#776569',
+                        'line':     '#EADFDB',
+                        'blush':    '#E9D3DC',
+                        'blush-2':  '#F4E7EC',
+                        'gold':     '#BE9E6F',
+                        'gold-ink': '#8C6B3A',
+                        'st-pending':   '#8E5B73',
+                        'st-confirmed': '#6E8F6E',
+                        'st-done':      '#7C5C88',
+                        'st-cancelled': '#A8575F',
+                        // compatibilidad con los nombres anteriores
+                        'eli-pink':  '#F4E7EC',
+                        'eli-lilac': '#E9D3DC',
+                        'eli-gold':  '#BE9E6F',
+                        'eli-green': '#E3EDE3',
+                        'eli-gray':  '#EDE7E6',
+                        'eli-dark':  '#3B2F35',
                     },
                     fontFamily: {
-                        'rounded': ['"Nunito"', 'sans-serif'],
+                        'display': ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        'sans': ['Inter', 'ui-sans-serif', 'sans-serif'],
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in-out',
@@ -46,144 +62,240 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap');
+
+        /* ── A1b · Blush Atelier ── */
+        :root {
+            --paper: #FAF6F3;
+            --surface: #FFFFFF;
+            --blush: #E9D3DC;
+            --blush-2: #F4E7EC;
+            --ink: #3B2F35;
+            --ink-soft: #776569;
+            --line: #EADFDB;
+            --gold: #BE9E6F;
+            --gold-ink: #8C6B3A;
+            --pending: #8E5B73;
+            --confirmed: #6E8F6E;
+            --done: #7C5C88;
+            --cancelled: #A8575F;
+            --shadow-row: 0 1px 1px rgba(59, 47, 53, .03), 0 6px 18px rgba(59, 47, 53, .045);
+        }
+
         body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #FFF9FB;
-            color: #5A3D5A;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--paper);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
         }
-        
-        .appointment-pending {
-            background-color: #FFD6E7;
-            border-left: 4px solid #FF6B9D;
+
+        h1, h2, h3, .display {
+            font-family: 'Cormorant Garamond', Georgia, serif;
         }
-        
-        .appointment-confirmed {
-            background-color: #C8E7C3;
-            border-left: 4px solid #5CB85C;
-        }
-        
-        .appointment-cancelled {
-            background-color: #E5E5E5;
-            border-left: 4px solid #999999;
-        }
-        
-        .appointment-completed {
-            background-color: #E2D1F9;
-            border-left: 4px solid #9B59B6;
-        }
-        
-        .fc-event-pending {
-            background-color: #FFD6E7;
-            border-color: #FF6B9D;
-        }
-        
-        .fc-event-confirmed {
-            background-color: #C8E7C3;
-            border-color: #5CB85C;
-        }
-        
-        .fc-event-cancelled {
-            background-color: #E5E5E5;
-            border-color: #999999;
-        }
-        
-        .fc-event-completed {
-            background-color: #E2D1F9;
-            border-color: #9B59B6;
-        }
-        
-        .nav-tab.active {
-            background-color: #E2D1F9;
-            color: #5A3D5A;
+
+        /* ── marca ── */
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-family: 'Cormorant Garamond', Georgia, serif;
             font-weight: 600;
+            font-size: 30px;
+            line-height: 1.1;
+            letter-spacing: .01em;
+            color: var(--ink);
+            margin: 0;
         }
-        
+        .brand-star { color: var(--gold); font-size: 18px; }
+        .brand-sub { color: var(--ink-soft); font-size: 13px; margin: 6px 0 0; }
+
+        /* ── tabs ── */
         .nav-tab {
-            transition: all 0.2s ease;
+            color: var(--ink-soft);
+            background: transparent;
+            min-height: 48px;
+            transition: color .16s ease, box-shadow .16s ease;
         }
-        
+        .nav-tab:hover { color: var(--ink); }
+        .nav-tab.active {
+            color: var(--ink);
+            background: transparent;
+            font-weight: 500;
+            box-shadow: inset 0 -2px 0 var(--gold);
+        }
+
+        /* ── botones ── */
         .btn-primary {
-            background-color: #E2D1F9;
-            transition: all 0.2s ease;
+            background-color: var(--blush);
+            color: var(--ink);
+            min-height: 44px;
+            transition: background-color .16s ease;
         }
-        
-        .btn-primary:hover {
-            background-color: #D0B5F0;
-        }
-        
+        .btn-primary:hover { background-color: #DFC2CE; }
+
         .btn-secondary {
-            background-color: #FFD6E7;
-            transition: all 0.2s ease;
+            background-color: var(--blush-2);
+            color: var(--ink);
+            transition: background-color .16s ease;
         }
-        
-        .btn-secondary:hover {
-            background-color: #FFC0D9;
-        }
-        
+        .btn-secondary:hover { background-color: #EEDCE4; }
+
         .btn-danger {
-            background-color: #FFE0E0;
-            transition: all 0.2s ease;
+            background-color: #F7E7E7;
+            color: #7A2E36;
+            transition: background-color .16s ease;
         }
-        
-        .btn-danger:hover {
-            background-color: #FFC9C9;
-        }
-        
+        .btn-danger:hover { background-color: #F1D6D6; }
+
+        /* ── inputs ── */
+        .input-field { min-height: 44px; }
         .input-field:focus {
-            border-color: #E2D1F9;
-            box-shadow: 0 0 0 3px rgba(226, 209, 249, 0.55);
+            border-color: var(--gold-ink);
+            box-shadow: 0 0 0 3px rgba(140, 107, 58, .18);
         }
-        
-        /* A7: foco visible y consistente en toda la app */
         :focus-visible {
-            outline: 2px solid #5A3D5A;
+            outline: 2px solid var(--ink);
             outline-offset: 2px;
         }
-        
+
+        /* ── filas del listado ── */
+        .appt-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            align-items: center;
+            gap: 16px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-left: 3px solid transparent;
+            border-radius: 14px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-row);
+            cursor: pointer;
+            transition: box-shadow .16s ease, transform .16s ease;
+        }
+        .appt-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 26px rgba(59, 47, 53, .07);
+        }
+        .appt-row.appointment-pending   { border-left-color: var(--pending); }
+        .appt-row.appointment-confirmed { border-left-color: var(--confirmed); }
+        .appt-row.appointment-completed { border-left-color: var(--done); }
+        .appt-row.appointment-cancelled { border-left-color: var(--cancelled); }
+
+        .appt-name {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 600;
+            font-size: 19px;
+            line-height: 1.2;
+        }
+        .appt-meta { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; }
+        .appt-when { text-align: right; }
+        .appt-date { color: var(--ink-soft); font-size: 11.5px; }
+        .appt-time { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .appt-price {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--gold-ink);
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+            min-width: 84px;
+        }
+
+        /* ── badge de estado ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 600;
+            background: var(--blush-2);
+            color: #5C3A4A;
+            padding: 6px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .badge .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--pending);
+            display: inline-block;
+        }
+        .badge.confirmed { background: #E9F0E9; color: #3F5A3F; }
+        .badge.confirmed .badge-dot { background: var(--confirmed); }
+        .badge.completed { background: #F0EAF3; color: #553D60; }
+        .badge.completed .badge-dot { background: var(--done); }
+        .badge.cancelled { background: #F6E9EA; color: #6B353B; }
+        .badge.cancelled .badge-dot { background: var(--cancelled); }
+
+        /* ── calendario ── */
+        .fc { font-family: 'Inter', sans-serif; }
+        .fc .fc-toolbar-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .fc .fc-button {
+            background: var(--surface) !important;
+            border: 1px solid var(--line) !important;
+            color: var(--ink) !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            font-size: 12.5px;
+            font-weight: 500;
+            padding: .45rem .7rem;
+            text-transform: none;
+            min-height: 36px;
+        }
+        .fc .fc-button:hover { background: var(--blush-2) !important; }
+        .fc .fc-button-primary:not(:disabled).fc-button-active,
+        .fc .fc-button-primary:not(:disabled):active {
+            background: var(--blush) !important;
+            border-color: var(--blush) !important;
+            color: var(--ink) !important;
+        }
+        .fc .fc-button:disabled { opacity: .45; }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--line); }
+        .fc-theme-standard .fc-scrollgrid { border-color: var(--line); }
+        .fc .fc-col-header-cell-cushion {
+            color: var(--ink-soft);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            font-weight: 500;
+        }
+        .fc .fc-daygrid-day-number { color: var(--ink-soft); font-size: 12px; }
+        .fc .fc-day-today { background: #FBF1F4 !important; }
+        .fc .fc-day-today .fc-daygrid-day-number { color: var(--pending); font-weight: 600; }
+        .fc .fc-event {
+            border: 0 !important;
+            border-left: 3px solid var(--pending) !important;
+            border-radius: 6px;
+            padding: 2px 5px;
+            font-size: 11px;
+        }
+        .fc-event-pending   { background-color: #FBECF1 !important; border-left-color: var(--pending) !important; color: #5C3A4A; }
+        .fc-event-confirmed { background-color: #EAF3EA !important; border-left-color: var(--confirmed) !important; color: #3F5A3F; }
+        .fc-event-completed { background-color: #F1EAF4 !important; border-left-color: var(--done) !important; color: #553D60; }
+        .fc-event-cancelled { background-color: #F4E9EA !important; border-left-color: var(--cancelled) !important; color: #6B353B; }
+        .fc-button-group { border-radius: 8px; overflow: hidden; }
+
+        /* ── modales ── */
         .modal-overlay {
-            background-color: rgba(90, 61, 90, 0.7);
+            background-color: rgba(59, 47, 53, .55);
+            backdrop-filter: blur(2px);
         }
-        
-        .modal-content {
-            animation: slide-up 0.3s ease-out;
-        }
-        
-        .appointment-card {
-            transition: all 0.2s ease;
-        }
-        
-        .appointment-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        
-        .whatsapp-btn {
-            background-color: #25D366;
-            transition: all 0.2s ease;
-        }
-        
-        .whatsapp-btn:hover {
-            background-color: #1FA855;
-        }
-        
-        .export-btn {
-            background-color: #F7D488;
-            transition: all 0.2s ease;
-        }
-        
-        .export-btn:hover {
-            background-color: #F5C66D;
-        }
-        
-        /* A12: redondear el grupo del toolbar de FullCalendar (no cada boton) */
-        .fc-button-group {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        /* A8: respetar prefers-reduced-motion */
+        .modal-content { animation: slide-up .28s ease-out; }
+
+        /* ── varios ── */
+        .whatsapp-btn { background-color: #25D366; min-height: 44px; transition: background-color .16s ease; }
+        .whatsapp-btn:hover { background-color: #1FA855; }
+        .export-btn { background-color: var(--blush-2); color: var(--ink); min-height: 44px; transition: background-color .16s ease; }
+        .export-btn:hover { background-color: #EEDCE4; }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -192,16 +304,21 @@
                 scroll-behavior: auto !important;
             }
         }
-        
-        @media (max-width: 640px) {
-            .fc-toolbar-title {
-                font-size: 1.1rem;
+
+        @media (max-width: 767px) {
+            .appt-row {
+                grid-template-columns: 1fr auto;
+                grid-template-areas:
+                    "who  badge"
+                    "when price";
+                gap: 10px 12px;
+                padding: 13px 14px;
             }
-            
-            .fc-button {
-                padding: 0.3rem 0.5rem;
-                font-size: 0.8rem;
-            }
+            .appt-who { grid-area: who; }
+            .appt-when { grid-area: when; text-align: left; display: flex; gap: 8px; align-items: baseline; }
+            .appt-price { grid-area: price; }
+            .badge { grid-area: badge; justify-self: end; }
+            .appt-name { font-size: 18px; }
         }
     </style>
 </head>
@@ -211,16 +328,13 @@
         <div id="app-banner" class="hidden mb-4 rounded-lg px-4 py-3 text-sm" role="alert"></div>
 
         <!-- Header -->
-        <header class="mb-8 text-center">
-            <div class="flex items-center justify-center mb-4">
-                <i class="fas fa-hand-holding-heart text-4xl text-eli-lilac mr-3"></i>
-                <h1 class="text-3xl md:text-4xl font-bold text-eli-dark">Eli M. Nails</h1>
-            </div>
-            <p class="text-lg text-eli-dark">Agenda de turnos personal</p>
+        <header class="mb-6">
+            <h1 class="brand"><span class="brand-star" aria-hidden="true">✦</span> Eli M. Nails</h1>
+            <p class="brand-sub">Agenda de turnos personal</p>
         </header>
         
         <!-- Navigation Tabs -->
-        <div class="flex mb-6 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="flex mb-6 border-b border-line">
             <button id="calendar-tab" class="nav-tab active flex-1 py-3 px-4 text-center">
                 <i class="fas fa-calendar-alt mr-2"></i> Calendario
             </button>
@@ -740,62 +854,82 @@
                 const hasFilter = !!(filter.search || (filter.status && filter.status !== 'all') || filter.date);
                 
                 if (appointments.length === 0) {
-                    appointmentsList.innerHTML = `
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-calendar-times text-4xl mb-3"></i>
-                            <p>${hasFilter ? 'No hay turnos que coincidan con el filtro' : 'No hay turnos programados'}</p>
-                            <button type="button" id="empty-new-btn" class="btn-primary mt-4 px-5 py-2 rounded-lg font-medium text-sm">
-                                <i class="fas fa-plus-circle mr-2"></i> Nuevo turno
-                            </button>
-                        </div>
-                    `;
-                    const emptyNewBtn = appointmentsList.querySelector('#empty-new-btn');
-                    if (emptyNewBtn) emptyNewBtn.addEventListener('click', () => showView('new'));
+                    const box = document.createElement('div');
+                    box.className = 'text-center py-10 text-ink-soft';
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-calendar-times text-3xl mb-3 block';
+                    const msg = document.createElement('p');
+                    msg.className = 'text-sm';
+                    msg.textContent = hasFilter
+                        ? 'No hay turnos que coincidan con el filtro'
+                        : 'No hay turnos programados';
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn-primary mt-4 px-5 py-2.5 rounded-lg font-medium text-sm';
+                    btn.textContent = 'Nuevo turno';
+                    btn.addEventListener('click', () => showView('new'));
+                    box.appendChild(icon);
+                    box.appendChild(msg);
+                    box.appendChild(btn);
+                    appointmentsList.appendChild(box);
                     return;
                 }
                 
-                appointments.forEach(appointment => {
-                    const statusClass = getStatusClass(appointment.status);
-                    const statusText = getStatusText(appointment.status);
+                appointments.forEach(function(appointment) {
+                    const row = document.createElement('div');
+                    row.className = 'appt-row ' + getStatusClass(appointment.status);
+                    row.tabIndex = 0;
+                    row.setAttribute('role', 'button');
+                    row.setAttribute('aria-label', 'Turno de ' + appointment.clientName);
                     
-                    const appointmentCard = document.createElement('div');
-                    appointmentCard.className = `appointment-card ${statusClass} p-4 rounded-lg cursor-pointer animate-fade-in`;
-                    appointmentCard.tabIndex = 0;
-                    appointmentCard.setAttribute('role', 'button');
-                    appointmentCard.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg">${appointment.clientName}</h3>
-                                <p class="text-gray-600">${appointment.serviceType}</p>
-                            </div>
-                            <span class="px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(appointment.status)}">
-                                ${statusText}
-                            </span>
-                        </div>
-                        <div class="mt-3 grid grid-cols-2 gap-2">
-                            <div>
-                                <p class="text-xs text-gray-500">Fecha</p>
-                                <p>${formatDate(appointment.date)}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500">Hora</p>
-                                <p>${appointment.time}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500">Precio</p>
-                                <p>$${appointment.price || '--'}</p>
-                            </div>
-                        </div>
-                    `;
+                    const who = document.createElement('div');
+                    who.className = 'appt-who';
+                    const name = document.createElement('div');
+                    name.className = 'appt-name';
+                    name.textContent = appointment.clientName;
+                    const meta = document.createElement('div');
+                    meta.className = 'appt-meta';
+                    meta.textContent = appointment.serviceType;
+                    who.appendChild(name);
+                    who.appendChild(meta);
                     
-                    appointmentCard.addEventListener('click', () => showAppointmentDetails(appointment));
-                    appointmentCard.addEventListener('keydown', (event) => {
+                    const when = document.createElement('div');
+                    when.className = 'appt-when';
+                    const day = document.createElement('div');
+                    day.className = 'appt-date';
+                    day.textContent = shortDate(appointment.date);
+                    const hour = document.createElement('div');
+                    hour.className = 'appt-time';
+                    hour.textContent = appointment.time;
+                    when.appendChild(day);
+                    when.appendChild(hour);
+                    
+                    const price = document.createElement('div');
+                    price.className = 'appt-price';
+                    price.textContent = appointment.price ? formatMoney(appointment.price) : '—';
+                    
+                    const badge = document.createElement('span');
+                    badge.className = 'badge ' + appointment.status;
+                    const dot = document.createElement('i');
+                    dot.className = 'badge-dot';
+                    const badgeText = document.createElement('span');
+                    badgeText.textContent = getStatusText(appointment.status);
+                    badge.appendChild(dot);
+                    badge.appendChild(badgeText);
+                    
+                    row.appendChild(who);
+                    row.appendChild(when);
+                    row.appendChild(price);
+                    row.appendChild(badge);
+                    
+                    row.addEventListener('click', () => showAppointmentDetails(appointment));
+                    row.addEventListener('keydown', (event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
                             showAppointmentDetails(appointment);
                         }
                     });
-                    appointmentsList.appendChild(appointmentCard);
+                    appointmentsList.appendChild(row);
                 });
             }
             
@@ -1637,6 +1771,19 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const date = parseLocalDate(dateString);
                 return date ? date.toLocaleDateString('es-AR', options) : '--';
+            }
+
+            function shortDate(dateString) {
+                const date = parseLocalDate(dateString);
+                if (!date) return '--';
+                return date.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+                    .replace(/\./g, '')
+                    .replace(/\u00a0/g, ' ');
+            }
+
+            function formatMoney(value) {
+                const amount = Number(value) || 0;
+                return '$ ' + amount.toLocaleString('es-AR');
             }
             
             function getStatusClass(status) {
