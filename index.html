@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- P2: Supabase SDK (version pineada para evitar cambios silenciosos) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -205,6 +207,9 @@
 </head>
 <body class="min-h-screen">
     <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- Aviso de estado (errores de red / sincronizacion) -->
+        <div id="app-banner" class="hidden mb-4 rounded-lg px-4 py-3 text-sm" role="alert"></div>
+
         <!-- Header -->
         <header class="mb-8 text-center">
             <div class="flex items-center justify-center mb-4">
@@ -261,6 +266,9 @@
                         <i class="fas fa-upload mr-2"></i> Restaurar
                     </button>
                     <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
+                    <button type="button" id="migrate-btn" class="hidden bg-eli-gold w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i> Migrar turnos locales
+                    </button>
                 </div>
             </div>
             <p id="data-status" class="mt-3 text-sm" role="status" aria-live="polite" hidden></p>
@@ -367,9 +375,23 @@
         <!-- Footer -->
         <footer class="mt-12 text-center text-sm text-gray-600">
             <p>Creado con <i class="fas fa-heart text-red-400"></i> por @Jacinto.Cards</p>
+            <button type="button" id="logout-btn" class="mt-2 text-xs text-gray-400 hover:text-gray-600 underline">Cerrar sesión</button>
         </footer>
     </div>
     
+    <!-- P2: pantalla de login -->
+    <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-8 text-center">
+            <i class="fas fa-hand-holding-heart text-4xl text-eli-lilac mb-4"></i>
+            <h1 class="text-2xl font-bold text-eli-dark mb-1">Eli M. Nails</h1>
+            <p class="text-sm text-gray-600 mb-6">Agenda de turnos</p>
+            <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
+                <i class="fab fa-google"></i> Entrar con Google
+            </button>
+            <p id="auth-error" class="mt-4 text-sm text-red-600" role="alert"></p>
+        </div>
+    </div>
+
     <!-- Appointment Details Modal -->
     <div id="appointment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -478,16 +500,18 @@
                 }
             };
             
-            request.onsuccess = function(event) {
-                db = event.target.result;
-                // Calendario primero: loadAppointments() necesita la instancia creada.
-                initCalendar();
-                loadAppointments();
-            };
-            
-            request.onerror = function(event) {
-                console.error('Database error:', event.target.error);
-            };
+            // P2: la app ya no arranca al abrir IndexedDB. Solo se resuelve `dbReady`.
+            // IndexedDB se conserva para el respaldo local y la migración.
+            const dbReady = new Promise(function(resolve) {
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    resolve(db);
+                };
+                request.onerror = function(event) {
+                    console.error('Database error:', event.target.error);
+                    resolve(null);
+                };
+            });
             
             // DOM Elements
             const calendarView = document.getElementById('calendar-view');
@@ -575,7 +599,7 @@
                 appointmentStatusInput.value = 'pending';
             }
             
-            function saveAppointment() {
+            async function saveAppointment() {
                 const appointment = {
                     clientName: clientNameInput.value.trim(),
                     serviceType: serviceTypeInput.value,
@@ -583,8 +607,7 @@
                     time: appointmentTimeInput.value,
                     price: appointmentPriceInput.value ? parseInt(appointmentPriceInput.value) : 0,
                     notes: appointmentNotesInput.value.trim(),
-                    status: appointmentStatusInput.value,
-                    timestamp: new Date(`${appointmentDateInput.value}T${appointmentTimeInput.value}:00`).getTime()
+                    status: appointmentStatusInput.value
                 };
                 
                 if (!appointment.clientName || !appointment.serviceType || !appointment.date || !appointment.time) {
@@ -592,57 +615,48 @@
                     return;
                 }
                 
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                
-                if (appointmentIdInput.value) {
-                    // Update existing appointment
-                    appointment.id = parseInt(appointmentIdInput.value);
-                    const request = store.put(appointment);
-                    
-                    request.onsuccess = function() {
-                        loadAppointments();
-                        resetForm();
-                        showView('appointments');
-                    };
-                    
-                    request.onerror = function(event) {
-                        console.error('Error updating appointment:', event.target.error);
-                    };
-                } else {
-                    // Add new appointment
-                    const request = store.add(appointment);
-                    
-                    request.onsuccess = function() {
-                        loadAppointments();
-                        resetForm();
-                        showView('appointments');
-                    };
-                    
-                    request.onerror = function(event) {
-                        console.error('Error adding appointment:', event.target.error);
-                    };
+                const editando = appointmentIdInput.value;
+                try {
+                    if (editando) {
+                        const { error } = await supabase.from('turnos')
+                            .update(toDb(appointment))
+                            .eq('id', editando);
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabase.from('turnos').insert(toDb(appointment));
+                        if (error) throw error;
+                    }
+                    await loadAppointments();
+                    resetForm();
+                    showView('appointments');
+                } catch (error) {
+                    console.error('Error guardando el turno:', error);
+                    alert('No se pudo guardar el turno: ' + (error.message || 'error de conexión'));
                 }
             }
             
-            // Load appointments for calendar and list
-            function loadAppointments() {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
-                
-                request.onsuccess = function() {
-                    const appointments = request.result;
-                    
-                    // Update calendar if it exists
+            // P2: lectura desde Supabase (tabla `turnos`) + cache en memoria.
+            let cache = [];
+
+            async function fetchTurnos() {
+                const { data, error } = await supabase.from('turnos')
+                    .select('*')
+                    .order(COLS.date, { ascending: true })
+                    .order(COLS.time, { ascending: true });
+                if (error) throw error;
+                return (data || []).map(fromDb);
+            }
+
+            async function loadAppointments() {
+                try {
+                    cache = await fetchTurnos();
                     if (calendar) {
                         calendar.removeAllEvents();
-                        
-                        appointments.forEach(appointment => {
+                        cache.forEach(function(appointment) {
                             calendar.addEvent({
                                 id: appointment.id,
-                                title: `${appointment.clientName} - ${appointment.serviceType}`,
-                                start: `${appointment.date}T${appointment.time}:00`,
+                                title: appointment.clientName + ' - ' + appointment.serviceType,
+                                start: appointment.date + 'T' + appointment.time + ':00',
                                 extendedProps: {
                                     clientName: appointment.clientName,
                                     serviceType: appointment.serviceType,
@@ -650,62 +664,46 @@
                                     notes: appointment.notes,
                                     status: appointment.status
                                 },
-                                className: `fc-event-${appointment.status}`
+                                className: 'fc-event-' + appointment.status
                             });
                         });
                     }
-                    
-                    // Update list view if visible
                     if (!appointmentsView.classList.contains('hidden')) {
                         loadAppointmentsList();
                     }
-                };
-                
-                request.onerror = function(event) {
-                    console.error('Error loading appointments:', event.target.error);
-                };
+                } catch (error) {
+                    console.error('Error cargando turnos:', error);
+                    mostrarBanner('No se pudieron cargar los turnos. Revisá la conexión.');
+                }
             }
             
-            // Load appointments list with filtering
+            // P2: filtra el cache (no consulta la base en cada tecla)
             function loadAppointmentsList(filter = {}) {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
+                let appointments = cache.slice();
                 
-                request.onsuccess = function() {
-                    let appointments = request.result;
-                    
-                    // Apply filters
-                    if (filter.search) {
-                        const searchTerm = filter.search.toLowerCase();
-                        appointments = appointments.filter(app => 
-                            app.clientName.toLowerCase().includes(searchTerm) || 
-                            app.serviceType.toLowerCase().includes(searchTerm)
-                        );
-                    }
-                    
-                    if (filter.status && filter.status !== 'all') {
-                        appointments = appointments.filter(app => app.status === filter.status);
-                    }
-                    
-                    if (filter.date) {
-                        appointments = appointments.filter(app => app.date === filter.date);
-                    }
-                    
-                    // Sort by date and time
-                    appointments.sort((a, b) => {
-                        const dateA = new Date(`${a.date}T${a.time}:00`);
-                        const dateB = new Date(`${b.date}T${b.time}:00`);
-                        return dateA - dateB;
-                    });
-                    
-                    // Display appointments
-                    renderAppointmentsList(appointments, filter);
-                };
+                if (filter.search) {
+                    const searchTerm = filter.search.toLowerCase();
+                    appointments = appointments.filter(app =>
+                        String(app.clientName || '').toLowerCase().includes(searchTerm) ||
+                        String(app.serviceType || '').toLowerCase().includes(searchTerm)
+                    );
+                }
                 
-                request.onerror = function(event) {
-                    console.error('Error loading appointments:', event.target.error);
-                };
+                if (filter.status && filter.status !== 'all') {
+                    appointments = appointments.filter(app => app.status === filter.status);
+                }
+                
+                if (filter.date) {
+                    appointments = appointments.filter(app => app.date === filter.date);
+                }
+                
+                appointments.sort(function(a, b) {
+                    const dateA = new Date(a.date + 'T' + a.time + ':00');
+                    const dateB = new Date(b.date + 'T' + b.time + ':00');
+                    return dateA - dateB;
+                });
+                
+                renderAppointmentsList(appointments, filter);
             }
             
             // Render appointments list
@@ -799,14 +797,10 @@
                 });
             });
             
-            // Export to Excel
+            // Export to Excel (P2: desde el cache, ya no desde IndexedDB)
             exportExcelBtn.addEventListener('click', function() {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
-                
-                request.onsuccess = function() {
-                    const appointments = request.result;
+                try {
+                    const appointments = cache.slice();
                     
                     // Prepare data for Excel
                     const excelData = appointments.map(app => ({
@@ -814,7 +808,7 @@
                         'Servicio': app.serviceType,
                         'Fecha': formatDate(app.date),
                         'Hora': app.time,
-                        'Precio': `$${app.price || ''}`,
+                        'Precio': '$' + (app.price || ''),
                         'Notas': app.notes || '',
                         'Estado': getStatusText(app.status)
                     }));
@@ -827,12 +821,11 @@
                     XLSX.utils.book_append_sheet(wb, ws, 'Turnos');
                     
                     // Export to file
-                    XLSX.writeFile(wb, `Turnos_Eli_Nails_${todayISO()}.xlsx`);
-                };
-                
-                request.onerror = function(event) {
-                    console.error('Error exporting appointments:', event.target.error);
-                };
+                    XLSX.writeFile(wb, 'Turnos_Eli_Nails_' + todayISO() + '.xlsx');
+                } catch (error) {
+                    console.error('Error exportando:', error);
+                    alert('No se pudo exportar el Excel.');
+                }
             });
             
             // ─────────────────────────────────────────────────────────────
@@ -899,7 +892,8 @@
             }
 
             async function respaldar(sufijo) {
-                const rows = await leerTodosLosTurnos();
+                // P2: respalda la agenda de la nube (cache), no IndexedDB
+                const rows = cache.slice();
                 descargarJson(construirRespaldo(rows), 'Eli_Backup_' + todayISO() + (sufijo || '') + '.json');
                 return rows.length;
             }
@@ -981,16 +975,15 @@
                 return { ok: true, rows: limpios };
             }
 
-            function reemplazarTurnos(rows) {
-                return new Promise(function (resolve, reject) {
-                    const transaction = db.transaction([STORE_NAME], 'readwrite');
-                    const store = transaction.objectStore(STORE_NAME);
-                    store.clear();
-                    rows.forEach(function (row) { store.add(row); });   // sin id: autoIncrement asigna
-                    transaction.oncomplete = function () { resolve(rows.length); };
-                    transaction.onerror = function () { reject(transaction.error); };
-                    transaction.onabort = function () { reject(transaction.error); };
-                });
+            async function reemplazarTurnos(rows) {
+                // P2: reemplaza la agenda en la nube (RLS limita a las filas propias)
+                const borrado = await supabase.from('turnos').delete().gte('id', 0);
+                if (borrado.error) throw borrado.error;
+                if (rows.length) {
+                    const insertado = await supabase.from('turnos').insert(rows.map(toDb));
+                    if (insertado.error) throw insertado.error;
+                }
+                return rows.length;
             }
 
             // Reutiliza el modal de confirmación existente
@@ -1016,14 +1009,8 @@
                     return;
                 }
 
-                let actuales;
-                try {
-                    actuales = await leerTodosLosTurnos();
-                } catch (error) {
-                    console.error(error);
-                    setDataStatus('error', 'No se pudieron leer los turnos actuales.');
-                    return;
-                }
+                // P2: el estado "actual" es el de la nube (cache), no IndexedDB
+                const actuales = cache.slice();
 
                 const nuevos = resultado.rows.length;
                 const mensaje = nuevos === 0
@@ -1107,6 +1094,208 @@
                 await restaurarDesdeTexto(texto);
             });
             
+            // ─────────────────────────────────────────────────────────────
+            // P2: Supabase (datos + autenticación con Google)
+            // ─────────────────────────────────────────────────────────────
+            // 1) Pegar aca los datos del proyecto (Supabase → Project Settings → API).
+            //    La publishable/anon key es PÚBLICA: la seguridad la da RLS.
+            const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+            const SUPABASE_PUBLISHABLE_KEY = 'PEGA_ACA_TU_PUBLISHABLE_KEY';
+
+            // 2) Nombres de columna de fecha/hora. Se detectan solos contra la tabla.
+            const COLS = { date: 'date', time: 'time' };
+
+            const authScreen = document.getElementById('auth-screen');
+            const authError = document.getElementById('auth-error');
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const migrateBtn = document.getElementById('migrate-btn');
+            const appBanner = document.getElementById('app-banner');
+
+            function supabaseConfigurada() {
+                return SUPABASE_URL.indexOf('TU-PROYECTO') === -1 &&
+                       SUPABASE_PUBLISHABLE_KEY.indexOf('PEGA_ACA') === -1;
+            }
+
+            const SUPABASE_LISTO = (typeof window.supabase !== 'undefined') && supabaseConfigurada();
+            const supabase = SUPABASE_LISTO
+                ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+                    auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+                  })
+                : null;
+
+            let bannerTimer = null;
+            function mostrarBanner(mensaje, tipo) {
+                appBanner.textContent = mensaje;
+                appBanner.className = 'mb-4 rounded-lg px-4 py-3 text-sm ' +
+                    (tipo === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700');
+                appBanner.hidden = false;
+                clearTimeout(bannerTimer);
+                bannerTimer = setTimeout(function() { appBanner.hidden = true; }, 8000);
+            }
+
+            // ── Mapeo snake_case (Supabase) ↔ camelCase (app) ──
+            function fromDb(r) {
+                const fecha = r[COLS.date] || r.date || r.appointment_date || '';
+                const hora = String(r[COLS.time] || r.time || r.appointment_time || '').slice(0, 5);
+                return {
+                    id: r.id,
+                    clientName: r.client_name || '',
+                    serviceType: r.service_type || '',
+                    date: fecha,
+                    time: hora,
+                    price: r.price || 0,
+                    notes: r.notes || '',
+                    status: r.status || 'pending',
+                    timestamp: new Date(fecha + 'T' + hora + ':00').getTime()
+                };
+            }
+
+            function toDb(a) {
+                const fila = {
+                    client_name: a.clientName,
+                    service_type: a.serviceType,
+                    price: a.price,
+                    notes: a.notes,
+                    status: a.status
+                };
+                fila[COLS.date] = a.date;
+                fila[COLS.time] = a.time;
+                return fila;
+            }
+
+            // Si la tabla usa appointment_date/appointment_time, se detecta solo.
+            async function detectarColumnas() {
+                if (!supabase) return;
+                try {
+                    const { error } = await supabase.from('turnos').select('appointment_date').limit(1);
+                    if (!error) { COLS.date = 'appointment_date'; COLS.time = 'appointment_time'; }
+                } catch (error) { /* se mantienen date/time */ }
+            }
+
+            // ── Auth ──
+            let appIniciada = false;
+            let calendarioIniciado = false;
+
+            function mostrarLogin(mensaje) {
+                appIniciada = false;
+                authError.textContent = mensaje || '';
+                googleLoginBtn.disabled = false;
+                authScreen.classList.remove('hidden');
+            }
+
+            function ocultarLogin() {
+                authScreen.classList.add('hidden');
+            }
+
+            async function arrancar() {
+                await dbReady;
+                if (!calendarioIniciado) { initCalendar(); calendarioIniciado = true; }
+                await detectarColumnas();
+                await loadAppointments();
+                await evaluarMigracion();
+                showView('calendar');
+                dateFilter.value = todayISO();
+            }
+
+            async function iniciarApp(session) {
+                if (appIniciada) return;
+                appIniciada = true;
+                ocultarLogin();
+                try {
+                    await arrancar();
+                } catch (error) {
+                    console.error(error);
+                    mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
+                }
+            }
+
+            async function iniciarAuth() {
+                if (!SUPABASE_LISTO) {
+                    mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
+                    return;
+                }
+                supabase.auth.onAuthStateChange(function(evento, session) {
+                    if (evento === 'SIGNED_OUT') { mostrarLogin(); }
+                    else if (session) { iniciarApp(session); }
+                });
+                try {
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error) { mostrarLogin('No se pudo comprobar la sesión: ' + error.message); return; }
+                    if (data && data.session) { await iniciarApp(data.session); }
+                    else { mostrarLogin(); }
+                } catch (error) {
+                    console.error(error);
+                    mostrarLogin('Error de conexión con el servidor.');
+                }
+            }
+
+            googleLoginBtn.addEventListener('click', async function() {
+                if (!SUPABASE_LISTO) { mostrarLogin('Falta configurar Supabase.'); return; }
+                googleLoginBtn.disabled = true;
+                authError.textContent = '';
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin,
+                        queryParams: { prompt: 'select_account' }
+                    }
+                });
+                if (error) {
+                    googleLoginBtn.disabled = false;
+                    authError.textContent = 'No se pudo iniciar sesión: ' + error.message;
+                }
+            });
+
+            logoutBtn.addEventListener('click', async function() {
+                if (!supabase) return;
+                try { await supabase.auth.signOut(); } catch (error) { console.error(error); }
+                cache = [];
+                if (calendar) calendar.removeAllEvents();
+                appointmentsList.innerHTML = '';
+                mostrarLogin();
+            });
+
+            // ── Migracion de turnos locales (Paso 8) ──
+            async function evaluarMigracion() {
+                if (!migrateBtn) return;
+                try {
+                    const locales = await leerTodosLosTurnos();
+                    const yaMigrado = localStorage.getItem('eli_migrado') === '1';
+                    if (!yaMigrado && locales.length > 0 && cache.length === 0) {
+                        migrateBtn.textContent = 'Migrar ' + locales.length + ' turnos locales';
+                        migrateBtn.classList.remove('hidden');
+                    } else {
+                        migrateBtn.classList.add('hidden');
+                    }
+                } catch (error) { /* sin IndexedDB: nada que migrar */ }
+            }
+
+            migrateBtn.addEventListener('click', async function() {
+                try {
+                    const locales = await leerTodosLosTurnos();
+                    if (!locales.length) { migrateBtn.classList.add('hidden'); return; }
+                    pedirConfirmacion(
+                        'Migrar turnos locales',
+                        'Se van a subir ' + locales.length + ' turnos guardados en este navegador. Los que ya esten en la nube no se tocan.',
+                        'Migrar',
+                        async function() {
+                            try {
+                                const { error } = await supabase.from('turnos').insert(locales.map(toDb));
+                                if (error) throw error;
+                                localStorage.setItem('eli_migrado', '1');
+                                migrateBtn.classList.add('hidden');
+                                await loadAppointments();
+                                mostrarBanner('Migrados ' + locales.length + ' turnos locales.', 'ok');
+                            } catch (error) {
+                                console.error(error);
+                                alert('No se pudieron migrar los turnos: ' + (error.message || 'error de conexión'));
+                            }
+                        }
+                    );
+                } catch (error) { console.error(error); }
+            });
+
             // Initialize FullCalendar
             let calendar;
             
@@ -1239,20 +1428,17 @@
                 };
             }
             
-            // Delete appointment
-            function deleteAppointment(id) {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.delete(parseInt(id));
-                
-                request.onsuccess = function() {
-                    loadAppointments();
+            // Delete appointment (P2: Supabase)
+            async function deleteAppointment(id) {
+                try {
+                    const { error } = await supabase.from('turnos').delete().eq('id', id);
+                    if (error) throw error;
+                    await loadAppointments();
                     resetForm();
-                };
-                
-                request.onerror = function(event) {
-                    console.error('Error deleting appointment:', event.target.error);
-                };
+                } catch (error) {
+                    console.error('Error eliminando el turno:', error);
+                    alert('No se pudo eliminar el turno: ' + (error.message || 'error de conexión'));
+                }
             }
             
             // Send WhatsApp message
@@ -1329,12 +1515,8 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
                 }
             }
             
-            // Initialize with calendar view
-            showView('calendar');
-            
-            // Set today's date as default in date filter (local time).
-            // valueAsDate interpreta el Date en UTC: a las 22:40 daria manana.
-            dateFilter.value = todayISO();
+            // P2: el arranque depende de la sesión de Supabase.
+            iniciarAuth();
             
             // Sin min en los inputs: los turnos pasados son validos (registro de
             // caja) y el filtro debe poder consultar el historial.
