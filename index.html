@@ -1373,6 +1373,8 @@
         .deuda-estado { font-size: 12px; color: var(--ink-soft); }
         .deuda-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
         .deuda-pagos {
+            max-height: 190px;
+            overflow-y: auto;
             margin-top: 10px;
             border-top: 1px dashed var(--line);
             padding-top: 8px;
@@ -4730,6 +4732,7 @@
                     cont.appendChild(tarjeta);
                 });
             }            let deudaPagoActual = null;
+            let enviandoPago = false;
 
             function abrirPago(deuda) {
                 deudaPagoActual = deuda;
@@ -4758,30 +4761,40 @@
             }
 
             async function guardarPago() {
-                if (!deudaPagoActual) return;
+                if (!deudaPagoActual || enviandoPago) return;
                 const boton = document.getElementById('pago-save');
                 const errorEl = document.getElementById('pago-error');
                 const monto = Math.round(Number(document.getElementById('pago-monto').value));
-                const fecha = document.getElementById('pago-fecha').value || todayISO();
+                const fecha = document.getElementById('pago-fecha').value;
                 const saldo = saldoDeDeuda(deudaPagoActual);
                 const fallo = function (mensaje) {
                     if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
                 };
                 if (!monto || monto <= 0) { fallo('El monto tiene que ser mayor a 0.'); return; }
+                if (!fecha) { fallo('Elegí una fecha.'); return; }
                 if (monto > saldo) { fallo('El monto no puede superar el saldo pendiente (' + money(saldo) + ').'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
+                enviandoPago = true;
                 if (boton) boton.disabled = true;
                 try {
+                    // A1: el saldo puede haber cambiado (otra pestana, otro dispositivo, un pago borrado)
+                    await recargar('pagos_deudas');
+                    const saldoActual = saldoDeDeuda(deudaPagoActual);
+                    if (monto > saldoActual) {
+                        fallo('El saldo cambió: ahora debe ' + money(saldoActual) + '.');
+                        return;
+                    }
                     const pago = await api.pagos_deudas.create({
                         deuda_id: deudaPagoActual.id,
                         monto: monto,
                         fecha: fecha
                     });
                     cerrarModal(document.getElementById('pago-modal'));
+                    deudaPagoActual = null;
                     await recargar('pagos_deudas');
                     await recargar('deudas');
                     refrescarPaneles();
-                    const restante = Math.max(0, saldo - monto);
+                    const restante = Math.max(0, saldoActual - monto);
                     mostrarBanner('Pago registrado: ' + money(monto) + '. ' +
                         (restante > 0 ? 'Resta ' + money(restante) + '.' : 'Deuda saldada.'), 'ok', {
                         duracion: 6000,
@@ -4790,8 +4803,8 @@
                 } catch (error) {
                     fallo('No se pudo registrar el pago: ' + (error.message || 'error de conexión'));
                 } finally {
+                    enviandoPago = false;
                     if (boton) boton.disabled = false;
-                    deudaPagoActual = null;
                 }
             }
 
@@ -5005,7 +5018,7 @@
                 setTexto('ini-realizados', String(realizados.length));
                 setTexto('ini-cancelados', String(cancelados.length));
                 const pista = document.getElementById('ini-gastos-hint');
-                if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' de deudas') : 'Del mes';
+                if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' en pagos de deudas') : 'Del mes';
                 const balanceEl = document.getElementById('ini-balance');
                 if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
 
@@ -5045,7 +5058,7 @@
                 setTexto('fin-realizados', String(realizados.length));
                 setTexto('fin-cancelados', String(cancelados.length));
                 const pista = document.getElementById('fin-gastos-hint');
-                if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' de deudas pagadas') : 'Del período';
+                if (pista) pista.textContent = totalDeudas > 0 ? ('Incluye ' + money(totalDeudas) + ' en pagos de deudas') : 'Del período';
                 const balanceEl = document.getElementById('fin-balance');
                 if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
 

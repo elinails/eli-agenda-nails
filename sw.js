@@ -2,7 +2,7 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-const CACHE = 'eli-nails-v2';
+const CACHE = 'eli-nails-v3';
 const SHELL = [
     './',
     'index.html',
