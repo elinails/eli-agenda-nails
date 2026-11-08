@@ -640,6 +640,20 @@
         /* ── banners y avisos ── */
         .banner-error { background: var(--danger-bg); color: var(--danger-ink); }
         .banner-ok { background: var(--ok-bg); color: var(--ok-ink); }
+        .banner-accion {
+            margin-left: 12px;
+            min-height: 36px;
+            padding: 4px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .banner-accion:hover { background: rgba(0, 0, 0, .06); }
         .text-danger { color: var(--danger-ink); }
         .text-ok { color: var(--ok-ink); }
 
@@ -2674,13 +2688,30 @@
                 : null;
 
             let bannerTimer = null;
-            function mostrarBanner(mensaje, tipo) {
-                appBanner.textContent = mensaje;
+            function mostrarBanner(mensaje, tipo, opciones) {
+                const opts = opciones || {};
+                appBanner.innerHTML = '';
+                const texto = document.createElement('span');
+                texto.textContent = mensaje;
+                appBanner.appendChild(texto);
+                if (opts.accion && opts.accion.texto) {
+                    const boton = document.createElement('button');
+                    boton.type = 'button';
+                    boton.className = 'banner-accion';
+                    boton.textContent = opts.accion.texto;
+                    boton.addEventListener('click', opts.accion.alTocar);
+                    appBanner.appendChild(boton);
+                }
                 appBanner.className = 'mb-4 rounded-lg px-4 py-3 text-sm ' +
                     (tipo === 'ok' ? 'banner-ok' : 'banner-error');
+                appBanner.setAttribute('role', tipo === 'ok' ? 'status' : 'alert');
+                appBanner.setAttribute('aria-live', tipo === 'ok' ? 'polite' : 'assertive');
                 appBanner.hidden = false;
                 clearTimeout(bannerTimer);
-                bannerTimer = setTimeout(function() { appBanner.hidden = true; }, 8000);
+                bannerTimer = setTimeout(function() {
+                    appBanner.hidden = true;
+                    appBanner.innerHTML = '';
+                }, opts.duracion || 8000);
             }
 
             // ── Mapeo snake_case (Supabase) ↔ camelCase (app) ──
@@ -3858,11 +3889,33 @@
             }
             
             // Show appointment details in modal
+            // ─────────────────────────────────────────────────────────────
+            // I17 · Marcar realizado: advertencia de fecha + deshacer
+            // ─────────────────────────────────────────────────────────────
             let marcandoRealizado = false;
+            let deshaciendo = false;
 
-            async function marcarRealizado(turno) {
+            function marcarRealizado(turno) {
+                if (marcandoRealizado) return;
+
+                if (turno.date !== todayISO()) {
+                    pedirConfirmacion(
+                        '¿Marcar turno como realizado?',
+                        'Este turno es del ' + formatDate(turno.date) + '. Hoy es ' + formatDate(todayISO()) +
+                        '. ¿Estás segura de que ya se realizó?',
+                        'Sí, realizado',
+                        function() { ejecutarMarcarRealizado(turno); }
+                    );
+                    return;
+                }
+
+                ejecutarMarcarRealizado(turno);
+            }
+
+            async function ejecutarMarcarRealizado(turno) {
                 if (marcandoRealizado) return;
                 const boton = document.getElementById('modal-complete-btn');
+                const estadoAnterior = normalizarEstado(turno.status);
                 marcandoRealizado = true;
                 if (boton) boton.disabled = true;
                 try {
@@ -3873,7 +3926,13 @@
                     cerrarModal(appointmentModal);
                     await loadAppointments();
                     await recargar('turnos');
-                    mostrarBanner('Turno marcado como realizado.', 'ok');
+                    mostrarBanner('Turno marcado como realizado.', 'ok', {
+                        duracion: 6000,
+                        accion: {
+                            texto: 'Deshacer',
+                            alTocar: function() { deshacerRealizado(turno, estadoAnterior); }
+                        }
+                    });
                 } catch (error) {
                     console.error('Error marcando el turno:', error);
                     mostrarBanner('No se pudo marcar como realizado: ' + (error.message || 'error de conexión'), 'error');
@@ -3881,7 +3940,31 @@
                     marcandoRealizado = false;
                     if (boton) boton.disabled = false;
                 }
-            }            function showAppointmentDetails(appointment) {
+            }
+
+            async function deshacerRealizado(turno, estadoAnterior) {
+                if (deshaciendo) return;
+                deshaciendo = true;
+                clearTimeout(bannerTimer);
+                appBanner.hidden = true;
+                appBanner.innerHTML = '';
+                try {
+                    const { error } = await supabase.from('turnos')
+                        .update({ status: estadoAnterior })
+                        .eq('id', turno.id);
+                    if (error) throw error;
+                    await loadAppointments();
+                    await recargar('turnos');
+                    mostrarBanner('Cambio deshecho: el turno volvió a ' + getStatusText(estadoAnterior).toLowerCase() + '.', 'ok');
+                } catch (error) {
+                    console.error('Error deshaciendo el cambio:', error);
+                    mostrarBanner('No se pudo deshacer: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    deshaciendo = false;
+                }
+            }
+
+            function showAppointmentDetails(appointment) {
                 document.getElementById('modal-title').textContent = `Turno #${appointment.id}`;
                 document.getElementById('modal-client').textContent = appointment.clientName;
                 document.getElementById('modal-service').textContent = appointment.serviceType;
