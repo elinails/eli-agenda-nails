@@ -687,7 +687,72 @@
             transition: background-color .16s ease, color .16s ease;
         }
         .icon-btn:hover { background: var(--blush-2); color: var(--ink); }
-        .icon-btn.danger:hover { background: var(--cancelled-tint); color: var(--cancelled); }        @media (prefers-reduced-motion: reduce) {
+        .icon-btn.danger:hover { background: var(--cancelled-tint); color: var(--cancelled); }        /* ── finanzas (I6c) ── */
+        .fin-mes {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink);
+            min-width: 150px;
+            text-align: center;
+        }
+        .fin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        @media (min-width: 640px) {
+            .fin-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .fin-card {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface-2);
+        }
+        .fin-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--ink-soft);
+            font-weight: 600;
+        }
+        .fin-value {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gold-ink);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+        }
+        .fin-value-gastos { color: var(--cancelled); }
+        .fin-value.negativo { color: var(--cancelled); }
+        .fin-hint { font-size: 11px; color: var(--ink-soft); }
+        .fin-subtitle {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0 0 10px;
+            color: var(--ink);
+        }
+        .gasto-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        @media (min-width: 640px) {
+            .gasto-form { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto auto; }
+        }
+        .gasto-form input {
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 13.5px;
+            min-width: 0;
+        }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -852,9 +917,12 @@
                 <section>
                     <h2 class="form-section-title">Cliente</h2>
                     <div class="mt-3">
-                        <label for="client-name" class="block text-sm font-medium text-ink-soft mb-1">Nombre completo <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
-                        <input type="text" id="client-name" required autocomplete="name"
-                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                        <label for="client-name" class="block text-sm font-medium text-ink-soft mb-1">Clienta <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                        <select id="client-name" required
+                                class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                            <option value="">Seleccionar clienta</option>
+                        </select>
+                        <input type="hidden" id="appointment-cliente-id">
                     </div>
                 </section>
 
@@ -866,10 +934,8 @@
                             <select id="service-type" required
                                     class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                                 <option value="">Seleccionar servicio</option>
-                                <option value="Kapping">Kapping</option>
-                                <option value="Soft gel">Soft gel</option>
-                                <option value="Semipermanente">Semipermanente</option>
                             </select>
+                            <input type="hidden" id="appointment-servicio-id">
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -976,10 +1042,50 @@
 
         <!-- Finanzas -->
         <section class="section hidden" data-section="finanzas">
-            <div class="panel">
-                <h2 class="panel-title">Finanzas</h2>
-                <p class="panel-note">Ingresos de turnos realizados y gastos.</p>
-                <div id="finanzas-list" class="mt-4 space-y-3" aria-busy="true"></div>
+            <div class="panel space-y-5">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="fin-prev" class="icon-btn" aria-label="Mes anterior">
+                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <span id="fin-mes" class="fin-mes"></span>
+                        <button type="button" id="fin-next" class="icon-btn" aria-label="Mes siguiente">
+                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="fin-grid">
+                    <div class="fin-card">
+                        <span class="fin-label">Ingresos</span>
+                        <strong class="fin-value" id="fin-ingresos">$ 0</strong>
+                        <span class="fin-hint">Turnos realizados</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Gastos</span>
+                        <strong class="fin-value fin-value-gastos" id="fin-gastos">$ 0</strong>
+                        <span class="fin-hint">Cargados este mes</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Balance</span>
+                        <strong class="fin-value" id="fin-balance">$ 0</strong>
+                        <span class="fin-hint">Ingresos − gastos</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="fin-subtitle">Gastos del mes</h3>
+                    <form id="gasto-form" class="gasto-form" novalidate>
+                        <input type="text" id="gasto-descripcion" placeholder="Descripción" required maxlength="80" autocomplete="off" aria-label="Descripción del gasto">
+                        <input type="number" id="gasto-monto" placeholder="Monto" required min="0" step="100" inputmode="decimal" aria-label="Monto del gasto">
+                        <input type="date" id="gasto-fecha" required aria-label="Fecha del gasto">
+                        <button type="submit" id="gasto-save" class="btn-primary px-4 py-2.5 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2" aria-hidden="true"></i> Agregar
+                        </button>
+                    </form>
+                    <p id="gasto-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error mt-2" role="alert"></p>
+                    <div id="gastos-list" class="space-y-3 mt-4" aria-busy="true"></div>
+                </div>
             </div>
         </section>
 
@@ -1479,7 +1585,8 @@
             function pintarSecciones() {
                 renderClientes();
                 renderServicios();
-                pintarResumen(document.getElementById('finanzas-list'), 'gastos', 'fa-receipt', 'Todavía no cargaste gastos.', 'gastos');
+                renderFinanzas();
+                poblarSelectsTurno();
             }
 
             // ── navegación entre secciones ──
@@ -1549,6 +1656,10 @@
             function resetForm() {
                 appointmentForm.reset();
                 appointmentIdInput.value = '';
+                const clienteIdReset = document.getElementById('appointment-cliente-id');
+                const servicioIdReset = document.getElementById('appointment-servicio-id');
+                if (clienteIdReset) clienteIdReset.value = '';
+                if (servicioIdReset) servicioIdReset.value = '';
                 saveBtn.classList.remove('hidden');
                 updateBtn.classList.add('hidden');
                 deleteBtn.classList.add('hidden');
@@ -1565,6 +1676,8 @@
                 const appointment = {
                     clientName: clientNameInput.value.trim(),
                     serviceType: serviceTypeInput.value,
+                    clienteId: tomarId('appointment-cliente-id'),
+                    servicioId: tomarId('appointment-servicio-id'),
                     date: appointmentDateInput.value,
                     time: appointmentTimeInput.value,
                     price: appointmentPriceInput.value ? parseInt(appointmentPriceInput.value) : 0,
@@ -1589,6 +1702,7 @@
                         if (error) throw error;
                     }
                     await loadAppointments();
+                    await recargar('turnos');
                     resetForm();
                     showView('appointments');
                 } catch (error) {
@@ -1619,9 +1733,12 @@
                                 id: appointment.id,
                                 title: appointment.clientName + ' - ' + appointment.serviceType,
                                 start: appointment.date + 'T' + appointment.time + ':00',
+                                end: sumarMinutos(appointment.date + 'T' + appointment.time + ':00', duracionDeTurno(appointment)),
                                 extendedProps: {
                                     clientName: appointment.clientName,
                                     serviceType: appointment.serviceType,
+                                    clienteId: appointment.clienteId,
+                                    servicioId: appointment.servicioId,
                                     price: appointment.price,
                                     notes: appointment.notes,
                                     status: appointment.status
@@ -2124,6 +2241,8 @@
                     id: r.id,
                     clientName: r.client_name || '',
                     serviceType: r.service_type || '',
+                    clienteId: r.cliente_id != null ? r.cliente_id : null,
+                    servicioId: r.servicio_id != null ? r.servicio_id : null,
                     date: fecha,
                     time: hora,
                     price: r.price || 0,
@@ -2137,6 +2256,8 @@
                 const fila = {
                     client_name: a.clientName,
                     service_type: a.serviceType,
+                    cliente_id: a.clienteId != null ? a.clienteId : null,
+                    servicio_id: a.servicioId != null ? a.servicioId : null,
                     price: a.price,
                     notes: a.notes,
                     status: a.status
@@ -2175,6 +2296,7 @@
                 await dbReady;
                 if (!calendarioIniciado) { initCalendar(); calendarioIniciado = true; }
                 await detectarColumnas();
+                await cargarTodo();
                 await loadAppointments();
                 await evaluarMigracion();
                 showView('calendar');
@@ -2187,7 +2309,6 @@
                 ocultarLogin();
                 try {
                     await arrancar();
-                    await cargarTodo();
                     mostrarSeccion('agenda');
                 } catch (error) {
                     console.error(error);
@@ -2728,12 +2849,13 @@
                 clienteSaveBtn.disabled = true;
                 try {
                     let guardado;
+                    const callbackCliente = clienteCallback;
                     if (id) guardado = await api.clientes.update(id, fila);
                     else guardado = await api.clientes.create(fila);
                     await recargar('clientes');
                     cerrarCliente();
                     mostrarBanner(id ? 'Cliente actualizado.' : 'Cliente creado.', 'ok');
-                    if (clienteCallback && guardado) clienteCallback(guardado);
+                    if (callbackCliente && guardado) callbackCliente(guardado);
                 } catch (error) {
                     setErrorModal(clienteErrorEl, 'No se pudo guardar: ' + (error.message || 'error de conexión'));
                 } finally {
@@ -2785,6 +2907,297 @@
                 clientesSearch.addEventListener('input', function() {
                     filtroClientes = clientesSearch.value;
                     renderClientes();
+                });
+            }            // ─────────────────────────────────────────────────────────────
+            // I6c · Finanzas y turnos inteligentes
+            // ─────────────────────────────────────────────────────────────
+            let finAnio = 0;
+            let finMesNum = 0;
+
+            function inicializarFinanzas() {
+                if (finAnio) return;
+                const iso = todayISO();
+                finAnio = Number(iso.slice(0, 4));
+                finMesNum = Number(iso.slice(5, 7));
+            }
+
+            function prefijoMes() {
+                inicializarFinanzas();
+                return finAnio + '-' + String(finMesNum).padStart(2, '0');
+            }
+
+            function nombreMesActual() {
+                inicializarFinanzas();
+                const texto = new Date(finAnio, finMesNum - 1, 1)
+                    .toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+                return texto.charAt(0).toUpperCase() + texto.slice(1);
+            }
+
+            function fechaDeFila(turno) {
+                return turno[COLS.date] || turno.date || turno.appointment_date || '';
+            }
+
+            function formatearFechaCorta(fecha) {
+                if (!fecha) return '--';
+                const partes = String(fecha).split('-').map(Number);
+                if (partes.length !== 3 || !partes[0]) return String(fecha);
+                const d = new Date(partes[0], partes[1] - 1, partes[2]);
+                return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+            }
+
+            function renderFinanzas() {
+                const etiqueta = document.getElementById('fin-mes');
+                const ingresosEl = document.getElementById('fin-ingresos');
+                const gastosEl = document.getElementById('fin-gastos');
+                const balanceEl = document.getElementById('fin-balance');
+                if (!etiqueta || !ingresosEl) return;
+
+                const prefijo = prefijoMes();
+                etiqueta.textContent = nombreMesActual();
+
+                const gastoFechaEl = document.getElementById('gasto-fecha');
+                if (gastoFechaEl && !gastoFechaEl.value) gastoFechaEl.value = todayISO();
+
+                const ingresos = store.turnos
+                    .filter(function(turno) {
+                        return turno.status === 'completed' && String(fechaDeFila(turno)).slice(0, 7) === prefijo;
+                    })
+                    .reduce(function(suma, turno) { return suma + (Number(turno.price) || 0); }, 0);
+
+                const gastosMes = store.gastos.filter(function(gasto) {
+                    return String(gasto.fecha || '').slice(0, 7) === prefijo;
+                });
+                const totalGastos = gastosMes.reduce(function(suma, gasto) { return suma + (Number(gasto.monto) || 0); }, 0);
+
+                ingresosEl.textContent = money(ingresos);
+                gastosEl.textContent = money(totalGastos);
+                balanceEl.textContent = money(ingresos - totalGastos);
+                balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
+
+                renderGastos(gastosMes);
+            }
+
+            function renderGastos(gastosMes) {
+                const cont = document.getElementById('gastos-list');
+                if (!cont) return;
+                cont.setAttribute('aria-busy', store.cargando.gastos ? 'true' : 'false');
+                if (store.cargando.gastos) { pintarEsqueleto(cont, 2); return; }
+                if (!store.cargado.gastos) {
+                    pintarVacio(cont, 'fa-triangle-exclamation', 'No se pudieron cargar los gastos.');
+                    return;
+                }
+                cont.innerHTML = '';
+                if (!gastosMes.length) {
+                    pintarVacio(cont, 'fa-receipt', 'No hay gastos cargados en este mes.');
+                    return;
+                }
+                gastosMes.slice()
+                    .sort(function(a, b) { return String(a.fecha).localeCompare(String(b.fecha)); })
+                    .forEach(function(gasto) {
+                        const fila = document.createElement('div');
+                        fila.className = 'data-row';
+                        const info = document.createElement('div');
+                        const titulo = document.createElement('div');
+                        titulo.className = 'data-title';
+                        titulo.textContent = gasto.descripcion || 'Gasto';
+                        const meta = document.createElement('div');
+                        meta.className = 'data-meta';
+                        meta.textContent = formatearFechaCorta(gasto.fecha);
+                        info.appendChild(titulo);
+                        info.appendChild(meta);
+                        const valor = document.createElement('div');
+                        valor.className = 'data-value';
+                        valor.textContent = money(gasto.monto);
+                        const acciones = document.createElement('div');
+                        acciones.className = 'row-actions';
+                        acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (gasto.descripcion || ''), function() { borrarGasto(gasto.id); }, true));
+                        fila.appendChild(info);
+                        fila.appendChild(valor);
+                        fila.appendChild(acciones);
+                        cont.appendChild(fila);
+                    });
+            }
+
+            async function borrarGasto(id) {
+                pedirConfirmacion('Borrar gasto', '¿Borrar este gasto? Esta acción no se puede deshacer.', 'Borrar', async function() {
+                    try {
+                        await api.gastos.remove(id);
+                        await recargar('gastos');
+                        mostrarBanner('Gasto eliminado.', 'ok');
+                    } catch (error) {
+                        mostrarBanner('No se pudo borrar el gasto: ' + (error.message || 'error de conexión'), 'error');
+                    }
+                });
+            }
+
+            function moverMes(delta) {
+                inicializarFinanzas();
+                finMesNum += delta;
+                if (finMesNum < 1) { finMesNum = 12; finAnio -= 1; }
+                if (finMesNum > 12) { finMesNum = 1; finAnio += 1; }
+                renderFinanzas();
+            }
+
+            const finPrevBtn = document.getElementById('fin-prev');
+            const finNextBtn = document.getElementById('fin-next');
+            if (finPrevBtn) finPrevBtn.addEventListener('click', function() { moverMes(-1); });
+            if (finNextBtn) finNextBtn.addEventListener('click', function() { moverMes(1); });
+
+            const gastoForm = document.getElementById('gasto-form');
+            if (gastoForm) {
+                const gastoFechaInput = document.getElementById('gasto-fecha');
+                const gastoDescripcionInput = document.getElementById('gasto-descripcion');
+                const gastoMontoInput = document.getElementById('gasto-monto');
+                const gastoErrorEl = document.getElementById('gasto-error');
+                const gastoSaveBtn = document.getElementById('gasto-save');
+
+                gastoForm.addEventListener('submit', async function(evento) {
+                    evento.preventDefault();
+                    const descripcion = gastoDescripcionInput.value.trim();
+                    const monto = Number(gastoMontoInput.value);
+                    const fecha = gastoFechaInput.value;
+                    if (descripcion.length < 2) { setErrorModal(gastoErrorEl, 'Escribí una descripción del gasto.'); return; }
+                    if (!isFinite(monto) || monto <= 0) { setErrorModal(gastoErrorEl, 'El monto debe ser mayor a 0.'); return; }
+                    if (!fecha) { setErrorModal(gastoErrorEl, 'Elegí una fecha.'); return; }
+                    setErrorModal(gastoErrorEl, '');
+                    gastoSaveBtn.disabled = true;
+                    try {
+                        await api.gastos.create({ descripcion: descripcion, monto: monto, fecha: fecha });
+                        finAnio = Number(fecha.slice(0, 4));
+                        finMesNum = Number(fecha.slice(5, 7));
+                        await recargar('gastos');
+                        gastoForm.reset();
+                        gastoFechaInput.value = fecha;
+                        mostrarBanner('Gasto agregado.', 'ok');
+                    } catch (error) {
+                        setErrorModal(gastoErrorEl, 'No se pudo guardar: ' + (error.message || 'error de conexión'));
+                    } finally {
+                        gastoSaveBtn.disabled = false;
+                    }
+                });
+            }
+
+            // ── turnos inteligentes ──
+            function tomarId(id) {
+                const elemento = document.getElementById(id);
+                const valor = elemento ? Number(elemento.value) : NaN;
+                return isFinite(valor) && valor > 0 ? valor : null;
+            }
+
+            function duracionDeTurno(turno) {
+                let servicio = null;
+                if (turno.servicioId != null) {
+                    servicio = store.servicios.find(function(s) { return s.id === turno.servicioId; });
+                }
+                if (!servicio && turno.serviceType) {
+                    const buscado = normalizar(turno.serviceType);
+                    servicio = store.servicios.find(function(s) { return normalizar(s.nombre) === buscado; });
+                }
+                return (servicio && servicio.duracion_minutos) ? Number(servicio.duracion_minutos) : 60;
+            }
+
+            function sumarMinutos(fechaHora, minutos) {
+                const partes = String(fechaHora).split('T');
+                const fecha = partes[0].split('-').map(Number);
+                const hora = partes[1].split(':').map(Number);
+                const d = new Date(fecha[0], fecha[1] - 1, fecha[2], hora[0], hora[1] + (Number(minutos) || 0));
+                const pad = function(n) { return String(n).padStart(2, '0'); };
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                    'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':00';
+            }
+
+            function asegurarOpcion(select, valor) {
+                if (!select || !valor) return;
+                const existe = Array.prototype.some.call(select.options, function(o) { return o.value === valor; });
+                if (!existe) {
+                    const opcion = document.createElement('option');
+                    opcion.value = valor;
+                    opcion.textContent = valor;
+                    select.appendChild(opcion);
+                }
+                select.value = valor;
+            }
+
+            function poblarSelectsTurno() {
+                const selectCliente = document.getElementById('client-name');
+                const selectServicio = document.getElementById('service-type');
+
+                if (selectCliente) {
+                    const actualCliente = selectCliente.value;
+                    selectCliente.innerHTML = '';
+                    const vacio = document.createElement('option');
+                    vacio.value = '';
+                    vacio.textContent = 'Seleccionar clienta';
+                    selectCliente.appendChild(vacio);
+                    store.clientes.forEach(function(cliente) {
+                        const opcion = document.createElement('option');
+                        opcion.value = cliente.nombre;
+                        opcion.dataset.id = cliente.id;
+                        opcion.textContent = cliente.nombre;
+                        selectCliente.appendChild(opcion);
+                    });
+                    const nueva = document.createElement('option');
+                    nueva.value = '__nuevo__';
+                    nueva.textContent = '＋ Nueva clienta…';
+                    selectCliente.appendChild(nueva);
+                    if (actualCliente) asegurarOpcion(selectCliente, actualCliente);
+                }
+
+                if (selectServicio) {
+                    const actualServicio = selectServicio.value;
+                    selectServicio.innerHTML = '';
+                    const vacioServicio = document.createElement('option');
+                    vacioServicio.value = '';
+                    vacioServicio.textContent = 'Seleccionar servicio';
+                    selectServicio.appendChild(vacioServicio);
+                    store.servicios.forEach(function(servicio) {
+                        const opcion = document.createElement('option');
+                        opcion.value = servicio.nombre;
+                        opcion.dataset.id = servicio.id;
+                        opcion.dataset.precio = servicio.precio_base != null ? servicio.precio_base : '';
+                        opcion.dataset.duracion = servicio.duracion_minutos != null ? servicio.duracion_minutos : '';
+                        opcion.textContent = servicio.nombre +
+                            (servicio.precio_base != null ? ' · ' + money(servicio.precio_base) : '');
+                        selectServicio.appendChild(opcion);
+                    });
+                    if (actualServicio) asegurarOpcion(selectServicio, actualServicio);
+                }
+            }
+
+            const selectClienteTurno = document.getElementById('client-name');
+            if (selectClienteTurno) {
+                selectClienteTurno.addEventListener('change', function() {
+                    const idOculto = document.getElementById('appointment-cliente-id');
+                    if (selectClienteTurno.value === '__nuevo__') {
+                        const anterior = selectClienteTurno.dataset.anterior || '';
+                        abrirCliente(null, function(creado) {
+                            poblarSelectsTurno();
+                            if (creado && creado.nombre) {
+                                asegurarOpcion(selectClienteTurno, creado.nombre);
+                                const opcion = selectClienteTurno.options[selectClienteTurno.selectedIndex];
+                                if (idOculto) idOculto.value = opcion && opcion.dataset.id ? opcion.dataset.id : '';
+                                selectClienteTurno.dataset.anterior = creado.nombre;
+                            }
+                        });
+                        selectClienteTurno.value = anterior;
+                        return;
+                    }
+                    const opcion = selectClienteTurno.options[selectClienteTurno.selectedIndex];
+                    if (idOculto) idOculto.value = opcion && opcion.dataset.id ? opcion.dataset.id : '';
+                    selectClienteTurno.dataset.anterior = selectClienteTurno.value;
+                });
+            }
+
+            const selectServicioTurno = document.getElementById('service-type');
+            if (selectServicioTurno) {
+                selectServicioTurno.addEventListener('change', function() {
+                    const opcion = selectServicioTurno.options[selectServicioTurno.selectedIndex];
+                    const idOculto = document.getElementById('appointment-servicio-id');
+                    if (idOculto) idOculto.value = opcion && opcion.dataset.id ? opcion.dataset.id : '';
+                    const precio = opcion && opcion.dataset ? opcion.dataset.precio : '';
+                    if (precio !== '' && precio != null && appointmentPriceInput) {
+                        appointmentPriceInput.value = precio;
+                    }
                 });
             }            // ─────────────────────────────────────────────────────────────
             // Tema claro / oscuro
@@ -2929,9 +3342,15 @@
             function editAppointment(appointment) {
                 showView('new');
                 
+                asegurarOpcion(clientNameInput, appointment.clientName);
+                asegurarOpcion(serviceTypeInput, appointment.serviceType);
                 appointmentIdInput.value = appointment.id;
                 clientNameInput.value = appointment.clientName;
                 serviceTypeInput.value = appointment.serviceType;
+                const clienteIdOculto = document.getElementById('appointment-cliente-id');
+                const servicioIdOculto = document.getElementById('appointment-servicio-id');
+                if (clienteIdOculto) clienteIdOculto.value = appointment.clienteId != null ? appointment.clienteId : '';
+                if (servicioIdOculto) servicioIdOculto.value = appointment.servicioId != null ? appointment.servicioId : '';
                 appointmentDateInput.value = appointment.date;
                 appointmentTimeInput.value = appointment.time;
                 appointmentPriceInput.value = appointment.price;
@@ -2978,6 +3397,7 @@
                     const { error } = await supabase.from('turnos').delete().eq('id', id);
                     if (error) throw error;
                     await loadAppointments();
+                    await recargar('turnos');
                     resetForm();
                 } catch (error) {
                     console.error('Error eliminando el turno:', error);
