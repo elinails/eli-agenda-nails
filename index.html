@@ -731,7 +731,11 @@
         .setting-note { font-size: 12px; color: var(--ink-soft); margin: 2px 0 0; }
 
         /* ── segmented ── */
-        .seg {
+
+        .seg-cal { margin-bottom: 14px; }
+        @media (max-width: 767px) {
+            .fc-daygrid-event .fc-event-time { display: none; }
+        }        .seg {
             display: inline-flex;
             gap: 2px;
             padding: 3px;
@@ -1017,7 +1021,11 @@
 
         <!-- Calendar View -->
         <div id="calendar-view" class="view-section bg-surface rounded-xl shadow-md p-4 mb-6">
-            <div id="calendar" class="animate-fade-in"></div>
+            <div id="vista-calendario" class="seg seg-cal" role="tablist" aria-label="Vista del calendario">
+                <button type="button" class="nav-tab" data-vista="mes" role="tab" aria-selected="false">Mes</button>
+                <button type="button" class="nav-tab" data-vista="semana" role="tab" aria-selected="false">Semana</button>
+                <button type="button" class="nav-tab" data-vista="dia" role="tab" aria-selected="false">Día</button>
+            </div>            <div id="calendar" class="animate-fade-in"></div>
         </div>
         
         <!-- Appointments List View -->
@@ -3451,27 +3459,82 @@
             aplicarPaleta(paletaActual());            // Initialize FullCalendar
             let calendar;
             
+            // ─────────────────────────────────────────────────────────────
+            // I11 · Vistas del calendario (Mes / Semana / Día)
+            // ─────────────────────────────────────────────────────────────
+            const VISTAS_CALENDARIO = {
+                mes:    { escritorio: 'dayGridMonth', movil: 'dayGridMonth' },
+                semana: { escritorio: 'timeGridWeek', movil: 'listWeek' },
+                dia:    { escritorio: 'timeGridDay',  movil: 'listDay' }
+            };
+            const CLAVE_VISTA_CAL = 'eli_calendar_view';
+
+            function esPantallaChica() {
+                return window.matchMedia('(max-width: 767px)').matches;
+            }
+
+            function vistaCalendarioGuardada() {
+                let guardada = null;
+                try { guardada = localStorage.getItem(CLAVE_VISTA_CAL); } catch (error) { /* modo privado */ }
+                if (guardada && VISTAS_CALENDARIO[guardada]) return guardada;
+                return esPantallaChica() ? 'dia' : 'mes';
+            }
+
+            function vistaFC(clave, movil) {
+                const definicion = VISTAS_CALENDARIO[clave] || VISTAS_CALENDARIO.mes;
+                return movil ? definicion.movil : definicion.escritorio;
+            }
+
+            function pintarBotonesVista(clave) {
+                document.querySelectorAll('#vista-calendario [data-vista]').forEach(function(boton) {
+                    const activo = boton.dataset.vista === clave;
+                    boton.classList.toggle('active', activo);
+                    boton.setAttribute('aria-selected', activo ? 'true' : 'false');
+                });
+            }
+
+            function aplicarVistaCalendario(clave, guardar) {
+                const destino = VISTAS_CALENDARIO[clave] ? clave : 'mes';
+                pintarBotonesVista(destino);
+                if (calendar) {
+                    const movil = esPantallaChica();
+                    try {
+                        calendar.setOption('headerToolbar', {
+                            left: movil ? 'prev,next' : 'prev,next today',
+                            center: 'title',
+                            right: movil ? 'today' : ''
+                        });
+                        calendar.setOption('dayMaxEventRows', movil ? 2 : false);
+                        calendar.changeView(vistaFC(destino, movil));
+                    } catch (error) {
+                        console.error('No se pudo cambiar la vista del calendario:', error);
+                    }
+                }
+                if (guardar) {
+                    try { localStorage.setItem(CLAVE_VISTA_CAL, destino); } catch (error) { /* modo privado */ }
+                }
+            }
+
+            document.querySelectorAll('#vista-calendario [data-vista]').forEach(function(boton) {
+                boton.addEventListener('click', function() {
+                    aplicarVistaCalendario(boton.dataset.vista, true);
+                });
+            });
+
             function initCalendar() {
                 const calendarEl = document.getElementById('calendar');
+                const movilInicial = esPantallaChica();
+                const vistaInicial = vistaFC(vistaCalendarioGuardada(), movilInicial);
 
-                function esMovil() { return window.matchMedia('(max-width: 767px)').matches; }
-                function toolbarPara(movil) {
-                    return movil
-                        ? { left: 'prev,next', center: 'title', right: 'today' }
-                        : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' };
-                }
-                
                 calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: esMovil() ? 'listDay' : 'dayGridMonth',
+                    initialView: vistaInicial,
                     locale: 'es',
-                    headerToolbar: toolbarPara(esMovil()),
-                    buttonText: {
-                        today: 'Hoy',
-                        month: 'Mes',
-                        week: 'Semana',
-                        day: 'Día',
-                        list: 'Agenda'
-                    },
+                    headerToolbar: movilInicial
+                        ? { left: 'prev,next', center: 'title', right: 'today' }
+                        : { left: 'prev,next today', center: 'title', right: '' },
+                    dayMaxEventRows: movilInicial ? 2 : false,
+                    moreLinkText: 'más',
+                    buttonText: { today: 'Hoy' },
                     noEventsText: 'No hay turnos este día',
                     views: {
                         listDay: { titleFormat: { weekday: 'short', day: 'numeric', month: 'short' } }
@@ -3502,19 +3565,13 @@
                 });
                 
                 calendar.render();
+                pintarBotonesVista(vistaCalendarioGuardada());
 
-                const mqMovil = window.matchMedia('(max-width: 767px)');
-                const aplicarVista = function () {
-                    if (!calendar) return;
-                    const movil = mqMovil.matches;
-                    try {
-                        calendar.setOption('headerToolbar', toolbarPara(movil));
-                        calendar.changeView(movil ? 'listDay' : 'dayGridMonth');
-                    } catch (error) {
-                        console.error('No se pudo cambiar la vista del calendario:', error);
-                    }
+                const mqVistas = window.matchMedia('(max-width: 767px)');
+                const reaplicarVista = function() {
+                    aplicarVistaCalendario(vistaCalendarioGuardada(), false);
                 };
-                if (mqMovil.addEventListener) mqMovil.addEventListener('change', aplicarVista);
+                if (mqVistas.addEventListener) mqVistas.addEventListener('change', reaplicarVista);
             }
             
             // Show appointment details in modal
