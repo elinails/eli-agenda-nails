@@ -190,6 +190,21 @@
             margin: 0;
         }
         .brand-star { color: var(--gold); font-size: 18px; }
+
+        /* ── logo de la marca ── */
+        .brand-logo {
+            display: block;
+            width: auto;
+            max-height: 56px;
+            max-width: 100%;
+            border-radius: 50%;
+            background: #FFFFFF;
+            padding: 2px;
+            box-shadow: 0 1px 3px rgba(59, 47, 53, .10);
+        }
+        .brand-logo-sm { max-height: 34px; margin-bottom: 6px; }
+        .brand-logo-login { max-height: 124px; margin: 0 auto 4px; }
+        .sidebar-brand { gap: 0; padding-bottom: 14px; }
         .brand-sub { color: var(--ink-soft); font-size: 13px; margin: 6px 0 0; }
 
         /* ── tabs ── */
@@ -822,8 +837,7 @@
         <!-- Sidebar (desktop) -->
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-brand">
-                <span class="brand-star" aria-hidden="true">✦</span>
-                <span>Eli M. Nails</span>
+                <img src="logo.png" alt="Eli M. Nails" class="brand-logo">
             </div>
             <nav class="sidebar-nav" aria-label="Secciones">
                 <button type="button" class="nav-item active" data-section="agenda">
@@ -857,7 +871,7 @@
         <!-- Header -->
         <header class="mb-6 flex items-start justify-between gap-4">
             <div class="min-w-0">
-                <div class="brand-mini"><span class="brand-star" aria-hidden="true">✦</span> Eli M. Nails</div>
+                <div class="brand-mini"><img src="logo.png" alt="Eli M. Nails" class="brand-logo brand-logo-sm"></div>
                 <h1 class="section-title" id="section-title">Agenda</h1>
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
@@ -1173,9 +1187,8 @@
     <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
         <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
             <div class="text-center mb-6">
-                <div class="brand-star text-2xl mb-1" aria-hidden="true">✦</div>
-                <h1 class="text-3xl font-semibold text-ink m-0 leading-tight">Eli M. Nails</h1>
-                <p class="text-xs text-ink-soft mt-1">Agenda de turnos</p>
+                <img src="logo.png" alt="Eli M. Nails" class="brand-logo brand-logo-login">
+                <p class="text-xs text-ink-soft mt-2">Agenda de turnos</p>
             </div>
             <form id="email-auth-form" class="space-y-3">
                 <div>
@@ -3457,6 +3470,15 @@
                 return limpio || 'turno';
             }
 
+            function cargarImagen(src) {
+                return new Promise(function(resolve) {
+                    const img = new Image();
+                    img.onload = function() { resolve(img); };
+                    img.onerror = function() { resolve(null); };
+                    img.src = src;
+                });
+            }
+
             async function generarTarjetaTurno(turno) {
                 const ANCHO = 800;
                 const ALTO = 1000;
@@ -3466,10 +3488,15 @@
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return null;
 
-                // Esperar las fuentes antes de dibujar
+                // Esperar fuentes e imagen antes de dibujar
+                let logo = null;
                 try {
-                    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-                } catch (error) { /* se usan las del sistema */ }
+                    const resultados = await Promise.all([
+                        (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve(),
+                        cargarImagen('logo.png')
+                    ]);
+                    logo = resultados[1];
+                } catch (error) { /* seguimos sin logo */ }
 
                 const hayCormorant = !!(document.fonts && document.fonts.check &&
                     document.fonts.check('600 40px "Cormorant Garamond"'));
@@ -3485,40 +3512,56 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'alphabetic';
 
-                ctx.fillStyle = '#BE9E6F';
-                ctx.font = '46px Georgia, serif';
-                ctx.fillText('✦', ANCHO / 2, 150);
-
-                ctx.fillStyle = '#3B2F35';
-                ctx.font = '600 62px ' + serif;
-                ctx.fillText('Eli M. Nails', ANCHO / 2, 232);
-
-                ctx.fillStyle = '#8C6B3A';
-                ctx.font = '500 17px ' + sans;
-                ctx.fillText('N A I L   S T U D I O', ANCHO / 2, 268);
+                let y = 0;
+                if (logo) {
+                    const lado = 190;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(ANCHO / 2, 46 + lado / 2, lado / 2, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(ANCHO / 2 - lado / 2, 46, lado, lado);
+                    ctx.drawImage(logo, (ANCHO - lado) / 2, 46, lado, lado);
+                    ctx.restore();
+                    y = 46 + lado + 32;
+                } else {
+                    ctx.fillStyle = '#BE9E6F';
+                    ctx.font = '46px Georgia, serif';
+                    ctx.fillText('✦', ANCHO / 2, 150);
+                    ctx.fillStyle = '#3B2F35';
+                    ctx.font = '600 62px ' + serif;
+                    ctx.fillText('Eli M. Nails', ANCHO / 2, 232);
+                    ctx.fillStyle = '#8C6B3A';
+                    ctx.font = '500 17px ' + sans;
+                    ctx.fillText('N A I L   S T U D I O', ANCHO / 2, 268);
+                    y = 302;
+                }
 
                 ctx.strokeStyle = '#E9D3DC';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(300, 300);
-                ctx.lineTo(500, 300);
+                ctx.moveTo(300, y);
+                ctx.lineTo(500, y);
                 ctx.stroke();
 
                 const nombre = turno.clientName || '';
                 const saludo = '¡Hola ' + nombre + '!';
+                const ySaludo = y + 76;
                 const tamNombre = ajustarFuente(ctx, saludo, 640, 44, serif, '600');
                 ctx.fillStyle = '#3B2F35';
                 ctx.font = '600 ' + tamNombre + 'px ' + serif;
-                ctx.fillText(saludo, ANCHO / 2, 382);
+                ctx.fillText(saludo, ANCHO / 2, ySaludo);
 
+                const ySub = ySaludo + 40;
                 ctx.fillStyle = '#776569';
                 ctx.font = '22px ' + sans;
-                ctx.fillText('Tu turno está confirmado', ANCHO / 2, 422);
+                ctx.fillText('Tu turno está confirmado', ANCHO / 2, ySub);
 
+                const yCard = ySub + 46;
                 ctx.fillStyle = '#FFFFFF';
                 ctx.strokeStyle = '#EADFDB';
                 ctx.lineWidth = 2;
-                rectRedondeado(ctx, 90, 470, 620, 340, 22);
+                rectRedondeado(ctx, 90, yCard, 620, 336, 22);
                 ctx.fill();
                 ctx.stroke();
 
@@ -3529,45 +3572,51 @@
                 ];
                 if (turno.price) filas.push(['PRECIO', '$ ' + Number(turno.price).toLocaleString('es-AR')]);
 
-                let y = 532;
+                let yFila = yCard + 58;
                 filas.forEach(function(fila) {
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#8C6B3A';
                     ctx.font = '600 14px ' + sans;
-                    ctx.fillText(fila[0], 130, y);
+                    ctx.fillText(fila[0], 130, yFila);
                     const tam = ajustarFuente(ctx, String(fila[1]), 540, 30, serif, '600');
                     ctx.fillStyle = '#3B2F35';
                     ctx.font = '600 ' + tam + 'px ' + serif;
-                    ctx.fillText(String(fila[1]), 130, y + 36);
-                    y += 74;
+                    ctx.fillText(String(fila[1]), 130, yFila + 34);
+                    yFila += 68;
                 });
 
+                const yPie = yCard + 336 + 44;
                 ctx.textAlign = 'center';
                 ctx.strokeStyle = '#E9D3DC';
                 ctx.beginPath();
-                ctx.moveTo(300, 856);
-                ctx.lineTo(500, 856);
+                ctx.moveTo(300, yPie);
+                ctx.lineTo(500, yPie);
                 ctx.stroke();
 
                 ctx.fillStyle = '#8C6B3A';
                 ctx.font = '600 20px ' + sans;
-                ctx.fillText(INSTAGRAM_ELI, ANCHO / 2, 898);
+                ctx.fillText(INSTAGRAM_ELI, ANCHO / 2, yPie + 42);
 
                 ctx.fillStyle = '#776569';
                 ctx.font = '16px ' + sans;
-                ctx.fillText('Gracias por elegirnos', ANCHO / 2, 926);
+                ctx.fillText('Gracias por elegirnos', ANCHO / 2, yPie + 70);
 
                 return await new Promise(function(resolve) {
-                    canvas.toBlob(function(blob) {
-                        if (!blob) { resolve(null); return; }
-                        const nombreArchivo = 'Turno_' + limpiarNombre(nombre) + '_' + (turno.date || '') + '.png';
-                        try {
-                            resolve(new File([blob], nombreArchivo, { type: 'image/png' }));
-                        } catch (error) {
-                            blob.name = nombreArchivo;
-                            resolve(blob);
-                        }
-                    }, 'image/png');
+                    try {
+                        canvas.toBlob(function(blob) {
+                            if (!blob) { resolve(null); return; }
+                            const nombreArchivo = 'Turno_' + limpiarNombre(nombre) + '_' + (turno.date || '') + '.png';
+                            try {
+                                resolve(new File([blob], nombreArchivo, { type: 'image/png' }));
+                            } catch (error) {
+                                blob.name = nombreArchivo;
+                                resolve(blob);
+                            }
+                        }, 'image/png');
+                    } catch (error) {
+                        console.error('No se pudo exportar el canvas:', error);
+                        resolve(null);
+                    }
                 });
             }
 
