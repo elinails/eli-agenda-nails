@@ -11,14 +11,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Eli Nails">
     <script>
-        // A1b: fijar el tema antes del primer render (evita el flash)
+        // A1b/I10: fijar modo y paleta antes del primer render (evita el flash)
         (function () {
+            var PALETAS = ['blush', 'salvia', 'mauve'];
             try {
                 var guardado = localStorage.getItem('eli_theme');
                 var sistema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 document.documentElement.dataset.theme = guardado || (sistema ? 'dark' : 'light');
+
+                var paleta = localStorage.getItem('eli_design_theme');
+                if (!paleta || PALETAS.indexOf(paleta) < 0) paleta = 'blush';
+                document.documentElement.dataset.tema = paleta;
             } catch (e) {
                 document.documentElement.dataset.theme = 'light';
+                document.documentElement.dataset.tema = 'blush';
             }
         })();
     </script>
@@ -170,6 +176,115 @@
             --sticky-bg: linear-gradient(to top, var(--surface) 72%, rgba(58, 40, 48, 0));
             --shadow-row: 0 1px 1px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .35);
         }
+        /* ══ I10 · paletas de color ══ */
+        /* Salvia Studio */
+        :root[data-tema="salvia"] {
+            --paper: #F4F5F0;
+            --surface: #FFFFFF;
+            --surface-2: #EDF0E8;
+            --blush: #CBD8C6;
+            --blush-2: #E3E9DE;
+            --ink: #2F3A31;
+            --ink-soft: #5C675E;
+            --line: #DDE3D8;
+            --gold: #A98F5E;
+            --gold-ink: #7E6738;
+            --btn-primary-hover: #BCCDB6;
+            --btn-secondary-hover: #D8E0D2;
+            --export-hover: #D8E0D2;
+        }
+        :root[data-tema="salvia"][data-theme="dark"] {
+            --paper: #1E2721;
+            --surface: #28332B;
+            --surface-2: #334036;
+            --blush: #4F6355;
+            --blush-2: #364438;
+            --ink: #EFF3EC;
+            --ink-soft: #B3BEB4;
+            --line: #3C4A3E;
+            --gold: #D2B884;
+            --gold-ink: #D2B884;
+            --btn-primary-hover: #5C7262;
+            --btn-secondary-hover: #40503F;
+            --export-hover: #40503F;
+        }
+
+        /* Mauve Luxe */
+        :root[data-tema="mauve"] {
+            --paper: #F7F3F6;
+            --surface: #FFFFFF;
+            --surface-2: #F1E9EF;
+            --blush: #DCCBD9;
+            --blush-2: #EFE3EC;
+            --ink: #352633;
+            --ink-soft: #6E5F6C;
+            --line: #E6DAE3;
+            --gold: #C6A97C;
+            --gold-ink: #856742;
+            --btn-primary-hover: #CDB8CA;
+            --btn-secondary-hover: #E2D3DD;
+            --export-hover: #E2D3DD;
+        }
+        :root[data-tema="mauve"][data-theme="dark"] {
+            --paper: #241A24;
+            --surface: #332533;
+            --surface-2: #3F2F3F;
+            --blush: #6A4C68;
+            --blush-2: #453346;
+            --ink: #F6EEF5;
+            --ink-soft: #C2B0C0;
+            --line: #4A3A4A;
+            --gold: #DCC394;
+            --gold-ink: #DCC394;
+            --btn-primary-hover: #7A5977;
+            --btn-secondary-hover: #503D51;
+            --export-hover: #503D51;
+        }
+
+        /* ── selector de paletas ── */
+        .paletas {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (min-width: 640px) {
+            .paletas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        .paleta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px 12px 10px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            text-align: left;
+            transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+        }
+        .paleta:hover { border-color: var(--gold); transform: translateY(-1px); }
+        .paleta.active { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+        .paleta-muestras { display: flex; gap: 4px; }
+        .paleta-muestras i {
+            display: block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, .10);
+        }
+        .paleta-nombre { font-size: 12.5px; font-weight: 500; line-height: 1.2; }
+        .paleta[data-paleta="blush"] .paleta-muestras i:nth-child(1) { background: #FAF6F3; }
+        .paleta[data-paleta="blush"] .paleta-muestras i:nth-child(2) { background: #E9D3DC; }
+        .paleta[data-paleta="blush"] .paleta-muestras i:nth-child(3) { background: #BE9E6F; }
+        .paleta[data-paleta="salvia"] .paleta-muestras i:nth-child(1) { background: #F4F5F0; }
+        .paleta[data-paleta="salvia"] .paleta-muestras i:nth-child(2) { background: #CBD8C6; }
+        .paleta[data-paleta="salvia"] .paleta-muestras i:nth-child(3) { background: #A98F5E; }
+        .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(1) { background: #F7F3F6; }
+        .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(2) { background: #DCCBD9; }
+        .paleta[data-paleta="mauve"] .paleta-muestras i:nth-child(3) { background: #C6A97C; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -1132,7 +1247,24 @@
                     </div>
                 </div>
 
-                <div>
+
+                    <div class="mt-5">
+                        <p class="setting-label">Paleta de colores</p>
+                        <div class="paletas" role="radiogroup" aria-label="Paleta de colores">
+                            <button type="button" class="paleta" data-paleta="blush" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Blush Atelier</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="salvia" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Salvia Studio</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="mauve" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Mauve Luxe</span>
+                            </button>
+                        </div>
+                    </div>                <div>
                     <h2 class="panel-title">Datos</h2>
                     <p class="setting-note">Exportá o restaurá todos los turnos en JSON.</p>
                     <p id="data-status" class="mt-2 text-sm" role="status" aria-live="polite" hidden></p>
@@ -3256,7 +3388,10 @@
                 document.documentElement.dataset.theme = tema;
                 if (themeToggle) themeToggle.setAttribute('aria-pressed', tema === 'dark' ? 'true' : 'false');
                 const meta = document.querySelector('meta[name="theme-color"]');
-                if (meta) meta.setAttribute('content', tema === 'dark' ? '#2B1F26' : '#FAF6F3');
+                if (meta) {
+                    const papel = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+                    if (papel) meta.setAttribute('content', papel);
+                }
             }
 
             if (themeToggle) {
@@ -3274,7 +3409,43 @@
                     try { guardado = localStorage.getItem(TEMA_KEY); } catch (error) {}
                     if (!guardado) aplicarTema(evento.matches ? 'dark' : 'light');
                 });
-            }            // Initialize FullCalendar
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // I10 · Paletas de color (Blush / Salvia / Mauve)
+            // ─────────────────────────────────────────────────────────────
+            const PALETAS_DISENO = ['blush', 'salvia', 'mauve'];
+            const CLAVE_PALETA = 'eli_design_theme';
+
+            function paletaActual() {
+                const actual = document.documentElement.dataset.tema;
+                return PALETAS_DISENO.indexOf(actual) >= 0 ? actual : 'blush';
+            }
+
+            function aplicarPaleta(nombre) {
+                const destino = PALETAS_DISENO.indexOf(nombre) >= 0 ? nombre : 'blush';
+                document.documentElement.dataset.tema = destino;
+                document.querySelectorAll('.paleta[data-paleta]').forEach(function(boton) {
+                    const activo = boton.dataset.paleta === destino;
+                    boton.classList.toggle('active', activo);
+                    boton.setAttribute('aria-checked', activo ? 'true' : 'false');
+                });
+                const meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) {
+                    const papel = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+                    if (papel) meta.setAttribute('content', papel);
+                }
+            }
+
+            document.querySelectorAll('.paleta[data-paleta]').forEach(function(boton) {
+                boton.addEventListener('click', function() {
+                    const nombre = boton.dataset.paleta;
+                    try { localStorage.setItem(CLAVE_PALETA, nombre); } catch (error) { /* modo privado */ }
+                    aplicarPaleta(nombre);
+                });
+            });
+
+            aplicarPaleta(paletaActual());            // Initialize FullCalendar
             let calendar;
             
             function initCalendar() {
@@ -3512,7 +3683,23 @@
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return null;
 
-                // Esperar fuentes e imagen antes de dibujar
+                // I10: la tarjeta sigue la paleta y el modo activos
+                const estilos = getComputedStyle(document.documentElement);
+                const token = function(nombre, alterno) {
+                    const valor = estilos.getPropertyValue(nombre).trim();
+                    return valor || alterno;
+                };
+                const COLOR = {
+                    paper: token('--paper', '#FAF6F3'),
+                    surface: token('--surface', '#FFFFFF'),
+                    ink: token('--ink', '#3B2F35'),
+                    soft: token('--ink-soft', '#776569'),
+                    line: token('--line', '#EADFDB'),
+                    gold: token('--gold', '#BE9E6F'),
+                    goldInk: token('--gold-ink', '#8C6B3A'),
+                    blush2: token('--blush-2', '#F4E7EC')
+                };
+
                 let logo = null;
                 try {
                     const resultados = await Promise.all([
@@ -3527,9 +3714,9 @@
                 const serif = hayCormorant ? '"Cormorant Garamond", Georgia, serif' : 'Georgia, "Times New Roman", serif';
                 const sans = 'Inter, -apple-system, "Segoe UI", sans-serif';
 
-                ctx.fillStyle = '#FAF6F3';
+                ctx.fillStyle = COLOR.paper;
                 ctx.fillRect(0, 0, ANCHO, ALTO);
-                ctx.strokeStyle = '#EADFDB';
+                ctx.strokeStyle = COLOR.line;
                 ctx.lineWidth = 3;
                 ctx.strokeRect(26, 26, ANCHO - 52, ALTO - 52);
 
@@ -3549,19 +3736,19 @@
                     ctx.restore();
                     y = 46 + lado + 32;
                 } else {
-                    ctx.fillStyle = '#BE9E6F';
+                    ctx.fillStyle = COLOR.gold;
                     ctx.font = '46px Georgia, serif';
                     ctx.fillText('✦', ANCHO / 2, 150);
-                    ctx.fillStyle = '#3B2F35';
+                    ctx.fillStyle = COLOR.ink;
                     ctx.font = '600 62px ' + serif;
                     ctx.fillText('Eli M. Nails', ANCHO / 2, 232);
-                    ctx.fillStyle = '#8C6B3A';
+                    ctx.fillStyle = COLOR.goldInk;
                     ctx.font = '500 17px ' + sans;
                     ctx.fillText('N A I L   S T U D I O', ANCHO / 2, 268);
                     y = 302;
                 }
 
-                ctx.strokeStyle = '#E9D3DC';
+                ctx.strokeStyle = COLOR.blush2;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(300, y);
@@ -3572,18 +3759,18 @@
                 const saludo = '¡Hola ' + nombre + '!';
                 const ySaludo = y + 76;
                 const tamNombre = ajustarFuente(ctx, saludo, 640, 44, serif, '600');
-                ctx.fillStyle = '#3B2F35';
+                ctx.fillStyle = COLOR.ink;
                 ctx.font = '600 ' + tamNombre + 'px ' + serif;
                 ctx.fillText(saludo, ANCHO / 2, ySaludo);
 
                 const ySub = ySaludo + 40;
-                ctx.fillStyle = '#776569';
+                ctx.fillStyle = COLOR.soft;
                 ctx.font = '22px ' + sans;
                 ctx.fillText('Tu turno está confirmado', ANCHO / 2, ySub);
 
                 const yCard = ySub + 46;
-                ctx.fillStyle = '#FFFFFF';
-                ctx.strokeStyle = '#EADFDB';
+                ctx.fillStyle = COLOR.surface;
+                ctx.strokeStyle = COLOR.line;
                 ctx.lineWidth = 2;
                 rectRedondeado(ctx, 90, yCard, 620, 336, 22);
                 ctx.fill();
@@ -3599,11 +3786,11 @@
                 let yFila = yCard + 58;
                 filas.forEach(function(fila) {
                     ctx.textAlign = 'left';
-                    ctx.fillStyle = '#8C6B3A';
+                    ctx.fillStyle = COLOR.goldInk;
                     ctx.font = '600 14px ' + sans;
                     ctx.fillText(fila[0], 130, yFila);
                     const tam = ajustarFuente(ctx, String(fila[1]), 540, 30, serif, '600');
-                    ctx.fillStyle = '#3B2F35';
+                    ctx.fillStyle = COLOR.ink;
                     ctx.font = '600 ' + tam + 'px ' + serif;
                     ctx.fillText(String(fila[1]), 130, yFila + 34);
                     yFila += 68;
@@ -3611,17 +3798,17 @@
 
                 const yPie = yCard + 336 + 44;
                 ctx.textAlign = 'center';
-                ctx.strokeStyle = '#E9D3DC';
+                ctx.strokeStyle = COLOR.blush2;
                 ctx.beginPath();
                 ctx.moveTo(300, yPie);
                 ctx.lineTo(500, yPie);
                 ctx.stroke();
 
-                ctx.fillStyle = '#8C6B3A';
+                ctx.fillStyle = COLOR.goldInk;
                 ctx.font = '600 20px ' + sans;
                 ctx.fillText(INSTAGRAM_ELI, ANCHO / 2, yPie + 42);
 
-                ctx.fillStyle = '#776569';
+                ctx.fillStyle = COLOR.soft;
                 ctx.font = '16px ' + sans;
                 ctx.fillText('Gracias por elegirnos', ANCHO / 2, yPie + 70);
 
