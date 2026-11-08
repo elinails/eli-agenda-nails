@@ -1184,7 +1184,68 @@
             border: 1.5px solid currentColor;
         }
         [data-tema^="mono"] .fc-event-pending   { border-style: dashed; }
-        [data-tema^="mono"] .fc-event-cancelled { border-style: dotted; }        @media (prefers-reduced-motion: reduce) {
+        [data-tema^="mono"] .fc-event-cancelled { border-style: dotted; }
+        /* ── I20 · Dashboard ── */
+        .dash { display: grid; gap: 14px; }
+        .dash-hero {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--gold-ink);
+            border-radius: 14px;
+            padding: 16px 18px;
+        }
+        .dash-hero-ojo { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-ink); font-weight: 600; margin-bottom: 6px; }
+        .dash-hero-titulo { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; line-height: 1.2; color: var(--ink); }
+        .dash-hero-cuando { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+        .dash-hero-acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .dash-hero-vacio { color: var(--ink-soft); font-size: 14px; }
+
+        .dash-mesbar { display: flex; align-items: center; gap: 8px; }
+        .dash-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .dash-kpis > :first-child { grid-column: 1 / -1; }
+        @media (min-width: 700px) {
+            .dash-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+            .dash-kpis > :first-child { grid-column: auto; }
+        }
+        .dash-cols { display: grid; gap: 14px; }
+        @media (min-width: 900px) { .dash-cols { grid-template-columns: 1fr 1fr; } }
+
+        .dash-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+        .dash-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .dash-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; margin-bottom: 12px; }
+        .dash-panel-head .dash-title { margin-bottom: 0; }
+
+        .barras { display: flex; align-items: flex-end; gap: 8px; height: 150px; }
+        .barra-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; min-width: 0; }
+        .barra { width: 100%; background: var(--gold); border-radius: 6px 6px 0 0; min-height: 3px; transition: height .3s ease; }
+        .barra.actual { background: var(--gold-ink); }
+        .barra-valor { font-size: 10.5px; color: var(--ink-soft); white-space: nowrap; }
+        .barra-mes { font-size: 10.5px; color: var(--ink-soft); white-space: nowrap; }
+
+        .dona-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .dona { width: 132px; height: 132px; border-radius: 50%; background: var(--line); flex: 0 0 auto; }
+        .dona-leyenda { list-style: none; margin: 0; padding: 0; font-size: 12.5px; color: var(--ink); flex: 1 1 130px; }
+        .dona-leyenda li { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .dona-punto { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+        .dona-pct { margin-left: auto; color: var(--ink-soft); }
+
+        .top-lista { display: flex; flex-direction: column; gap: 8px; }
+        .top-item { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+        .top-puesto { width: 20px; text-align: center; color: var(--gold-ink); font-weight: 600; }
+        .top-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .top-dato { color: var(--ink-soft); font-size: 12px; white-space: nowrap; }
+
+        .deuda-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+        .deuda-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+        .deuda-nombre { font-weight: 600; font-size: 14px; }
+        .deuda-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
+        .progreso { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+        .progreso > span { display: block; height: 100%; background: var(--gold-ink); border-radius: 999px; transition: width .3s ease; }
+        .deuda-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+        .deuda-pagos { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .deuda-pago { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-soft); }
+        .deuda-pago strong { color: var(--ink); font-weight: 600; }
+        .vacio-dash { font-size: 13px; color: var(--ink-soft); }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -1252,6 +1313,9 @@
                 <img data-logo alt="Eli M. Nails" class="brand-logo" width="56" height="56">
             </div>
             <nav class="sidebar-nav" aria-label="Secciones">
+                <button type="button" class="nav-item" data-section="finanzas">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i> Inicio
+                </button>
                 <button type="button" class="nav-item active" data-section="agenda">
                     <i class="fas fa-calendar-alt" aria-hidden="true"></i> Agenda
                 </button>
@@ -1260,9 +1324,6 @@
                 </button>
                 <button type="button" class="nav-item" data-section="servicios">
                     <i class="fas fa-spa" aria-hidden="true"></i> Servicios
-                </button>
-                <button type="button" class="nav-item" data-section="finanzas">
-                    <i class="fas fa-chart-pie" aria-hidden="true"></i> Finanzas
                 </button>
                 <button type="button" class="nav-item" data-section="ajustes">
                     <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
@@ -1487,22 +1548,22 @@
             </div>
         </section>
 
-        <!-- Finanzas -->
+        <!-- Inicio (dashboard) -->
         <section class="section hidden" data-section="finanzas">
-            <div class="panel space-y-5">
-                <div class="flex items-center justify-between gap-3 flex-wrap">
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="fin-prev" class="icon-btn" aria-label="Mes anterior">
-                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
-                        </button>
-                        <span id="fin-mes" class="fin-mes"></span>
-                        <button type="button" id="fin-next" class="icon-btn" aria-label="Mes siguiente">
-                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
-                        </button>
-                    </div>
+            <div class="dash">
+                <div class="dash-hero" id="dash-proximo"></div>
+
+                <div class="dash-mesbar">
+                    <button type="button" id="fin-prev" class="icon-btn" aria-label="Mes anterior">
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <span id="fin-mes" class="fin-mes"></span>
+                    <button type="button" id="fin-next" class="icon-btn" aria-label="Mes siguiente">
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                    </button>
                 </div>
 
-                <div class="fin-grid">
+                <div class="dash-kpis">
                     <div class="fin-card">
                         <span class="fin-label">Ingresos</span>
                         <strong class="fin-value" id="fin-ingresos">$ 0</strong>
@@ -1511,17 +1572,56 @@
                     <div class="fin-card">
                         <span class="fin-label">Gastos</span>
                         <strong class="fin-value fin-value-gastos" id="fin-gastos">$ 0</strong>
-                        <span class="fin-hint">Cargados este mes</span>
+                        <span class="fin-hint" id="fin-gastos-hint">Cargados este mes</span>
                     </div>
                     <div class="fin-card">
-                        <span class="fin-label">Balance</span>
+                        <span class="fin-label">Ganancia neta</span>
                         <strong class="fin-value" id="fin-balance">$ 0</strong>
-                        <span class="fin-hint">Ingresos − gastos</span>
+                        <span class="fin-hint">Ingresos menos gastos</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Realizados</span>
+                        <strong class="fin-value" id="fin-realizados">0</strong>
+                        <span class="fin-hint">Turnos completados</span>
+                    </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Cancelados</span>
+                        <strong class="fin-value" id="fin-cancelados">0</strong>
+                        <span class="fin-hint">Turnos cancelados</span>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="fin-subtitle">Gastos del mes</h3>
+                <div class="dash-panel">
+                    <h3 class="dash-title">Evolución de ingresos</h3>
+                    <div class="barras" id="dash-evolucion"></div>
+                </div>
+
+                <div class="dash-cols">
+                    <div class="dash-panel">
+                        <h3 class="dash-title">Servicios del mes</h3>
+                        <div class="dona-wrap">
+                            <div class="dona" id="dash-dona" role="img" aria-label="Distribución de ingresos por servicio"></div>
+                            <ul class="dona-leyenda" id="dash-leyenda"></ul>
+                        </div>
+                    </div>
+                    <div class="dash-panel">
+                        <h3 class="dash-title">Top 3 clientas</h3>
+                        <div id="dash-top" class="top-lista"></div>
+                    </div>
+                </div>
+
+                <div class="dash-panel">
+                    <div class="dash-panel-head">
+                        <h3 class="dash-title">Deudas</h3>
+                        <button type="button" id="nueva-deuda-btn" class="btn-primary px-3 py-2 rounded-lg text-sm font-medium">
+                            <i class="fas fa-plus mr-2" aria-hidden="true"></i>Nueva deuda
+                        </button>
+                    </div>
+                    <div id="deudas-list" class="space-y-3" aria-busy="true"></div>
+                </div>
+
+                <div class="dash-panel">
+                    <h3 class="dash-title">Gastos del mes</h3>
                     <form id="gasto-form" class="gasto-form" novalidate>
                         <input type="text" id="gasto-descripcion" placeholder="Descripción" required maxlength="80" autocomplete="off" aria-label="Descripción del gasto">
                         <input type="number" id="gasto-monto" placeholder="Monto" required min="0" step="100" inputmode="decimal" aria-label="Monto del gasto">
@@ -1535,7 +1635,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Ajustes -->
         <section class="section hidden" data-section="ajustes">
             <div class="panel space-y-5">
@@ -1637,6 +1736,9 @@
 
         <!-- Bottom nav (mobile) -->
         <nav id="bottom-nav" class="bottom-nav" aria-label="Secciones">
+            <button type="button" class="nav-item" data-section="finanzas">
+                <i class="fas fa-chart-line" aria-hidden="true"></i> Inicio
+            </button>
             <button type="button" class="nav-item active" data-section="agenda">
                 <i class="fas fa-calendar-alt" aria-hidden="true"></i> Agenda
             </button>
@@ -1645,9 +1747,6 @@
             </button>
             <button type="button" class="nav-item" data-section="servicios">
                 <i class="fas fa-spa" aria-hidden="true"></i> Servicios
-            </button>
-            <button type="button" class="nav-item" data-section="finanzas">
-                <i class="fas fa-chart-pie" aria-hidden="true"></i> Finanzas
             </button>
             <button type="button" class="nav-item" data-section="ajustes">
                 <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
@@ -1767,7 +1866,81 @@
         </div>
     </div>
     
-    <!-- Confirmation Modal -->
+    <!-- I20 · Nueva deuda -->
+    <div id="deuda-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Nueva deuda</h3>
+                    <button type="button" id="close-deuda-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="deuda-form" class="space-y-4" novalidate>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="deuda-concepto">Concepto</label>
+                        <input id="deuda-concepto" type="text" maxlength="80" required
+                               class="w-full px-4 py-2 rounded-lg border border-line" placeholder="Ej: Lámpara UV">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="deuda-monto">Monto total</label>
+                            <input id="deuda-monto" type="number" min="1" step="100" inputmode="decimal" required
+                                   class="w-full px-4 py-2 rounded-lg border border-line" placeholder="180000">
+                        </div>
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="deuda-cuotas">Cuotas</label>
+                            <input id="deuda-cuotas" type="number" min="1" max="120" step="1" value="1"
+                                   class="w-full px-4 py-2 rounded-lg border border-line">
+                        </div>
+                    </div>
+                    <p id="deuda-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                    <button type="submit" id="deuda-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Guardar deuda
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- I20 · Registrar pago -->
+    <div id="pago-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Registrar pago</h3>
+                    <button type="button" id="close-pago-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p id="pago-deuda-nombre" class="text-sm text-ink-soft mb-3"></p>
+                <form id="pago-form" class="space-y-4" novalidate>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="pago-monto">Monto</label>
+                            <input id="pago-monto" type="number" min="1" step="100" inputmode="decimal" required
+                                   class="w-full px-4 py-2 rounded-lg border border-line">
+                        </div>
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="pago-fecha">Fecha</label>
+                            <input id="pago-fecha" type="date" required
+                                   class="w-full px-4 py-2 rounded-lg border border-line">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="pago-archivo">Comprobante (opcional)</label>
+                        <input id="pago-archivo" type="file" accept="image/*"
+                               class="w-full px-3 py-2 rounded-lg border border-line text-sm">
+                        <p class="text-xs text-ink-soft mt-1">JPG o PNG, hasta 5 MB.</p>
+                    </div>
+                    <p id="pago-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                    <button type="submit" id="pago-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Guardar pago
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6">
@@ -2011,8 +2184,10 @@
                 clientes: [],
                 servicios: [],
                 gastos: [],
-                cargando: { turnos: false, clientes: false, servicios: false, gastos: false },
-                cargado: { turnos: false, clientes: false, servicios: false, gastos: false }
+                deudas: [],
+                pagos_deudas: [],
+                cargando: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false },
+                cargado: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false }
             };
 
             function apiLista(tabla, columnaOrden) {
@@ -2056,10 +2231,12 @@
                 },
                 clientes: apiCrud('clientes'),
                 servicios: apiCrud('servicios'),
-                gastos: apiCrud('gastos')
+                gastos: apiCrud('gastos'),
+                deudas: apiCrud('deudas'),
+                pagos_deudas: apiCrud('pagos_deudas')
             };
 
-            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos'];
+            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas'];
 
             async function cargarTodo() {
                 if (!supabase) return;
@@ -2132,7 +2309,7 @@
                 agenda: { titulo: 'Agenda', sub: 'Calendario y turnos' },
                 clientes: { titulo: 'Clientes', sub: 'Fichas, contacto e historial' },
                 servicios: { titulo: 'Servicios', sub: 'Precios base y duración' },
-                finanzas: { titulo: 'Finanzas', sub: 'Ingresos y gastos' },
+                finanzas: { titulo: 'Inicio', sub: 'Resumen, deudas y gastos' },
                 ajustes: { titulo: 'Ajustes', sub: 'Apariencia, datos y cuenta' }
             };
 
@@ -3625,11 +3802,480 @@
                 return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
             }
 
-            function renderFinanzas() {
+            // ─────────────────────────────────────────────────────────────
+            // I20 · Dashboard "Inicio" + módulo de Deudas
+            // ─────────────────────────────────────────────────────────────
+            const NOMBRES_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            const TOPE_TICKET = 5 * 1024 * 1024;
+            let uidCache = null;
+            let deudaActual = null;
+
+            async function obtenerUid() {
+                if (uidCache) return uidCache;
+                try {
+                    const { data } = await supabase.auth.getSession();
+                    uidCache = (data && data.session && data.session.user && data.session.user.id) || null;
+                } catch (error) { uidCache = null; }
+                return uidCache;
+            }
+
+            function pagosDeDeuda(id) {
+                return (store.pagos_deudas || []).filter(function (p) { return String(p.deuda_id) === String(id); });
+            }
+
+            function pagadoDeDeuda(id) {
+                return pagosDeDeuda(id).reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
+            }
+
+            function nombreCliente(t) {
+                return t.clientName || t.client_name || t.nombre || 'Sin nombre';
+            }
+
+            function nombreServicio(t) {
+                return t.serviceType || t.service_type || 'Sin servicio';
+            }
+
+            function etiquetaDia(fecha) {
+                const hoy = todayISO();
+                if (fecha === hoy) return 'Hoy';
+                const manana = sumarMinutos(hoy + 'T00:00:00', 1440).slice(0, 10);
+                if (fecha === manana) return 'Mañana';
+                return formatDate(fecha);
+            }
+
+            function renderProximoTurno() {
+                const cont = document.getElementById('dash-proximo');
+                if (!cont) return;
+                cont.innerHTML = '';
+                const hoy = todayISO();
+                const proximos = (store.turnos || []).filter(function (t) {
+                    return (t.status === 'pending' || t.status === 'confirmed') && String(fechaDeFila(t)) >= hoy;
+                }).sort(function (a, b) {
+                    return (fechaDeFila(a) + ' ' + a.time).localeCompare(fechaDeFila(b) + ' ' + b.time);
+                });
+                const turno = proximos[0];
+                if (!turno) {
+                    const p = document.createElement('p');
+                    p.className = 'dash-hero-vacio';
+                    p.textContent = 'No tenés turnos próximos agendados.';
+                    cont.appendChild(p);
+                    return;
+                }
+                const ojo = document.createElement('p');
+                ojo.className = 'dash-hero-ojo';
+                ojo.textContent = 'Próximo turno';
+                const titulo = document.createElement('p');
+                titulo.className = 'dash-hero-titulo';
+                titulo.textContent = nombreCliente(turno) + ' · ' + nombreServicio(turno);
+                const cuando = document.createElement('p');
+                cuando.className = 'dash-hero-cuando';
+                cuando.textContent = etiquetaDia(fechaDeFila(turno)) + ' a las ' + String(turno.time || '').slice(0, 5) +
+                    (turno.price ? ' · ' + money(turno.price) : '');
+                const acciones = document.createElement('div');
+                acciones.className = 'dash-hero-acciones';
+                const ver = document.createElement('button');
+                ver.type = 'button';
+                ver.className = 'btn-primary px-3 py-2 rounded-lg text-sm font-medium';
+                ver.textContent = 'Ver ficha';
+                ver.addEventListener('click', function () { showAppointmentDetails(turno); });
+                acciones.appendChild(ver);
+                cont.appendChild(ojo);
+                cont.appendChild(titulo);
+                cont.appendChild(cuando);
+                cont.appendChild(acciones);
+            }
+
+            function renderEvolucion() {
+                const cont = document.getElementById('dash-evolucion');
+                if (!cont) return;
+                cont.innerHTML = '';
+                const meses = [];
+                for (let i = 5; i >= 0; i--) {
+                    let anio = finAnio;
+                    let mes = finMesNum - i;
+                    while (mes < 1) { mes += 12; anio -= 1; }
+                    const prefijo = anio + '-' + String(mes).padStart(2, '0');
+                    const total = (store.turnos || []).filter(function (t) {
+                        return t.status === 'completed' && String(fechaDeFila(t)).slice(0, 7) === prefijo;
+                    }).reduce(function (suma, t) { return suma + (Number(t.price) || 0); }, 0);
+                    meses.push({ etiqueta: NOMBRES_MES[mes - 1], total: total, actual: i === 0 });
+                }
+                const maximo = Math.max.apply(null, meses.map(function (m) { return m.total; }).concat([1]));
+                meses.forEach(function (m) {
+                    const col = document.createElement('div');
+                    col.className = 'barra-col';
+                    const valor = document.createElement('span');
+                    valor.className = 'barra-valor';
+                    valor.textContent = m.total > 0 ? money(m.total) : '';
+                    const barra = document.createElement('div');
+                    barra.className = 'barra' + (m.actual ? ' actual' : '');
+                    barra.style.height = Math.max(3, Math.round((m.total / maximo) * 110)) + 'px';
+                    barra.title = m.etiqueta + ': ' + money(m.total);
+                    const mes = document.createElement('span');
+                    mes.className = 'barra-mes';
+                    mes.textContent = m.etiqueta;
+                    col.appendChild(valor);
+                    col.appendChild(barra);
+                    col.appendChild(mes);
+                    cont.appendChild(col);
+                });
+            }
+
+            function renderServiciosMes(realizados) {
+                const dona = document.getElementById('dash-dona');
+                const leyenda = document.getElementById('dash-leyenda');
+                if (!dona || !leyenda) return;
+                dona.style.background = 'var(--line)';
+                leyenda.innerHTML = '';
+                const grupos = {};
+                realizados.forEach(function (t) {
+                    const clave = nombreServicio(t);
+                    grupos[clave] = (grupos[clave] || 0) + (Number(t.price) || 0);
+                });
+                const lista = Object.keys(grupos).map(function (k) { return { nombre: k, total: grupos[k] }; })
+                    .sort(function (a, b) { return b.total - a.total; });
+                const suma = lista.reduce(function (s, g) { return s + g.total; }, 0);
+                if (!suma) {
+                    const p = document.createElement('li');
+                    p.textContent = 'Sin turnos realizados este mes.';
+                    leyenda.appendChild(p);
+                    return;
+                }
+                const colores = ['var(--gold)', 'var(--blush)', 'var(--ink-soft)', 'var(--gold-ink)', 'var(--line)'];
+                const paradas = [];
+                let acumulado = 0;
+                lista.slice(0, 4).forEach(function (g, i) {
+                    const pct = (g.total / suma) * 100;
+                    paradas.push(colores[i] + ' ' + acumulado.toFixed(2) + '% ' + (acumulado + pct).toFixed(2) + '%');
+                    acumulado += pct;
+                    const item = document.createElement('li');
+                    const punto = document.createElement('span');
+                    punto.className = 'dona-punto';
+                    punto.style.background = colores[i];
+                    const nombre = document.createElement('span');
+                    nombre.textContent = g.nombre;
+                    const pctEl = document.createElement('span');
+                    pctEl.className = 'dona-pct';
+                    pctEl.textContent = Math.round(pct) + '%';
+                    item.appendChild(punto);
+                    item.appendChild(nombre);
+                    item.appendChild(pctEl);
+                    leyenda.appendChild(item);
+                });
+                if (acumulado < 99.5) paradas.push(colores[4] + ' ' + acumulado.toFixed(2) + '% 100%');
+                dona.style.background = 'conic-gradient(' + paradas.join(', ') + ')';
+            }
+
+            function renderTopClientas(realizados) {
+                const cont = document.getElementById('dash-top');
+                if (!cont) return;
+                cont.innerHTML = '';
+                const mapa = {};
+                realizados.forEach(function (t) {
+                    const clave = nombreCliente(t);
+                    if (!mapa[clave]) mapa[clave] = { nombre: clave, visitas: 0, total: 0 };
+                    mapa[clave].visitas += 1;
+                    mapa[clave].total += Number(t.price) || 0;
+                });
+                const top = Object.keys(mapa).map(function (k) { return mapa[k]; })
+                    .sort(function (a, b) { return b.visitas - a.visitas || b.total - a.total; })
+                    .slice(0, 3);
+                if (!top.length) {
+                    const p = document.createElement('p');
+                    p.className = 'vacio-dash';
+                    p.textContent = 'Sin visitas registradas este mes.';
+                    cont.appendChild(p);
+                    return;
+                }
+                top.forEach(function (c, i) {
+                    const fila = document.createElement('div');
+                    fila.className = 'top-item';
+                    const puesto = document.createElement('span');
+                    puesto.className = 'top-puesto';
+                    puesto.textContent = String(i + 1);
+                    const nombre = document.createElement('span');
+                    nombre.className = 'top-nombre';
+                    nombre.textContent = c.nombre;
+                    const dato = document.createElement('span');
+                    dato.className = 'top-dato';
+                    dato.textContent = c.visitas + (c.visitas === 1 ? ' visita' : ' visitas') + ' · ' + money(c.total);
+                    fila.appendChild(puesto);
+                    fila.appendChild(nombre);
+                    fila.appendChild(dato);
+                    cont.appendChild(fila);
+                });
+            }
+
+            function renderDeudas() {
+                const cont = document.getElementById('deudas-list');
+                if (!cont) return;
+                cont.innerHTML = '';
+                const cargando = store.cargando.deudas || store.cargando.pagos_deudas;
+                cont.setAttribute('aria-busy', cargando ? 'true' : 'false');
+                if (cargando) {
+                    for (let i = 0; i < 2; i++) {
+                        const esqueleto = document.createElement('div');
+                        esqueleto.className = 'skeleton-row';
+                        cont.appendChild(esqueleto);
+                    }
+                    return;
+                }
+                if (!store.cargado.deudas) {
+                    const p = document.createElement('p');
+                    p.className = 'vacio-dash';
+                    p.textContent = 'No se pudieron cargar las deudas.';
+                    cont.appendChild(p);
+                    return;
+                }
+                if (!store.deudas || !store.deudas.length) {
+                    const p = document.createElement('p');
+                    p.className = 'vacio-dash';
+                    p.textContent = 'Sin deudas cargadas.';
+                    cont.appendChild(p);
+                    return;
+                }
+                store.deudas.forEach(function (deuda) {
+                    const total = Number(deuda.monto_total) || 0;
+                    const pagado = pagadoDeDeuda(deuda.id);
+                    const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
+                    const saldada = pagado >= total || deuda.estado === 'pagada';
+
+                    const item = document.createElement('div');
+                    item.className = 'deuda-item';
+
+                    const cabeza = document.createElement('div');
+                    cabeza.className = 'deuda-head';
+                    const nombre = document.createElement('span');
+                    nombre.className = 'deuda-nombre';
+                    nombre.textContent = deuda.concepto;
+                    const badge = document.createElement('span');
+                    badge.className = 'badge ' + (saldada ? 'completed' : 'pending');
+                    const punto = document.createElement('span');
+                    punto.className = 'badge-dot';
+                    const textoBadge = document.createElement('span');
+                    textoBadge.textContent = saldada ? 'Pagada' : 'Pendiente';
+                    badge.appendChild(punto);
+                    badge.appendChild(textoBadge);
+                    cabeza.appendChild(nombre);
+                    cabeza.appendChild(badge);
+
+                    const meta = document.createElement('p');
+                    meta.className = 'deuda-meta';
+                    meta.textContent = money(pagado) + ' de ' + money(total) +
+                        (Number(deuda.cuotas_totales) > 1 ? ' · ' + deuda.cuotas_totales + ' cuotas' : '');
+
+                    const barra = document.createElement('div');
+                    barra.className = 'progreso';
+                    const relleno = document.createElement('span');
+                    relleno.style.width = pct + '%';
+                    barra.appendChild(relleno);
+
+                    const acciones = document.createElement('div');
+                    acciones.className = 'deuda-acciones';
+                    if (!saldada) {
+                        const pagar = document.createElement('button');
+                        pagar.type = 'button';
+                        pagar.className = 'btn-primary px-3 py-1.5 rounded-lg text-sm font-medium';
+                        pagar.textContent = 'Registrar pago';
+                        pagar.addEventListener('click', function () { abrirPago(deuda); });
+                        acciones.appendChild(pagar);
+                    }
+
+                    const pagos = pagosDeDeuda(deuda.id);
+                    const listaPagos = document.createElement('div');
+                    listaPagos.className = 'deuda-pagos';
+                    pagos.forEach(function (pago) {
+                        const fila = document.createElement('div');
+                        fila.className = 'deuda-pago';
+                        const dato = document.createElement('span');
+                        dato.textContent = formatDate(pago.fecha) + ' · ';
+                        const monto = document.createElement('strong');
+                        monto.textContent = money(pago.monto);
+                        fila.appendChild(dato);
+                        fila.appendChild(monto);
+                        if (pago.comprobante_url) {
+                            const ver = document.createElement('button');
+                            ver.type = 'button';
+                            ver.className = 'text-gold-ink text-xs underline ml-2';
+                            ver.textContent = 'Ver ticket';
+                            ver.addEventListener('click', function () { verTicket(pago.comprobante_url); });
+                            fila.appendChild(ver);
+                        }
+                        listaPagos.appendChild(fila);
+                    });
+
+                    item.appendChild(cabeza);
+                    item.appendChild(meta);
+                    item.appendChild(barra);
+                    if (acciones.children.length) item.appendChild(acciones);
+                    if (listaPagos.children.length) item.appendChild(listaPagos);
+                    cont.appendChild(item);
+                });
+            }
+
+            function abrirNuevaDeuda() {
+                const form = document.getElementById('deuda-form');
+                if (form) form.reset();
+                const cuotas = document.getElementById('deuda-cuotas');
+                if (cuotas) cuotas.value = '1';
+                const error = document.getElementById('deuda-error');
+                if (error) error.classList.add('hidden');
+                abrirModal(document.getElementById('deuda-modal'));
+            }
+
+            async function guardarDeuda() {
+                const boton = document.getElementById('deuda-save');
+                const errorEl = document.getElementById('deuda-error');
+                const concepto = String(document.getElementById('deuda-concepto').value || '').trim();
+                const monto = Math.round(Number(document.getElementById('deuda-monto').value));
+                const cuotas = Math.max(1, Math.round(Number(document.getElementById('deuda-cuotas').value) || 1));
+                const fallo = function (mensaje) {
+                    if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
+                };
+                if (!concepto) { fallo('Escribí un concepto.'); return; }
+                if (!monto || monto <= 0) { fallo('El monto tiene que ser mayor a 0.'); return; }
+                if (errorEl) errorEl.classList.add('hidden');
+                if (boton) boton.disabled = true;
+                try {
+                    await api.deudas.create({ concepto: concepto, monto_total: monto, cuotas_totales: cuotas, estado: 'pendiente' });
+                    cerrarModal(document.getElementById('deuda-modal'));
+                    await recargar('deudas');
+                    renderFinanzas();
+                    mostrarBanner('Deuda agregada.', 'ok');
+                } catch (error) {
+                    fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
+                } finally {
+                    if (boton) boton.disabled = false;
+                }
+            }
+
+            function abrirPago(deuda) {
+                deudaActual = deuda;
+                const form = document.getElementById('pago-form');
+                if (form) form.reset();
+                const nombre = document.getElementById('pago-deuda-nombre');
+                if (nombre) {
+                    const pendiente = Math.max(0, (Number(deuda.monto_total) || 0) - pagadoDeDeuda(deuda.id));
+                    nombre.textContent = deuda.concepto + ' · resta ' + money(pendiente);
+                }
+                const fecha = document.getElementById('pago-fecha');
+                if (fecha) fecha.value = todayISO();
+                const monto = document.getElementById('pago-monto');
+                if (monto) monto.value = '';
+                const error = document.getElementById('pago-error');
+                if (error) error.classList.add('hidden');
+                abrirModal(document.getElementById('pago-modal'));
+            }
+
+            async function guardarPago() {
+                if (!deudaActual) return;
+                const boton = document.getElementById('pago-save');
+                const errorEl = document.getElementById('pago-error');
+                const monto = Math.round(Number(document.getElementById('pago-monto').value));
+                const fecha = document.getElementById('pago-fecha').value || todayISO();
+                const archivo = document.getElementById('pago-archivo').files && document.getElementById('pago-archivo').files[0];
+                const fallo = function (mensaje) {
+                    if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
+                };
+                if (!monto || monto <= 0) { fallo('El monto tiene que ser mayor a 0.'); return; }
+                if (archivo) {
+                    if (archivo.size > TOPE_TICKET) { fallo('El comprobante supera los 5 MB.'); return; }
+                    if (String(archivo.type).indexOf('image/') !== 0) { fallo('El comprobante tiene que ser una imagen.'); return; }
+                }
+                if (errorEl) errorEl.classList.add('hidden');
+                if (boton) boton.disabled = true;
+
+                let ruta = null;
+                try {
+                    if (archivo) {
+                        const uid = await obtenerUid();
+                        if (!uid) { fallo('No se pudo identificar la sesión. Volvé a iniciar sesión.'); return; }
+                        const limpio = String(archivo.name || 'ticket.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
+                        ruta = uid + '/' + Date.now() + '_' + limpio;
+                        const subida = await supabase.storage.from('tickets').upload(ruta, archivo, { contentType: archivo.type, upsert: false });
+                        if (subida.error) { fallo('No se pudo subir el comprobante: ' + subida.error.message); return; }
+                    }
+
+                    const pago = await api.pagos_deudas.create({
+                        deuda_id: deudaActual.id,
+                        monto: monto,
+                        fecha: fecha,
+                        comprobante_url: ruta
+                    });
+
+                    cerrarModal(document.getElementById('pago-modal'));
+                    await recargar('pagos_deudas');
+                    await recargar('deudas');
+                    renderFinanzas();
+
+                    const restante = Math.max(0, (Number(deudaActual.monto_total) || 0) - pagadoDeDeuda(deudaActual.id));
+                    mostrarBanner('Pago registrado: ' + money(monto) + '. Resta ' + money(restante) + '.', 'ok', {
+                        duracion: 6000,
+                        accion: {
+                            texto: 'Deshacer',
+                            alTocar: function () { deshacerPago(pago, ruta); }
+                        }
+                    });
+                } catch (error) {
+                    if (ruta) { try { await supabase.storage.from('tickets').remove([ruta]); } catch (e) { /* sin red */ } }
+                    fallo('No se pudo registrar el pago: ' + (error.message || 'error de conexión'));
+                } finally {
+                    if (boton) boton.disabled = false;
+                    deudaActual = null;
+                }
+            }
+
+            async function deshacerPago(pago, ruta) {
+                if (deshaciendo) return;
+                deshaciendo = true;
+                clearTimeout(bannerTimer);
+                appBanner.hidden = true;
+                appBanner.innerHTML = '';
+                try {
+                    await api.pagos_deudas.remove(pago.id);
+                    if (ruta) { try { await supabase.storage.from('tickets').remove([ruta]); } catch (e) { /* sin red */ } }
+                    await recargar('pagos_deudas');
+                    await recargar('deudas');
+                    renderFinanzas();
+                    mostrarBanner('Pago deshecho.', 'ok');
+                } catch (error) {
+                    mostrarBanner('No se pudo deshacer el pago: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    deshaciendo = false;
+                }
+            }
+
+            async function verTicket(ruta) {
+                if (!ruta) return;
+                try {
+                    const { data, error } = await supabase.storage.from('tickets').createSignedUrl(ruta, 3600);
+                    if (error || !data || !data.signedUrl) throw (error || new Error('sin URL'));
+                    const enlace = document.createElement('a');
+                    enlace.href = data.signedUrl;
+                    enlace.target = '_blank';
+                    enlace.rel = 'noopener noreferrer';
+                    document.body.appendChild(enlace);
+                    enlace.click();
+                    document.body.removeChild(enlace);
+                } catch (error) {
+                    mostrarBanner('No se pudo abrir el comprobante.', 'error');
+                }
+            }
+
+            (function conectarDashboard() {
+                const nueva = document.getElementById('nueva-deuda-btn');
+                if (nueva) nueva.addEventListener('click', abrirNuevaDeuda);
+                const formDeuda = document.getElementById('deuda-form');
+                if (formDeuda) formDeuda.addEventListener('submit', function (evento) { evento.preventDefault(); guardarDeuda(); });
+                const cerrarDeuda = document.getElementById('close-deuda-modal');
+                if (cerrarDeuda) cerrarDeuda.addEventListener('click', function () { cerrarModal(document.getElementById('deuda-modal')); });
+                const formPago = document.getElementById('pago-form');
+                if (formPago) formPago.addEventListener('submit', function (evento) { evento.preventDefault(); guardarPago(); });
+                const cerrarPagoBtn = document.getElementById('close-pago-modal');
+                if (cerrarPagoBtn) cerrarPagoBtn.addEventListener('click', function () { cerrarModal(document.getElementById('pago-modal')); });
+            })();            function renderFinanzas() {
                 const etiqueta = document.getElementById('fin-mes');
                 const ingresosEl = document.getElementById('fin-ingresos');
-                const gastosEl = document.getElementById('fin-gastos');
-                const balanceEl = document.getElementById('fin-balance');
                 if (!etiqueta || !ingresosEl) return;
 
                 const prefijo = prefijoMes();
@@ -3638,23 +4284,44 @@
                 const gastoFechaEl = document.getElementById('gasto-fecha');
                 if (gastoFechaEl && !gastoFechaEl.value) gastoFechaEl.value = todayISO();
 
-                const ingresos = store.turnos
-                    .filter(function(turno) {
-                        return turno.status === 'completed' && String(fechaDeFila(turno)).slice(0, 7) === prefijo;
-                    })
-                    .reduce(function(suma, turno) { return suma + (Number(turno.price) || 0); }, 0);
+                const delMes = (store.turnos || []).filter(function (turno) {
+                    return String(fechaDeFila(turno)).slice(0, 7) === prefijo;
+                });
+                const realizados = delMes.filter(function (t) { return t.status === 'completed'; });
+                const cancelados = delMes.filter(function (t) { return t.status === 'cancelled'; });
+                const ingresos = realizados.reduce(function (suma, t) { return suma + (Number(t.price) || 0); }, 0);
 
-                const gastosMes = store.gastos.filter(function(gasto) {
+                const gastosMes = (store.gastos || []).filter(function (gasto) {
                     return String(gasto.fecha || '').slice(0, 7) === prefijo;
                 });
-                const totalGastos = gastosMes.reduce(function(suma, gasto) { return suma + (Number(gasto.monto) || 0); }, 0);
+                const gastosPropios = gastosMes.reduce(function (suma, g) { return suma + (Number(g.monto) || 0); }, 0);
+                const pagosMes = (store.pagos_deudas || []).filter(function (p) {
+                    return String(p.fecha || '').slice(0, 7) === prefijo;
+                });
+                const totalPagos = pagosMes.reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
+                const totalGastos = gastosPropios + totalPagos;
 
                 ingresosEl.textContent = money(ingresos);
-                gastosEl.textContent = money(totalGastos);
-                balanceEl.textContent = money(ingresos - totalGastos);
-                balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
+                const gastosEl = document.getElementById('fin-gastos');
+                if (gastosEl) gastosEl.textContent = money(totalGastos);
+                const pista = document.getElementById('fin-gastos-hint');
+                if (pista) pista.textContent = totalPagos > 0 ? ('Incluye ' + money(totalPagos) + ' de deudas') : 'Cargados este mes';
+                const balanceEl = document.getElementById('fin-balance');
+                if (balanceEl) {
+                    balanceEl.textContent = money(ingresos - totalGastos);
+                    balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
+                }
+                const realizadosEl = document.getElementById('fin-realizados');
+                if (realizadosEl) realizadosEl.textContent = String(realizados.length);
+                const canceladosEl = document.getElementById('fin-cancelados');
+                if (canceladosEl) canceladosEl.textContent = String(cancelados.length);
 
                 renderGastos(gastosMes);
+                renderProximoTurno();
+                renderEvolucion();
+                renderServiciosMes(realizados);
+                renderTopClientas(realizados);
+                renderDeudas();
             }
 
             function renderGastos(gastosMes) {
