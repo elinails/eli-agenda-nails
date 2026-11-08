@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eli M. Nails - Agenda de Turnos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'eli-pink': '#FFD6E7',
+                        'eli-lilac': '#E2D1F9',
+                        'eli-gold': '#F7D488',
+                        'eli-green': '#C8E7C3',
+                        'eli-gray': '#E5E5E5',
+                        'eli-dark': '#5A3D5A',
+                    },
+                    fontFamily: {
+                        'rounded': ['"Nunito"', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF9FB;
+            color: #5A3D5A;
+        }
+        
+        .appointment-pending {
+            background-color: #FFD6E7;
+            border-left: 4px solid #FF6B9D;
+        }
+        
+        .appointment-confirmed {
+            background-color: #C8E7C3;
+            border-left: 4px solid #5CB85C;
+        }
+        
+        .appointment-cancelled {
+            background-color: #E5E5E5;
+            border-left: 4px solid #999999;
+        }
+        
+        .appointment-completed {
+            background-color: #E2D1F9;
+            border-left: 4px solid #9B59B6;
+        }
+        
+        .fc-event-pending {
+            background-color: #FFD6E7;
+            border-color: #FF6B9D;
+        }
+        
+        .fc-event-confirmed {
+            background-color: #C8E7C3;
+            border-color: #5CB85C;
+        }
+        
+        .fc-event-cancelled {
+            background-color: #E5E5E5;
+            border-color: #999999;
+        }
+        
+        .fc-event-completed {
+            background-color: #E2D1F9;
+            border-color: #9B59B6;
+        }
+        
+        .nav-tab.active {
+            background-color: #E2D1F9;
+            color: #5A3D5A;
+            font-weight: 600;
+        }
+        
+        .nav-tab {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #E2D1F9;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #D0B5F0;
+        }
+        
+        .btn-secondary {
+            background-color: #FFD6E7;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #FFC0D9;
+        }
+        
+        .btn-danger {
+            background-color: #FFE0E0;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-danger:hover {
+            background-color: #FFC9C9;
+        }
+        
+        .input-field:focus {
+            border-color: #E2D1F9;
+            box-shadow: 0 0 0 3px rgba(226, 209, 249, 0.3);
+        }
+        
+        .modal-overlay {
+            background-color: rgba(90, 61, 90, 0.7);
+        }
+        
+        .modal-content {
+            animation: slide-up 0.3s ease-out;
+        }
+        
+        .appointment-card {
+            transition: all 0.2s ease;
+        }
+        
+        .appointment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .whatsapp-btn {
+            background-color: #25D366;
+            transition: all 0.2s ease;
+        }
+        
+        .whatsapp-btn:hover {
+            background-color: #1FA855;
+        }
+        
+        .export-btn {
+            background-color: #F7D488;
+            transition: all 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            background-color: #F5C66D;
+        }
+        
+        @media (max-width: 640px) {
+            .fc-toolbar-title {
+                font-size: 1.1rem;
+            }
+            
+            .fc-button {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-hand-holding-heart text-4xl text-eli-lilac mr-3"></i>
+                <h1 class="text-3xl md:text-4xl font-bold text-eli-dark">Eli M. Nails</h1>
+            </div>
+            <p class="text-lg text-eli-dark">Agenda de turnos personal</p>
+        </header>
+        
+        <!-- Navigation Tabs -->
+        <div class="flex mb-6 bg-white rounded-lg shadow-sm overflow-hidden">
+            <button id="calendar-tab" class="nav-tab active flex-1 py-3 px-4 text-center">
+                <i class="fas fa-calendar-alt mr-2"></i> Calendario
+            </button>
+            <button id="appointments-tab" class="nav-tab flex-1 py-3 px-4 text-center">
+                <i class="fas fa-list mr-2"></i> Listado
+            </button>
+            <button id="new-tab" class="nav-tab flex-1 py-3 px-4 text-center">
+                <i class="fas fa-plus-circle mr-2"></i> Nuevo Turno
+            </button>
+        </div>
+        
+        <!-- Calendar View -->
+        <div id="calendar-view" class="view-section bg-white rounded-xl shadow-md p-4 mb-6">
+            <div id="calendar" class="animate-fade-in"></div>
+        </div>
+        
+        <!-- Appointments List View -->
+        <div id="appointments-view" class="view-section hidden bg-white rounded-xl shadow-md p-4 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <div class="w-full md:w-auto mb-4 md:mb-0">
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="Buscar por nombre o servicio..." 
+                               class="w-full md:w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <select id="status-filter" class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                        <option value="all">Todos los estados</option>
+                        <option value="pending">Pendiente</option>
+                        <option value="confirmed">Confirmado</option>
+                        <option value="completed">Realizado</option>
+                        <option value="cancelled">Cancelado</option>
+                    </select>
+                    <input type="date" id="date-filter" class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                    <button id="export-excel" class="export-btn px-4 py-2 rounded-lg text-eli-dark font-medium">
+                        <i class="fas fa-file-excel mr-2"></i> Exportar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="appointments-list" class="space-y-3">
+                <!-- Appointments will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- New Appointment Form View -->
+        <div id="new-appointment-view" class="view-section hidden bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold text-eli-dark mb-6">Nuevo Turno</h2>
+            
+            <form id="appointment-form" class="space-y-4">
+                <input type="hidden" id="appointment-id">
+                
+                <div>
+                    <label for="client-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                    <input type="text" id="client-name" required
+                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label for="service-type" class="block text-sm font-medium text-gray-700 mb-1">Servicio</label>
+                    <select id="service-type" required
+                            class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                        <option value="">Seleccionar servicio</option>
+                        <option value="Kapping">Kapping</option>
+                        <option value="Soft gel">Soft gel</option>
+                        <option value="Semipermanente">Semipermanente</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="appointment-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="date" id="appointment-date" required
+                               class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="appointment-time" class="block text-sm font-medium text-gray-700 mb-1">Hora</label>
+                        <select id="appointment-time" required
+                                class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                            <option value="">Seleccionar hora</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="appointment-price" class="block text-sm font-medium text-gray-700 mb-1">Precio ($)</label>
+                    <input type="number" id="appointment-price" min="0" step="100"
+                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label for="appointment-notes" class="block text-sm font-medium text-gray-700 mb-1">Notas adicionales</label>
+                    <textarea id="appointment-notes" rows="3"
+                              class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent"></textarea>
+                </div>
+                
+                <div>
+                    <label for="appointment-status" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <select id="appointment-status" required
+                            class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                        <option value="pending">Pendiente</option>
+                        <option value="confirmed">Confirmado</option>
+                        <option value="completed">Realizado</option>
+                        <option value="cancelled">Cancelado</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 pt-4">
+                    <button type="submit" id="save-btn" class="btn-primary px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-save mr-2"></i> Guardar
+                    </button>
+                    <button type="button" id="update-btn" class="btn-primary px-6 py-2 rounded-lg font-medium hidden">
+                        <i class="fas fa-edit mr-2"></i> Modificar
+                    </button>
+                    <button type="button" id="delete-btn" class="btn-danger px-6 py-2 rounded-lg font-medium hidden">
+                        <i class="fas fa-trash-alt mr-2"></i> Eliminar
+                    </button>
+                    <button type="button" id="whatsapp-btn" class="whatsapp-btn px-6 py-2 rounded-lg text-white font-medium hidden">
+                        <i class="fab fa-whatsapp mr-2"></i> WhatsApp
+                    </button>
+                    <button type="button" id="clear-btn" class="bg-gray-200 px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-times mr-2"></i> Limpiar
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-sm text-gray-600">
+            <p>Creado con <i class="fas fa-heart text-red-400"></i> por @Jacinto.Cards</p>
+        </footer>
+    </div>
+    
+    <!-- Appointment Details Modal -->
+    <div id="appointment-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-eli-dark" id="modal-title">Detalles del Turno</h3>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Cliente</p>
+                        <p class="font-medium" id="modal-client"></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Servicio</p>
+                        <p class="font-medium" id="modal-service"></p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Fecha</p>
+                            <p class="font-medium" id="modal-date"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Hora</p>
+                            <p class="font-medium" id="modal-time"></p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Precio</p>
+                        <p class="font-medium" id="modal-price"></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Estado</p>
+                        <p class="font-medium" id="modal-status"></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Notas</p>
+                        <p class="font-medium" id="modal-notes"></p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="modal-edit-btn" class="btn-primary px-4 py-2 rounded-lg font-medium text-sm">
+                        <i class="fas fa-edit mr-2"></i> Editar
+                    </button>
+                    <button id="modal-whatsapp-btn" class="whatsapp-btn px-4 py-2 rounded-lg text-white font-medium text-sm">
+                        <i class="fab fa-whatsapp mr-2"></i> WhatsApp
+                    </button>
+                    <button id="modal-close-btn" class="bg-gray-200 px-4 py-2 rounded-lg font-medium text-sm">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-eli-dark" id="confirm-title">Confirmar acción</h3>
+                    <button id="close-confirm-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <p class="mb-6" id="confirm-message">¿Estás seguro que deseas eliminar este turno?</p>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="confirm-cancel-btn" class="bg-gray-200 px-4 py-2 rounded-lg font-medium text-sm">
+                        Cancelar
+                    </button>
+                    <button id="confirm-action-btn" class="btn-danger px-4 py-2 rounded-lg font-medium text-sm">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize database
+            let db;
+            const DB_NAME = 'eli_nails_appointments';
+            const DB_VERSION = 1;
+            const STORE_NAME = 'appointments';
+            
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    store.createIndex('date', 'date', { unique: false });
+                    store.createIndex('status', 'status', { unique: false });
+                }
+            };
+            
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                loadAppointments();
+                initCalendar();
+            };
+            
+            request.onerror = function(event) {
+                console.error('Database error:', event.target.error);
+            };
+            
+            // DOM Elements
+            const calendarView = document.getElementById('calendar-view');
+            const appointmentsView = document.getElementById('appointments-view');
+            const newAppointmentView = document.getElementById('new-appointment-view');
+            
+            const calendarTab = document.getElementById('calendar-tab');
+            const appointmentsTab = document.getElementById('appointments-tab');
+            const newTab = document.getElementById('new-tab');
+            
+            const appointmentForm = document.getElementById('appointment-form');
+            const clientNameInput = document.getElementById('client-name');
+            const serviceTypeInput = document.getElementById('service-type');
+            const appointmentDateInput = document.getElementById('appointment-date');
+            const appointmentTimeInput = document.getElementById('appointment-time');
+            const appointmentPriceInput = document.getElementById('appointment-price');
+            const appointmentNotesInput = document.getElementById('appointment-notes');
+            const appointmentStatusInput = document.getElementById('appointment-status');
+            const appointmentIdInput = document.getElementById('appointment-id');
+            
+            const saveBtn = document.getElementById('save-btn');
+            const updateBtn = document.getElementById('update-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            const whatsappBtn = document.getElementById('whatsapp-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            const searchInput = document.getElementById('search-input');
+            const statusFilter = document.getElementById('status-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const exportExcelBtn = document.getElementById('export-excel');
+            
+            const appointmentsList = document.getElementById('appointments-list');
+            
+            const appointmentModal = document.getElementById('appointment-modal');
+            const confirmModal = document.getElementById('confirm-modal');
+            
+            // Tab Navigation
+            calendarTab.addEventListener('click', () => showView('calendar'));
+            appointmentsTab.addEventListener('click', () => showView('appointments'));
+            newTab.addEventListener('click', () => showView('new'));
+            
+            function showView(view) {
+                // Update active tab
+                document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+                
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
+                
+                // Show selected view
+                if (view === 'calendar') {
+                    calendarTab.classList.add('active');
+                    calendarView.classList.remove('hidden');
+                    calendar.render();
+                } else if (view === 'appointments') {
+                    appointmentsTab.classList.add('active');
+                    appointmentsView.classList.remove('hidden');
+                    loadAppointmentsList();
+                } else if (view === 'new') {
+                    newTab.classList.add('active');
+                    newAppointmentView.classList.remove('hidden');
+                    resetForm();
+                }
+            }
+            
+            // Form Handling
+            appointmentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveAppointment();
+            });
+            
+            clearBtn.addEventListener('click', resetForm);
+            
+            function resetForm() {
+                appointmentForm.reset();
+                appointmentIdInput.value = '';
+                saveBtn.classList.remove('hidden');
+                updateBtn.classList.add('hidden');
+                deleteBtn.classList.add('hidden');
+                whatsappBtn.classList.add('hidden');
+                
+                // Set default date to today
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                appointmentDateInput.value = formattedDate;
+                
+                // Set default status to pending
+                appointmentStatusInput.value = 'pending';
+            }
+            
+            function saveAppointment() {
+                const appointment = {
+                    clientName: clientNameInput.value.trim(),
+                    serviceType: serviceTypeInput.value,
+                    date: appointmentDateInput.value,
+                    time: appointmentTimeInput.value,
+                    price: appointmentPriceInput.value ? parseInt(appointmentPriceInput.value) : 0,
+                    notes: appointmentNotesInput.value.trim(),
+                    status: appointmentStatusInput.value,
+                    timestamp: new Date(`${appointmentDateInput.value}T${appointmentTimeInput.value}:00`).getTime()
+                };
+                
+                if (!appointment.clientName || !appointment.serviceType || !appointment.date || !appointment.time) {
+                    alert('Por favor complete todos los campos obligatorios');
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                if (appointmentIdInput.value) {
+                    // Update existing appointment
+                    appointment.id = parseInt(appointmentIdInput.value);
+                    const request = store.put(appointment);
+                    
+                    request.onsuccess = function() {
+                        loadAppointments();
+                        resetForm();
+                        showView('appointments');
+                    };
+                    
+                    request.onerror = function(event) {
+                        console.error('Error updating appointment:', event.target.error);
+                    };
+                } else {
+                    // Add new appointment
+                    const request = store.add(appointment);
+                    
+                    request.onsuccess = function() {
+                        loadAppointments();
+                        resetForm();
+                        showView('appointments');
+                    };
+                    
+                    request.onerror = function(event) {
+                        console.error('Error adding appointment:', event.target.error);
+                    };
+                }
+            }
+            
+            // Load appointments for calendar and list
+            function loadAppointments() {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = function() {
+                    const appointments = request.result;
+                    
+                    // Update calendar if it exists
+                    if (window.calendar) {
+                        calendar.removeAllEvents();
+                        
+                        appointments.forEach(appointment => {
+                            calendar.addEvent({
+                                id: appointment.id,
+                                title: `${appointment.clientName} - ${appointment.serviceType}`,
+                                start: `${appointment.date}T${appointment.time}:00`,
+                                extendedProps: {
+                                    clientName: appointment.clientName,
+                                    serviceType: appointment.serviceType,
+                                    price: appointment.price,
+                                    notes: appointment.notes,
+                                    status: appointment.status
+                                },
+                                className: `fc-event-${appointment.status}`
+                            });
+                        });
+                    }
+                    
+                    // Update list view if visible
+                    if (!appointmentsView.classList.contains('hidden')) {
+                        loadAppointmentsList();
+                    }
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error loading appointments:', event.target.error);
+                };
+            }
+            
+            // Load appointments list with filtering
+            function loadAppointmentsList(filter = {}) {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = function() {
+                    let appointments = request.result;
+                    
+                    // Apply filters
+                    if (filter.search) {
+                        const searchTerm = filter.search.toLowerCase();
+                        appointments = appointments.filter(app => 
+                            app.clientName.toLowerCase().includes(searchTerm) || 
+                            app.serviceType.toLowerCase().includes(searchTerm)
+                        );
+                    }
+                    
+                    if (filter.status && filter.status !== 'all') {
+                        appointments = appointments.filter(app => app.status === filter.status);
+                    }
+                    
+                    if (filter.date) {
+                        appointments = appointments.filter(app => app.date === filter.date);
+                    }
+                    
+                    // Sort by date and time
+                    appointments.sort((a, b) => {
+                        const dateA = new Date(`${a.date}T${a.time}:00`);
+                        const dateB = new Date(`${b.date}T${b.time}:00`);
+                        return dateA - dateB;
+                    });
+                    
+                    // Display appointments
+                    renderAppointmentsList(appointments);
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error loading appointments:', event.target.error);
+                };
+            }
+            
+            // Render appointments list
+            function renderAppointmentsList(appointments) {
+                appointmentsList.innerHTML = '';
+                
+                if (appointments.length === 0) {
+                    appointmentsList.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-calendar-times text-4xl mb-3"></i>
+                            <p>No hay turnos programados</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                appointments.forEach(appointment => {
+                    const statusClass = getStatusClass(appointment.status);
+                    const statusText = getStatusText(appointment.status);
+                    
+                    const appointmentCard = document.createElement('div');
+                    appointmentCard.className = `appointment-card ${statusClass} p-4 rounded-lg cursor-pointer animate-fade-in`;
+                    appointmentCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg">${appointment.clientName}</h3>
+                                <p class="text-gray-600">${appointment.serviceType}</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(appointment.status)}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <div>
+                                <p class="text-xs text-gray-500">Fecha</p>
+                                <p>${formatDate(appointment.date)}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Hora</p>
+                                <p>${appointment.time}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Precio</p>
+                                <p>$${appointment.price || '--'}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    appointmentCard.addEventListener('click', () => showAppointmentDetails(appointment));
+                    appointmentsList.appendChild(appointmentCard);
+                });
+            }
+            
+            // Filter appointments
+            searchInput.addEventListener('input', function() {
+                loadAppointmentsList({
+                    search: this.value,
+                    status: statusFilter.value,
+                    date: dateFilter.value
+                });
+            });
+            
+            statusFilter.addEventListener('change', function() {
+                loadAppointmentsList({
+                    search: searchInput.value,
+                    status: this.value,
+                    date: dateFilter.value
+                });
+            });
+            
+            dateFilter.addEventListener('change', function() {
+                loadAppointmentsList({
+                    search: searchInput.value,
+                    status: statusFilter.value,
+                    date: this.value
+                });
+            });
+            
+            // Export to Excel
+            exportExcelBtn.addEventListener('click', function() {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = function() {
+                    const appointments = request.result;
+                    
+                    // Prepare data for Excel
+                    const excelData = appointments.map(app => ({
+                        'Nombre': app.clientName,
+                        'Servicio': app.serviceType,
+                        'Fecha': formatDate(app.date),
+                        'Hora': app.time,
+                        'Precio': `$${app.price || ''}`,
+                        'Notas': app.notes || '',
+                        'Estado': getStatusText(app.status)
+                    }));
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Turnos');
+                    
+                    // Export to file
+                    XLSX.writeFile(wb, `Turnos_Eli_Nails_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error exporting appointments:', event.target.error);
+                };
+            });
+            
+            // Initialize FullCalendar
+            let calendar;
+            
+            function initCalendar() {
+                const calendarEl = document.getElementById('calendar');
+                
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'es',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    buttonText: {
+                        today: 'Hoy',
+                        month: 'Mes',
+                        week: 'Semana',
+                        day: 'Día'
+                    },
+                    events: [],
+                    eventClick: function(info) {
+                        const appointment = {
+                            id: info.event.id,
+                            clientName: info.event.extendedProps.clientName,
+                            serviceType: info.event.extendedProps.serviceType,
+                            date: info.event.startStr.split('T')[0],
+                            time: info.event.startStr.split('T')[1].substring(0, 5),
+                            price: info.event.extendedProps.price,
+                            notes: info.event.extendedProps.notes,
+                            status: info.event.extendedProps.status
+                        };
+                        
+                        showAppointmentDetails(appointment);
+                    },
+                    eventClassNames: function(arg) {
+                        return [`fc-event-${arg.event.extendedProps.status}`];
+                    },
+                    eventTimeFormat: {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    }
+                });
+                
+                calendar.render();
+            }
+            
+            // Show appointment details in modal
+            function showAppointmentDetails(appointment) {
+                document.getElementById('modal-title').textContent = `Turno #${appointment.id}`;
+                document.getElementById('modal-client').textContent = appointment.clientName;
+                document.getElementById('modal-service').textContent = appointment.serviceType;
+                document.getElementById('modal-date').textContent = formatDate(appointment.date);
+                document.getElementById('modal-time').textContent = appointment.time;
+                document.getElementById('modal-price').textContent = `$${appointment.price || '--'}`;
+                document.getElementById('modal-status').textContent = getStatusText(appointment.status);
+                document.getElementById('modal-notes').textContent = appointment.notes || '--';
+                
+                // Set status color
+                const statusElement = document.getElementById('modal-status');
+                statusElement.className = 'font-medium ' + getStatusBadgeClass(appointment.status);
+                
+                // Show modal
+                appointmentModal.classList.remove('hidden');
+                
+                // Set up modal buttons
+                document.getElementById('modal-edit-btn').onclick = function() {
+                    editAppointment(appointment);
+                    appointmentModal.classList.add('hidden');
+                };
+                
+                document.getElementById('modal-whatsapp-btn').onclick = function() {
+                    sendWhatsApp(appointment);
+                };
+                
+                document.getElementById('modal-close-btn').onclick = function() {
+                    appointmentModal.classList.add('hidden');
+                };
+                
+                document.getElementById('close-modal').onclick = function() {
+                    appointmentModal.classList.add('hidden');
+                };
+            }
+            
+            // Edit appointment
+            function editAppointment(appointment) {
+                showView('new');
+                
+                appointmentIdInput.value = appointment.id;
+                clientNameInput.value = appointment.clientName;
+                serviceTypeInput.value = appointment.serviceType;
+                appointmentDateInput.value = appointment.date;
+                appointmentTimeInput.value = appointment.time;
+                appointmentPriceInput.value = appointment.price;
+                appointmentNotesInput.value = appointment.notes || '';
+                appointmentStatusInput.value = appointment.status;
+                
+                saveBtn.classList.add('hidden');
+                updateBtn.classList.remove('hidden');
+                deleteBtn.classList.remove('hidden');
+                whatsappBtn.classList.remove('hidden');
+                
+                updateBtn.onclick = saveAppointment;
+                deleteBtn.onclick = function() {
+                    confirmDelete(appointment.id);
+                };
+                whatsappBtn.onclick = function() {
+                    sendWhatsApp(appointment);
+                };
+            }
+            
+            // Confirm delete
+            function confirmDelete(id) {
+                confirmModal.classList.remove('hidden');
+                document.getElementById('confirm-title').textContent = 'Confirmar eliminación';
+                document.getElementById('confirm-message').textContent = '¿Estás seguro que deseas eliminar este turno?';
+                
+                document.getElementById('confirm-action-btn').onclick = function() {
+                    deleteAppointment(id);
+                    confirmModal.classList.add('hidden');
+                };
+                
+                document.getElementById('confirm-cancel-btn').onclick = function() {
+                    confirmModal.classList.add('hidden');
+                };
+                
+                document.getElementById('close-confirm-modal').onclick = function() {
+                    confirmModal.classList.add('hidden');
+                };
+            }
+            
+            // Delete appointment
+            function deleteAppointment(id) {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(parseInt(id));
+                
+                request.onsuccess = function() {
+                    loadAppointments();
+                    resetForm();
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error deleting appointment:', event.target.error);
+                };
+            }
+            
+            // Send WhatsApp message
+            function sendWhatsApp(appointment) {
+                const phoneNumber = ''; // Add default number if needed
+                const message = `Hola ${appointment.clientName}! ¿Cómo estás? 
+
+Te confirmo tu turno en Eli M. Nails:
+• Servicio: ${appointment.serviceType}
+• Día: ${formatDate(appointment.date)}
+• Hora: ${appointment.time}
+• Precio: $${appointment.price || '--'}
+${appointment.notes ? `• Notas: ${appointment.notes}` : ''}
+
+¡Gracias por confiar en mí para cuidar tus uñas! Por favor, recordá asistir sin niños ni acompañantes, así podemos garantizar tranquilidad y puntualidad en tu atención.
+
+¡Nos vemos pronto!
+Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBjaTMxaWo1Zngxdg==')}`;
+                
+                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+            
+            // Helper functions
+            function formatDate(dateString) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString('es-AR', options);
+            }
+            
+            function getStatusClass(status) {
+                switch(status) {
+                    case 'pending': return 'appointment-pending';
+                    case 'confirmed': return 'appointment-confirmed';
+                    case 'completed': return 'appointment-completed';
+                    case 'cancelled': return 'appointment-cancelled';
+                    default: return '';
+                }
+            }
+            
+            function getStatusBadgeClass(status) {
+                switch(status) {
+                    case 'pending': return 'bg-eli-pink text-eli-dark';
+                    case 'confirmed': return 'bg-eli-green text-eli-dark';
+                    case 'completed': return 'bg-eli-lilac text-eli-dark';
+                    case 'cancelled': return 'bg-eli-gray text-gray-700';
+                    default: return '';
+                }
+            }
+            
+            function getStatusText(status) {
+                switch(status) {
+                    case 'pending': return 'Pendiente';
+                    case 'confirmed': return 'Confirmado';
+                    case 'completed': return 'Realizado';
+                    case 'cancelled': return 'Cancelado';
+                    default: return '';
+                }
+            }
+            
+            // Initialize with calendar view
+            showView('calendar');
+            
+            // Set today's date as default in date filter
+            const today = new Date();
+            dateFilter.valueAsDate = today;
+            
+            // Set minimum date to today in date inputs
+            const todayStr = today.toISOString().split('T')[0];
+            appointmentDateInput.min = todayStr;
+            dateFilter.min = todayStr;
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Francofsm84/eli-m-nails" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
