@@ -1335,6 +1335,69 @@
         }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+
+        /* ── I28 · deudas nivel contable ── */
+        .deuda-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 13px 15px;
+            background: var(--surface);
+        }
+        .deuda-card.pagada { opacity: .72; }
+        .deuda-card.pagada .deuda-titulo { text-decoration: line-through; }
+        .deuda-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .deuda-titulo {
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .deuda-monto { font-weight: 600; font-size: 15px; margin-top: 4px; }
+        .deuda-meta { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+        .deuda-progreso {
+            height: 8px;
+            background: var(--surface-2);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 10px 0 6px;
+        }
+        .deuda-progreso > span {
+            display: block;
+            height: 100%;
+            background: var(--gold-ink);
+            border-radius: 999px;
+            transition: width .3s ease;
+        }
+        .deuda-estado { font-size: 12px; color: var(--ink-soft); }
+        .deuda-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+        .deuda-pagos {
+            margin-top: 10px;
+            border-top: 1px dashed var(--line);
+            padding-top: 8px;
+            display: grid;
+            gap: 6px;
+        }
+        .deuda-pago {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--ink-soft);
+        }
+        .deuda-pago strong { color: var(--ink); }
+        .chip-pago {
+            display: inline-block;
+            font-size: 10.5px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            color: var(--ink-soft);
+            border: 1px solid var(--line);
+            margin-left: 6px;
+            vertical-align: middle;
+        }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -2052,7 +2115,7 @@
         </div>
     </div>
 
-    <!-- I22 · Nueva deuda -->
+    <!-- I28 · Nueva deuda -->
     <div id="deuda-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
@@ -2070,15 +2133,21 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-sm text-ink-soft block mb-1" for="deuda-monto">Monto</label>
+                            <label class="text-sm text-ink-soft block mb-1" for="deuda-monto">Monto total</label>
                             <input id="deuda-monto" type="number" min="1" step="100" inputmode="decimal" required
                                    class="w-full px-4 py-2 rounded-lg border border-line" placeholder="180000">
                         </div>
                         <div>
-                            <label class="text-sm text-ink-soft block mb-1" for="deuda-fecha">Fecha</label>
-                            <input id="deuda-fecha" type="date" required class="w-full px-4 py-2 rounded-lg border border-line">
+                            <label class="text-sm text-ink-soft block mb-1" for="deuda-cuotas">Cuotas</label>
+                            <input id="deuda-cuotas" type="number" min="1" max="120" step="1" value="1"
+                                   class="w-full px-4 py-2 rounded-lg border border-line">
                         </div>
                     </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="deuda-fecha">Fecha de inicio</label>
+                        <input id="deuda-fecha" type="date" required class="w-full px-4 py-2 rounded-lg border border-line">
+                    </div>
+                    <p id="deuda-cuota-hint" class="hidden text-xs text-ink-soft"></p>
                     <p id="deuda-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
                     <button type="submit" id="deuda-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
                         Guardar deuda
@@ -2086,7 +2155,48 @@
                 </form>
             </div>
         </div>
-    </div>    <!-- Confirmation Modal -->
+    </div>
+
+    <!-- I28 · Registrar pago -->
+    <div id="pago-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Registrar pago</h3>
+                    <button type="button" id="close-pago-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-ink-soft" id="pago-deuda-nombre"></p>
+                <p class="text-sm font-medium text-gold-ink mb-3" id="pago-saldo"></p>
+
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button type="button" id="pago-cuota-btn" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium">Pagar 1 cuota</button>
+                    <button type="button" id="pago-total-btn" class="btn-secondary px-3 py-2 rounded-lg text-sm font-medium">Pagar saldo</button>
+                </div>
+
+                <form id="pago-form" class="space-y-4" novalidate>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="pago-monto">Otro monto</label>
+                            <input id="pago-monto" type="number" min="1" step="1" inputmode="decimal"
+                                   class="w-full px-4 py-2 rounded-lg border border-line" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-sm text-ink-soft block mb-1" for="pago-fecha">Fecha</label>
+                            <input id="pago-fecha" type="date" class="w-full px-4 py-2 rounded-lg border border-line">
+                        </div>
+                    </div>
+                    <p id="pago-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                    <button type="submit" id="pago-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Guardar pago
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
@@ -2347,8 +2457,9 @@
                 servicios: [],
                 gastos: [],
                 deudas: [],
-                cargando: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false },
-                cargado: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false }
+                pagos_deudas: [],
+                cargando: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false },
+                cargado: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false }
             };
 
             function apiLista(tabla, columnaOrden) {
@@ -2393,10 +2504,11 @@
                 clientes: apiCrud('clientes'),
                 servicios: apiCrud('servicios'),
                 gastos: apiCrud('gastos'),
-                deudas: apiCrud('deudas')
+                deudas: apiCrud('deudas'),
+                pagos_deudas: apiCrud('pagos_deudas')
             };
 
-            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas'];
+            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas'];
 
             async function cargarTodo() {
                 if (!supabase) return;
@@ -4281,15 +4393,35 @@
                 return formatDate(fecha);
             }
 
-            function deudasPagadas() {
-                return (store.deudas || []).filter(function (d) { return d.pagado === true; });
+            function pagosDeDeuda(id) {
+                return (store.pagos_deudas || []).filter(function (p) { return String(p.deuda_id) === String(id); });
             }
 
-            function deudasPendientes() {
-                return (store.deudas || []).filter(function (d) { return d.pagado !== true; });
+            function pagadoDeDeuda(id) {
+                return pagosDeDeuda(id).reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
             }
 
-            function renderProximoTurno() {
+            function totalDeDeuda(deuda) {
+                return Number(deuda.monto_total) || 0;
+            }
+
+            function saldoDeDeuda(deuda) {
+                return Math.max(0, totalDeDeuda(deuda) - pagadoDeDeuda(deuda.id));
+            }
+
+            function cuotaDeDeuda(deuda) {
+                const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
+                return Math.round(totalDeDeuda(deuda) / cuotas);
+            }
+
+            function cuotasFaltantes(deuda) {
+                const cuota = cuotaDeDeuda(deuda) || 1;
+                return Math.max(0, Math.ceil(saldoDeDeuda(deuda) / cuota));
+            }
+
+            function deudaEstaPagada(deuda) {
+                return totalDeDeuda(deuda) > 0 && saldoDeDeuda(deuda) <= 0;
+            }            function renderProximoTurno() {
                 const cont = document.getElementById('dash-proximo');
                 if (!cont) return;
                 cont.innerHTML = '';
@@ -4459,8 +4591,9 @@
                 if (!cont) return;
                 cont.innerHTML = '';
                 const pista = document.getElementById('deuda-pendiente-hint');
-                if (store.cargando.deudas) {
-                    cont.setAttribute('aria-busy', 'true');
+                const cargando = store.cargando.deudas || store.cargando.pagos_deudas;
+                cont.setAttribute('aria-busy', cargando ? 'true' : 'false');
+                if (cargando) {
                     for (let i = 0; i < 2; i++) {
                         const esqueleto = document.createElement('div');
                         esqueleto.className = 'skeleton-row';
@@ -4468,7 +4601,6 @@
                     }
                     return;
                 }
-                cont.setAttribute('aria-busy', 'false');
                 if (!store.cargado.deudas) {
                     const p = document.createElement('p');
                     p.className = 'vacio-dash';
@@ -4476,83 +4608,217 @@
                     cont.appendChild(p);
                     return;
                 }
-                const pendientes = deudasPendientes().reduce(function (s, d) { return s + (Number(d.monto) || 0); }, 0);
-                if (pista) pista.textContent = pendientes > 0 ? ('Deuda pendiente: ' + money(pendientes)) : '';
 
-                const lista = (store.deudas || [])
-                    .filter(function (d) { return enPeriodo(d.fecha); })
-                    .sort(function (a, b) { return String(b.fecha || '').localeCompare(String(a.fecha || '')); });
+                const todas = (store.deudas || []).slice();
+                const pendienteTotal = todas.reduce(function (suma, d) { return suma + saldoDeDeuda(d); }, 0);
+                if (pista) pista.textContent = pendienteTotal > 0 ? ('Deuda pendiente: ' + money(pendienteTotal)) : '';
 
-                if (!lista.length) {
+                if (!todas.length) {
                     const p = document.createElement('p');
                     p.className = 'vacio-dash';
-                    p.textContent = periodoModo === 'todo' ? 'Sin deudas cargadas.' : 'Sin deudas en este período.';
+                    p.textContent = 'Sin deudas cargadas.';
                     cont.appendChild(p);
                     return;
                 }
 
-                lista.forEach(function (deuda) {
-                    const fila = document.createElement('div');
-                    fila.className = 'data-row';
+                todas.sort(function (a, b) {
+                    const pa = deudaEstaPagada(a) ? 1 : 0;
+                    const pb = deudaEstaPagada(b) ? 1 : 0;
+                    if (pa !== pb) return pa - pb;
+                    return String(b.fecha_inicio || '').localeCompare(String(a.fecha_inicio || ''));
+                });
 
-                    const info = document.createElement('div');
-                    const titulo = document.createElement('div');
-                    titulo.className = 'data-title';
+                todas.forEach(function (deuda) {
+                    const total = totalDeDeuda(deuda);
+                    const pagado = pagadoDeDeuda(deuda.id);
+                    const saldo = saldoDeDeuda(deuda);
+                    const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
+                    const cuota = cuotaDeDeuda(deuda);
+                    const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
+                    const pagada = deudaEstaPagada(deuda);
+
+                    const tarjeta = document.createElement('div');
+                    tarjeta.className = 'deuda-card' + (pagada ? ' pagada' : '');
+
+                    const arriba = document.createElement('div');
+                    arriba.className = 'deuda-top';
+                    const titulo = document.createElement('span');
+                    titulo.className = 'deuda-titulo';
                     titulo.textContent = deuda.descripcion || 'Deuda';
-                    const meta = document.createElement('div');
-                    meta.className = 'data-meta';
-                    meta.textContent = formatearFechaCorta(deuda.fecha) + ' · ' + (deuda.pagado === true ? 'Pagada' : 'Pendiente');
-                    info.appendChild(titulo);
-                    info.appendChild(meta);
+                    const estado = document.createElement('span');
+                    estado.className = 'badge ' + (pagada ? 'completed' : 'pending');
+                    const punto = document.createElement('span');
+                    punto.className = 'badge-dot';
+                    const textoEstado = document.createElement('span');
+                    textoEstado.textContent = pagada ? 'Pagada' : 'Pendiente';
+                    estado.appendChild(punto);
+                    estado.appendChild(textoEstado);
+                    arriba.appendChild(titulo);
+                    arriba.appendChild(estado);
 
-                    const valor = document.createElement('div');
-                    valor.className = 'data-value';
-                    valor.textContent = money(deuda.monto);
+                    const monto = document.createElement('p');
+                    monto.className = 'deuda-monto';
+                    monto.textContent = money(total);
+
+                    const meta = document.createElement('p');
+                    meta.className = 'deuda-meta';
+                    meta.textContent = cuotas + (cuotas === 1 ? ' cuota' : ' cuotas') +
+                        ' · desde ' + formatearFechaCorta(deuda.fecha_inicio);
+
+                    const barra = document.createElement('div');
+                    barra.className = 'deuda-progreso';
+                    const relleno = document.createElement('span');
+                    relleno.style.width = pct + '%';
+                    barra.appendChild(relleno);
+
+                    const detalle = document.createElement('p');
+                    detalle.className = 'deuda-estado';
+                    detalle.textContent = 'Pagado: ' + money(pagado) + ' de ' + money(total) + ' (' + pct + '%)' +
+                        (!pagada ? ' · Faltan ' + cuotasFaltantes(deuda) + ' de ' + cuotas + ' cuotas' : '');
 
                     const acciones = document.createElement('div');
-                    acciones.className = 'row-actions';
-                    if (deuda.pagado !== true) {
-                        acciones.appendChild(botonAccion('fa-check', 'Marcar como pagada', function () { marcarDeudaPagada(deuda); }));
+                    acciones.className = 'deuda-acciones';
+                    if (!pagada) {
+                        const abonar = document.createElement('button');
+                        abonar.type = 'button';
+                        abonar.className = 'btn-primary px-3 py-1.5 rounded-lg text-sm font-medium';
+                        abonar.textContent = 'Abonar';
+                        abonar.addEventListener('click', function () { abrirPago(deuda); });
+                        acciones.appendChild(abonar);
                     }
+                    const verPagos = document.createElement('button');
+                    verPagos.type = 'button';
+                    verPagos.className = 'btn-secondary px-3 py-1.5 rounded-lg text-sm font-medium';
+                    const pagos = pagosDeDeuda(deuda.id);
+                    verPagos.textContent = 'Ver pagos (' + pagos.length + ')';
+                    const historial = document.createElement('div');
+                    historial.className = 'deuda-pagos hidden';
+                    pagos.slice().sort(function (a, b) {
+                        return String(b.fecha || '').localeCompare(String(a.fecha || ''));
+                    }).forEach(function (pago) {
+                        const linea = document.createElement('div');
+                        linea.className = 'deuda-pago';
+                        const cuando = document.createElement('span');
+                        cuando.textContent = formatearFechaCorta(pago.fecha);
+                        const cuanto = document.createElement('strong');
+                        cuanto.textContent = money(pago.monto);
+                        linea.appendChild(cuando);
+                        linea.appendChild(cuanto);
+                        const borrar = botonAccion('fa-trash-alt', 'Borrar pago', function () { borrarPago(pago.id); }, true);
+                        linea.appendChild(borrar);
+                        historial.appendChild(linea);
+                    });
+                    if (!pagos.length) {
+                        const vacio = document.createElement('div');
+                        vacio.className = 'deuda-pago';
+                        vacio.textContent = 'Sin pagos registrados.';
+                        historial.appendChild(vacio);
+                    }
+                    verPagos.addEventListener('click', function () {
+                        historial.classList.toggle('hidden');
+                    });
+                    acciones.appendChild(verPagos);
                     acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (deuda.descripcion || ''), function () { borrarDeuda(deuda.id); }, true));
 
-                    fila.appendChild(info);
-                    fila.appendChild(valor);
-                    fila.appendChild(acciones);
-                    cont.appendChild(fila);
+                    tarjeta.appendChild(arriba);
+                    tarjeta.appendChild(monto);
+                    tarjeta.appendChild(meta);
+                    tarjeta.appendChild(barra);
+                    tarjeta.appendChild(detalle);
+                    tarjeta.appendChild(acciones);
+                    tarjeta.appendChild(historial);
+                    cont.appendChild(tarjeta);
                 });
+            }            let deudaPagoActual = null;
+
+            function abrirPago(deuda) {
+                deudaPagoActual = deuda;
+                const saldo = saldoDeDeuda(deuda);
+                const cuota = cuotaDeDeuda(deuda);
+                const sugerida = Math.min(cuota, saldo);
+                setTexto('pago-deuda-nombre', deuda.descripcion || 'Deuda');
+                setTexto('pago-saldo', 'Saldo pendiente: ' + money(saldo));
+                const btnCuota = document.getElementById('pago-cuota-btn');
+                if (btnCuota) {
+                    btnCuota.textContent = 'Pagar 1 cuota (' + money(sugerida) + ')';
+                    btnCuota.dataset.monto = String(sugerida);
+                }
+                const btnTotal = document.getElementById('pago-total-btn');
+                if (btnTotal) {
+                    btnTotal.textContent = 'Pagar saldo (' + money(saldo) + ')';
+                    btnTotal.dataset.monto = String(saldo);
+                }
+                const monto = document.getElementById('pago-monto');
+                if (monto) monto.value = '';
+                const fecha = document.getElementById('pago-fecha');
+                if (fecha) fecha.value = todayISO();
+                const error = document.getElementById('pago-error');
+                if (error) { error.textContent = ''; error.classList.add('hidden'); }
+                abrirModal(document.getElementById('pago-modal'));
             }
 
-            async function marcarDeudaPagada(deuda) {
-                if (marcandoDeuda) return;
-                marcandoDeuda = true;
+            async function guardarPago() {
+                if (!deudaPagoActual) return;
+                const boton = document.getElementById('pago-save');
+                const errorEl = document.getElementById('pago-error');
+                const monto = Math.round(Number(document.getElementById('pago-monto').value));
+                const fecha = document.getElementById('pago-fecha').value || todayISO();
+                const saldo = saldoDeDeuda(deudaPagoActual);
+                const fallo = function (mensaje) {
+                    if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
+                };
+                if (!monto || monto <= 0) { fallo('El monto tiene que ser mayor a 0.'); return; }
+                if (monto > saldo) { fallo('El monto no puede superar el saldo pendiente (' + money(saldo) + ').'); return; }
+                if (errorEl) errorEl.classList.add('hidden');
+                if (boton) boton.disabled = true;
                 try {
-                    await api.deudas.update(deuda.id, { pagado: true });
+                    const pago = await api.pagos_deudas.create({
+                        deuda_id: deudaPagoActual.id,
+                        monto: monto,
+                        fecha: fecha
+                    });
+                    cerrarModal(document.getElementById('pago-modal'));
+                    await recargar('pagos_deudas');
                     await recargar('deudas');
                     refrescarPaneles();
-                    mostrarBanner('Deuda marcada como pagada.', 'ok', {
+                    const restante = Math.max(0, saldo - monto);
+                    mostrarBanner('Pago registrado: ' + money(monto) + '. ' +
+                        (restante > 0 ? 'Resta ' + money(restante) + '.' : 'Deuda saldada.'), 'ok', {
                         duracion: 6000,
-                        accion: {
-                            texto: 'Deshacer',
-                            alTocar: function () { deshacerDeuda(deuda.id); }
-                        }
+                        accion: { texto: 'Deshacer', alTocar: function () { deshacerPago(pago); } }
                     });
                 } catch (error) {
-                    mostrarBanner('No se pudo marcar la deuda: ' + (error.message || 'error de conexión'), 'error');
+                    fallo('No se pudo registrar el pago: ' + (error.message || 'error de conexión'));
                 } finally {
-                    marcandoDeuda = false;
+                    if (boton) boton.disabled = false;
+                    deudaPagoActual = null;
                 }
             }
 
-            async function deshacerDeuda(id) {
+            async function deshacerPago(pago) {
                 try {
-                    await api.deudas.update(id, { pagado: false });
+                    await api.pagos_deudas.remove(pago.id);
+                    await recargar('pagos_deudas');
                     await recargar('deudas');
                     refrescarPaneles();
-                    mostrarBanner('Cambio deshecho.', 'ok');
+                    mostrarBanner('Pago deshecho.', 'ok');
                 } catch (error) {
-                    mostrarBanner('No se pudo deshacer: ' + (error.message || 'error de conexión'), 'error');
+                    mostrarBanner('No se pudo deshacer el pago: ' + (error.message || 'error de conexión'), 'error');
                 }
+            }
+
+            async function borrarPago(id) {
+                pedirConfirmacion('Borrar pago', '¿Borrar este pago? No se puede deshacer.', 'Borrar', async function () {
+                    try {
+                        await api.pagos_deudas.remove(id);
+                        await recargar('pagos_deudas');
+                        await recargar('deudas');
+                        refrescarPaneles();
+                        mostrarBanner('Pago eliminado.', 'ok');
+                    } catch (error) {
+                        mostrarBanner('No se pudo borrar el pago: ' + (error.message || 'error de conexión'), 'error');
+                    }
+                });
             }
 
             async function borrarDeuda(id) {
@@ -4563,12 +4829,14 @@
                         refrescarPaneles();
                         mostrarBanner('Deuda eliminada.', 'ok');
                     } catch (error) {
-                        mostrarBanner('No se pudo borrar la deuda: ' + (error.message || 'error de conexión'), 'error');
+                        if (String((error && error.code) || '') === '23503') {
+                            mostrarBanner('No podés borrar esta deuda porque tiene pagos registrados. Borrá los pagos primero si fue un error.', 'error');
+                        } else {
+                            mostrarBanner('No se pudo borrar la deuda: ' + (error.message || 'error de conexión'), 'error');
+                        }
                     }
                 });
-            }
-
-            function abrirGastoModal() {
+            }            function abrirGastoModal() {
                 const form = document.getElementById('gasto-form-modal');
                 if (form) form.reset();
                 const fecha = document.getElementById('gasto-fecha');
@@ -4608,29 +4876,52 @@
             function abrirNuevaDeuda() {
                 const form = document.getElementById('deuda-form');
                 if (form) form.reset();
+                const cuotas = document.getElementById('deuda-cuotas');
+                if (cuotas) cuotas.value = '1';
                 const fecha = document.getElementById('deuda-fecha');
                 if (fecha) fecha.value = todayISO();
                 const error = document.getElementById('deuda-error');
-                if (error) error.classList.add('hidden');
+                if (error) { error.textContent = ''; error.classList.add('hidden'); }
+                actualizarCuotaDeuda();
                 abrirModal(document.getElementById('deuda-modal'));
+            }
+
+            function actualizarCuotaDeuda() {
+                const pista = document.getElementById('deuda-cuota-hint');
+                if (!pista) return;
+                const monto = Number(document.getElementById('deuda-monto').value);
+                const cuotas = Math.max(1, Number(document.getElementById('deuda-cuotas').value) || 1);
+                if (monto > 0) {
+                    pista.textContent = 'Cada cuota es de ' + money(Math.round(monto / cuotas)) +
+                        (cuotas > 1 ? ' · ' + cuotas + ' cuotas' : ' · pago único');
+                    pista.classList.remove('hidden');
+                } else {
+                    pista.textContent = '';
+                    pista.classList.add('hidden');
+                }
             }
 
             async function guardarDeuda() {
                 const boton = document.getElementById('deuda-save');
                 const errorEl = document.getElementById('deuda-error');
                 const descripcion = String(document.getElementById('deuda-descripcion').value || '').trim();
-                const monto = Number(document.getElementById('deuda-monto').value);
-                const fecha = document.getElementById('deuda-fecha').value;
+                const montoTotal = Math.round(Number(document.getElementById('deuda-monto').value));
+                const cuotasTotales = Math.max(1, Math.round(Number(document.getElementById('deuda-cuotas').value) || 1));
+                const fecha = document.getElementById('deuda-fecha').value || todayISO();
                 const fallo = function (mensaje) {
                     if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
                 };
                 if (descripcion.length < 2) { fallo('Escribí una descripción.'); return; }
-                if (!isFinite(monto) || monto <= 0) { fallo('El monto debe ser mayor a 0.'); return; }
-                if (!fecha) { fallo('Elegí una fecha.'); return; }
+                if (!isFinite(montoTotal) || montoTotal <= 0) { fallo('El monto total tiene que ser mayor a 0.'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
                 if (boton) boton.disabled = true;
                 try {
-                    await api.deudas.create({ descripcion: descripcion, monto: monto, fecha: fecha, pagado: false });
+                    await api.deudas.create({
+                        descripcion: descripcion,
+                        monto_total: montoTotal,
+                        cuotas_totales: cuotasTotales,
+                        fecha_inicio: fecha
+                    });
                     cerrarModal(document.getElementById('deuda-modal'));
                     await recargar('deudas');
                     refrescarPaneles();
@@ -4640,11 +4931,7 @@
                 } finally {
                     if (boton) boton.disabled = false;
                 }
-            }
-
-            cargarPeriodo();
-
-            (function conectarDashboard() {
+            }            (function conectarDashboard() {
                 const verFinanzas = document.getElementById('ver-finanzas-btn');
                 if (verFinanzas) verFinanzas.addEventListener('click', function () { mostrarSeccion('finanzas'); });
 
@@ -4659,8 +4946,27 @@
                 if (abrirDeuda) abrirDeuda.addEventListener('click', abrirNuevaDeuda);
                 const formDeuda = document.getElementById('deuda-form');
                 if (formDeuda) formDeuda.addEventListener('submit', function (evento) { evento.preventDefault(); guardarDeuda(); });
+                if (formDeuda) {
+                    formDeuda.addEventListener('input', actualizarCuotaDeuda);
+                    formDeuda.addEventListener('change', actualizarCuotaDeuda);
+                }
                 const cerrarDeuda = document.getElementById('close-deuda-modal');
                 if (cerrarDeuda) cerrarDeuda.addEventListener('click', function () { cerrarModal(document.getElementById('deuda-modal')); });
+
+                const formPago = document.getElementById('pago-form');
+                if (formPago) formPago.addEventListener('submit', function (evento) { evento.preventDefault(); guardarPago(); });
+                const cerrarPago = document.getElementById('close-pago-modal');
+                if (cerrarPago) cerrarPago.addEventListener('click', function () { cerrarModal(document.getElementById('pago-modal')); });
+                ['pago-cuota-btn', 'pago-total-btn'].forEach(function (id) {
+                    const boton = document.getElementById(id);
+                    if (!boton) return;
+                    boton.addEventListener('click', function () {
+                        const monto = document.getElementById('pago-monto');
+                        if (monto) monto.value = boton.dataset.monto || '';
+                        const error = document.getElementById('pago-error');
+                        if (error) error.classList.add('hidden');
+                    });
+                });
 
                 const select = document.getElementById('periodo-select');
                 if (select) {
@@ -4689,8 +4995,8 @@
 
                 const gastosMes = (store.gastos || []).filter(function (gasto) { return enPeriodo(gasto.fecha, ctx); });
                 const gastosPropios = gastosMes.reduce(function (suma, g) { return suma + (Number(g.monto) || 0); }, 0);
-                const pagadas = deudasPagadas().filter(function (d) { return enPeriodo(d.fecha, ctx); });
-                const totalDeudas = pagadas.reduce(function (suma, d) { return suma + (Number(d.monto) || 0); }, 0);
+                const pagosMes = (store.pagos_deudas || []).filter(function (p) { return enPeriodo(p.fecha, ctx); });
+                const totalDeudas = pagosMes.reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
                 const totalGastos = gastosPropios + totalDeudas;
 
                 setTexto('ini-ingresos', money(ingresos));
@@ -4729,8 +5035,8 @@
 
                 const gastosMes = (store.gastos || []).filter(function (gasto) { return enPeriodo(gasto.fecha); });
                 const gastosPropios = gastosMes.reduce(function (suma, g) { return suma + (Number(g.monto) || 0); }, 0);
-                const pagadas = deudasPagadas().filter(function (d) { return enPeriodo(d.fecha); });
-                const totalDeudas = pagadas.reduce(function (suma, d) { return suma + (Number(d.monto) || 0); }, 0);
+                const pagosMes = (store.pagos_deudas || []).filter(function (p) { return enPeriodo(p.fecha); });
+                const totalDeudas = pagosMes.reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
                 const totalGastos = gastosPropios + totalDeudas;
 
                 ingresosEl.textContent = money(ingresos);
@@ -4743,7 +5049,7 @@
                 const balanceEl = document.getElementById('fin-balance');
                 if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
 
-                renderGastos(gastosMes);
+                renderMovimientos(gastosMes, pagosMes);
                 renderDeudas();
             }
 
@@ -4752,48 +5058,72 @@
                 renderCaja();
             }
 
-            function renderGastos(gastosMes) {
+            function renderMovimientos(gastosMes, pagosMes) {
                 const cont = document.getElementById('gastos-list');
                 if (!cont) return;
-                cont.setAttribute('aria-busy', store.cargando.gastos ? 'true' : 'false');
-                if (store.cargando.gastos) { pintarEsqueleto(cont, 2); return; }
+                const cargando = store.cargando.gastos || store.cargando.pagos_deudas;
+                cont.setAttribute('aria-busy', cargando ? 'true' : 'false');
+                if (cargando) { pintarEsqueleto(cont, 2); return; }
                 if (!store.cargado.gastos) {
-                    pintarVacio(cont, 'fa-triangle-exclamation', 'No se pudieron cargar los gastos.');
+                    pintarVacio(cont, 'fa-triangle-exclamation', 'No se pudieron cargar los movimientos.');
                     return;
                 }
                 cont.innerHTML = '';
-                if (!gastosMes.length) {
-                    pintarVacio(cont, 'fa-receipt', 'No hay gastos en este período.');
+
+                const movimientos = (gastosMes || []).map(function (g) {
+                    return { tipo: 'gasto', id: g.id, fecha: g.fecha, titulo: g.descripcion || 'Gasto', monto: Number(g.monto) || 0 };
+                }).concat((pagosMes || []).map(function (p) {
+                    const deuda = (store.deudas || []).find(function (d) { return String(d.id) === String(p.deuda_id); });
+                    return { tipo: 'pago', id: p.id, fecha: p.fecha, titulo: deuda ? (deuda.descripcion || 'Deuda') : 'Deuda', monto: Number(p.monto) || 0 };
+                }));
+
+                movimientos.sort(function (a, b) {
+                    return String(b.fecha || '').localeCompare(String(a.fecha || ''));
+                });
+
+                if (!movimientos.length) {
+                    pintarVacio(cont, 'fa-receipt', 'No hay movimientos en este período.');
                     return;
                 }
-                gastosMes.slice()
-                    .sort(function(a, b) { return String(a.fecha).localeCompare(String(b.fecha)); })
-                    .forEach(function(gasto) {
-                        const fila = document.createElement('div');
-                        fila.className = 'data-row';
-                        const info = document.createElement('div');
-                        const titulo = document.createElement('div');
-                        titulo.className = 'data-title';
-                        titulo.textContent = gasto.descripcion || 'Gasto';
-                        const meta = document.createElement('div');
-                        meta.className = 'data-meta';
-                        meta.textContent = formatearFechaCorta(gasto.fecha);
-                        info.appendChild(titulo);
-                        info.appendChild(meta);
-                        const valor = document.createElement('div');
-                        valor.className = 'data-value';
-                        valor.textContent = money(gasto.monto);
-                        const acciones = document.createElement('div');
-                        acciones.className = 'row-actions';
-                        acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (gasto.descripcion || ''), function() { borrarGasto(gasto.id); }, true));
-                        fila.appendChild(info);
-                        fila.appendChild(valor);
-                        fila.appendChild(acciones);
-                        cont.appendChild(fila);
-                    });
-            }
 
-            async function borrarGasto(id) {
+                movimientos.forEach(function (mov) {
+                    const fila = document.createElement('div');
+                    fila.className = 'data-row';
+
+                    const info = document.createElement('div');
+                    const titulo = document.createElement('div');
+                    titulo.className = 'data-title';
+                    titulo.textContent = mov.titulo;
+                    if (mov.tipo === 'pago') {
+                        const chip = document.createElement('span');
+                        chip.className = 'chip-pago';
+                        chip.textContent = 'Pago de deuda';
+                        titulo.appendChild(chip);
+                    }
+                    const meta = document.createElement('div');
+                    meta.className = 'data-meta';
+                    meta.textContent = formatearFechaCorta(mov.fecha);
+                    info.appendChild(titulo);
+                    info.appendChild(meta);
+
+                    const valor = document.createElement('div');
+                    valor.className = 'data-value';
+                    valor.textContent = money(mov.monto);
+
+                    const acciones = document.createElement('div');
+                    acciones.className = 'row-actions';
+                    if (mov.tipo === 'pago') {
+                        acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar pago', function () { borrarPago(mov.id); }, true));
+                    } else {
+                        acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + mov.titulo, function () { borrarGasto(mov.id); }, true));
+                    }
+
+                    fila.appendChild(info);
+                    fila.appendChild(valor);
+                    fila.appendChild(acciones);
+                    cont.appendChild(fila);
+                });
+            }            async function borrarGasto(id) {
                 pedirConfirmacion('Borrar gasto', '¿Borrar este gasto? Esta acción no se puede deshacer.', 'Borrar', async function() {
                     try {
                         await api.gastos.remove(id);
