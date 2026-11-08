@@ -385,9 +385,36 @@
             <i class="fas fa-hand-holding-heart text-4xl text-eli-lilac mb-4"></i>
             <h1 class="text-2xl font-bold text-eli-dark mb-1">Eli M. Nails</h1>
             <p class="text-sm text-gray-600 mb-6">Agenda de turnos</p>
+            <form id="email-auth-form" class="text-left space-y-3">
+                <div>
+                    <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="auth-email" name="email" required autocomplete="email"
+                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                </div>
+                <div>
+                    <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" id="auth-password" name="password" required minlength="6"
+                           autocomplete="current-password"
+                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                </div>
+                <button type="submit" id="email-login-btn" class="btn-primary w-full px-4 py-3 rounded-lg font-medium">
+                    Iniciar sesión
+                </button>
+                <button type="button" id="email-signup-btn" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
+                    Registrarse
+                </button>
+            </form>
+
+            <div class="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-gray-400">
+                <span class="h-px flex-1 bg-gray-200"></span>
+                <span>— O —</span>
+                <span class="h-px flex-1 bg-gray-200"></span>
+            </div>
+
             <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
                 <i class="fab fa-google"></i> Iniciar sesión con Google
             </button>
+
             <p id="auth-error" class="hidden mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
         </div>
     </div>
@@ -1179,9 +1206,9 @@
 
             function mostrarLogin(mensaje) {
                 appIniciada = false;
-                authError.textContent = mensaje || '';
-                authError.classList.toggle('hidden', !mensaje);
-                googleLoginBtn.disabled = false;
+                authOcupado(false);
+                authPassword.value = '';
+                setAuthError(mensaje || '');
                 authScreen.classList.remove('hidden');
             }
 
@@ -1233,18 +1260,139 @@
 
             googleLoginBtn.addEventListener('click', async function() {
                 if (!SUPABASE_LISTO) { mostrarLogin('Falta configurar Supabase.'); return; }
-                googleLoginBtn.disabled = true;
-                authError.textContent = '';
-                const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin,
-                        queryParams: { prompt: 'select_account' }
+                setAuthError('');
+                authOcupado(true);
+                try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.origin,
+                            queryParams: { prompt: 'select_account' }
+                        }
+                    });
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error de OAuth:', error);
+                    setAuthError('No se pudo iniciar sesión: ' + (error.message || 'error de conexión'));
+                } finally {
+                    authOcupado(false);
+                }
+            });
+
+            // ─────────────────────────────────────────────────────────────
+            // Login / registro con email y contraseña
+            // ─────────────────────────────────────────────────────────────
+            const emailAuthForm = document.getElementById('email-auth-form');
+            const authEmail = document.getElementById('auth-email');
+            const authPassword = document.getElementById('auth-password');
+            const emailLoginBtn = document.getElementById('email-login-btn');
+            const emailSignupBtn = document.getElementById('email-signup-btn');
+
+            const AUTH_ERR = {
+                invalid_credentials: 'Email o contraseña incorrectos.',
+                email_not_confirmed: 'Tenés que confirmar tu email antes de iniciar sesión. Revisá tu correo.',
+                user_already_exists: 'Ese email ya tiene una cuenta. Probá iniciar sesión.',
+                email_exists: 'Ese email ya tiene una cuenta. Probá iniciar sesión.',
+                weak_password: 'La contraseña es demasiado débil: usá al menos 6 caracteres.',
+                email_address_invalid: 'El email no es válido.',
+                over_email_send_rate_limit: 'Demasiados intentos. Esperá unos minutos.',
+                over_request_rate_limit: 'Demasiados intentos. Esperá unos minutos.',
+                signup_disabled: 'El registro está deshabilitado.',
+                validation_failed: 'Revisá el email y la contraseña.'
+            };
+
+            function mensajeAuth(error) {
+                if (!error) return 'No se pudo completar la operación.';
+                const code = error.code || error.error_code || '';
+                if (AUTH_ERR[code]) return AUTH_ERR[code];
+                const msg = String(error.message || '');
+                if (/invalid login credentials/i.test(msg)) return AUTH_ERR.invalid_credentials;
+                if (/email not confirmed/i.test(msg)) return AUTH_ERR.email_not_confirmed;
+                if (/already registered|already been registered/i.test(msg)) return AUTH_ERR.user_already_exists;
+                return msg || 'No se pudo completar la operación.';
+            }
+
+            // Solo textContent: nunca innerHTML
+            function setAuthError(mensaje) {
+                authError.textContent = mensaje || '';
+                authError.classList.toggle('hidden', !mensaje);
+            }
+
+            // Deshabilita todo mientras hay una petición en curso (anti doble clic)
+            function authOcupado(ocupado) {
+                [emailLoginBtn, emailSignupBtn, googleLoginBtn].forEach(function(b) { b.disabled = ocupado; });
+                authEmail.disabled = ocupado;
+                authPassword.disabled = ocupado;
+                emailAuthForm.setAttribute('aria-busy', ocupado ? 'true' : 'false');
+            }
+
+            function validarCredenciales() {
+                const email = authEmail.value.trim();
+                const pass = authPassword.value;
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+                    setAuthError('Ingresá un email válido.');
+                    authEmail.focus();
+                    return null;
+                }
+                if (pass.length < 6) {
+                    setAuthError('La contraseña debe tener al menos 6 caracteres.');
+                    authPassword.focus();
+                    return null;
+                }
+                return { email: email, pass: pass };
+            }
+
+            emailAuthForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                if (!emailAuthForm.reportValidity()) return;
+                const datos = validarCredenciales();
+                if (!datos) return;
+
+                setAuthError('');
+                authOcupado(true);
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: datos.email,
+                        password: datos.pass
+                    });
+                    if (error) throw error;
+                    if (data && data.session) await iniciarApp(data.session);
+                } catch (error) {
+                    console.error('Error de login:', error);
+                    setAuthError(mensajeAuth(error));
+                } finally {
+                    authOcupado(false);
+                }
+            });
+
+            emailSignupBtn.addEventListener('click', async function() {
+                if (!emailAuthForm.reportValidity()) return;
+                const datos = validarCredenciales();
+                if (!datos) return;
+
+                setAuthError('');
+                authOcupado(true);
+                try {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: datos.email,
+                        password: datos.pass,
+                        options: { emailRedirectTo: window.location.origin }
+                    });
+                    if (error) throw error;
+
+                    // Supabase no revela si el email ya existía: devuelve identities vacío
+                    if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+                        setAuthError(AUTH_ERR.user_already_exists);
+                    } else if (data && data.session) {
+                        await iniciarApp(data.session);        // Confirm email OFF
+                    } else {
+                        setAuthError('Cuenta creada. Revisá tu email para confirmarla y después iniciá sesión.');
                     }
-                });
-                if (error) {
-                    googleLoginBtn.disabled = false;
-                    authError.textContent = 'No se pudo iniciar sesión: ' + error.message;
+                } catch (error) {
+                    console.error('Error de registro:', error);
+                    setAuthError(mensajeAuth(error));
+                } finally {
+                    authOcupado(false);
                 }
             });
 
