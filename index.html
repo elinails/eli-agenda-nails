@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FAF6F3">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Eli Nails">
     <script>
         // A1b: fijar el tema antes del primer render (evita el flash)
         (function () {
@@ -1145,6 +1151,17 @@
                 </div>
 
                 <div>
+                    <h2 class="panel-title">Aplicación</h2>
+                    <div class="setting-row">
+                        <div>
+                            <p class="setting-label">Instalar app</p>
+                            <p class="setting-note" id="instalar-hint">Agregala a tu pantalla de inicio para abrirla como una app, sin barra del navegador.</p>
+                        </div>
+                        <button type="button" id="instalar-app-btn" class="btn-primary shrink-0 px-4 py-2.5 rounded-lg font-medium text-sm">
+                            <i class="fas fa-mobile-alt mr-2" aria-hidden="true"></i> Instalar App
+                        </button>
+                    </div>
+                </div>                <div>
                     <h2 class="panel-title">Cuenta</h2>
                     <button type="button" id="logout-btn" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium text-ink mt-3">
                         <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
@@ -3745,7 +3762,52 @@
             }
             
             // P2: el arranque depende de la sesión de Supabase.
-            iniciarAuth();
+            // ─────────────────────────────────────────────────────────────
+            // I9 · PWA: instalación y service worker
+            // ─────────────────────────────────────────────────────────────
+            let promptInstalacion = null;
+            const instalarBtn = document.getElementById('instalar-app-btn');
+            const instalarHint = document.getElementById('instalar-hint');
+
+            function esIOS() {
+                return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            }
+
+            window.addEventListener('beforeinstallprompt', function(evento) {
+                evento.preventDefault();
+                promptInstalacion = evento;
+            });
+
+            window.addEventListener('appinstalled', function() {
+                promptInstalacion = null;
+                if (instalarHint) instalarHint.textContent = '¡App instalada en este dispositivo!';
+                mostrarBanner('¡App instalada! Ya podés abrirla desde tu pantalla de inicio.', 'ok');
+            });
+
+            if (instalarBtn) {
+                instalarBtn.addEventListener('click', async function() {
+                    if (promptInstalacion) {
+                        promptInstalacion.prompt();
+                        try { await promptInstalacion.userChoice; } catch (error) { /* cancelado */ }
+                        promptInstalacion = null;
+                        return;
+                    }
+                    if (instalarHint) {
+                        instalarHint.textContent = esIOS()
+                            ? 'En iPhone/iPad: tocá el botón Compartir y elegí "Agregar a pantalla de inicio".'
+                            : 'En Chrome/Edge: abrí el menú (⋮) y elegí "Instalar aplicación" o "Agregar a pantalla principal".';
+                    }
+                });
+            }
+
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('sw.js').catch(function(error) {
+                        console.warn('Service Worker no registrado:', error);
+                    });
+                });
+            }            iniciarAuth();
             
             // Sin min en los inputs: los turnos pasados son validos (registro de
             // caja) y el filtro debe poder consultar el historial.
