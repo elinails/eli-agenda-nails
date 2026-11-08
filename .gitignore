@@ -6,3 +6,6 @@ logo-300.jpg
 logo eli jpg.pdf
 logo eli png 1.png
 logo eli png 2.png
+
+# Dependencias de desarrollo (nunca al repo)
+node_modules/
