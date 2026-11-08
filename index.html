@@ -3077,22 +3077,80 @@
                 boton.disabled = true;
                 try {
                     const xlsx = await cargarLibreriaExcel();
-                    const appointments = cache.slice();
-
-                    const excelData = appointments.map(app => ({
-                        'Nombre': app.clientName,
-                        'Servicio': app.serviceType,
-                        'Fecha': formatDate(app.date),
-                        'Hora': app.time,
-                        'Precio': '$' + (app.price || ''),
-                        'Notas': app.notes || '',
-                        'Estado': getStatusText(app.status)
-                    }));
-
-                    const ws = xlsx.utils.json_to_sheet(excelData);
                     const wb = xlsx.utils.book_new();
-                    xlsx.utils.book_append_sheet(wb, ws, 'Turnos');
-                    xlsx.writeFile(wb, 'Turnos_Eli_Nails_' + todayISO() + '.xlsx');
+
+                    const turnosFilas = (store.turnos || []).map(function (t) {
+                        return {
+                            'Nombre': t.client_name || t.clientName || '',
+                            'Servicio': t.service_type || t.serviceType || '',
+                            'Fecha': formatDate(t.date || t.appointment_date || ''),
+                            'Hora': String(t.time || t.appointment_time || '').slice(0, 5),
+                            'Precio': Number(t.price) || 0,
+                            'Seña': Number(t.sena) || 0,
+                            'Saldo': Math.max(0, (Number(t.price) || 0) - (Number(t.sena) || 0)),
+                            'Estado': getStatusText(t.status),
+                            'Notas': t.notes || ''
+                        };
+                    });
+                    const clientesFilas = (store.clientes || []).map(function (c) {
+                        return {
+                            'Nombre': c.nombre || '',
+                            'Teléfono': c.telefono || '',
+                            'Email': c.email || '',
+                            'Notas': c.notas || ''
+                        };
+                    });
+                    const serviciosFilas = (store.servicios || []).map(function (s) {
+                        return {
+                            'Nombre': s.nombre || '',
+                            'Precio base': Number(s.precio_base) || 0,
+                            'Duración (min)': Number(s.duracion_minutos) || 0
+                        };
+                    });
+                    const gastosFilas = (store.gastos || []).map(function (g) {
+                        return {
+                            'Descripción': g.descripcion || '',
+                            'Monto': Number(g.monto) || 0,
+                            'Fecha': formatDate(g.fecha)
+                        };
+                    });
+                    const deudasFilas = (store.deudas || []).map(function (d) {
+                        return {
+                            'Descripción': d.descripcion || '',
+                            'Monto total': totalDeDeuda(d),
+                            'Cuotas': Number(d.cuotas_totales) || 1,
+                            'Pagado': pagadoDeDeuda(d.id),
+                            'Saldo': saldoDeDeuda(d),
+                            'Fecha de inicio': formatDate(d.fecha_inicio),
+                            'Estado': deudaEstaPagada(d) ? 'Pagada' : 'Pendiente'
+                        };
+                    });
+                    const pagosFilas = (store.pagos_deudas || []).map(function (p) {
+                        const deuda = (store.deudas || []).find(function (d) {
+                            return String(d.id) === String(p.deuda_id);
+                        });
+                        return {
+                            'Deuda': deuda ? (deuda.descripcion || '') : ('#' + p.deuda_id),
+                            'Monto': Number(p.monto) || 0,
+                            'Fecha': formatDate(p.fecha)
+                        };
+                    });
+
+                    const hojas = [
+                        ['Turnos', turnosFilas],
+                        ['Clientes', clientesFilas],
+                        ['Servicios', serviciosFilas],
+                        ['Gastos', gastosFilas],
+                        ['Deudas', deudasFilas],
+                        ['Pagos', pagosFilas]
+                    ];
+                    hojas.forEach(function (hoja) {
+                        const datos = hoja[1].length ? hoja[1] : [{ '(sin registros)': '' }];
+                        const ws = xlsx.utils.json_to_sheet(datos);
+                        xlsx.utils.book_append_sheet(wb, ws, hoja[0]);
+                    });
+                    xlsx.writeFile(wb, 'Eli_Nails_Completo_' + todayISO() + '.xlsx');
+                    mostrarBanner('Excel descargado con 6 hojas.', 'ok');
                 } catch (error) {
                     console.error('Error exportando:', error);
                     mostrarBanner('No se pudo exportar el Excel: ' + (error.message || 'error de conexión'), 'error');
@@ -3105,9 +3163,9 @@
             // P1: Respaldo y restauración (JSON)
             // ─────────────────────────────────────────────────────────────
             const BACKUP_APP = 'eli-nails';
-            const BACKUP_SCHEMA = 1;
-            const BACKUP_MAX_BYTES = 5 * 1024 * 1024;   // 5 MB
-            const BACKUP_MAX_ROWS = 5000;
+            const BACKUP_SCHEMA = 2;
+            const BACKUP_MAX_BYTES = 10 * 1024 * 1024;   // 10 MB
+            const BACKUP_MAX_ROWS = 20000;
             const PRE_RESTORE_KEY = 'eli_backup_prerestore';
             const ESTADOS_VALIDOS = ['pending', 'confirmed', 'completed', 'cancelled'];
 
@@ -3115,6 +3173,19 @@
             const restoreBtn = document.getElementById('restore-btn');
             const restoreInput = document.getElementById('restore-input');
             const dataStatus = document.getElementById('data-status');
+
+            // I32: respaldo completo. Orden de insercion (padres primero) y de borrado (hijos primero).
+            const TABLAS_RESPALDO = ['clientes', 'servicios', 'deudas', 'gastos', 'turnos', 'pagos_deudas'];
+            const ORDEN_BORRADO = ['pagos_deudas', 'deudas', 'turnos', 'gastos', 'servicios', 'clientes'];
+            const ETIQUETAS_TABLA = {
+                turnos: 'Turnos',
+                clientes: 'Clientes',
+                servicios: 'Servicios',
+                gastos: 'Gastos',
+                deudas: 'Deudas',
+                pagos_deudas: 'Pagos'
+            };
+            const ORDEN_MENSAJE = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas'];
 
             // Aviso accesible (aria-live). Solo textContent: nunca innerHTML.
             let dataStatusTimer = null;
@@ -3126,7 +3197,7 @@
                 dataStatusTimer = setTimeout(function () {
                     dataStatus.hidden = true;
                     dataStatus.textContent = '';
-                }, 7000);
+                }, 9000);
             }
 
             function leerTodosLosTurnos() {
@@ -3140,15 +3211,30 @@
                 });
             }
 
-            function construirRespaldo(rows) {
+            // I32: exporta las 6 tablas tal como estan en la nube (filas crudas, sin mapear)
+            function construirRespaldo() {
+                const data = {};
+                const counts = {};
+                ORDEN_MENSAJE.forEach(function (clave) {
+                    const filas = Array.isArray(store[clave]) ? store[clave] : [];
+                    data[clave] = filas.map(function (fila) { return Object.assign({}, fila); });
+                    counts[clave] = data[clave].length;
+                });
                 return {
                     app: BACKUP_APP,
                     schema: BACKUP_SCHEMA,
                     exportedAt: new Date().toISOString(),
                     zona: TZ,
-                    count: rows.length,
-                    appointments: rows
+                    count: counts.turnos,
+                    counts: counts,
+                    data: data
                 };
+            }
+
+            function totalDeRespaldo(payload) {
+                return ORDEN_MENSAJE.reduce(function (suma, clave) {
+                    return suma + ((payload.counts && payload.counts[clave]) || 0);
+                }, 0);
             }
 
             function descargarJson(payload, filename) {
@@ -3165,13 +3251,128 @@
             }
 
             async function respaldar(sufijo) {
-                // P2: respalda la agenda de la nube (cache), no IndexedDB
-                const rows = cache.slice();
-                descargarJson(construirRespaldo(rows), 'Eli_Backup_' + todayISO() + (sufijo || '') + '.json');
-                return rows.length;
+                const payload = construirRespaldo();
+                descargarJson(payload, 'Eli_Backup_' + todayISO() + (sufijo || '') + '.json');
+                return { total: totalDeRespaldo(payload), counts: payload.counts };
             }
 
-            // Devuelve { ok:true, rows } o { ok:false, error }
+            // â”€â”€ Validacion por tabla â”€â”€
+            const SIN_ANGULOS = /[<>]/;
+            function textoLimpio(valor, maximo) {
+                const texto = typeof valor === 'string' ? valor.trim() : '';
+                if (texto.length > maximo) return null;
+                if (SIN_ANGULOS.test(texto)) return null;
+                return texto;
+            }
+            function fechaValida(valor) {
+                const iso = typeof valor === 'string' ? valor.trim() : '';
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || !parseLocalDate(iso)) return null;
+                const anio = Number(iso.slice(0, 4));
+                if (anio < 2000 || anio > 2100) return null;
+                return iso;
+            }
+            function numeroValido(valor, minimo, maximo) {
+                const num = Number(valor);
+                if (!Number.isFinite(num) || num < minimo || num > maximo) return null;
+                return num;
+            }
+
+            const LIMPIADORES = {
+                turnos: function (r, n) {
+                    const clientName = textoLimpio(r.client_name != null ? r.client_name : r.clientName, 120);
+                    if (!clientName) return { ok: false, error: 'Turno ' + n + ': nombre de la clienta faltante o inválido.' };
+                    const serviceType = textoLimpio(r.service_type != null ? r.service_type : r.serviceType, 60);
+                    if (!serviceType) return { ok: false, error: 'Turno ' + n + ': servicio faltante o inválido.' };
+                    const date = fechaValida(r.date || r.appointment_date);
+                    if (!date) return { ok: false, error: 'Turno ' + n + ': fecha inválida (AAAA-MM-DD).' };
+                    const horaCruda = String(r.time || r.appointment_time || '').slice(0, 5);
+                    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(horaCruda)) return { ok: false, error: 'Turno ' + n + ': hora inválida (HH:MM).' };
+                    const price = numeroValido(r.price, 0, 10000000);
+                    if (price === null) return { ok: false, error: 'Turno ' + n + ': precio inválido.' };
+                    const sena = r.sena == null ? 0 : numeroValido(r.sena, 0, 10000000);
+                    if (sena === null) return { ok: false, error: 'Turno ' + n + ': seña inválida.' };
+                    const notes = r.notes == null ? '' : textoLimpio(r.notes, 2000);
+                    if (notes === null) return { ok: false, error: 'Turno ' + n + ': notas inválidas.' };
+                    const status = (r.status === undefined || r.status === null || r.status === '') ? 'pending' : String(r.status);
+                    if (ESTADOS_VALIDOS.indexOf(status) === -1) return { ok: false, error: 'Turno ' + n + ': estado "' + status + '" desconocido.' };
+                    const fila = {
+                        client_name: clientName,
+                        service_type: serviceType,
+                        price: Math.round(price),
+                        sena: Math.round(sena),
+                        notes: notes,
+                        status: status
+                    };
+                    fila[COLS.date] = date;
+                    fila[COLS.time] = horaCruda;
+                    const clienteId = r.cliente_id != null ? r.cliente_id : r.clienteId;
+                    if (clienteId != null) fila.cliente_id = clienteId;
+                    const servicioId = r.servicio_id != null ? r.servicio_id : r.servicioId;
+                    if (servicioId != null) fila.servicio_id = servicioId;
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                },
+                clientes: function (r, n) {
+                    const nombre = textoLimpio(r.nombre, 120);
+                    if (!nombre) return { ok: false, error: 'Cliente ' + n + ': nombre faltante o inválido.' };
+                    const telefono = r.telefono == null ? '' : textoLimpio(r.telefono, 40);
+                    if (telefono === null) return { ok: false, error: 'Cliente ' + n + ': teléfono inválido.' };
+                    const email = r.email == null ? '' : textoLimpio(r.email, 160);
+                    if (email === null) return { ok: false, error: 'Cliente ' + n + ': email inválido.' };
+                    const notas = r.notas == null ? '' : textoLimpio(r.notas, 2000);
+                    if (notas === null) return { ok: false, error: 'Cliente ' + n + ': notas inválidas.' };
+                    const fila = { nombre: nombre, telefono: telefono, email: email, notas: notas };
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                },
+                servicios: function (r, n) {
+                    const nombre = textoLimpio(r.nombre, 120);
+                    if (!nombre) return { ok: false, error: 'Servicio ' + n + ': nombre faltante o inválido.' };
+                    const precio = numeroValido(r.precio_base, 0, 10000000);
+                    if (precio === null) return { ok: false, error: 'Servicio ' + n + ': precio base inválido.' };
+                    const duracion = numeroValido(r.duracion_minutos, 0, 1440);
+                    if (duracion === null) return { ok: false, error: 'Servicio ' + n + ': duración inválida.' };
+                    const fila = { nombre: nombre, precio_base: Math.round(precio), duracion_minutos: Math.round(duracion) };
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                },
+                gastos: function (r, n) {
+                    const descripcion = textoLimpio(r.descripcion, 200);
+                    if (!descripcion) return { ok: false, error: 'Gasto ' + n + ': descripción faltante o inválida.' };
+                    const monto = numeroValido(r.monto, 0, 100000000);
+                    if (monto === null) return { ok: false, error: 'Gasto ' + n + ': monto inválido.' };
+                    const fecha = fechaValida(r.fecha);
+                    if (!fecha) return { ok: false, error: 'Gasto ' + n + ': fecha inválida.' };
+                    const fila = { descripcion: descripcion, monto: Math.round(monto), fecha: fecha };
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                },
+                deudas: function (r, n) {
+                    const descripcion = textoLimpio(r.descripcion, 200);
+                    if (!descripcion) return { ok: false, error: 'Deuda ' + n + ': descripción faltante o inválida.' };
+                    const total = numeroValido(r.monto_total, 1, 100000000);
+                    if (total === null) return { ok: false, error: 'Deuda ' + n + ': monto total inválido.' };
+                    const cuotas = numeroValido(r.cuotas_totales, 1, 120);
+                    if (cuotas === null) return { ok: false, error: 'Deuda ' + n + ': cuotas inválidas.' };
+                    const inicio = fechaValida(r.fecha_inicio);
+                    if (!inicio) return { ok: false, error: 'Deuda ' + n + ': fecha de inicio inválida.' };
+                    const fila = { descripcion: descripcion, monto_total: Math.round(total), cuotas_totales: Math.round(cuotas), fecha_inicio: inicio };
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                },
+                pagos_deudas: function (r, n) {
+                    if (r.deuda_id == null) return { ok: false, error: 'Pago ' + n + ': falta la deuda asociada.' };
+                    const monto = numeroValido(r.monto, 1, 100000000);
+                    if (monto === null) return { ok: false, error: 'Pago ' + n + ': monto inválido.' };
+                    const fecha = fechaValida(r.fecha);
+                    if (!fecha) return { ok: false, error: 'Pago ' + n + ': fecha inválida.' };
+                    const fila = { deuda_id: r.deuda_id, monto: Math.round(monto), fecha: fecha };
+                    if (r.id != null) fila.id = r.id;
+                    return { ok: true, fila: fila };
+                }
+            };
+
+            // Devuelve { ok:true, schema, tablas:{...}, total } o { ok:false, error }
             function validarRespaldo(texto) {
                 let data;
                 try {
@@ -3180,93 +3381,86 @@
                     return { ok: false, error: 'El archivo no es un JSON válido.' };
                 }
 
-                let rows;
-                if (Array.isArray(data)) rows = data;
-                else if (data && Array.isArray(data.appointments)) rows = data.appointments;
-                else return { ok: false, error: 'El archivo no contiene una lista de turnos ("appointments").' };
-
-                if (rows.length > BACKUP_MAX_ROWS) {
-                    return { ok: false, error: 'El archivo tiene ' + rows.length + ' turnos; el máximo es ' + BACKUP_MAX_ROWS + '.' };
+                let schema = 1;
+                let crudo;
+                if (Array.isArray(data)) {
+                    crudo = { turnos: data };
+                } else if (data && Array.isArray(data.appointments)) {
+                    crudo = { turnos: data.appointments };
+                } else if (data && data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+                    schema = 2;
+                    crudo = data.data;
+                } else {
+                    return { ok: false, error: 'El archivo no tiene el formato esperado ("data" o "appointments").' };
                 }
 
-                const limpios = [];
-                for (let i = 0; i < rows.length; i++) {
-                    const r = rows[i];
-                    const n = i + 1;
-                    if (!r || typeof r !== 'object' || Array.isArray(r)) {
-                        return { ok: false, error: 'Registro ' + n + ': no es un objeto válido.' };
+                const tablas = {};
+                let total = 0;
+                for (let i = 0; i < ORDEN_MENSAJE.length; i++) {
+                    const clave = ORDEN_MENSAJE[i];
+                    const filas = Array.isArray(crudo[clave]) ? crudo[clave] : [];
+                    if (filas.length > BACKUP_MAX_ROWS) {
+                        return { ok: false, error: 'La tabla "' + ETIQUETAS_TABLA[clave] + '" tiene ' + filas.length +
+                            ' registros; el máximo es ' + BACKUP_MAX_ROWS + '.' };
                     }
-
-                    const clientName = typeof r.clientName === 'string' ? r.clientName.trim() : '';
-                    if (!clientName) return { ok: false, error: 'Registro ' + n + ': falta el nombre de la clienta.' };
-                    if (clientName.length > 120) return { ok: false, error: 'Registro ' + n + ': el nombre supera los 120 caracteres.' };
-                    if (/[<>]/.test(clientName)) return { ok: false, error: 'Registro ' + n + ': el nombre contiene caracteres no permitidos (< o >).' };
-
-                    const serviceType = typeof r.serviceType === 'string' ? r.serviceType.trim() : '';
-                    if (!serviceType) return { ok: false, error: 'Registro ' + n + ': falta el servicio.' };
-                    if (serviceType.length > 60) return { ok: false, error: 'Registro ' + n + ': el servicio supera los 60 caracteres.' };
-                    if (/[<>]/.test(serviceType)) return { ok: false, error: 'Registro ' + n + ': el servicio contiene caracteres no permitidos (< o >).' };
-
-                    const date = typeof r.date === 'string' ? r.date.trim() : '';
-                    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !parseLocalDate(date)) {
-                        return { ok: false, error: 'Registro ' + n + ': la fecha "' + date + '" no es válida (formato AAAA-MM-DD).' };
+                    const limpias = [];
+                    for (let j = 0; j < filas.length; j++) {
+                        const fila = filas[j];
+                        if (!fila || typeof fila !== 'object' || Array.isArray(fila)) {
+                            return { ok: false, error: ETIQUETAS_TABLA[clave] + ' ' + (j + 1) + ': no es un objeto válido.' };
+                        }
+                        const hecha = LIMPIADORES[clave](fila, j + 1);
+                        if (!hecha.ok) return hecha;
+                        limpias.push(hecha.fila);
                     }
-                    const anio = Number(date.slice(0, 4));
-                    if (anio < 2000 || anio > 2100) return { ok: false, error: 'Registro ' + n + ': el año ' + anio + ' está fuera de rango.' };
-
-                    const time = typeof r.time === 'string' ? r.time.trim() : '';
-                    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
-                        return { ok: false, error: 'Registro ' + n + ': la hora "' + time + '" no es válida (formato HH:MM).' };
-                    }
-
-                    const priceNum = Number(r.price);
-                    if (!Number.isFinite(priceNum) || priceNum < 0 || priceNum > 10000000) {
-                        return { ok: false, error: 'Registro ' + n + ': el precio no es un número válido.' };
-                    }
-
-                    const notes = typeof r.notes === 'string' ? r.notes.trim() : '';
-                    if (notes.length > 2000) return { ok: false, error: 'Registro ' + n + ': las notas superan los 2000 caracteres.' };
-                    if (/[<>]/.test(notes)) return { ok: false, error: 'Registro ' + n + ': las notas contienen caracteres no permitidos (< o >).' };
-
-                    const status = (r.status === undefined || r.status === null || r.status === '') ? 'pending' : String(r.status);
-                    if (ESTADOS_VALIDOS.indexOf(status) === -1) {
-                        return { ok: false, error: 'Registro ' + n + ': estado "' + status + '" desconocido.' };
-                    }
-
-                    limpios.push({
-                        clientName: clientName,
-                        serviceType: serviceType,
-                        date: date,
-                        time: time,
-                        price: Math.round(priceNum),
-                        notes: notes,
-                        status: status,
-                        timestamp: new Date(date + 'T' + time + ':00').getTime()
-                    });
+                    tablas[clave] = limpias;
+                    total += limpias.length;
                 }
 
-                return { ok: true, rows: limpios };
+                if (!total) return { ok: false, error: 'El archivo no contiene registros para restaurar.' };
+                return { ok: true, schema: schema, tablas: tablas, total: total };
             }
 
-            async function reemplazarTurnos(rows) {
-                // I13: primero insertamos, después borramos los anteriores.
-                // Si el insert falla, la agenda original queda intacta.
-                const actuales = await supabase.from('turnos').select('id');
-                if (actuales.error) throw actuales.error;
-                const idsViejos = (actuales.data || []).map(function(fila) { return fila.id; });
+            async function borrarTodoDeTabla(tabla) {
+                const consulta = await supabase.from(tabla).select('id');
+                if (consulta.error) throw consulta.error;
+                const ids = (consulta.data || []).map(function (fila) { return fila.id; });
+                for (let i = 0; i < ids.length; i += 200) {
+                    const lote = ids.slice(i, i + 200);
+                    const borrado = await supabase.from(tabla).delete().in('id', lote);
+                    if (borrado.error) throw borrado.error;
+                }
+                return ids.length;
+            }
 
-                if (rows.length) {
-                    const insertado = await supabase.from('turnos').insert(rows.map(toDb));
+            async function insertarEnTabla(tabla, filas) {
+                for (let i = 0; i < filas.length; i += 200) {
+                    const lote = filas.slice(i, i + 200);
+                    const insertado = await supabase.from(tabla).insert(lote);
                     if (insertado.error) throw insertado.error;
                 }
+                return filas.length;
+            }
 
-                if (idsViejos.length) {
-                    const borrado = await supabase.from('turnos').delete().in('id', idsViejos);
-                    if (borrado.error) {
-                        throw new Error('Se restauraron los turnos pero no se pudieron borrar los anteriores: ' + borrado.error.message);
-                    }
+            // I32: reemplaza las 6 tablas respetando el orden de dependencias.
+            // Conserva los ids para que pagos_deudas siga apuntando a su deuda.
+            async function reemplazarTodo(tablas) {
+                for (let i = 0; i < ORDEN_BORRADO.length; i++) {
+                    await borrarTodoDeTabla(ORDEN_BORRADO[i]);
                 }
-                return rows.length;
+                for (let i = 0; i < TABLAS_RESPALDO.length; i++) {
+                    const clave = TABLAS_RESPALDO[i];
+                    const filas = tablas[clave] || [];
+                    if (filas.length) await insertarEnTabla(clave, filas);
+                }
+            }
+
+            function resumenDeRestauracion(tablas) {
+                return ORDEN_MENSAJE.map(function (clave) {
+                    const actuales = (store[clave] || []).length;
+                    const nuevos = (tablas[clave] || []).length;
+                    return ETIQUETAS_TABLA[clave] + ': ' + actuales + ' -> ' + nuevos;
+                }).join(' · ');
             }
 
             // Reutiliza el modal de confirmación existente
@@ -3292,44 +3486,41 @@
                     return;
                 }
 
-                // P2: el estado "actual" es el de la nube (cache), no IndexedDB
-                const actuales = cache.slice();
-
-                const nuevos = resultado.rows.length;
-                const mensaje = nuevos === 0
-                    ? 'Vas a dejar la agenda VACÍA: se borran los ' + actuales.length + ' turnos actuales. Antes se descarga un respaldo del estado actual.'
-                    : 'Se van a reemplazar los ' + actuales.length + ' turnos actuales por los ' + nuevos + ' del archivo. Antes se descarga un respaldo del estado actual.';
+                const mensaje = 'Se van a reemplazar TODOS los datos. ' +
+                    resumenDeRestauracion(resultado.tablas) +
+                    '. Antes se descarga un respaldo del estado actual.';
 
                 pedirConfirmacion('Restaurar respaldo', mensaje, 'Restaurar', async function () {
+                    const previo = construirRespaldo();
                     // Red de seguridad 1: copia del estado actual en localStorage
                     try {
-                        localStorage.setItem(PRE_RESTORE_KEY, JSON.stringify({
-                            at: new Date().toISOString(),
-                            count: actuales.length,
-                            appointments: actuales
-                        }));
+                        localStorage.setItem(PRE_RESTORE_KEY, JSON.stringify(previo));
                     } catch (error) { /* cuota llena: queda el archivo */ }
 
                     // Red de seguridad 2: archivo descargado
                     try {
-                        descargarJson(construirRespaldo(actuales), 'Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
+                        descargarJson(previo, 'Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
                     } catch (error) { console.error(error); }
 
                     await new Promise(function (r) { setTimeout(r, 600); });
 
                     try {
-                        await reemplazarTurnos(resultado.rows);
+                        await reemplazarTodo(resultado.tablas);
                         resetForm();
-                        await loadAppointments();
-                        showView('appointments');
-                        setDataStatus('ok', 'Restaurados ' + nuevos + ' turnos. Respaldo previo: Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
+                        for (let i = 0; i < CLAVES.length; i++) {
+                            await recargar(CLAVES[i]);
+                        }
+                        pintarSecciones();
+                        refrescarPaneles();
+                        setDataStatus('ok', 'Restaurados ' + resultado.total + ' registros en 6 tablas. ' +
+                            'Respaldo previo: Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
                     } catch (error) {
                         console.error(error);
-                        setDataStatus('error', 'No se pudo restaurar el respaldo.');
+                        setDataStatus('error', 'No se pudo restaurar el respaldo: ' + (error.message || 'error de conexión') +
+                            '. Se descargó un respaldo del estado anterior.');
                     }
                 });
             }
-
             function leerArchivoComoTexto(file) {
                 if (file.text) return file.text();
                 return new Promise(function (resolve, reject) {
@@ -3342,8 +3533,11 @@
 
             backupBtn.addEventListener('click', async function () {
                 try {
-                    const total = await respaldar();
-                    setDataStatus('ok', 'Respaldo descargado con ' + total + (total === 1 ? ' turno.' : ' turnos.'));
+                    const resumen = await respaldar();
+                    const partes = ORDEN_MENSAJE
+                        .map(function (clave) { return ETIQUETAS_TABLA[clave] + ' ' + resumen.counts[clave]; })
+                        .join(' · ');
+                    setDataStatus('ok', 'Respaldo descargado: ' + resumen.total + ' registros. ' + partes + '.');
                 } catch (error) {
                     console.error(error);
                     setDataStatus('error', 'No se pudo generar el respaldo.');
@@ -3361,7 +3555,7 @@
                 if (!file) return;
 
                 if (file.size > BACKUP_MAX_BYTES) {
-                    setDataStatus('error', 'El archivo supera los 5 MB.');
+                    setDataStatus('error', 'El archivo supera los 10 MB.');
                     return;
                 }
 
