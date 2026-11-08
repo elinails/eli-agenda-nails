@@ -1099,8 +1099,8 @@
             // ─────────────────────────────────────────────────────────────
             // 1) Pegar aca los datos del proyecto (Supabase → Project Settings → API).
             //    La publishable/anon key es PÚBLICA: la seguridad la da RLS.
-            const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
-            const SUPABASE_PUBLISHABLE_KEY = 'PEGA_ACA_TU_PUBLISHABLE_KEY';
+            const SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
+            const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
 
             // 2) Nombres de columna de fecha/hora. Se detectan solos contra la tabla.
             const COLS = { date: 'date', time: 'time' };
@@ -1113,8 +1113,8 @@
             const appBanner = document.getElementById('app-banner');
 
             function supabaseConfigurada() {
-                return SUPABASE_URL.indexOf('https://wppleywdprvdlbajeubl.supabase.co') === -1 &&
-                       SUPABASE_PUBLISHABLE_KEY.indexOf('sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1') === -1;
+                return SUPABASE_URL.indexOf('TU-PROYECTO') === -1 &&
+                       SUPABASE_PUBLISHABLE_KEY.indexOf('PEGA_ACA') === -1;
             }
 
             const SUPABASE_LISTO = (typeof window.supabase !== 'undefined') && supabaseConfigurada();
