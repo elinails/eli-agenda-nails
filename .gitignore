@@ -9,3 +9,6 @@ logo eli png 2.png
 
 # Dependencias de desarrollo (nunca al repo)
 node_modules/
+# Toolchain de build (no se sube: Vercel sirve solo estaticos)
+package.json
+package-lock.json

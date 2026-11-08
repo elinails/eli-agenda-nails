@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,62 +36,13 @@
         })();
     </script>
     <title>Eli M. Nails - Agenda de Turnos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js"></script>
     <!-- P2: Supabase SDK (UMD explicito, version pineada) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        // A1b · Blush Atelier (siguen el tema claro/oscuro)
-                        'paper':    'var(--paper)',
-                        'surface':  'var(--surface)',
-                        'ink':      'var(--ink)',
-                        'ink-soft': 'var(--ink-soft)',
-                        'line':     'var(--line)',
-                        'blush':    'var(--blush)',
-                        'blush-2':  'var(--blush-2)',
-                        'gold':     'var(--gold)',
-                        'gold-ink': 'var(--gold-ink)',
-                        'st-pending':   'var(--pending)',
-                        'st-confirmed': 'var(--confirmed)',
-                        'st-done':      'var(--done)',
-                        'st-cancelled': 'var(--cancelled)',
-                        // compatibilidad con los nombres anteriores
-                        'eli-pink':  'var(--blush-2)',
-                        'eli-lilac': 'var(--blush)',
-                        'eli-gold':  'var(--gold)',
-                        'eli-green': 'var(--confirmed-tint)',
-                        'eli-gray':  'var(--cancelled-tint)',
-                        'eli-dark':  'var(--ink)',
-                    },
-                    fontFamily: {
-                        'display': ['"Cormorant Garamond"', 'Georgia', 'serif'],
-                        'sans': ['Inter', 'ui-sans-serif', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap');
 
@@ -1820,6 +1770,39 @@
             // Tab Navigation
             // (los listeners de navegación se registran en el bloque I6a de abajo)
             
+            // ─────────────────────────────────────────────────────────────
+            // I16 · A11y de modales: foco, Escape y focus trap
+            // ─────────────────────────────────────────────────────────────
+            let focoAnterior = null;
+
+            function focoablesEn(modal) {
+                return Array.prototype.slice.call(modal.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )).filter(function(el) { return el.offsetParent !== null || el === document.activeElement; });
+            }
+
+            function abrirModal(modal) {
+                if (!modal) return;
+                focoAnterior = document.activeElement;
+                modal.classList.remove('hidden');
+                const focoables = focoablesEn(modal);
+                if (focoables.length) {
+                    setTimeout(function() { focoables[0].focus(); }, 40);
+                } else {
+                    modal.setAttribute('tabindex', '-1');
+                    setTimeout(function() { modal.focus(); }, 40);
+                }
+            }
+
+            function cerrarModal(modal) {
+                if (!modal) return;
+                modal.classList.add('hidden');
+                if (focoAnterior && document.contains(focoAnterior)) {
+                    try { focoAnterior.focus(); } catch (error) { /* sin foco */ }
+                }
+                focoAnterior = null;
+            }
+
             function showView(view) {
                 document.querySelectorAll('.seg [data-view]').forEach(function(tab) {
                     tab.classList.toggle('active', tab.dataset.view === view);
@@ -2558,14 +2541,14 @@
                 document.getElementById('confirm-title').textContent = titulo;
                 document.getElementById('confirm-message').textContent = mensaje;
                 actionBtn.textContent = textoBoton;
-                confirmModal.classList.remove('hidden');
+                abrirModal(confirmModal);
                 actionBtn.onclick = async function () {
-                    confirmModal.classList.add('hidden');
+                    cerrarModal(confirmModal);
                     actionBtn.textContent = 'Confirmar';
                     await onConfirm();
                 };
-                document.getElementById('confirm-cancel-btn').onclick = function () { confirmModal.classList.add('hidden'); };
-                document.getElementById('close-confirm-modal').onclick = function () { confirmModal.classList.add('hidden'); };
+                document.getElementById('confirm-cancel-btn').onclick = function () { cerrarModal(confirmModal); };
+                document.getElementById('close-confirm-modal').onclick = function () { cerrarModal(confirmModal); };
             }
 
             async function restaurarDesdeTexto(texto) {
@@ -3132,11 +3115,11 @@
                     servicioDuracionInput.value = 60;
                     servicioTitulo.textContent = 'Nuevo servicio';
                 }
-                servicioModal.classList.remove('hidden');
+                abrirModal(servicioModal);
                 servicioNombreInput.focus();
             }
 
-            function cerrarServicio() { servicioModal.classList.add('hidden'); }
+            function cerrarServicio() { cerrarModal(servicioModal); }
 
             function validarServicio(nombre, precio, duracion) {
                 if (!nombre || nombre.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
@@ -3278,12 +3261,12 @@
                 } else {
                     clienteTitulo.textContent = 'Nuevo cliente';
                 }
-                clienteModal.classList.remove('hidden');
+                abrirModal(clienteModal);
                 clienteNombreInput.focus();
             }
 
             function cerrarCliente() {
-                clienteModal.classList.add('hidden');
+                cerrarModal(clienteModal);
                 clienteCallback = null;
             }
 
@@ -3365,9 +3348,27 @@
             clienteModal.addEventListener('click', function(evento) { if (evento.target === clienteModal) cerrarCliente(); });
 
             document.addEventListener('keydown', function(evento) {
-                if (evento.key !== 'Escape') return;
-                if (servicioModal && !servicioModal.classList.contains('hidden')) cerrarServicio();
-                if (clienteModal && !clienteModal.classList.contains('hidden')) cerrarCliente();
+                const abierto = document.querySelector('.modal-overlay:not(.hidden)');
+                if (!abierto) return;
+
+                if (evento.key === 'Escape') {
+                    evento.preventDefault();
+                    cerrarModal(abierto);
+                    return;
+                }
+
+                if (evento.key !== 'Tab') return;
+                const focoables = focoablesEn(abierto);
+                if (!focoables.length) return;
+                const primero = focoables[0];
+                const ultimo = focoables[focoables.length - 1];
+                if (evento.shiftKey && document.activeElement === primero) {
+                    evento.preventDefault();
+                    ultimo.focus();
+                } else if (!evento.shiftKey && document.activeElement === ultimo) {
+                    evento.preventDefault();
+                    primero.focus();
+                }
             });
 
             if (clientesSearch) {
@@ -3869,7 +3870,7 @@
                         .update({ status: 'completed' })
                         .eq('id', turno.id);
                     if (error) throw error;
-                    appointmentModal.classList.add('hidden');
+                    cerrarModal(appointmentModal);
                     await loadAppointments();
                     await recargar('turnos');
                     mostrarBanner('Turno marcado como realizado.', 'ok');
@@ -3895,12 +3896,12 @@
                 statusElement.className = 'inline-block px-2 py-1 rounded-full text-xs font-medium ' + getStatusBadgeClass(appointment.status);
                 
                 // Show modal
-                appointmentModal.classList.remove('hidden');
+                abrirModal(appointmentModal);
                 
                 // Set up modal buttons
                 document.getElementById('modal-edit-btn').onclick = function() {
                     editAppointment(appointment);
-                    appointmentModal.classList.add('hidden');
+                    cerrarModal(appointmentModal);
                 };
                 
                 document.getElementById('modal-whatsapp-btn').onclick = function() {
@@ -3914,11 +3915,11 @@
                 }
                 
                 document.getElementById('modal-close-btn').onclick = function() {
-                    appointmentModal.classList.add('hidden');
+                    cerrarModal(appointmentModal);
                 };
                 
                 document.getElementById('close-modal').onclick = function() {
-                    appointmentModal.classList.add('hidden');
+                    cerrarModal(appointmentModal);
                 };
             }
             
@@ -3957,21 +3958,21 @@
             
             // Confirm delete
             function confirmDelete(id) {
-                confirmModal.classList.remove('hidden');
+                abrirModal(confirmModal);
                 document.getElementById('confirm-title').textContent = 'Confirmar eliminación';
                 document.getElementById('confirm-message').textContent = '¿Estás seguro que deseas eliminar este turno?';
                 
                 document.getElementById('confirm-action-btn').onclick = function() {
                     deleteAppointment(id);
-                    confirmModal.classList.add('hidden');
+                    cerrarModal(confirmModal);
                 };
                 
                 document.getElementById('confirm-cancel-btn').onclick = function() {
-                    confirmModal.classList.add('hidden');
+                    cerrarModal(confirmModal);
                 };
                 
                 document.getElementById('close-confirm-modal').onclick = function() {
-                    confirmModal.classList.add('hidden');
+                    cerrarModal(confirmModal);
                 };
             }
             
