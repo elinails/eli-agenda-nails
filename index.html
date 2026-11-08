@@ -1400,6 +1400,13 @@
             margin-left: 6px;
             vertical-align: middle;
         }
+
+        /* ── I30 · tarjeta de deuda clickeable ── */
+        .deuda-card { cursor: pointer; transition: border-color .16s ease, transform .12s ease; }
+        .deuda-card:hover { border-color: var(--gold-ink); }
+        .deuda-card:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
+        .deuda-card:active { transform: scale(.995); }
+        .deuda-card .deuda-monto { margin-top: 4px; }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -2198,7 +2205,39 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->    <!-- Confirmation Modal -->
+    <!-- I30 · Detalle de deuda -->
+    <div id="deuda-detalle-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold" id="detalle-titulo">Deuda</h3>
+                    <button type="button" id="close-detalle-deuda" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <p class="deuda-monto" id="detalle-monto"></p>
+                <p class="deuda-meta" id="detalle-meta"></p>
+                <div class="deuda-progreso"><span id="detalle-barra"></span></div>
+                <p class="deuda-estado" id="detalle-estado"></p>
+
+                <p class="text-sm text-ink-soft mt-4 mb-2">Pagos</p>
+                <div id="detalle-pagos" class="deuda-pagos"></div>
+
+                <div class="mt-5 flex flex-col gap-2">
+                    <button type="button" id="detalle-abonar" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Registrar pago
+                    </button>
+                    <button type="button" id="detalle-compartir" class="btn-secondary w-full py-2.5 rounded-lg font-medium">
+                        Compartir estado de deuda
+                    </button>
+                    <button type="button" id="detalle-borrar" class="btn-danger w-full py-2.5 rounded-lg font-medium">
+                        Borrar deuda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
@@ -4633,14 +4672,23 @@
                 todas.forEach(function (deuda) {
                     const total = totalDeDeuda(deuda);
                     const pagado = pagadoDeDeuda(deuda.id);
-                    const saldo = saldoDeDeuda(deuda);
                     const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
-                    const cuota = cuotaDeDeuda(deuda);
                     const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
                     const pagada = deudaEstaPagada(deuda);
 
                     const tarjeta = document.createElement('div');
                     tarjeta.className = 'deuda-card' + (pagada ? ' pagada' : '');
+                    tarjeta.setAttribute('role', 'button');
+                    tarjeta.setAttribute('tabindex', '0');
+                    tarjeta.setAttribute('aria-label', 'Ver detalle de la deuda ' + (deuda.descripcion || ''));
+                    const abrir = function () { abrirDetalleDeuda(deuda); };
+                    tarjeta.addEventListener('click', abrir);
+                    tarjeta.addEventListener('keydown', function (evento) {
+                        if (evento.key === 'Enter' || evento.key === ' ') {
+                            evento.preventDefault();
+                            abrir();
+                        }
+                    });
 
                     const arriba = document.createElement('div');
                     arriba.className = 'deuda-top';
@@ -4662,11 +4710,6 @@
                     monto.className = 'deuda-monto';
                     monto.textContent = money(total);
 
-                    const meta = document.createElement('p');
-                    meta.className = 'deuda-meta';
-                    meta.textContent = cuotas + (cuotas === 1 ? ' cuota' : ' cuotas') +
-                        ' · desde ' + formatearFechaCorta(deuda.fecha_inicio);
-
                     const barra = document.createElement('div');
                     barra.className = 'deuda-progreso';
                     const relleno = document.createElement('span');
@@ -4676,28 +4719,50 @@
                     const detalle = document.createElement('p');
                     detalle.className = 'deuda-estado';
                     detalle.textContent = 'Pagado: ' + money(pagado) + ' de ' + money(total) + ' (' + pct + '%)' +
-                        (!pagada ? ' · Faltan ' + cuotasFaltantes(deuda) + ' de ' + cuotas + ' cuotas' : '');
+                        (pagada ? '' : ' · Faltan ' + cuotasFaltantes(deuda) + ' de ' + cuotas + ' cuotas');
 
-                    const acciones = document.createElement('div');
-                    acciones.className = 'deuda-acciones';
-                    if (!pagada) {
-                        const abonar = document.createElement('button');
-                        abonar.type = 'button';
-                        abonar.className = 'btn-primary px-3 py-1.5 rounded-lg text-sm font-medium';
-                        abonar.textContent = 'Abonar';
-                        abonar.addEventListener('click', function () { abrirPago(deuda); });
-                        acciones.appendChild(abonar);
-                    }
-                    const verPagos = document.createElement('button');
-                    verPagos.type = 'button';
-                    verPagos.className = 'btn-secondary px-3 py-1.5 rounded-lg text-sm font-medium';
-                    const pagos = pagosDeDeuda(deuda.id);
-                    verPagos.textContent = 'Ver pagos (' + pagos.length + ')';
-                    const historial = document.createElement('div');
-                    historial.className = 'deuda-pagos hidden';
-                    pagos.slice().sort(function (a, b) {
+                    tarjeta.appendChild(arriba);
+                    tarjeta.appendChild(monto);
+                    tarjeta.appendChild(barra);
+                    tarjeta.appendChild(detalle);
+                    cont.appendChild(tarjeta);
+                });
+            }            let deudaPagoActual = null;
+            let enviandoPago = false;
+
+            let deudaDetalleActual = null;
+
+            function pintarDetalleDeuda(deuda) {
+                if (!deuda) return;
+                deudaDetalleActual = deuda;
+                const total = totalDeDeuda(deuda);
+                const pagado = pagadoDeDeuda(deuda.id);
+                const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
+                const pct = total > 0 ? Math.min(100, Math.round((pagado / total) * 100)) : 0;
+                const saldada = deudaEstaPagada(deuda);
+
+                setTexto('detalle-titulo', deuda.descripcion || 'Deuda');
+                setTexto('detalle-monto', money(total));
+                setTexto('detalle-meta', cuotas + (cuotas === 1 ? ' cuota' : ' cuotas') +
+                    ' · desde ' + formatearFechaCorta(deuda.fecha_inicio));
+                const barra = document.getElementById('detalle-barra');
+                if (barra) barra.style.width = pct + '%';
+                setTexto('detalle-estado', 'Pagado: ' + money(pagado) + ' de ' + money(total) + ' (' + pct + '%)' +
+                    (saldada ? '' : ' · Faltan ' + cuotasFaltantes(deuda) + ' de ' + cuotas + ' cuotas'));
+
+                const cont = document.getElementById('detalle-pagos');
+                if (cont) {
+                    cont.innerHTML = '';
+                    const pagos = pagosDeDeuda(deuda.id).slice().sort(function (a, b) {
                         return String(b.fecha || '').localeCompare(String(a.fecha || ''));
-                    }).forEach(function (pago) {
+                    });
+                    if (!pagos.length) {
+                        const vacio = document.createElement('div');
+                        vacio.className = 'deuda-pago';
+                        vacio.textContent = 'Sin pagos registrados.';
+                        cont.appendChild(vacio);
+                    }
+                    pagos.forEach(function (pago) {
                         const linea = document.createElement('div');
                         linea.className = 'deuda-pago';
                         const cuando = document.createElement('span');
@@ -4706,35 +4771,251 @@
                         cuanto.textContent = money(pago.monto);
                         linea.appendChild(cuando);
                         linea.appendChild(cuanto);
-                        const borrar = botonAccion('fa-trash-alt', 'Borrar pago', function () { borrarPago(pago.id); }, true);
-                        linea.appendChild(borrar);
-                        historial.appendChild(linea);
+                        linea.appendChild(botonAccion('fa-receipt', 'Comprobante del pago', function () {
+                            compartirComprobanteDeuda(deuda, pago);
+                        }));
+                        linea.appendChild(botonAccion('fa-trash-alt', 'Borrar pago', function () {
+                            borrarPago(pago.id);
+                        }, true));
+                        cont.appendChild(linea);
                     });
-                    if (!pagos.length) {
-                        const vacio = document.createElement('div');
-                        vacio.className = 'deuda-pago';
-                        vacio.textContent = 'Sin pagos registrados.';
-                        historial.appendChild(vacio);
-                    }
-                    verPagos.addEventListener('click', function () {
-                        historial.classList.toggle('hidden');
-                    });
-                    acciones.appendChild(verPagos);
-                    acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (deuda.descripcion || ''), function () { borrarDeuda(deuda.id); }, true));
+                }
 
-                    tarjeta.appendChild(arriba);
-                    tarjeta.appendChild(monto);
-                    tarjeta.appendChild(meta);
-                    tarjeta.appendChild(barra);
-                    tarjeta.appendChild(detalle);
-                    tarjeta.appendChild(acciones);
-                    tarjeta.appendChild(historial);
-                    cont.appendChild(tarjeta);
+                const abonar = document.getElementById('detalle-abonar');
+                if (abonar) abonar.classList.toggle('hidden', saldada);
+                const compartir = document.getElementById('detalle-compartir');
+                if (compartir) {
+                    compartir.textContent = saldada
+                        ? 'Compartir deuda saldada'
+                        : (pagado > 0 ? 'Compartir estado de deuda' : 'Compartir comprobante de deuda');
+                }
+            }
+
+            function abrirDetalleDeuda(deuda) {
+                pintarDetalleDeuda(deuda);
+                abrirModal(document.getElementById('deuda-detalle-modal'));
+            }
+
+            function cerrarDetalleDeuda() {
+                cerrarModal(document.getElementById('deuda-detalle-modal'));
+                deudaDetalleActual = null;
+            }            let compartiendoComprobante = false;
+
+            async function generarComprobanteDeuda(deuda, pago) {
+                const total = totalDeDeuda(deuda);
+                const pagado = pagadoDeDeuda(deuda.id);
+                const saldo = Math.max(0, total - pagado);
+                const cuotas = Math.max(1, Number(deuda.cuotas_totales) || 1);
+                const saldada = deudaEstaPagada(deuda);
+
+                let titulo;
+                let filas;
+                if (pago) {
+                    const ordenados = pagosDeDeuda(deuda.id).slice().sort(function (a, b) {
+                        return String(a.fecha || '').localeCompare(String(b.fecha || '')) ||
+                               (Number(a.id) || 0) - (Number(b.id) || 0);
+                    });
+                    let indice = -1;
+                    ordenados.forEach(function (p, i) { if (String(p.id) === String(pago.id)) indice = i; });
+                    const numero = indice >= 0 ? indice + 1 : ordenados.length;
+                    titulo = 'Comprobante de Pago';
+                    filas = [
+                        ['CUOTA', numero + ' de ' + cuotas],
+                        ['MONTO ABONADO', money(pago.monto)],
+                        ['FECHA', formatDate(pago.fecha)],
+                        ['SALDO PENDIENTE', money(saldo)]
+                    ];
+                } else if (saldada) {
+                    titulo = '¡Deuda Saldada!';
+                    filas = [
+                        ['MONTO TOTAL', money(total)],
+                        ['CUOTAS', cuotas + ' de ' + cuotas + ' abonadas'],
+                        ['FECHA DE INICIO', formatDate(deuda.fecha_inicio)]
+                    ];
+                } else {
+                    titulo = 'Comprobante de Deuda';
+                    filas = [
+                        ['MONTO TOTAL', money(total)],
+                        ['CUOTAS', cuotas === 1 ? '1 pago único' : cuotas + ' cuotas de ' + money(cuotaDeDeuda(deuda))],
+                        ['FECHA DE INICIO', formatDate(deuda.fecha_inicio)],
+                        ['PAGADO', money(pagado)],
+                        ['SALDO PENDIENTE', money(saldo)]
+                    ];
+                }
+
+                const ANCHO = 800;
+                const estilos = getComputedStyle(document.documentElement);
+                const token = function (nombre, alterno) {
+                    const valor = estilos.getPropertyValue(nombre).trim();
+                    return valor || alterno;
+                };
+                const COLOR = {
+                    paper: token('--paper', '#FAF6F3'),
+                    surface: token('--surface', '#FFFFFF'),
+                    ink: token('--ink', '#3B2F35'),
+                    soft: token('--ink-soft', '#776569'),
+                    line: token('--line', '#EADFDB'),
+                    gold: token('--gold', '#BE9E6F'),
+                    goldInk: token('--gold-ink', '#8C6B3A'),
+                    blush2: token('--blush-2', '#F4E7EC')
+                };
+
+                let logo = null;
+                try {
+                    const resultados = await Promise.all([
+                        (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve(),
+                        cargarImagen(LOGO_DATA_URL)
+                    ]);
+                    logo = resultados[1];
+                    if (logo && paletaActual().indexOf('mono-') === 0) logo = logoEnGris(logo);
+                } catch (error) { /* seguimos sin logo */ }
+
+                const hayCormorant = !!(document.fonts && document.fonts.check &&
+                    document.fonts.check('600 40px "Cormorant Garamond"'));
+                const serif = hayCormorant ? '"Cormorant Garamond", Georgia, serif' : 'Georgia, "Times New Roman", serif';
+                const sans = 'Inter, -apple-system, "Segoe UI", sans-serif';
+
+                let y = 302;
+                if (logo) y = 46 + 190 + 32;
+                const yTitulo = y + 76;
+                const ySub = yTitulo + 40;
+                const yCard = ySub + 46;
+                const altoTarjeta = 58 + filas.length * 68 + 14;
+                const yPie = yCard + altoTarjeta + 44;
+                const ALTO = yPie + 70 + 90;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = ANCHO;
+                canvas.height = ALTO;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return null;
+
+                ctx.fillStyle = COLOR.paper;
+                ctx.fillRect(0, 0, ANCHO, ALTO);
+                ctx.strokeStyle = COLOR.line;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(26, 26, ANCHO - 52, ALTO - 52);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+
+                if (logo) {
+                    const lado = 190;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(ANCHO / 2, 46 + lado / 2, lado / 2, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(ANCHO / 2 - lado / 2, 46, lado, lado);
+                    ctx.drawImage(logo, (ANCHO - lado) / 2, 46, lado, lado);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = COLOR.gold;
+                    ctx.font = '46px Georgia, serif';
+                    ctx.fillText('✦', ANCHO / 2, 150);
+                    ctx.fillStyle = COLOR.ink;
+                    ctx.font = '600 62px ' + serif;
+                    ctx.fillText('Eli M. Nails', ANCHO / 2, 232);
+                    ctx.fillStyle = COLOR.goldInk;
+                    ctx.font = '500 17px ' + sans;
+                    ctx.fillText('N A I L   S T U D I O', ANCHO / 2, 268);
+                }
+
+                ctx.strokeStyle = COLOR.blush2;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(300, y);
+                ctx.lineTo(500, y);
+                ctx.stroke();
+
+                const tamTitulo = ajustarFuente(ctx, titulo, 640, 44, serif, '600');
+                ctx.fillStyle = COLOR.ink;
+                ctx.font = '600 ' + tamTitulo + 'px ' + serif;
+                ctx.fillText(titulo, ANCHO / 2, yTitulo);
+
+                const nombreDeuda = deuda.descripcion || 'Deuda';
+                const tamSub = ajustarFuente(ctx, nombreDeuda, 620, 22, sans, '400');
+                ctx.fillStyle = COLOR.soft;
+                ctx.font = '400 ' + tamSub + 'px ' + sans;
+                ctx.fillText(nombreDeuda, ANCHO / 2, ySub);
+
+                ctx.fillStyle = COLOR.surface;
+                ctx.strokeStyle = COLOR.line;
+                ctx.lineWidth = 2;
+                rectRedondeado(ctx, 90, yCard, 620, altoTarjeta, 22);
+                ctx.fill();
+                ctx.stroke();
+
+                let yFila = yCard + 58;
+                filas.forEach(function (fila) {
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = COLOR.goldInk;
+                    ctx.font = '600 14px ' + sans;
+                    ctx.fillText(fila[0], 130, yFila);
+                    const tam = ajustarFuente(ctx, String(fila[1]), 540, 30, serif, '600');
+                    ctx.fillStyle = COLOR.ink;
+                    ctx.font = '600 ' + tam + 'px ' + serif;
+                    ctx.fillText(String(fila[1]), 130, yFila + 34);
+                    yFila += 68;
                 });
-            }            let deudaPagoActual = null;
-            let enviandoPago = false;
 
-            function abrirPago(deuda) {
+                ctx.textAlign = 'center';
+                ctx.strokeStyle = COLOR.blush2;
+                ctx.beginPath();
+                ctx.moveTo(300, yPie);
+                ctx.lineTo(500, yPie);
+                ctx.stroke();
+
+                ctx.fillStyle = COLOR.goldInk;
+                ctx.font = '600 20px ' + sans;
+                ctx.fillText(NOMBRE_ELI, ANCHO / 2, yPie + 42);
+                ctx.fillStyle = COLOR.soft;
+                ctx.font = '16px ' + sans;
+                ctx.fillText('Comprobante del ' + formatDate(todayISO()), ANCHO / 2, yPie + 70);
+
+                return await new Promise(function (resolve) {
+                    try {
+                        canvas.toBlob(function (blob) {
+                            if (!blob) { resolve(null); return; }
+                            const sufijo = pago ? 'pago' : (saldada ? 'saldada' : 'deuda');
+                            const nombreArchivo = 'Comprobante_' + limpiarNombre(nombreDeuda) + '_' + sufijo + '.png';
+                            try {
+                                resolve(new File([blob], nombreArchivo, { type: 'image/png' }));
+                            } catch (error) {
+                                blob.name = nombreArchivo;
+                                resolve(blob);
+                            }
+                        }, 'image/png');
+                    } catch (error) {
+                        console.error('No se pudo exportar el comprobante:', error);
+                        resolve(null);
+                    }
+                });
+            }
+
+            async function compartirComprobanteDeuda(deuda, pago) {
+                if (compartiendoComprobante) return;
+                compartiendoComprobante = true;
+                try {
+                    const archivo = await generarComprobanteDeuda(deuda, pago);
+                    if (!archivo) {
+                        mostrarBanner('No se pudo generar el comprobante.', 'error');
+                        return;
+                    }
+                    if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+                        try {
+                            await navigator.share({ files: [archivo] });
+                            return;
+                        } catch (error) {
+                            if (error && error.name === 'AbortError') return;
+                        }
+                    }
+                    descargarArchivo(archivo);
+                    mostrarBanner('Comprobante descargado.', 'ok');
+                } finally {
+                    compartiendoComprobante = false;
+                }
+            }            function abrirPago(deuda) {
                 deudaPagoActual = deuda;
                 const saldo = saldoDeDeuda(deuda);
                 const cuota = cuotaDeDeuda(deuda);
@@ -4957,6 +5238,25 @@
 
                 const abrirDeuda = document.getElementById('abrir-deuda-btn');
                 if (abrirDeuda) abrirDeuda.addEventListener('click', abrirNuevaDeuda);
+
+                const cerrarDetalle = document.getElementById('close-detalle-deuda');
+                if (cerrarDetalle) cerrarDetalle.addEventListener('click', cerrarDetalleDeuda);
+                const detalleAbonar = document.getElementById('detalle-abonar');
+                if (detalleAbonar) detalleAbonar.addEventListener('click', function () {
+                    if (deudaDetalleActual) abrirPago(deudaDetalleActual);
+                });
+                const detalleCompartir = document.getElementById('detalle-compartir');
+                if (detalleCompartir) detalleCompartir.addEventListener('click', function () {
+                    if (deudaDetalleActual) compartirComprobanteDeuda(deudaDetalleActual, null);
+                });
+                const detalleBorrar = document.getElementById('detalle-borrar');
+                if (detalleBorrar) detalleBorrar.addEventListener('click', function () {
+                    if (deudaDetalleActual) {
+                        const id = deudaDetalleActual.id;
+                        cerrarDetalleDeuda();
+                        borrarDeuda(id);
+                    }
+                });
                 const formDeuda = document.getElementById('deuda-form');
                 if (formDeuda) formDeuda.addEventListener('submit', function (evento) { evento.preventDefault(); guardarDeuda(); });
                 if (formDeuda) {
@@ -5069,6 +5369,14 @@
             function refrescarPaneles() {
                 renderInicio();
                 renderCaja();
+                const modal = document.getElementById('deuda-detalle-modal');
+                if (modal && !modal.classList.contains('hidden') && deudaDetalleActual) {
+                    const fresca = (store.deudas || []).find(function (d) {
+                        return String(d.id) === String(deudaDetalleActual.id);
+                    });
+                    if (fresca) pintarDetalleDeuda(fresca);
+                    else cerrarDetalleDeuda();
+                }
             }
 
             function renderMovimientos(gastosMes, pagosMes) {
