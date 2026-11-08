@@ -283,6 +283,22 @@
         .fc-event-cancelled { background-color: #F4E9EA !important; border-left-color: var(--cancelled) !important; color: #6B353B; }
         .fc-button-group { border-radius: 8px; overflow: hidden; }
 
+        /* ── vista agenda (mobile) ── */
+        .fc .fc-list {
+            background: var(--surface);
+            border-color: var(--line);
+        }
+        .fc .fc-list-empty {
+            background: var(--paper);
+            color: var(--ink-soft);
+            font-size: 13px;
+        }
+        .fc .fc-list-day-cushion { background: var(--blush-2); }
+        .fc .fc-list-day-text, .fc .fc-list-day-side-text { color: var(--ink); font-weight: 500; }
+        .fc .fc-list-event:hover td { background: var(--blush-2); }
+        .fc .fc-list-event-dot { border-color: var(--pending); }
+        .fc .fc-list-event-time { color: var(--ink-soft); }
+
         /* ── modales ── */
         .modal-overlay {
             background-color: rgba(59, 47, 53, .55);
@@ -319,7 +335,41 @@
             .appt-price { grid-area: price; }
             .badge { grid-area: badge; justify-self: end; }
             .appt-name { font-size: 18px; }
+            .fc .fc-toolbar { gap: 6px; }
+            .fc .fc-toolbar-title { font-size: 18px; white-space: nowrap; }
+            .fc .fc-button { padding: .4rem .55rem; font-size: 11.5px; min-height: 34px; }
+            .fc .fc-list-event-title, .fc .fc-list-event-time { font-size: 12.5px; }
         }
+
+        /* ── formulario por secciones ── */
+        .form-section-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: var(--ink-soft);
+            font-weight: 600;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 8px;
+            margin: 0;
+        }
+        .form-actions {
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 14px 0 6px;
+            background: linear-gradient(to top, var(--surface) 72%, rgba(255, 255, 255, 0));
+            border-top: 1px solid var(--line);
+        }
+        .export-btn {
+            background: var(--surface) !important;
+            border: 1px solid var(--line);
+            color: var(--ink);
+        }
+        .export-btn:hover { background: var(--blush-2) !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -352,11 +402,11 @@
         </div>
         
         <!-- Appointments List View -->
-        <div id="appointments-view" class="view-section hidden bg-white rounded-xl shadow-md p-4 mb-6">
+        <div id="appointments-view" class="view-section hidden bg-transparent p-0 mb-6">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                 <div class="w-full md:w-auto mb-4 md:mb-0">
                     <div class="relative">
-                        <input type="text" id="search-input" placeholder="Buscar por nombre o servicio..." 
+                        <input type="text" id="search-input" placeholder="Buscar clienta o servicio" 
                                class="w-full md:w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     </div>
@@ -370,13 +420,13 @@
                         <option value="cancelled">Cancelado</option>
                     </select>
                     <input type="date" id="date-filter" class="flex-1 md:flex-none min-w-0 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                    <button id="export-excel" class="export-btn w-full md:w-auto px-4 py-2.5 rounded-lg text-eli-dark font-medium">
+                    <button id="export-excel" class="export-btn w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-file-excel mr-2"></i> Exportar
                     </button>
-                    <button type="button" id="backup-btn" class="bg-gray-200 w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
+                    <button type="button" id="backup-btn" class="bg-white border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
                         <i class="fas fa-download mr-2"></i> Respaldar
                     </button>
-                    <button type="button" id="restore-btn" class="bg-gray-200 w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
+                    <button type="button" id="restore-btn" class="bg-white border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
                         <i class="fas fa-upload mr-2"></i> Restaurar
                     </button>
                     <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
@@ -396,90 +446,101 @@
         <div id="new-appointment-view" class="view-section hidden bg-white rounded-xl shadow-md p-6 mb-6">
             <h2 class="text-2xl font-bold text-eli-dark mb-6">Nuevo Turno</h2>
             
-            <form id="appointment-form" class="space-y-4">
+            <form id="appointment-form" class="space-y-7">
                 <input type="hidden" id="appointment-id">
-                
-                <div>
-                    <label for="client-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo <span class="text-eli-dark font-bold" aria-hidden="true">*</span></label>
-                    <input type="text" id="client-name" required autocomplete="name"
-                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label for="service-type" class="block text-sm font-medium text-gray-700 mb-1">Servicio <span class="text-eli-dark font-bold" aria-hidden="true">*</span></label>
-                    <select id="service-type" required
-                            class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                        <option value="">Seleccionar servicio</option>
-                        <option value="Kapping">Kapping</option>
-                        <option value="Soft gel">Soft gel</option>
-                        <option value="Semipermanente">Semipermanente</option>
-                    </select>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="appointment-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha <span class="text-eli-dark font-bold" aria-hidden="true">*</span></label>
-                        <input type="date" id="appointment-date" required
-                               class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+
+                <section>
+                    <h2 class="form-section-title">Cliente</h2>
+                    <div class="mt-3">
+                        <label for="client-name" class="block text-sm font-medium text-ink-soft mb-1">Nombre completo <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                        <input type="text" id="client-name" required autocomplete="name"
+                               class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                     </div>
-                    
-                    <div>
-                        <label for="appointment-time" class="block text-sm font-medium text-gray-700 mb-1">Hora <span class="text-eli-dark font-bold" aria-hidden="true">*</span></label>
-                        <select id="appointment-time" required
-                                class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                            <option value="">Seleccionar hora</option>
-                            <option value="09:00">09:00</option>
-                            <option value="10:00">10:00</option>
-                            <option value="11:00">11:00</option>
-                            <option value="12:00">12:00</option>
-                            <option value="13:00">13:00</option>
-                            <option value="14:00">14:00</option>
-                            <option value="15:00">15:00</option>
-                            <option value="16:00">16:00</option>
-                            <option value="17:00">17:00</option>
-                            <option value="18:00">18:00</option>
-                            <option value="19:00">19:00</option>
-                        </select>
+                </section>
+
+                <section>
+                    <h2 class="form-section-title">Turno</h2>
+                    <div class="mt-3 space-y-4">
+                        <div>
+                            <label for="service-type" class="block text-sm font-medium text-ink-soft mb-1">Servicio <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                            <select id="service-type" required
+                                    class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                                <option value="">Seleccionar servicio</option>
+                                <option value="Kapping">Kapping</option>
+                                <option value="Soft gel">Soft gel</option>
+                                <option value="Semipermanente">Semipermanente</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="appointment-date" class="block text-sm font-medium text-ink-soft mb-1">Fecha <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                                <input type="date" id="appointment-date" required
+                                       class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                            </div>
+                            <div>
+                                <label for="appointment-time" class="block text-sm font-medium text-ink-soft mb-1">Hora <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                                <select id="appointment-time" required
+                                        class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                                    <option value="">Seleccionar hora</option>
+                                    <option value="09:00">09:00</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                    <option value="17:00">17:00</option>
+                                    <option value="18:00">18:00</option>
+                                    <option value="19:00">19:00</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="appointment-price" class="block text-sm font-medium text-ink-soft mb-1">Precio ($)</label>
+                                <input type="number" id="appointment-price" min="0" step="100" inputmode="decimal"
+                                       class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                            </div>
+                            <div>
+                                <label for="appointment-status" class="block text-sm font-medium text-ink-soft mb-1">Estado <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
+                                <select id="appointment-status" required
+                                        class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                                    <option value="pending">Pendiente</option>
+                                    <option value="confirmed">Confirmado</option>
+                                    <option value="completed">Realizado</option>
+                                    <option value="cancelled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div>
-                    <label for="appointment-price" class="block text-sm font-medium text-gray-700 mb-1">Precio ($)</label>
-                    <input type="number" id="appointment-price" min="0" step="100" inputmode="decimal"
-                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label for="appointment-notes" class="block text-sm font-medium text-gray-700 mb-1">Notas adicionales</label>
-                    <textarea id="appointment-notes" rows="3"
-                              class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent"></textarea>
-                </div>
-                
-                <div>
-                    <label for="appointment-status" class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-eli-dark font-bold" aria-hidden="true">*</span></label>
-                    <select id="appointment-status" required
-                            class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
-                        <option value="pending">Pendiente</option>
-                        <option value="confirmed">Confirmado</option>
-                        <option value="completed">Realizado</option>
-                        <option value="cancelled">Cancelado</option>
-                    </select>
-                </div>
-                
-                <div class="flex flex-wrap gap-3 pt-4">
-                    <button type="submit" id="save-btn" class="btn-primary px-6 py-2 rounded-lg font-medium">
+                </section>
+
+                <section>
+                    <h2 class="form-section-title">Detalle</h2>
+                    <div class="mt-3">
+                        <label for="appointment-notes" class="block text-sm font-medium text-ink-soft mb-1">Notas adicionales</label>
+                        <textarea id="appointment-notes" rows="3"
+                                  class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none"></textarea>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <button type="submit" id="save-btn" class="btn-primary px-6 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-save mr-2"></i> Guardar
                     </button>
-                    <button type="button" id="update-btn" class="btn-primary px-6 py-2 rounded-lg font-medium hidden">
+                    <button type="button" id="update-btn" class="btn-primary px-6 py-2.5 rounded-lg font-medium hidden">
                         <i class="fas fa-edit mr-2"></i> Modificar
                     </button>
-                    <button type="button" id="delete-btn" class="btn-danger px-6 py-2 rounded-lg font-medium hidden">
+                    <button type="button" id="delete-btn" class="btn-danger px-6 py-2.5 rounded-lg font-medium hidden">
                         <i class="fas fa-trash-alt mr-2"></i> Eliminar
                     </button>
-                    <button type="button" id="whatsapp-btn" class="whatsapp-btn px-6 py-2 rounded-lg text-[#0B3D1E] font-medium hidden">
+                    <button type="button" id="whatsapp-btn" class="whatsapp-btn px-6 py-2.5 rounded-lg text-[#0B3D1E] font-medium hidden">
                         <i class="fab fa-whatsapp mr-2"></i> WhatsApp
                     </button>
-                    <button type="button" id="clear-btn" class="bg-gray-200 px-6 py-2 rounded-lg font-medium">
+                    <button type="button" id="clear-btn" class="bg-white border border-line px-6 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-times mr-2"></i> Limpiar
                     </button>
                 </div>
@@ -495,37 +556,39 @@
     
     <!-- P2: pantalla de login -->
     <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-8 text-center">
-            <i class="fas fa-hand-holding-heart text-4xl text-eli-lilac mb-4"></i>
-            <h1 class="text-2xl font-bold text-eli-dark mb-1">Eli M. Nails</h1>
-            <p class="text-sm text-gray-600 mb-6">Agenda de turnos</p>
-            <form id="email-auth-form" class="text-left space-y-3">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
+            <div class="text-center mb-6">
+                <div class="brand-star text-2xl mb-1" aria-hidden="true">✦</div>
+                <h1 class="text-3xl font-semibold text-ink m-0 leading-tight">Eli M. Nails</h1>
+                <p class="text-xs text-ink-soft mt-1">Agenda de turnos</p>
+            </div>
+            <form id="email-auth-form" class="space-y-3">
                 <div>
-                    <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label for="auth-email" class="block text-sm font-medium text-ink-soft mb-1">Email</label>
                     <input type="email" id="auth-email" name="email" required autocomplete="email"
-                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                           class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                 </div>
                 <div>
-                    <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <label for="auth-password" class="block text-sm font-medium text-ink-soft mb-1">Contraseña</label>
                     <input type="password" id="auth-password" name="password" required minlength="6"
                            autocomplete="current-password"
-                           class="input-field w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-eli-lilac focus:border-transparent">
+                           class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                 </div>
                 <button type="submit" id="email-login-btn" class="btn-primary w-full px-4 py-3 rounded-lg font-medium">
                     Iniciar sesión
                 </button>
-                <button type="button" id="email-signup-btn" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
+                <button type="button" id="email-signup-btn" class="w-full px-4 py-3 rounded-lg border border-line bg-white font-medium text-ink">
                     Registrarse
                 </button>
             </form>
 
-            <div class="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-gray-400">
-                <span class="h-px flex-1 bg-gray-200"></span>
+            <div class="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-ink-soft">
+                <span class="h-px flex-1 bg-line"></span>
                 <span>— O —</span>
-                <span class="h-px flex-1 bg-gray-200"></span>
+                <span class="h-px flex-1 bg-line"></span>
             </div>
 
-            <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-gray-300 bg-white font-medium text-gray-700">
+            <button type="button" id="google-login-btn" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-line bg-white font-medium text-ink">
                 <i class="fab fa-google"></i> Iniciar sesión con Google
             </button>
 
@@ -1589,20 +1652,28 @@
             
             function initCalendar() {
                 const calendarEl = document.getElementById('calendar');
+
+                function esMovil() { return window.matchMedia('(max-width: 767px)').matches; }
+                function toolbarPara(movil) {
+                    return movil
+                        ? { left: 'prev,next', center: 'title', right: 'today' }
+                        : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' };
+                }
                 
                 calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
+                    initialView: esMovil() ? 'listDay' : 'dayGridMonth',
                     locale: 'es',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
+                    headerToolbar: toolbarPara(esMovil()),
                     buttonText: {
                         today: 'Hoy',
                         month: 'Mes',
                         week: 'Semana',
-                        day: 'Día'
+                        day: 'Día',
+                        list: 'Agenda'
+                    },
+                    noEventsText: 'No hay turnos este día',
+                    views: {
+                        listDay: { titleFormat: { weekday: 'short', day: 'numeric', month: 'short' } }
                     },
                     events: [],
                     eventClick: function(info) {
@@ -1630,6 +1701,19 @@
                 });
                 
                 calendar.render();
+
+                const mqMovil = window.matchMedia('(max-width: 767px)');
+                const aplicarVista = function () {
+                    if (!calendar) return;
+                    const movil = mqMovil.matches;
+                    try {
+                        calendar.setOption('headerToolbar', toolbarPara(movil));
+                        calendar.changeView(movil ? 'listDay' : 'dayGridMonth');
+                    } catch (error) {
+                        console.error('No se pudo cambiar la vista del calendario:', error);
+                    }
+                };
+                if (mqMovil.addEventListener) mqMovil.addEventListener('change', aplicarVista);
             }
             
             // Show appointment details in modal
