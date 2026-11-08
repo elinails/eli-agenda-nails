@@ -320,6 +320,13 @@
         .brand-star { color: var(--gold); font-size: 18px; }
 
         /* ── logo de la marca ── */
+        .footer-link {
+            color: var(--gold-ink);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-link:hover { text-decoration: underline; }
+
         .brand-logo {
             display: block;
             width: auto;
@@ -1330,7 +1337,7 @@
         </section>
         <!-- Footer -->
         <footer class="mt-12 text-center text-sm text-ink-soft">
-            <p>Creado con <i class="fas fa-heart text-red-400"></i> por @Jacinto.Cards</p>
+            <p>Creado con <i class="fas fa-heart text-red-400"></i> por <a class="footer-link" href="https://www.instagram.com/jacinto.cards" target="_blank" rel="noopener noreferrer">@Jacinto.Cards</a></p>
         </footer>
             </div>
         </div>
@@ -3790,7 +3797,7 @@
             // ─────────────────────────────────────────────────────────────
             // I7 · Tarjeta PNG para compartir por WhatsApp
             // ─────────────────────────────────────────────────────────────
-            const INSTAGRAM_ELI = '@elimaldonado27.02';
+            const NOMBRE_ELI = 'Eli Maldonado';
 
             function mensajeTurnoTexto(turno) {
                 return 'Hola ' + turno.clientName + '! ¿Cómo estás?\n\n' +
@@ -3974,11 +3981,11 @@
 
                 ctx.fillStyle = COLOR.goldInk;
                 ctx.font = '600 20px ' + sans;
-                ctx.fillText(INSTAGRAM_ELI, ANCHO / 2, yPie + 42);
+                ctx.fillText(NOMBRE_ELI, ANCHO / 2, yPie + 42);
 
                 ctx.fillStyle = COLOR.soft;
                 ctx.font = '16px ' + sans;
-                ctx.fillText('Gracias por elegirnos', ANCHO / 2, yPie + 70);
+                ctx.fillText('Gracias por elegirme', ANCHO / 2, yPie + 70);
 
                 return await new Promise(function(resolve) {
                     try {
