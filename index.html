@@ -254,8 +254,16 @@
                     <button id="export-excel" class="export-btn w-full md:w-auto px-4 py-2.5 rounded-lg text-eli-dark font-medium">
                         <i class="fas fa-file-excel mr-2"></i> Exportar
                     </button>
+                    <button type="button" id="backup-btn" class="bg-gray-200 w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
+                        <i class="fas fa-download mr-2"></i> Respaldar
+                    </button>
+                    <button type="button" id="restore-btn" class="bg-gray-200 w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
+                        <i class="fas fa-upload mr-2"></i> Restaurar
+                    </button>
+                    <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
                 </div>
             </div>
+            <p id="data-status" class="mt-3 text-sm" role="status" aria-live="polite" hidden></p>
             
             <div id="appointments-list" class="space-y-3">
                 <!-- Appointments will be loaded here -->
@@ -825,6 +833,278 @@
                 request.onerror = function(event) {
                     console.error('Error exporting appointments:', event.target.error);
                 };
+            });
+            
+            // ─────────────────────────────────────────────────────────────
+            // P1: Respaldo y restauración (JSON)
+            // ─────────────────────────────────────────────────────────────
+            const BACKUP_APP = 'eli-nails';
+            const BACKUP_SCHEMA = 1;
+            const BACKUP_MAX_BYTES = 5 * 1024 * 1024;   // 5 MB
+            const BACKUP_MAX_ROWS = 5000;
+            const PRE_RESTORE_KEY = 'eli_backup_prerestore';
+            const ESTADOS_VALIDOS = ['pending', 'confirmed', 'completed', 'cancelled'];
+
+            const backupBtn = document.getElementById('backup-btn');
+            const restoreBtn = document.getElementById('restore-btn');
+            const restoreInput = document.getElementById('restore-input');
+            const dataStatus = document.getElementById('data-status');
+
+            // Aviso accesible (aria-live). Solo textContent: nunca innerHTML.
+            let dataStatusTimer = null;
+            function setDataStatus(kind, text) {
+                dataStatus.textContent = text;
+                dataStatus.className = 'mt-3 text-sm ' + (kind === 'error' ? 'text-red-600' : 'text-green-700');
+                dataStatus.hidden = false;
+                clearTimeout(dataStatusTimer);
+                dataStatusTimer = setTimeout(function () {
+                    dataStatus.hidden = true;
+                    dataStatus.textContent = '';
+                }, 7000);
+            }
+
+            function leerTodosLosTurnos() {
+                return new Promise(function (resolve, reject) {
+                    try {
+                        const transaction = db.transaction([STORE_NAME], 'readonly');
+                        const request = transaction.objectStore(STORE_NAME).getAll();
+                        request.onsuccess = function () { resolve(request.result || []); };
+                        request.onerror = function () { reject(request.error); };
+                    } catch (error) { reject(error); }
+                });
+            }
+
+            function construirRespaldo(rows) {
+                return {
+                    app: BACKUP_APP,
+                    schema: BACKUP_SCHEMA,
+                    exportedAt: new Date().toISOString(),
+                    zona: TZ,
+                    count: rows.length,
+                    appointments: rows
+                };
+            }
+
+            function descargarJson(payload, filename) {
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.rel = 'noopener';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+            }
+
+            async function respaldar(sufijo) {
+                const rows = await leerTodosLosTurnos();
+                descargarJson(construirRespaldo(rows), 'Eli_Backup_' + todayISO() + (sufijo || '') + '.json');
+                return rows.length;
+            }
+
+            // Devuelve { ok:true, rows } o { ok:false, error }
+            function validarRespaldo(texto) {
+                let data;
+                try {
+                    data = JSON.parse(texto);
+                } catch (error) {
+                    return { ok: false, error: 'El archivo no es un JSON válido.' };
+                }
+
+                let rows;
+                if (Array.isArray(data)) rows = data;
+                else if (data && Array.isArray(data.appointments)) rows = data.appointments;
+                else return { ok: false, error: 'El archivo no contiene una lista de turnos ("appointments").' };
+
+                if (rows.length > BACKUP_MAX_ROWS) {
+                    return { ok: false, error: 'El archivo tiene ' + rows.length + ' turnos; el máximo es ' + BACKUP_MAX_ROWS + '.' };
+                }
+
+                const limpios = [];
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i];
+                    const n = i + 1;
+                    if (!r || typeof r !== 'object' || Array.isArray(r)) {
+                        return { ok: false, error: 'Registro ' + n + ': no es un objeto válido.' };
+                    }
+
+                    const clientName = typeof r.clientName === 'string' ? r.clientName.trim() : '';
+                    if (!clientName) return { ok: false, error: 'Registro ' + n + ': falta el nombre de la clienta.' };
+                    if (clientName.length > 120) return { ok: false, error: 'Registro ' + n + ': el nombre supera los 120 caracteres.' };
+                    if (/[<>]/.test(clientName)) return { ok: false, error: 'Registro ' + n + ': el nombre contiene caracteres no permitidos (< o >).' };
+
+                    const serviceType = typeof r.serviceType === 'string' ? r.serviceType.trim() : '';
+                    if (!serviceType) return { ok: false, error: 'Registro ' + n + ': falta el servicio.' };
+                    if (serviceType.length > 60) return { ok: false, error: 'Registro ' + n + ': el servicio supera los 60 caracteres.' };
+                    if (/[<>]/.test(serviceType)) return { ok: false, error: 'Registro ' + n + ': el servicio contiene caracteres no permitidos (< o >).' };
+
+                    const date = typeof r.date === 'string' ? r.date.trim() : '';
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !parseLocalDate(date)) {
+                        return { ok: false, error: 'Registro ' + n + ': la fecha "' + date + '" no es válida (formato AAAA-MM-DD).' };
+                    }
+                    const anio = Number(date.slice(0, 4));
+                    if (anio < 2000 || anio > 2100) return { ok: false, error: 'Registro ' + n + ': el año ' + anio + ' está fuera de rango.' };
+
+                    const time = typeof r.time === 'string' ? r.time.trim() : '';
+                    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+                        return { ok: false, error: 'Registro ' + n + ': la hora "' + time + '" no es válida (formato HH:MM).' };
+                    }
+
+                    const priceNum = Number(r.price);
+                    if (!Number.isFinite(priceNum) || priceNum < 0 || priceNum > 10000000) {
+                        return { ok: false, error: 'Registro ' + n + ': el precio no es un número válido.' };
+                    }
+
+                    const notes = typeof r.notes === 'string' ? r.notes.trim() : '';
+                    if (notes.length > 2000) return { ok: false, error: 'Registro ' + n + ': las notas superan los 2000 caracteres.' };
+                    if (/[<>]/.test(notes)) return { ok: false, error: 'Registro ' + n + ': las notas contienen caracteres no permitidos (< o >).' };
+
+                    const status = (r.status === undefined || r.status === null || r.status === '') ? 'pending' : String(r.status);
+                    if (ESTADOS_VALIDOS.indexOf(status) === -1) {
+                        return { ok: false, error: 'Registro ' + n + ': estado "' + status + '" desconocido.' };
+                    }
+
+                    limpios.push({
+                        clientName: clientName,
+                        serviceType: serviceType,
+                        date: date,
+                        time: time,
+                        price: Math.round(priceNum),
+                        notes: notes,
+                        status: status,
+                        timestamp: new Date(date + 'T' + time + ':00').getTime()
+                    });
+                }
+
+                return { ok: true, rows: limpios };
+            }
+
+            function reemplazarTurnos(rows) {
+                return new Promise(function (resolve, reject) {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    store.clear();
+                    rows.forEach(function (row) { store.add(row); });   // sin id: autoIncrement asigna
+                    transaction.oncomplete = function () { resolve(rows.length); };
+                    transaction.onerror = function () { reject(transaction.error); };
+                    transaction.onabort = function () { reject(transaction.error); };
+                });
+            }
+
+            // Reutiliza el modal de confirmación existente
+            function pedirConfirmacion(titulo, mensaje, textoBoton, onConfirm) {
+                const actionBtn = document.getElementById('confirm-action-btn');
+                document.getElementById('confirm-title').textContent = titulo;
+                document.getElementById('confirm-message').textContent = mensaje;
+                actionBtn.textContent = textoBoton;
+                confirmModal.classList.remove('hidden');
+                actionBtn.onclick = async function () {
+                    confirmModal.classList.add('hidden');
+                    actionBtn.textContent = 'Confirmar';
+                    await onConfirm();
+                };
+                document.getElementById('confirm-cancel-btn').onclick = function () { confirmModal.classList.add('hidden'); };
+                document.getElementById('close-confirm-modal').onclick = function () { confirmModal.classList.add('hidden'); };
+            }
+
+            async function restaurarDesdeTexto(texto) {
+                const resultado = validarRespaldo(texto);
+                if (!resultado.ok) {
+                    setDataStatus('error', resultado.error);
+                    return;
+                }
+
+                let actuales;
+                try {
+                    actuales = await leerTodosLosTurnos();
+                } catch (error) {
+                    console.error(error);
+                    setDataStatus('error', 'No se pudieron leer los turnos actuales.');
+                    return;
+                }
+
+                const nuevos = resultado.rows.length;
+                const mensaje = nuevos === 0
+                    ? 'Vas a dejar la agenda VACÍA: se borran los ' + actuales.length + ' turnos actuales. Antes se descarga un respaldo del estado actual.'
+                    : 'Se van a reemplazar los ' + actuales.length + ' turnos actuales por los ' + nuevos + ' del archivo. Antes se descarga un respaldo del estado actual.';
+
+                pedirConfirmacion('Restaurar respaldo', mensaje, 'Restaurar', async function () {
+                    // Red de seguridad 1: copia del estado actual en localStorage
+                    try {
+                        localStorage.setItem(PRE_RESTORE_KEY, JSON.stringify({
+                            at: new Date().toISOString(),
+                            count: actuales.length,
+                            appointments: actuales
+                        }));
+                    } catch (error) { /* cuota llena: queda el archivo */ }
+
+                    // Red de seguridad 2: archivo descargado
+                    try {
+                        descargarJson(construirRespaldo(actuales), 'Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
+                    } catch (error) { console.error(error); }
+
+                    await new Promise(function (r) { setTimeout(r, 600); });
+
+                    try {
+                        await reemplazarTurnos(resultado.rows);
+                        resetForm();
+                        await loadAppointments();
+                        showView('appointments');
+                        setDataStatus('ok', 'Restaurados ' + nuevos + ' turnos. Respaldo previo: Eli_Backup_' + todayISO() + '_antes_de_restaurar.json');
+                    } catch (error) {
+                        console.error(error);
+                        setDataStatus('error', 'No se pudo restaurar el respaldo.');
+                    }
+                });
+            }
+
+            function leerArchivoComoTexto(file) {
+                if (file.text) return file.text();
+                return new Promise(function (resolve, reject) {
+                    const reader = new FileReader();
+                    reader.onload = function () { resolve(String(reader.result || '')); };
+                    reader.onerror = function () { reject(reader.error); };
+                    reader.readAsText(file);
+                });
+            }
+
+            backupBtn.addEventListener('click', async function () {
+                try {
+                    const total = await respaldar();
+                    setDataStatus('ok', 'Respaldo descargado con ' + total + (total === 1 ? ' turno.' : ' turnos.'));
+                } catch (error) {
+                    console.error(error);
+                    setDataStatus('error', 'No se pudo generar el respaldo.');
+                }
+            });
+
+            restoreBtn.addEventListener('click', function () {
+                restoreInput.value = '';
+                restoreInput.click();
+            });
+
+            restoreInput.addEventListener('change', async function () {
+                const file = this.files && this.files[0];
+                this.value = '';   // permite volver a elegir el mismo archivo
+                if (!file) return;
+
+                if (file.size > BACKUP_MAX_BYTES) {
+                    setDataStatus('error', 'El archivo supera los 5 MB.');
+                    return;
+                }
+
+                let texto;
+                try {
+                    texto = await leerArchivoComoTexto(file);
+                } catch (error) {
+                    console.error(error);
+                    setDataStatus('error', 'No se pudo leer el archivo.');
+                    return;
+                }
+
+                await restaurarDesdeTexto(texto);
             });
             
             // Initialize FullCalendar
