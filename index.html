@@ -236,6 +236,11 @@
             color: var(--ink);
         }
         input::placeholder, textarea::placeholder { color: var(--ink-soft); }
+        input[readonly] {
+            background-color: var(--surface-2);
+            color: var(--ink-soft);
+            cursor: not-allowed;
+        }
         .input-field { min-height: 44px; }
         .input-field:focus {
             border-color: var(--gold-ink);
@@ -967,7 +972,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="appointment-price" class="block text-sm font-medium text-ink-soft mb-1">Precio ($)</label>
-                                <input type="number" id="appointment-price" min="0" step="100" inputmode="decimal"
+                                <input type="number" id="appointment-price" min="0" step="100" inputmode="decimal" readonly
                                        class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                             </div>
                             <div>
@@ -2247,7 +2252,7 @@
                     time: hora,
                     price: r.price || 0,
                     notes: r.notes || '',
-                    status: r.status || 'pending',
+                    status: normalizarEstado(r.status),
                     timestamp: new Date(fecha + 'T' + hora + ':00').getTime()
                 };
             }
@@ -2260,7 +2265,7 @@
                     servicio_id: a.servicioId != null ? a.servicioId : null,
                     price: a.price,
                     notes: a.notes,
-                    status: a.status
+                    status: normalizarEstado(a.status)
                 };
                 fila[COLS.date] = a.date;
                 fila[COLS.time] = a.time;
@@ -3195,8 +3200,8 @@
                     const idOculto = document.getElementById('appointment-servicio-id');
                     if (idOculto) idOculto.value = opcion && opcion.dataset.id ? opcion.dataset.id : '';
                     const precio = opcion && opcion.dataset ? opcion.dataset.precio : '';
-                    if (precio !== '' && precio != null && appointmentPriceInput) {
-                        appointmentPriceInput.value = precio;
+                    if (appointmentPriceInput) {
+                        appointmentPriceInput.value = (precio !== '' && precio != null) ? precio : '';
                     }
                 });
             }            // ─────────────────────────────────────────────────────────────
@@ -3406,24 +3411,202 @@
             }
             
             // Send WhatsApp message
-            function sendWhatsApp(appointment) {
-                const phoneNumber = ''; // Add default number if needed
-                const message = `Hola ${appointment.clientName}! ¿Cómo estás? 
+            // ─────────────────────────────────────────────────────────────
+            // I7 · Tarjeta PNG para compartir por WhatsApp
+            // ─────────────────────────────────────────────────────────────
+            const INSTAGRAM_ELI = '@elimaldonado27.02';
 
-Te confirmo tu turno en Eli M. Nails:
-• Servicio: ${appointment.serviceType}
-• Día: ${formatDate(appointment.date)}
-• Hora: ${appointment.time}
-• Precio: $${appointment.price || '--'}
-${appointment.notes ? `• Notas: ${appointment.notes}` : ''}
+            function mensajeTurnoTexto(turno) {
+                return 'Hola ' + turno.clientName + '! ¿Cómo estás?\n\n' +
+                    'Te confirmo tu turno en Eli M. Nails:\n' +
+                    '• Servicio: ' + turno.serviceType + '\n' +
+                    '• Día: ' + formatDate(turno.date) + '\n' +
+                    '• Hora: ' + turno.time + '\n' +
+                    '• Precio: $' + (turno.price || '--') + '\n' +
+                    (turno.notes ? '• Notas: ' + turno.notes + '\n' : '') +
+                    '\n¡Gracias por confiar en mí para cuidar tus uñas!\n' +
+                    'Por favor, recordá asistir sin niños ni acompañantes.\n\n' +
+                    '¡Nos vemos pronto!\nEli';
+            }
 
-¡Gracias por confiar en mí para cuidar tus uñas! Por favor, recordá asistir sin niños ni acompañantes, así podemos garantizar tranquilidad y puntualidad en tu atención.
+            function rectRedondeado(ctx, x, y, ancho, alto, radio) {
+                ctx.beginPath();
+                ctx.moveTo(x + radio, y);
+                ctx.arcTo(x + ancho, y, x + ancho, y + alto, radio);
+                ctx.arcTo(x + ancho, y + alto, x, y + alto, radio);
+                ctx.arcTo(x, y + alto, x, y, radio);
+                ctx.arcTo(x, y, x + ancho, y, radio);
+                ctx.closePath();
+            }
 
-¡Nos vemos pronto!
-Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBjaTMxaWo1Zngxdg==')}`;
-                
-                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
+            function ajustarFuente(ctx, texto, maxAncho, tamano, familia, peso) {
+                let t = tamano;
+                do {
+                    ctx.font = (peso || '600') + ' ' + t + 'px ' + familia;
+                    if (ctx.measureText(texto).width <= maxAncho) return t;
+                    t -= 2;
+                } while (t > 18);
+                return t;
+            }
+
+            function limpiarNombre(texto) {
+                const limpio = String(texto || 'turno')
+                    .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, ' ')
+                    .trim()
+                    .replace(/\s+/g, '_');
+                return limpio || 'turno';
+            }
+
+            async function generarTarjetaTurno(turno) {
+                const ANCHO = 800;
+                const ALTO = 1000;
+                const canvas = document.createElement('canvas');
+                canvas.width = ANCHO;
+                canvas.height = ALTO;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return null;
+
+                // Esperar las fuentes antes de dibujar
+                try {
+                    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                } catch (error) { /* se usan las del sistema */ }
+
+                const hayCormorant = !!(document.fonts && document.fonts.check &&
+                    document.fonts.check('600 40px "Cormorant Garamond"'));
+                const serif = hayCormorant ? '"Cormorant Garamond", Georgia, serif' : 'Georgia, "Times New Roman", serif';
+                const sans = 'Inter, -apple-system, "Segoe UI", sans-serif';
+
+                ctx.fillStyle = '#FAF6F3';
+                ctx.fillRect(0, 0, ANCHO, ALTO);
+                ctx.strokeStyle = '#EADFDB';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(26, 26, ANCHO - 52, ALTO - 52);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+
+                ctx.fillStyle = '#BE9E6F';
+                ctx.font = '46px Georgia, serif';
+                ctx.fillText('✦', ANCHO / 2, 150);
+
+                ctx.fillStyle = '#3B2F35';
+                ctx.font = '600 62px ' + serif;
+                ctx.fillText('Eli M. Nails', ANCHO / 2, 232);
+
+                ctx.fillStyle = '#8C6B3A';
+                ctx.font = '500 17px ' + sans;
+                ctx.fillText('N A I L   S T U D I O', ANCHO / 2, 268);
+
+                ctx.strokeStyle = '#E9D3DC';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(300, 300);
+                ctx.lineTo(500, 300);
+                ctx.stroke();
+
+                const nombre = turno.clientName || '';
+                const saludo = '¡Hola ' + nombre + '!';
+                const tamNombre = ajustarFuente(ctx, saludo, 640, 44, serif, '600');
+                ctx.fillStyle = '#3B2F35';
+                ctx.font = '600 ' + tamNombre + 'px ' + serif;
+                ctx.fillText(saludo, ANCHO / 2, 382);
+
+                ctx.fillStyle = '#776569';
+                ctx.font = '22px ' + sans;
+                ctx.fillText('Tu turno está confirmado', ANCHO / 2, 422);
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.strokeStyle = '#EADFDB';
+                ctx.lineWidth = 2;
+                rectRedondeado(ctx, 90, 470, 620, 340, 22);
+                ctx.fill();
+                ctx.stroke();
+
+                const filas = [
+                    ['SERVICIO', turno.serviceType || '--'],
+                    ['FECHA', formatDate(turno.date)],
+                    ['HORA', turno.time || '--']
+                ];
+                if (turno.price) filas.push(['PRECIO', '$ ' + Number(turno.price).toLocaleString('es-AR')]);
+
+                let y = 532;
+                filas.forEach(function(fila) {
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#8C6B3A';
+                    ctx.font = '600 14px ' + sans;
+                    ctx.fillText(fila[0], 130, y);
+                    const tam = ajustarFuente(ctx, String(fila[1]), 540, 30, serif, '600');
+                    ctx.fillStyle = '#3B2F35';
+                    ctx.font = '600 ' + tam + 'px ' + serif;
+                    ctx.fillText(String(fila[1]), 130, y + 36);
+                    y += 74;
+                });
+
+                ctx.textAlign = 'center';
+                ctx.strokeStyle = '#E9D3DC';
+                ctx.beginPath();
+                ctx.moveTo(300, 856);
+                ctx.lineTo(500, 856);
+                ctx.stroke();
+
+                ctx.fillStyle = '#8C6B3A';
+                ctx.font = '600 20px ' + sans;
+                ctx.fillText(INSTAGRAM_ELI, ANCHO / 2, 898);
+
+                ctx.fillStyle = '#776569';
+                ctx.font = '16px ' + sans;
+                ctx.fillText('Gracias por elegirnos', ANCHO / 2, 926);
+
+                return await new Promise(function(resolve) {
+                    canvas.toBlob(function(blob) {
+                        if (!blob) { resolve(null); return; }
+                        const nombreArchivo = 'Turno_' + limpiarNombre(nombre) + '_' + (turno.date || '') + '.png';
+                        try {
+                            resolve(new File([blob], nombreArchivo, { type: 'image/png' }));
+                        } catch (error) {
+                            blob.name = nombreArchivo;
+                            resolve(blob);
+                        }
+                    }, 'image/png');
+                });
+            }
+
+            function descargarArchivo(archivo) {
+                const url = URL.createObjectURL(archivo);
+                const enlace = document.createElement('a');
+                enlace.href = url;
+                enlace.download = archivo.name || 'turno.png';
+                document.body.appendChild(enlace);
+                enlace.click();
+                enlace.remove();
+                setTimeout(function() { URL.revokeObjectURL(url); }, 1500);
+            }
+
+            async function sendWhatsApp(appointment) {
+                const texto = mensajeTurnoTexto(appointment);
+                let archivo = null;
+                try {
+                    archivo = await generarTarjetaTurno(appointment);
+                } catch (error) {
+                    console.error('No se pudo generar la tarjeta:', error);
+                }
+
+                if (archivo && navigator.canShare && navigator.canShare({ files: [archivo] })) {
+                    try {
+                        await navigator.share({ files: [archivo], title: 'Eli M. Nails', text: texto });
+                        return;
+                    } catch (error) {
+                        if (error && error.name === 'AbortError') return;
+                    }
+                }
+
+                if (archivo) {
+                    descargarArchivo(archivo);
+                    mostrarBanner('Tarjeta descargada: adjuntala en WhatsApp.', 'ok');
+                    return;
+                }
+
+                window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
             }
             
             // Helper functions
@@ -3482,8 +3665,21 @@ Eli ${encodeURIComponent('https://www.instagram.com/elimaldonado27.02?igsh=MTBja
                 }
             }
             
+            // I7: la base acepta español e inglés; la app escribe siempre el canónico.
+            const ESTADOS_CANONICOS = {
+                pendiente: 'pending', pending: 'pending',
+                confirmado: 'confirmed', confirmed: 'confirmed',
+                realizado: 'completed', completado: 'completed', completed: 'completed',
+                cancelado: 'cancelled', cancelada: 'cancelled', canceled: 'cancelled', cancelled: 'cancelled'
+            };
+
+            function normalizarEstado(estado) {
+                const clave = String(estado || '').trim().toLowerCase();
+                return ESTADOS_CANONICOS[clave] || 'pending';
+            }
+
             function getStatusText(status) {
-                switch(status) {
+                switch(normalizarEstado(status)) {
                     case 'pending': return 'Pendiente';
                     case 'confirmed': return 'Confirmado';
                     case 'completed': return 'Realizado';
