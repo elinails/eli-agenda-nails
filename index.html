@@ -430,7 +430,201 @@
         /* ── transición de tema ── */
         body, .appt-row, .fc, .fc .fc-button, .modal-content, .form-actions, .badge, .theme-toggle {
             transition: background-color .2s ease, color .2s ease, border-color .2s ease;
-        }        @media (prefers-reduced-motion: reduce) {
+        }        /* ── shell: sidebar + bottom nav ── */
+        .app-shell { min-height: 100vh; }
+        .app-main { flex: 1 1 auto; min-width: 0; }
+
+        .sidebar {
+            display: none;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 216px;
+            flex: 0 0 216px;
+            flex-direction: column;
+            gap: 8px;
+            padding: 22px 14px 16px;
+            background: var(--surface);
+            border-right: 1px solid var(--line);
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 0 10px 16px;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+        .sidebar-foot { border-top: 1px solid var(--line); padding-top: 10px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--ink-soft);
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color .16s ease, color .16s ease;
+        }
+        .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+        .nav-item:hover { background: var(--blush-2); color: var(--ink); }
+        .nav-item.active { background: var(--blush-2); color: var(--ink); box-shadow: inset 3px 0 0 var(--gold); }
+        .nav-item-danger { color: var(--cancelled); }
+        .nav-item-danger:hover { background: var(--cancelled-tint); color: var(--cancelled); }
+
+        .bottom-nav {
+            display: flex;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 40;
+            background: var(--surface);
+            border-top: 1px solid var(--line);
+            padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+        }
+        .bottom-nav .nav-item {
+            flex-direction: column;
+            gap: 3px;
+            min-height: 56px;
+            padding: 6px 2px;
+            font-size: 10.5px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .bottom-nav .nav-item i { font-size: 17px; width: auto; }
+        .bottom-nav .nav-item.active { background: transparent; box-shadow: none; color: var(--ink); }
+        .bottom-nav .nav-item.active i { color: var(--gold-ink); }
+
+        @media (min-width: 1024px) {
+            .app-shell { display: flex; align-items: flex-start; }
+            .sidebar { display: flex; }
+            .bottom-nav { display: none; }
+        }
+        @media (max-width: 1023px) {
+            .app-main { padding-bottom: 82px; }
+        }
+
+        .fab {
+            position: fixed;
+            right: 16px;
+            bottom: 80px;
+            z-index: 45;
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: var(--blush);
+            color: var(--ink);
+            font-size: 18px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+            cursor: pointer;
+        }
+        .fab:hover { background: var(--btn-primary-hover); }
+        @media (min-width: 1024px) { .fab { display: none !important; } }
+
+        /* ── secciones y paneles ── */
+        .section { animation: fade-in .18s ease; }
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow-row);
+        }
+        .panel-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--ink);
+            margin: 0;
+        }
+        .panel-note { display: block; margin-top: 4px; font-size: 12.5px; color: var(--ink-soft); }
+        .section-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 1.1;
+            margin: 0;
+            color: var(--ink);
+        }
+        .brand-mini {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 2px;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 15px;
+            color: var(--ink-soft);
+        }
+        @media (min-width: 1024px) { .brand-mini { display: none; } }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 0;
+            border-top: 1px solid var(--line);
+            margin-top: 8px;
+        }
+        .setting-label { font-size: 14px; font-weight: 500; margin: 0; }
+        .setting-note { font-size: 12px; color: var(--ink-soft); margin: 2px 0 0; }
+
+        /* ── segmented ── */
+        .seg {
+            display: inline-flex;
+            gap: 2px;
+            padding: 3px;
+            margin-bottom: 16px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+        }
+        .seg .nav-tab {
+            min-height: 38px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--ink-soft);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: none;
+        }
+        .seg .nav-tab.active { background: var(--blush-2); color: var(--ink); box-shadow: none; }
+
+        /* ── esqueletos y vacíos ── */
+        .skeleton-row {
+            height: 62px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: linear-gradient(90deg, var(--surface-2) 25%, var(--blush-2) 37%, var(--surface-2) 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: 0 0; }
+        }
+        .empty-state { text-align: center; padding: 32px 16px; color: var(--ink-soft); }
+        .empty-state i { display: block; margin-bottom: 10px; font-size: 26px; color: var(--gold); }
+        .empty-state p { margin: 0; font-size: 13.5px; }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -491,36 +685,65 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <div class="container mx-auto px-4 py-6 max-w-6xl">
+    <div id="app-shell" class="app-shell">
+        <!-- Sidebar (desktop) -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-star" aria-hidden="true">✦</span>
+                <span>Eli M. Nails</span>
+            </div>
+            <nav class="sidebar-nav" aria-label="Secciones">
+                <button type="button" class="nav-item active" data-section="agenda">
+                    <i class="fas fa-calendar-alt" aria-hidden="true"></i> Agenda
+                </button>
+                <button type="button" class="nav-item" data-section="clientes">
+                    <i class="fas fa-user-friends" aria-hidden="true"></i> Clientes
+                </button>
+                <button type="button" class="nav-item" data-section="servicios">
+                    <i class="fas fa-spa" aria-hidden="true"></i> Servicios
+                </button>
+                <button type="button" class="nav-item" data-section="finanzas">
+                    <i class="fas fa-chart-pie" aria-hidden="true"></i> Finanzas
+                </button>
+                <button type="button" class="nav-item" data-section="ajustes">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
+                </button>
+            </nav>
+            <div class="sidebar-foot">
+                <button type="button" id="logout-sidebar" class="nav-item nav-item-danger">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <div class="app-main">
+            <div class="container mx-auto px-4 py-6 max-w-6xl">
         <!-- Aviso de estado (errores de red / sincronizacion) -->
         <div id="app-banner" class="hidden mb-4 rounded-lg px-4 py-3 text-sm" role="alert"></div>
 
         <!-- Header -->
         <header class="mb-6 flex items-start justify-between gap-4">
-            <div>
-            <h1 class="brand"><span class="brand-star" aria-hidden="true">✦</span> Eli M. Nails</h1>
-            <p class="brand-sub">Agenda de turnos personal</p>
+            <div class="min-w-0">
+                <div class="brand-mini"><span class="brand-star" aria-hidden="true">✦</span> Eli M. Nails</div>
+                <h1 class="section-title" id="section-title">Agenda</h1>
+                <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
-            <button type="button" id="theme-toggle" class="theme-toggle"
-                    aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
-                <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
-                <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
+            <button type="button" id="nuevo-turno-btn" class="btn-primary hidden shrink-0 px-4 py-2.5 rounded-lg font-medium text-sm">
+                <i class="fas fa-plus mr-2"></i> Nuevo turno
             </button>
         </header>
         
-        <!-- Navigation Tabs -->
-        <div class="flex mb-6 border-b border-line">
-            <button id="calendar-tab" class="nav-tab active flex-1 py-3 px-4 text-center">
-                <i class="fas fa-calendar-alt mr-2"></i> Calendario
-            </button>
-            <button id="appointments-tab" class="nav-tab flex-1 py-3 px-4 text-center">
-                <i class="fas fa-list mr-2"></i> Listado
-            </button>
-            <button id="new-tab" class="nav-tab flex-1 py-3 px-4 text-center">
-                <i class="fas fa-plus-circle mr-2"></i> Nuevo Turno
-            </button>
-        </div>
-        
+        <!-- Agenda: Calendario / Listado -->
+        <section class="section" data-section="agenda">
+            <div class="seg" role="tablist" aria-label="Vista de agenda">
+                <button type="button" id="calendar-tab" class="nav-tab active" data-view="calendar" role="tab">
+                    <i class="fas fa-calendar-alt mr-2"></i> Calendario
+                </button>
+                <button type="button" id="appointments-tab" class="nav-tab" data-view="appointments" role="tab">
+                    <i class="fas fa-list mr-2"></i> Listado
+                </button>
+            </div>
+
         <!-- Calendar View -->
         <div id="calendar-view" class="view-section bg-surface rounded-xl shadow-md p-4 mb-6">
             <div id="calendar" class="animate-fade-in"></div>
@@ -548,19 +771,8 @@
                     <button id="export-excel" class="export-btn w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
                         <i class="fas fa-file-excel mr-2"></i> Exportar
                     </button>
-                    <button type="button" id="backup-btn" class="bg-surface border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
-                        <i class="fas fa-download mr-2"></i> Respaldar
-                    </button>
-                    <button type="button" id="restore-btn" class="bg-surface border border-line w-full md:w-auto px-4 py-2.5 rounded-lg font-medium text-ink">
-                        <i class="fas fa-upload mr-2"></i> Restaurar
-                    </button>
-                    <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
-                    <button type="button" id="migrate-btn" class="hidden bg-eli-gold w-full md:w-auto px-4 py-2.5 rounded-lg font-medium">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> Migrar turnos locales
-                    </button>
                 </div>
             </div>
-            <p id="data-status" class="mt-3 text-sm" role="status" aria-live="polite" hidden></p>
             
             <div id="appointments-list" class="space-y-3">
                 <!-- Appointments will be loaded here -->
@@ -672,11 +884,108 @@
             </form>
         </div>
         
+        </section>
+
+        <!-- Clientes -->
+        <section class="section hidden" data-section="clientes">
+            <div class="panel">
+                <h2 class="panel-title">Clientes</h2>
+                <p class="panel-note">Fichas, contacto e historial de turnos.</p>
+                <div id="clientes-list" class="mt-4 space-y-3" aria-busy="true"></div>
+            </div>
+        </section>
+
+        <!-- Servicios -->
+        <section class="section hidden" data-section="servicios">
+            <div class="panel">
+                <h2 class="panel-title">Servicios</h2>
+                <p class="panel-note">Precios base y duración.</p>
+                <div id="servicios-list" class="mt-4 space-y-3" aria-busy="true"></div>
+            </div>
+        </section>
+
+        <!-- Finanzas -->
+        <section class="section hidden" data-section="finanzas">
+            <div class="panel">
+                <h2 class="panel-title">Finanzas</h2>
+                <p class="panel-note">Ingresos de turnos realizados y gastos.</p>
+                <div id="finanzas-list" class="mt-4 space-y-3" aria-busy="true"></div>
+            </div>
+        </section>
+
+        <!-- Ajustes -->
+        <section class="section hidden" data-section="ajustes">
+            <div class="panel space-y-5">
+                <div>
+                    <h2 class="panel-title">Apariencia</h2>
+                    <div class="setting-row">
+                        <div>
+                            <p class="setting-label">Tema</p>
+                            <p class="setting-note">Claro u oscuro. Se guarda en este dispositivo.</p>
+                        </div>
+                        <button type="button" id="theme-toggle" class="theme-toggle"
+                                aria-label="Cambiar tema" aria-pressed="false" title="Cambiar tema">
+                            <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
+                            <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="panel-title">Datos</h2>
+                    <p class="setting-note">Exportá o restaurá todos los turnos en JSON.</p>
+                    <p id="data-status" class="mt-2 text-sm" role="status" aria-live="polite" hidden></p>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button type="button" id="backup-btn" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium text-ink">
+                            <i class="fas fa-download mr-2"></i> Respaldar
+                        </button>
+                        <button type="button" id="restore-btn" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium text-ink">
+                            <i class="fas fa-upload mr-2"></i> Restaurar
+                        </button>
+                        <input type="file" id="restore-input" accept="application/json,.json" class="hidden">
+                        <button type="button" id="migrate-btn" class="hidden bg-eli-gold px-4 py-2.5 rounded-lg font-medium">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i> Migrar turnos locales
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="panel-title">Cuenta</h2>
+                    <button type="button" id="logout-btn" class="bg-surface border border-line px-4 py-2.5 rounded-lg font-medium text-ink mt-3">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </section>
         <!-- Footer -->
         <footer class="mt-12 text-center text-sm text-ink-soft">
             <p>Creado con <i class="fas fa-heart text-red-400"></i> por @Jacinto.Cards</p>
-            <button type="button" id="logout-btn" class="mt-2 text-xs text-ink-soft hover:text-ink-soft underline">Cerrar sesión</button>
         </footer>
+            </div>
+        </div>
+
+        <!-- Bottom nav (mobile) -->
+        <nav id="bottom-nav" class="bottom-nav" aria-label="Secciones">
+            <button type="button" class="nav-item active" data-section="agenda">
+                <i class="fas fa-calendar-alt" aria-hidden="true"></i> Agenda
+            </button>
+            <button type="button" class="nav-item" data-section="clientes">
+                <i class="fas fa-user-friends" aria-hidden="true"></i> Clientes
+            </button>
+            <button type="button" class="nav-item" data-section="servicios">
+                <i class="fas fa-spa" aria-hidden="true"></i> Servicios
+            </button>
+            <button type="button" class="nav-item" data-section="finanzas">
+                <i class="fas fa-chart-pie" aria-hidden="true"></i> Finanzas
+            </button>
+            <button type="button" class="nav-item" data-section="ajustes">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
+            </button>
+        </nav>
+
+        <button type="button" id="fab-nuevo" class="fab hidden" aria-label="Nuevo turno">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+        </button>
     </div>
     
     <!-- P2: pantalla de login -->
@@ -849,7 +1158,11 @@
             
             const calendarTab = document.getElementById('calendar-tab');
             const appointmentsTab = document.getElementById('appointments-tab');
-            const newTab = document.getElementById('new-tab');
+            const sectionTitle = document.getElementById('section-title');
+            const sectionSub = document.getElementById('section-sub');
+            const nuevoTurnoBtn = document.getElementById('nuevo-turno-btn');
+            const fabNuevo = document.getElementById('fab-nuevo');
+            const logoutSidebar = document.getElementById('logout-sidebar');
             
             const appointmentForm = document.getElementById('appointment-form');
             const clientNameInput = document.getElementById('client-name');
@@ -878,31 +1191,204 @@
             const confirmModal = document.getElementById('confirm-modal');
             
             // Tab Navigation
-            calendarTab.addEventListener('click', () => showView('calendar'));
-            appointmentsTab.addEventListener('click', () => showView('appointments'));
-            newTab.addEventListener('click', () => showView('new'));
+            // (los listeners de navegación se registran en el bloque I6a de abajo)
             
             function showView(view) {
-                // Update active tab
-                document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-                
-                // Hide all views
-                document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
-                
-                // Show selected view
+                document.querySelectorAll('.seg [data-view]').forEach(function(tab) {
+                    tab.classList.toggle('active', tab.dataset.view === view);
+                });
+                document.querySelectorAll('.view-section').forEach(function(seccion) {
+                    seccion.classList.add('hidden');
+                });
                 if (view === 'calendar') {
-                    calendarTab.classList.add('active');
                     calendarView.classList.remove('hidden');
                     if (calendar) calendar.render();
                 } else if (view === 'appointments') {
-                    appointmentsTab.classList.add('active');
                     appointmentsView.classList.remove('hidden');
                     loadAppointmentsList();
                 } else if (view === 'new') {
-                    newTab.classList.add('active');
                     newAppointmentView.classList.remove('hidden');
                     resetForm();
                 }
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // I6a · Estado global y capa de datos (store + api)
+            // ─────────────────────────────────────────────────────────────
+            const store = {
+                turnos: [],
+                clientes: [],
+                servicios: [],
+                gastos: [],
+                cargando: { turnos: false, clientes: false, servicios: false, gastos: false },
+                cargado: { turnos: false, clientes: false, servicios: false, gastos: false }
+            };
+
+            function apiLista(tabla, columnaOrden) {
+                return async function list() {
+                    let consulta = supabase.from(tabla).select('*');
+                    const orden = typeof columnaOrden === 'function' ? columnaOrden() : columnaOrden;
+                    if (orden) consulta = consulta.order(orden, { ascending: true });
+                    const { data, error } = await consulta;
+                    if (error) throw error;
+                    return data || [];
+                };
+            }
+
+            function apiCrud(tabla) {
+                return {
+                    list: apiLista(tabla),
+                    async create(fila) {
+                        const { data, error } = await supabase.from(tabla).insert(fila).select().single();
+                        if (error) throw error;
+                        return data;
+                    },
+                    async update(id, fila) {
+                        const { data, error } = await supabase.from(tabla).update(fila).eq('id', id).select().single();
+                        if (error) throw error;
+                        return data;
+                    },
+                    async remove(id) {
+                        const { error } = await supabase.from(tabla).delete().eq('id', id);
+                        if (error) throw error;
+                    }
+                };
+            }
+
+            const api = {
+                turnos: {
+                    // COLS se resuelve en cada llamada (puede cambiar tras detectarColumnas)
+                    list: function () { return apiLista('turnos', function () { return COLS.date; })(); },
+                    create: function (fila) { return apiCrud('turnos').create(fila); },
+                    update: function (id, fila) { return apiCrud('turnos').update(id, fila); },
+                    remove: function (id) { return apiCrud('turnos').remove(id); }
+                },
+                clientes: apiCrud('clientes'),
+                servicios: apiCrud('servicios'),
+                gastos: apiCrud('gastos')
+            };
+
+            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos'];
+
+            async function cargarTodo() {
+                if (!supabase) return;
+                await Promise.allSettled(CLAVES.map(async function(clave) {
+                    store.cargando[clave] = true;
+                    try {
+                        store[clave] = await api[clave].list();
+                        store.cargado[clave] = true;
+                    } catch (error) {
+                        console.error('No se pudo cargar ' + clave + ':', error);
+                        store.cargado[clave] = false;
+                    } finally {
+                        store.cargando[clave] = false;
+                    }
+                }));
+                pintarSecciones();
+            }
+
+            // ── pintado de placeholders (I6b/I6c los reemplazan) ──
+            function pintarEsqueleto(contenedor, filas) {
+                contenedor.innerHTML = '';
+                for (let i = 0; i < (filas || 3); i++) {
+                    const fila = document.createElement('div');
+                    fila.className = 'skeleton-row';
+                    fila.setAttribute('aria-hidden', 'true');
+                    contenedor.appendChild(fila);
+                }
+            }
+
+            function pintarVacio(contenedor, icono, mensaje) {
+                contenedor.innerHTML = '';
+                const caja = document.createElement('div');
+                caja.className = 'empty-state';
+                const iconoEl = document.createElement('i');
+                iconoEl.className = 'fas ' + icono;
+                iconoEl.setAttribute('aria-hidden', 'true');
+                const texto = document.createElement('p');
+                texto.textContent = mensaje;
+                caja.appendChild(iconoEl);
+                caja.appendChild(texto);
+                contenedor.appendChild(caja);
+            }
+
+            function pintarResumen(contenedor, clave, icono, mensajeVacio, etiqueta) {
+                if (!contenedor) return;
+                contenedor.setAttribute('aria-busy', store.cargando[clave] ? 'true' : 'false');
+                if (store.cargando[clave]) { pintarEsqueleto(contenedor, 3); return; }
+                if (!store.cargado[clave]) {
+                    pintarVacio(contenedor, 'fa-triangle-exclamation', 'No se pudieron cargar los datos. Revisá la conexión.');
+                    return;
+                }
+                const total = (store[clave] || []).length;
+                if (total === 0) { pintarVacio(contenedor, icono, mensajeVacio); return; }
+                contenedor.innerHTML = '';
+                const linea = document.createElement('p');
+                linea.className = 'text-sm text-ink-soft';
+                linea.textContent = total + ' ' + etiqueta + ' cargados · la gestión completa llega en la próxima iteración.';
+                contenedor.appendChild(linea);
+            }
+
+            function pintarSecciones() {
+                pintarResumen(document.getElementById('clientes-list'), 'clientes', 'fa-user-friends', 'Todavía no cargaste clientes.', 'clientes');
+                pintarResumen(document.getElementById('servicios-list'), 'servicios', 'fa-spa', 'Todavía no cargaste servicios.', 'servicios');
+                pintarResumen(document.getElementById('finanzas-list'), 'gastos', 'fa-receipt', 'Todavía no cargaste gastos.', 'gastos');
+            }
+
+            // ── navegación entre secciones ──
+            const SECCIONES = {
+                agenda: { titulo: 'Agenda', sub: 'Calendario y turnos' },
+                clientes: { titulo: 'Clientes', sub: 'Fichas, contacto e historial' },
+                servicios: { titulo: 'Servicios', sub: 'Precios base y duración' },
+                finanzas: { titulo: 'Finanzas', sub: 'Ingresos y gastos' },
+                ajustes: { titulo: 'Ajustes', sub: 'Apariencia, datos y cuenta' }
+            };
+
+            let seccionActual = 'agenda';
+
+            function mostrarSeccion(nombre) {
+                const destino = SECCIONES[nombre] ? nombre : 'agenda';
+                document.querySelectorAll('.section').forEach(function(seccion) {
+                    seccion.classList.toggle('hidden', seccion.dataset.section !== destino);
+                });
+                document.querySelectorAll('.nav-item[data-section]').forEach(function(item) {
+                    const activo = item.dataset.section === destino;
+                    item.classList.toggle('active', activo);
+                    if (activo) item.setAttribute('aria-current', 'page');
+                    else item.removeAttribute('aria-current');
+                });
+                if (sectionTitle) sectionTitle.textContent = SECCIONES[destino].titulo;
+                if (sectionSub) sectionSub.textContent = SECCIONES[destino].sub;
+                if (nuevoTurnoBtn) nuevoTurnoBtn.classList.toggle('hidden', destino !== 'agenda');
+                if (fabNuevo) fabNuevo.classList.toggle('hidden', destino !== 'agenda');
+                seccionActual = destino;
+                pintarSecciones();
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            }
+
+            document.querySelectorAll('.nav-item[data-section]').forEach(function(item) {
+                item.addEventListener('click', function() { mostrarSeccion(item.dataset.section); });
+            });
+
+            document.querySelectorAll('.seg [data-view]').forEach(function(tab) {
+                tab.addEventListener('click', function() { showView(tab.dataset.view); });
+            });
+
+            if (nuevoTurnoBtn) nuevoTurnoBtn.addEventListener('click', function() {
+                mostrarSeccion('agenda');
+                showView('new');
+            });
+
+            if (fabNuevo) fabNuevo.addEventListener('click', function() {
+                mostrarSeccion('agenda');
+                showView('new');
+            });
+
+            if (logoutSidebar) {
+                logoutSidebar.addEventListener('click', function() {
+                    const boton = document.getElementById('logout-btn');
+                    if (boton) boton.click();
+                });
             }
             
             // Form Handling
@@ -1554,6 +2040,8 @@
                 ocultarLogin();
                 try {
                     await arrancar();
+                    await cargarTodo();
+                    mostrarSeccion('agenda');
                 } catch (error) {
                     console.error(error);
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
