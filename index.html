@@ -772,6 +772,10 @@
             cursor: pointer;
         }
         .banner-accion:hover { background: rgba(0, 0, 0, .06); }
+        .banner-accion + .banner-accion { margin-left: 6px; }
+        @media (max-width: 420px) {
+            .banner-accion { margin-left: 8px; }
+        }
         .text-danger { color: var(--danger-ink); }
         .text-ok { color: var(--ok-ink); }
 
@@ -3410,14 +3414,16 @@
                 const texto = document.createElement('span');
                 texto.textContent = mensaje;
                 appBanner.appendChild(texto);
-                if (opts.accion && opts.accion.texto) {
+                const acciones = Array.isArray(opts.acciones) ? opts.acciones : (opts.accion ? [opts.accion] : []);
+                acciones.forEach(function (accion) {
+                    if (!accion || !accion.texto || typeof accion.alTocar !== 'function') return;
                     const boton = document.createElement('button');
                     boton.type = 'button';
                     boton.className = 'banner-accion';
-                    boton.textContent = opts.accion.texto;
-                    boton.addEventListener('click', opts.accion.alTocar);
+                    boton.textContent = accion.texto;
+                    boton.addEventListener('click', accion.alTocar);
                     appBanner.appendChild(boton);
-                }
+                });
                 appBanner.className = 'mb-4 rounded-lg px-4 py-3 text-sm ' +
                     (tipo === 'ok' ? 'banner-ok' : 'banner-error');
                 appBanner.setAttribute('role', tipo === 'ok' ? 'status' : 'alert');
@@ -4800,6 +4806,7 @@
                 cerrarModal(document.getElementById('deuda-detalle-modal'));
                 deudaDetalleActual = null;
             }            let compartiendoComprobante = false;
+            const cacheComprobantes = {};
 
             async function generarComprobanteDeuda(deuda, pago) {
                 const total = totalDeDeuda(deuda);
@@ -4993,11 +5000,11 @@
                 });
             }
 
-            async function compartirComprobanteDeuda(deuda, pago) {
+            async function compartirComprobanteDeuda(deuda, pago, archivoListo) {
                 if (compartiendoComprobante) return;
                 compartiendoComprobante = true;
                 try {
-                    const archivo = await generarComprobanteDeuda(deuda, pago);
+                    const archivo = archivoListo || await generarComprobanteDeuda(deuda, pago);
                     if (!archivo) {
                         mostrarBanner('No se pudo generar el comprobante.', 'error');
                         return;
@@ -5043,6 +5050,7 @@
 
             async function guardarPago() {
                 if (!deudaPagoActual || enviandoPago) return;
+                const deudaDelPago = deudaPagoActual;
                 const boton = document.getElementById('pago-save');
                 const errorEl = document.getElementById('pago-error');
                 const monto = Math.round(Number(document.getElementById('pago-monto').value));
@@ -5076,10 +5084,28 @@
                     await recargar('deudas');
                     refrescarPaneles();
                     const restante = Math.max(0, saldoActual - monto);
+
+                    // I31: dejar el comprobante listo en segundo plano para compartirlo
+                    // dentro del gesto del usuario (Safari exige gesto para navigator.share)
+                    cacheComprobantes[pago.id] = null;
+                    if (deudaDelPago) {
+                        generarComprobanteDeuda(deudaDelPago, pago).then(function (archivo) {
+                            if (archivo) cacheComprobantes[pago.id] = archivo;
+                        }).catch(function () { /* sin comprobante */ });
+                    }
+
                     mostrarBanner('Pago registrado: ' + money(monto) + '. ' +
                         (restante > 0 ? 'Resta ' + money(restante) + '.' : 'Deuda saldada.'), 'ok', {
-                        duracion: 6000,
-                        accion: { texto: 'Deshacer', alTocar: function () { deshacerPago(pago); } }
+                        duracion: 10000,
+                        acciones: [
+                            {
+                                texto: 'Compartir comprobante',
+                                alTocar: function () {
+                                    compartirComprobanteDeuda(deudaDelPago, pago, cacheComprobantes[pago.id] || null);
+                                }
+                            },
+                            { texto: 'Deshacer', alTocar: function () { deshacerPago(pago); } }
+                        ]
                     });
                 } catch (error) {
                     fallo('No se pudo registrar el pago: ' + (error.message || 'error de conexión'));
