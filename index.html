@@ -20,7 +20,7 @@
     <script>
         // A1b/I10: fijar modo y paleta antes del primer render (evita el flash)
         (function () {
-            var PALETAS = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold'];
+            var PALETAS = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold', 'mono-light', 'mono-dark'];
             try {
                 var guardado = localStorage.getItem('eli_theme');
                 var sistema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -299,6 +299,118 @@
             --btn-secondary-hover: #4B3D2C;
             --export-hover: #4B3D2C;
         }
+        /* ── I19 · paletas monocromáticas ── */
+        /* Blanco y Negro: fija modo claro */
+        :root[data-tema="mono-light"] {
+            --paper: #FAFAFA;
+            --surface: #FFFFFF;
+            --surface-2: #F0F0F0;
+            --blush: #E2E2E2;
+            --blush-2: #EDEDED;
+            --ink: #111111;
+            --ink-soft: #5A5A5A;
+            --line: #D9D9D9;
+            --gold: #9A9A9A;
+            --gold-ink: #333333;
+            --btn-primary-hover: #D2D2D2;
+            --btn-secondary-hover: #E0E0E0;
+            --export-hover: #E0E0E0;
+            --pending: #6B6B6B;
+            --pending-tint: #EFEFEF;
+            --pending-tint-ink: #1A1A1A;
+            --confirmed: #1F1F1F;
+            --confirmed-tint: #E2E2E2;
+            --confirmed-tint-ink: #111111;
+            --done: #000000;
+            --done-tint: #111111;
+            --done-tint-ink: #FFFFFF;
+            --cancelled: #6E6E6E;
+            --cancelled-tint: #E8E8E8;
+            --cancelled-tint-ink: #4A4A4A;
+        }
+        :root[data-tema="mono-light"][data-theme="dark"] {
+            --paper: #FAFAFA;
+            --surface: #FFFFFF;
+            --surface-2: #F0F0F0;
+            --blush: #E2E2E2;
+            --blush-2: #EDEDED;
+            --ink: #111111;
+            --ink-soft: #5A5A5A;
+            --line: #D9D9D9;
+            --gold: #9A9A9A;
+            --gold-ink: #333333;
+            --btn-primary-hover: #D2D2D2;
+            --btn-secondary-hover: #E0E0E0;
+            --export-hover: #E0E0E0;
+            --pending: #6B6B6B;
+            --pending-tint: #EFEFEF;
+            --pending-tint-ink: #1A1A1A;
+            --confirmed: #1F1F1F;
+            --confirmed-tint: #E2E2E2;
+            --confirmed-tint-ink: #111111;
+            --done: #000000;
+            --done-tint: #111111;
+            --done-tint-ink: #FFFFFF;
+            --cancelled: #6E6E6E;
+            --cancelled-tint: #E8E8E8;
+            --cancelled-tint-ink: #4A4A4A;
+        }
+
+        /* Negro y Blanco: fija modo oscuro */
+        :root[data-tema="mono-dark"] {
+            --paper: #0F0F0F;
+            --surface: #1A1A1A;
+            --surface-2: #242424;
+            --blush: #3A3A3A;
+            --blush-2: #2A2A2A;
+            --ink: #F5F5F5;
+            --ink-soft: #B0B0B0;
+            --line: #333333;
+            --gold: #C9C9C9;
+            --gold-ink: #E8E8E8;
+            --btn-primary-hover: #4A4A4A;
+            --btn-secondary-hover: #333333;
+            --export-hover: #333333;
+            --pending: #A8A8A8;
+            --pending-tint: #262626;
+            --pending-tint-ink: #E0E0E0;
+            --confirmed: #E8E8E8;
+            --confirmed-tint: #333333;
+            --confirmed-tint-ink: #F0F0F0;
+            --done: #F0F0F0;
+            --done-tint: #F0F0F0;
+            --done-tint-ink: #111111;
+            --cancelled: #7A7A7A;
+            --cancelled-tint: #1E1E1E;
+            --cancelled-tint-ink: #9A9A9A;
+        }
+        :root[data-tema="mono-dark"][data-theme="light"] {
+            --paper: #0F0F0F;
+            --surface: #1A1A1A;
+            --surface-2: #242424;
+            --blush: #3A3A3A;
+            --blush-2: #2A2A2A;
+            --ink: #F5F5F5;
+            --ink-soft: #B0B0B0;
+            --line: #333333;
+            --gold: #C9C9C9;
+            --gold-ink: #E8E8E8;
+            --btn-primary-hover: #4A4A4A;
+            --btn-secondary-hover: #333333;
+            --export-hover: #333333;
+            --pending: #A8A8A8;
+            --pending-tint: #262626;
+            --pending-tint-ink: #E0E0E0;
+            --confirmed: #E8E8E8;
+            --confirmed-tint: #333333;
+            --confirmed-tint-ink: #F0F0F0;
+            --done: #F0F0F0;
+            --done-tint: #F0F0F0;
+            --done-tint-ink: #111111;
+            --cancelled: #7A7A7A;
+            --cancelled-tint: #1E1E1E;
+            --cancelled-tint-ink: #9A9A9A;
+        }
 
         /* ── selector de paletas ── */
         .paletas {
@@ -307,8 +419,8 @@
             gap: 10px;
             margin-top: 10px;
         }
-        @media (min-width: 640px) {
-            .paletas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        @media (min-width: 768px) {
+            .paletas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
         .paleta {
             display: flex;
@@ -353,6 +465,12 @@
         .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(1) { background: #F7F1E8; }
         .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(2) { background: #E4CFB4; }
         .paleta[data-paleta="nude-gold"] .paleta-muestras i:nth-child(3) { background: #C9A96A; }
+        .paleta[data-paleta="mono-light"] .paleta-muestras i:nth-child(1) { background: #FAFAFA; }
+        .paleta[data-paleta="mono-light"] .paleta-muestras i:nth-child(2) { background: #E2E2E2; }
+        .paleta[data-paleta="mono-light"] .paleta-muestras i:nth-child(3) { background: #9A9A9A; }
+        .paleta[data-paleta="mono-dark"] .paleta-muestras i:nth-child(1) { background: #0F0F0F; }
+        .paleta[data-paleta="mono-dark"] .paleta-muestras i:nth-child(2) { background: #3A3A3A; }
+        .paleta[data-paleta="mono-dark"] .paleta-muestras i:nth-child(3) { background: #C9C9C9; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -1026,7 +1144,47 @@
             transition: filter .16s ease;
         }
         .btn-complete:hover { filter: brightness(1.06); }
-        .btn-complete:disabled { opacity: .6; cursor: not-allowed; }        @media (prefers-reduced-motion: reduce) {
+        .btn-complete:disabled { opacity: .6; cursor: not-allowed; }
+        /* ── I19 · A1 · feedback táctil ── */
+        .appt-row, .btn-primary, .btn-secondary, .export-btn, .paleta, .icon-btn, .nav-item, .seg .nav-tab {
+            transition: transform .12s ease, box-shadow .12s ease, background-color .16s ease, color .16s ease;
+        }
+        .appt-row:active, .btn-primary:active, .btn-secondary:active, .paleta:active, .icon-btn:active {
+            transform: scale(.985);
+        }
+
+        /* ── I19 · A3 · transición entre vistas y modales ── */
+        @keyframes viewIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: none; }
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(.98); }
+            to   { opacity: 1; transform: none; }
+        }
+        .section:not(.hidden) { animation: viewIn .22s ease-out; }
+        .modal-content { animation: modalIn .2s ease-out; }
+
+        /* ── I19 · temas monocromáticos: logo en gris y toggle fijo ── */
+        [data-tema^="mono"] .brand-logo { filter: grayscale(1); }
+        .theme-toggle.is-disabled { opacity: .45; }
+        .theme-toggle.is-disabled:hover { background: transparent; }
+
+        /* estados sin color: forma + patrón + intensidad */
+        [data-tema^="mono"] .appt-row.appointment-pending   { border-left-style: dashed; }
+        [data-tema^="mono"] .appt-row.appointment-cancelled { border-left-style: dotted; }
+        [data-tema^="mono"] .appt-row.appointment-cancelled .appt-name,
+        [data-tema^="mono"] .appt-row.appointment-cancelled .appt-service {
+            text-decoration: line-through;
+            opacity: .7;
+        }
+        [data-tema^="mono"] .badge.pending .badge-dot,
+        [data-tema^="mono"] .badge.cancelled .badge-dot {
+            background: transparent;
+            border: 1.5px solid currentColor;
+        }
+        [data-tema^="mono"] .fc-event-pending   { border-style: dashed; }
+        [data-tema^="mono"] .fc-event-cancelled { border-style: dotted; }        @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
@@ -1423,6 +1581,14 @@
                             <button type="button" class="paleta" data-paleta="nude-gold" role="radio" aria-checked="false">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Nude Elegance</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="mono-light" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Blanco y Negro</span>
+                            </button>
+                            <button type="button" class="paleta" data-paleta="mono-dark" role="radio" aria-checked="false">
+                                <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
+                                <span class="paleta-nombre">Negro y Blanco</span>
                             </button>
                         </div>
                     </div>                <div>
@@ -2156,8 +2322,22 @@
                 return (data || []).map(fromDb);
             }
 
-            async function loadAppointments() {
+            function pintarSkeletonLista() {
+                if (!appointmentsList) return;
+                appointmentsList.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const fila = document.createElement('div');
+                    fila.className = 'skeleton-row';
+                    appointmentsList.appendChild(fila);
+                }
+            }
+
+            async function loadAppointments(mostrarSkeleton) {
                 try {
+                    if (mostrarSkeleton !== false && !appointmentsView.classList.contains('hidden') &&
+                        appointmentsList && appointmentsList.querySelector('.appt-row')) {
+                        pintarSkeletonLista();
+                    }
                     cache = await fetchTurnos();
                     if (calendar) {
                         calendar.removeAllEvents();
@@ -2186,6 +2366,7 @@
                 } catch (error) {
                     console.error('Error cargando turnos:', error);
                     mostrarBanner('No se pudieron cargar los turnos. Revisá la conexión.');
+                    if (!appointmentsView.classList.contains('hidden')) loadAppointmentsList();
                 }
             }
             
@@ -3721,6 +3902,10 @@
 
             if (themeToggle) {
                 themeToggle.addEventListener('click', function () {
+                    if (paletaActual().indexOf('mono-') === 0) {
+                        mostrarBanner('Los temas Blanco y Negro fijan su modo. Elegí otra paleta para cambiar día/noche.', 'ok');
+                        return;
+                    }
                     const nuevo = temaActual() === 'dark' ? 'light' : 'dark';
                     try { localStorage.setItem(TEMA_KEY, nuevo); } catch (error) { /* modo privado */ }
                     aplicarTema(nuevo);
@@ -3739,7 +3924,7 @@
             // ─────────────────────────────────────────────────────────────
             // I10 · Paletas de color (Blush / Salvia / Mauve)
             // ─────────────────────────────────────────────────────────────
-            const PALETAS_DISENO = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold'];
+            const PALETAS_DISENO = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold', 'mono-light', 'mono-dark'];
             const CLAVE_PALETA = 'eli_design_theme';
 
             function paletaActual() {
@@ -3759,6 +3944,13 @@
                 if (meta) {
                     const papel = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
                     if (papel) meta.setAttribute('content', papel);
+                }
+                const toggle = document.getElementById('theme-toggle');
+                if (toggle) {
+                    const esMono = destino.indexOf('mono-') === 0;
+                    toggle.classList.toggle('is-disabled', esMono);
+                    toggle.setAttribute('aria-disabled', esMono ? 'true' : 'false');
+                    toggle.title = esMono ? 'Este tema fija su propio modo' : 'Cambiar tema';
                 }
             }
 
@@ -4129,6 +4321,34 @@
                 });
             }
 
+            // I19: version en gris del logo para los temas monocromaticos (se calcula una vez)
+            let logoGrisCache = null;
+            function logoEnGris(img) {
+                if (logoGrisCache) return logoGrisCache;
+                try {
+                    const ancho = img.naturalWidth || img.width;
+                    const alto = img.naturalHeight || img.height;
+                    const lienzo = document.createElement('canvas');
+                    lienzo.width = ancho;
+                    lienzo.height = alto;
+                    const cx = lienzo.getContext('2d');
+                    cx.drawImage(img, 0, 0, ancho, alto);
+                    const datos = cx.getImageData(0, 0, ancho, alto);
+                    const pix = datos.data;
+                    for (let i = 0; i < pix.length; i += 4) {
+                        const lum = 0.2126 * pix[i] + 0.7152 * pix[i + 1] + 0.0722 * pix[i + 2];
+                        pix[i] = lum;
+                        pix[i + 1] = lum;
+                        pix[i + 2] = lum;
+                    }
+                    cx.putImageData(datos, 0, 0);
+                    logoGrisCache = lienzo;
+                    return lienzo;
+                } catch (error) {
+                    return img;
+                }
+            }
+
             async function generarTarjetaTurno(turno) {
                 const ANCHO = 800;
                 const ALTO = 1000;
@@ -4162,6 +4382,7 @@
                         cargarImagen(LOGO_DATA_URL)
                     ]);
                     logo = resultados[1];
+                    if (logo && paletaActual().indexOf('mono-') === 0) logo = logoEnGris(logo);
                 } catch (error) { /* seguimos sin logo */ }
 
                 const hayCormorant = !!(document.fonts && document.fonts.check &&
