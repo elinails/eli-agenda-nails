@@ -210,6 +210,88 @@
         .salon-id { font-size: 11px; color: var(--ink-soft); font-family: ui-monospace, monospace; }
         .vacio { text-align: center; color: var(--ink-soft); padding: 30px 0; font-size: 14px; }
 
+        .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .kpi {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .kpi-label {
+            font-size: 10.5px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .kpi-valor { font-size: 26px; font-weight: 600; line-height: 1.2; }
+        .kpi-pie { font-size: 12px; color: var(--ink-soft); }
+
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .toolbar input[type="search"], .toolbar select {
+            flex: 1 1 200px;
+            min-width: 0;
+            min-height: 42px;
+            padding: 9px 13px;
+            border-radius: 9px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .toolbar select { flex: 0 0 auto; }
+        .toolbar .btn { min-height: 42px; }
+
+        tbody tr.fila-salon { cursor: pointer; }
+        tbody tr.fila-salon:hover { background: var(--surface-2); }
+        tbody tr.fila-salon:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            background: rgba(0, 0, 0, .55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-caja {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 470px;
+            max-height: 90dvh;
+            overflow-y: auto;
+            padding: 22px;
+            box-shadow: var(--shadow);
+        }
+        .modal-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .detalle-grid { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
+        .detalle-fila {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 10px 2px;
+            border-bottom: 1px solid var(--line);
+            font-size: 14px;
+        }
+        .detalle-fila dt { color: var(--ink-soft); font-size: 12.5px; }
+        .detalle-fila dd { margin: 0; text-align: right; font-weight: 500; word-break: break-word; }
+        .modal-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+        .modal-acciones .btn { flex: 1 1 130px; }
+
+        @media (max-width: 720px) {
+            .kpis { grid-template-columns: 1fr; }
+            .modal-overlay { padding: 0; align-items: stretch; }
+            .modal-caja { max-width: none; max-height: none; height: 100dvh; border-radius: 0; border: 0; }
+        }
+
         /* mobile: tarjetas */
         @media (max-width: 720px) {
             thead { display: none; }
@@ -302,6 +384,35 @@
             </div>
             <div class="contador" id="panel-contador"></div>
         </div>
+
+        <div class="kpis" id="panel-kpis">
+            <div class="kpi">
+                <span class="kpi-label">Salones</span>
+                <strong class="kpi-valor" id="kpi-salones">—</strong>
+                <span class="kpi-pie" id="kpi-salones-pie">cargando…</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-label">Turnos</span>
+                <strong class="kpi-valor" id="kpi-turnos">—</strong>
+                <span class="kpi-pie">en toda la plataforma</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-label">Clientas</span>
+                <strong class="kpi-valor" id="kpi-clientes">—</strong>
+                <span class="kpi-pie">registradas</span>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <input type="search" id="panel-buscar" placeholder="Buscar salón o email del dueño" aria-label="Buscar salón o email del dueño">
+            <select id="panel-filtro" aria-label="Filtrar por estado">
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="suspendidos">Suspendidos</option>
+            </select>
+            <button type="button" id="panel-csv" class="btn">↓ CSV de dueños</button>
+        </div>
+
         <div class="tarjeta" style="padding:18px">
             <table>
                 <thead>
@@ -321,6 +432,26 @@
         </div>
         <footer>Panel interno · no compartir este enlace</footer>
     </section>
+
+    <!-- 4 · DETALLE DEL SALÓN -->
+    <div id="detalle-overlay" class="modal-overlay oculto">
+        <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" id="detalle-caja">
+            <div class="modal-cabecera">
+                <div style="min-width:0">
+                    <h2 id="detalle-titulo">Salón</h2>
+                    <p class="sub" id="detalle-estado" style="margin:0"></p>
+                </div>
+                <button type="button" id="detalle-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">✕</button>
+            </div>
+            <div class="detalle-grid" id="detalle-datos"></div>
+            <div class="modal-acciones">
+                <button type="button" id="detalle-estado-btn" class="btn btn-peligro">Suspender</button>
+                <button type="button" id="detalle-recupero" class="btn">✉ Recuperación</button>
+                <button type="button" id="detalle-csv" class="btn">↓ CSV</button>
+            </div>
+            <p class="sub" id="detalle-nota" style="margin:12px 0 0"></p>
+        </div>
+    </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -392,7 +523,9 @@
     }
     function fechaCorta(valor) {
         if (!valor) return '—';
-        var d = new Date(valor);
+        var texto = String(valor);
+        var soloFecha = texto.length === 10 && texto.charAt(4) === '-' && texto.charAt(7) === '-';
+        var d = new Date(soloFecha ? texto + 'T00:00:00' : valor);
         if (isNaN(d.getTime())) return '—';
         return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
     }
@@ -627,6 +760,7 @@
             if (resumen.error) throw resumen.error;
             salonesCache = resumen.data || [];
             pintarSalones();
+            cargarKpis();
         } catch (error) {
             console.error('No se pudo cargar el resumen:', error);
             tbody.innerHTML = '';
@@ -637,16 +771,25 @@
     function pintarSalones() {
         var tbody = $('panel-tabla');
         var vacio = $('panel-vacio');
+        var lista = salonesFiltrados();
         tbody.innerHTML = '';
-        $('panel-contador').textContent = salonesCache.length === 1 ? '1 salón' : (salonesCache.length + ' salones');
+        var total = salonesCache.length;
+        $('panel-contador').textContent = lista.length === total
+            ? (total === 1 ? '1 salón' : total + ' salones')
+            : lista.length + ' de ' + total + ' salones';
 
-        if (!salonesCache.length) {
-            if (vacio) vacio.classList.remove('oculto');
+        if (!lista.length) {
+            if (vacio) {
+                vacio.textContent = total
+                    ? 'Ningún salón coincide con el filtro.'
+                    : 'No hay salones todavía.';
+                vacio.classList.remove('oculto');
+            }
             return;
         }
         if (vacio) vacio.classList.add('oculto');
 
-        salonesCache.forEach(function (salon) {
+        lista.forEach(function (salon) {
             var id = campo(salon, ['id', 'salon_id'], null);
             var nombre = campo(salon, ['nombre', 'salon', 'nombre_salon'], 'Salón');
             var dueno = campo(salon, ['dueno', 'dueno_email', 'email_dueno', 'owner_email', 'dueno_user_id'], '—');
@@ -656,7 +799,19 @@
             var activo = campo(salon, ['activo'], true) !== false;
 
             var fila = document.createElement('tr');
-            if (!activo) fila.className = 'inactivo';
+            fila.className = 'fila-salon' + (activo ? '' : ' inactivo');
+            if (id) {
+                fila.tabIndex = 0;
+                fila.setAttribute('role', 'button');
+                fila.setAttribute('aria-label', 'Ver detalle de ' + nombre);
+                fila.addEventListener('click', function () { abrirDetalle(id); });
+                fila.addEventListener('keydown', function (evento) {
+                    if (evento.key === 'Enter' || evento.key === ' ') {
+                        evento.preventDefault();
+                        abrirDetalle(id);
+                    }
+                });
+            }
 
             var tdNombre = document.createElement('td');
             tdNombre.setAttribute('data-label', 'Salón');
@@ -694,6 +849,8 @@
 
             var tdAccion = document.createElement('td');
             tdAccion.className = 'accion';
+            tdAccion.addEventListener('click', function (evento) { evento.stopPropagation(); });
+            tdAccion.addEventListener('keydown', function (evento) { evento.stopPropagation(); });
             if (id) {
                 var boton = document.createElement('button');
                 boton.type = 'button';
@@ -762,6 +919,300 @@
             alerta('panel-alerta', 'No se pudo cambiar el estado: ' + (error.message || 'error de conexión'));
             ocupado(boton, '');
         }
+    }
+
+    // ── I46 · KPIs, filtros, CSV y detalle ──
+    var filtroTexto = '';
+    var filtroEstado = 'todos';
+    var detalleActual = null;
+    var focoAnterior = null;
+
+    function normalizar(texto) {
+        var limpio = String(texto == null ? '' : texto).toLowerCase();
+        if (limpio.normalize) limpio = limpio.normalize('NFD');
+        var salida = '';
+        for (var i = 0; i < limpio.length; i++) {
+            var codigo = limpio.charCodeAt(i);
+            if (codigo >= 768 && codigo <= 879) continue;
+            salida += limpio.charAt(i);
+        }
+        return salida;
+    }
+
+    function datosSalon(salon) {
+        return {
+            id: campo(salon, ['id', 'salon_id'], null),
+            nombre: campo(salon, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
+            dueno: campo(salon, ['dueno', 'dueno_email', 'email_dueno', 'owner_email', 'dueno_user_id'], '—'),
+            miembros: campo(salon, ['miembros', 'cantidad_miembros', 'total_miembros'], 0),
+            turnos: campo(salon, ['turnos', 'turnos_totales', 'total_turnos'], 0),
+            creado: campo(salon, ['creado_en', 'fecha_creacion', 'created_at'], null),
+            activo: campo(salon, ['activo'], true) !== false
+        };
+    }
+
+    function salonesFiltrados() {
+        var busqueda = normalizar(filtroTexto).trim();
+        return salonesCache.filter(function (salon) {
+            var d = datosSalon(salon);
+            if (filtroEstado === 'activos' && !d.activo) return false;
+            if (filtroEstado === 'suspendidos' && d.activo) return false;
+            if (!busqueda) return true;
+            return normalizar(d.nombre).indexOf(busqueda) >= 0 ||
+                   normalizar(d.dueno).indexOf(busqueda) >= 0;
+        });
+    }
+
+    async function cargarKpis() {
+        try {
+            var resultado = await supabase.rpc('admin_kpis');
+            if (resultado.error) throw resultado.error;
+            var fila = (resultado.data && resultado.data[0]) || {};
+            var total = Number(fila.salones_total) || 0;
+            var activos = Number(fila.salones_activos) || 0;
+            $('kpi-salones').textContent = String(total);
+            $('kpi-salones-pie').textContent = activos + (activos === 1 ? ' activo' : ' activos');
+            $('kpi-turnos').textContent = String(Number(fila.turnos_total) || 0);
+            $('kpi-clientes').textContent = String(Number(fila.clientes_total) || 0);
+        } catch (error) {
+            console.error('No se pudieron cargar los KPIs:', error);
+            $('kpi-salones').textContent = '—';
+            $('kpi-turnos').textContent = '—';
+            $('kpi-clientes').textContent = '—';
+            $('kpi-salones-pie').textContent = 'sin datos';
+        }
+    }
+
+    function celdaDetalle(etiqueta, valor) {
+        var cont = document.createElement('dl');
+        cont.className = 'detalle-fila';
+        var dt = document.createElement('dt');
+        dt.textContent = etiqueta;
+        var dd = document.createElement('dd');
+        if (valor instanceof Node) {
+            dd.appendChild(valor);
+        } else {
+            dd.textContent = String(valor == null ? '—' : valor);
+        }
+        cont.appendChild(dt);
+        cont.appendChild(dd);
+        return cont;
+    }
+
+    function numero(valor) {
+        var n = Number(valor);
+        return isFinite(n) ? n : 0;
+    }
+
+    async function abrirDetalle(id) {
+        if (!id) return;
+        focoAnterior = document.activeElement;
+        $('detalle-titulo').textContent = 'Cargando…';
+        $('detalle-estado').textContent = '';
+        $('detalle-datos').textContent = '';
+        $('detalle-nota').textContent = '';
+        $('detalle-overlay').classList.remove('oculto');
+        document.body.style.overflow = 'hidden';
+        $('detalle-cerrar').focus();
+
+        try {
+            var resultado = await supabase.rpc('admin_salon_detalle', { p_salon: id });
+            if (resultado.error) throw resultado.error;
+            var fila = (resultado.data && resultado.data[0]) || null;
+            if (!fila) throw new Error('No se encontró el salón.');
+            detalleActual = {
+                id: id,
+                nombre: fila.nombre || 'Salón',
+                dueno: fila.dueno_email || '—',
+                creado: fila.creado_en || null,
+                activo: fila.activo !== false,
+                miembros: numero(fila.miembros),
+                turnos: numero(fila.turnos_total),
+                realizados: numero(fila.turnos_realizados),
+                clientes: numero(fila.clientes),
+                ultimo: fila.ultimo_turno || null
+            };
+            pintarDetalle();
+        } catch (error) {
+            console.error('No se pudo cargar el detalle:', error);
+            $('detalle-titulo').textContent = 'No se pudo cargar';
+            $('detalle-estado').textContent = error.message || 'error de conexión';
+            $('detalle-datos').textContent = '';
+        }
+    }
+
+    function pintarDetalle() {
+        if (!detalleActual) return;
+        var d = detalleActual;
+        $('detalle-titulo').textContent = d.nombre;
+        $('detalle-estado').textContent = d.activo ? 'Activo' : 'Suspendido';
+        $('detalle-estado').style.color = d.activo ? 'var(--ok)' : 'var(--danger)';
+
+        var caja = $('detalle-datos');
+        caja.textContent = '';
+        caja.appendChild(celdaDetalle('Dueña', d.dueno));
+        caja.appendChild(celdaDetalle('Registrado', fechaCorta(d.creado)));
+        caja.appendChild(celdaDetalle('Miembros', String(d.miembros)));
+        caja.appendChild(celdaDetalle('Turnos', String(d.turnos) + ' (' + d.realizados + ' realizados)'));
+        caja.appendChild(celdaDetalle('Clientas', String(d.clientes)));
+        caja.appendChild(celdaDetalle('Último turno', d.ultimo ? fechaCorta(d.ultimo) : 'Sin turnos'));
+
+        var boton = $('detalle-estado-btn');
+        boton.textContent = d.activo ? 'Suspender' : 'Activar';
+        boton.className = 'btn ' + (d.activo ? 'btn-peligro' : 'btn-ok');
+        $('detalle-nota').textContent = '';
+    }
+
+    async function cambiarEstadoDesdeDetalle() {
+        if (!detalleActual) return;
+        var boton = $('detalle-estado-btn');
+        var nuevo = !detalleActual.activo;
+        ocupado(boton, 'Guardando…');
+        try {
+            var resultado = await supabase.rpc('admin_set_salon_activo', {
+                p_salon: detalleActual.id,
+                p_activo: nuevo
+            });
+            if (resultado.error) throw resultado.error;
+            detalleActual.activo = nuevo;
+            var enLista = salonesCache.filter(function (s) {
+                return String(campo(s, ['id', 'salon_id'], '')) === String(detalleActual.id);
+            })[0];
+            if (enLista) {
+                if (enLista.activo !== undefined) enLista.activo = nuevo;
+                if (enLista.salon_activo !== undefined) enLista.salon_activo = nuevo;
+            }
+            pintarSalones();
+            alerta('panel-alerta', nuevo ? 'Salón activado.' : 'Salón suspendido.', 'ok');
+            cargarKpis();
+        } catch (error) {
+            console.error('No se pudo cambiar el estado:', error);
+            $('detalle-nota').textContent = 'No se pudo cambiar el estado: ' + (error.message || 'error de conexión');
+        } finally {
+            delete boton.dataset.texto;
+            boton.disabled = false;
+            if (detalleActual) pintarDetalle();
+        }
+    }
+
+    async function enviarRecuperacion() {
+        if (!detalleActual) return;
+        var email = detalleActual.dueno;
+        if (!email || email === '—') {
+            $('detalle-nota').textContent = 'Este salón no tiene email de dueña registrado.';
+            return;
+        }
+        var boton = $('detalle-recupero');
+        ocupado(boton, 'Enviando…');
+        try {
+            var resultado = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: location.origin + '/'
+            });
+            if (resultado.error) throw resultado.error;
+            $('detalle-nota').textContent = 'Le enviamos un mail de recuperación a ' + email + '.';
+        } catch (error) {
+            console.error('No se pudo enviar la recuperación:', error);
+            $('detalle-nota').textContent = 'No se pudo enviar: ' + (error.message || 'error de conexión');
+        } finally {
+            ocupado(boton, '');
+        }
+    }
+
+    function celdaCsv(valor) {
+        var texto = String(valor == null ? '' : valor);
+        var primero = texto.charAt(0);
+        if (primero === '=' || primero === '+' || primero === '-' || primero === '@') texto = "'" + texto;
+        var comilla = String.fromCharCode(34);
+        var salto = String.fromCharCode(10);
+        var retorno = String.fromCharCode(13);
+        if (texto.indexOf(comilla) >= 0 || texto.indexOf(',') >= 0 || texto.indexOf(';') >= 0 ||
+            texto.indexOf(salto) >= 0 || texto.indexOf(retorno) >= 0) {
+            texto = comilla + texto.split(comilla).join(comilla + comilla) + comilla;
+        }
+        return texto;
+    }
+
+    function descargarCsv() {
+        var lista = salonesFiltrados();
+        var separador = String.fromCharCode(13, 10);
+        var lineas = [['Salon', 'Dueno', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
+        lista.forEach(function (salon) {
+            var d = datosSalon(salon);
+            lineas.push([
+                celdaCsv(d.nombre),
+                celdaCsv(d.dueno),
+                celdaCsv(d.miembros),
+                celdaCsv(d.turnos),
+                celdaCsv(fechaCorta(d.creado)),
+                celdaCsv(d.activo ? 'Activo' : 'Suspendido')
+            ].join(','));
+        });
+        var texto = String.fromCharCode(65279) + lineas.join(separador);
+        var blob = new Blob([texto], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'salones_' + new Date().toISOString().slice(0, 10) + '.csv';
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+        alerta('panel-alerta', 'CSV descargado con ' + lista.length + ' salon(es).', 'ok');
+    }
+
+    function cerrarDetalle() {
+        $('detalle-overlay').classList.add('oculto');
+        document.body.style.overflow = '';
+        detalleActual = null;
+        if (focoAnterior && focoAnterior.focus) focoAnterior.focus();
+        focoAnterior = null;
+    }
+
+    function cerrarDetalleSiAbierto() {
+        if (!$('detalle-overlay').classList.contains('oculto')) cerrarDetalle();
+    }
+
+    // focus trap
+    document.addEventListener('keydown', function (evento) {
+        if ($('detalle-overlay').classList.contains('oculto')) return;
+        if (evento.key === 'Escape') { evento.preventDefault(); cerrarDetalle(); return; }
+        if (evento.key !== 'Tab') return;
+        var caja = $('detalle-caja');
+        var focos = caja.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (!focos.length) return;
+        var primero = focos[0];
+        var ultimo = focos[focos.length - 1];
+        if (evento.shiftKey && document.activeElement === primero) {
+            evento.preventDefault();
+            ultimo.focus();
+        } else if (!evento.shiftKey && document.activeElement === ultimo) {
+            evento.preventDefault();
+            primero.focus();
+        }
+    });
+
+    if ($('panel-buscar')) {
+        $('panel-buscar').addEventListener('input', function () {
+            filtroTexto = $('panel-buscar').value;
+            pintarSalones();
+        });
+    }
+    if ($('panel-filtro')) {
+        $('panel-filtro').addEventListener('change', function () {
+            filtroEstado = $('panel-filtro').value;
+            pintarSalones();
+        });
+    }
+    if ($('panel-csv')) $('panel-csv').addEventListener('click', descargarCsv);
+    if ($('detalle-cerrar')) $('detalle-cerrar').addEventListener('click', cerrarDetalle);
+    if ($('detalle-estado-btn')) $('detalle-estado-btn').addEventListener('click', cambiarEstadoDesdeDetalle);
+    if ($('detalle-recupero')) $('detalle-recupero').addEventListener('click', enviarRecuperacion);
+    if ($('detalle-csv')) $('detalle-csv').addEventListener('click', descargarCsv);
+    if ($('detalle-overlay')) {
+        $('detalle-overlay').addEventListener('click', function (evento) {
+            if (evento.target === $('detalle-overlay')) cerrarDetalle();
+        });
     }
 
     // ── sesión ──
