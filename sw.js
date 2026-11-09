@@ -24,7 +24,7 @@ self.addEventListener('install', function(evento) {
             return Promise.all(SHELL.map(function(ruta) {
                 return cache.add(new Request(ruta, { cache: 'reload' })).catch(function() { /* seguimos */ });
             }));
-        }).then(function() { return self.skipWaiting(); })
+        })
     );
 });
 
@@ -43,8 +43,9 @@ self.addEventListener('fetch', function(evento) {
     if (peticion.method !== 'GET') return;
     if (peticion.url.indexOf(self.location.origin) !== 0) return;
 
+    const opciones = peticion.mode === 'navigate' ? { cache: 'no-store' } : undefined;
     evento.respondWith(
-        fetch(peticion).then(function(respuesta) {
+        fetch(peticion, opciones).then(function(respuesta) {
             if (respuesta && respuesta.ok) {
                 const copia = respuesta.clone();
                 caches.open(CACHE).then(function(cache) {

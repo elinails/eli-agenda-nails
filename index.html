@@ -1367,6 +1367,27 @@
             padding: 10px 16px; font-size: 13px; font-weight: 600;
             background: #7A3E2E; color: #FFF4EF; text-align: center;
         }
+        /* I50 · banner de actualización del Service Worker */
+        .sw-update {
+            position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%);
+            z-index: 95; display: flex; align-items: center; gap: 12px;
+            max-width: calc(100vw - 32px); padding: 10px 12px 10px 16px;
+            background: var(--surface); color: var(--ink);
+            border: 1px solid var(--line); border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .18);
+            font-size: 13px; line-height: 1.35;
+        }
+        .sw-update.hidden { display: none; }
+        .sw-update-texto { min-width: 0; }
+        .sw-update-btn {
+            border: 0; border-radius: 8px; padding: 8px 12px;
+            background: var(--blush); color: var(--ink);
+            font-family: inherit; font-size: 13px; font-weight: 600;
+            cursor: pointer; white-space: nowrap;
+        }
+        @media (min-width: 1024px) {
+            .sw-update { bottom: 24px; }
+        }
         .modo-soporte .fab,
         .modo-soporte #nuevo-cliente-btn,
         .modo-soporte .row-actions button,
@@ -1675,6 +1696,11 @@
         <button type="button" class="ads-cerrar" id="anuncio-cerrar" aria-label="Ocultar anuncio">×</button>
     </div>
     <div id="soporte-banner" class="soporte-banner hidden" role="status"></div>
+    <!-- I50 · actualización de la app -->
+    <div id="sw-update" class="sw-update hidden" role="status" aria-live="polite">
+        <span class="sw-update-texto">Hay una nueva versión de la app disponible.</span>
+        <button type="button" id="sw-update-btn" class="sw-update-btn">Recargar</button>
+    </div>
     <div id="app-shell" class="app-shell">
         <!-- Sidebar (desktop) -->
         <aside id="sidebar" class="sidebar">
@@ -2548,7 +2574,6 @@
                         <label class="text-sm text-ink-soft block mb-1" for="miembro-rol">Rol</label>
                         <select id="miembro-rol" class="w-full px-4 py-2 rounded-lg border border-line">
                             <option value="staff" selected>Empleada</option>
-                            <option value="owner">Dueña</option>
                         </select>
                     </div>
                     <p class="setting-note">La cuenta tiene que existir en Supabase Auth para poder asignarla.</p>
@@ -2995,6 +3020,7 @@
                 } catch (error) {
                     const texto = String((error && (error.message || error.code)) || '');
                     if (/cuenta_desactivada/i.test(texto)) return { ok: false, motivo: 'desactivada' };
+                    if (/registro_cerrado/i.test(texto)) return { ok: false, motivo: 'registro_cerrado' };
                     if (/does not exist|PGRST202|Could not find the function/i.test(texto)) return { ok: false, motivo: 'sin_funcion' };
                     console.error('No se pudo crear el salón:', error);
                     return { ok: false, motivo: 'error' };
@@ -3765,6 +3791,7 @@
             }
 
             async function respaldar(sufijo) {
+                if (!esOwner()) throw new Error('Solo la dueña puede descargar respaldos.');
                 const payload = construirRespaldo();
                 descargarJson(payload, 'Eli_Backup_' + todayISO() + (sufijo || '') + '.json');
                 return { total: totalDeRespaldo(payload), counts: payload.counts };
@@ -4137,6 +4164,10 @@
             }
 
             backupBtn.addEventListener('click', async function () {
+                if (!esOwner()) {
+                    setDataStatus('error', 'Solo la dueña puede descargar respaldos.');
+                    return;
+                }
                 try {
                     const resumen = await respaldar();
                     const partes = ORDEN_MENSAJE
@@ -4483,6 +4514,8 @@
                             appIniciada = false;
                             if (alta.motivo === 'desactivada') {
                                 mostrarLogin('Tu cuenta está desactivada. Hablá con la dueña del salón.');
+                            } else if (alta.motivo === 'registro_cerrado') {
+                                mostrarLogin('El registro de nuevos salones está cerrado por el momento.');
                             } else if (alta.motivo === 'sin_funcion') {
                                 mostrarLogin('Falta habilitar el alta automática de salones. Avisale al administrador.');
                             } else {
@@ -4511,11 +4544,42 @@
                 }
             }
 
+            // I51 · canje del enlace de soporte con token_hash (sin PKCE).
+            // Se ejecuta ANTES de getSession para que la sesión ya esté disponible.
+            async function canjearTokenSoporte() {
+                let params;
+                try { params = new URLSearchParams(location.search); } catch (e) { return; }
+                const tokenHash = params.get("token_hash");
+                if (!tokenHash) return;
+
+                // limpiar la URL cuanto antes (el token no debe quedar en el historial)
+                try {
+                    const limpia = new URL(location.href);
+                    limpia.searchParams.delete("token_hash");
+                    limpia.searchParams.delete("type");
+                    history.replaceState(null, "", limpia.pathname + (limpia.search || "") + (limpia.hash || ""));
+                } catch (error) { /* noop */ }
+
+                try {
+                    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
+                    if (error) {
+                        console.warn("Soporte: no se pudo canjear el token:", error.message);
+                        mostrarLogin("El enlace de soporte venció o ya se usó. Pedile uno nuevo al administrador.");
+                    }
+                } catch (error) {
+                    console.error("Soporte: error al canjear:", error);
+                    mostrarLogin("No se pudo abrir el modo soporte. Pedile un enlace nuevo al administrador.");
+                }
+            }
+
             async function iniciarAuth() {
                 if (!SUPABASE_LISTO) {
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
                     return;
                 }
+                // I51: si venimos de un enlace de soporte, canjear el token primero.
+                await canjearTokenSoporte();
+
                 // El megáfono y los flags se leen al arrancar: también aplican en el login.
                 cargarAnuncio();
                 cargarFlagsApp();
@@ -7565,12 +7629,13 @@
                 if (!esOwner()) { fallo('Solo la dueña puede agregar miembros.'); return; }
 
                 const plan = await limiteDelPlan();
-                const empleadasActivas = (store.miembros || []).filter(function (m) {
-                    return m.rol !== 'owner' && m.activo !== false;
+                const usados = (store.miembros || []).filter(function (m) {
+                    return m.activo !== false;
                 }).length;
-                if (plan.limite !== null && empleadasActivas >= plan.limite) {
-                    fallo('Tu plan ' + plan.nombre + ' solo permite ' + plan.limite + ' empleada' +
-                          (plan.limite === 1 ? '' : 's') + '. Pasate a Pro para agregar más.');
+                if (plan.limite !== null && usados >= plan.limite) {
+                    fallo('Tu plan ' + plan.nombre + ' permite ' + plan.limite + ' persona' +
+                          (plan.limite === 1 ? '' : 's') + ' activa' + (plan.limite === 1 ? '' : 's') +
+                          ' (incluida la dueña). Pasate a un plan mayor para agregar empleadas.');
                     return;
                 }
                 const textoBoton = boton ? boton.textContent : '';
@@ -7581,8 +7646,13 @@
                     if (error) {
                         const texto = String(error.message || error.code || '');
                         if (/limite_plan/i.test(texto)) {
-                            fallo('Tu plan ' + plan.nombre + ' solo permite ' + plan.limite + ' empleada' +
-                                  (plan.limite === 1 ? '' : 's') + '. Pasate a Pro para agregar más.');
+                            fallo('Tu plan ' + plan.nombre + ' permite ' + plan.limite + ' persona' +
+                                  (plan.limite === 1 ? '' : 's') + ' activa' + (plan.limite === 1 ? '' : 's') +
+                                  ' (incluida la dueña). Pasate a un plan mayor para agregar empleadas.');
+                        } else if (/owner_unico|ya_es_duena/i.test(texto)) {
+                            fallo('Este salón ya tiene dueña. Solo se pueden invitar empleadas.');
+                        } else if (/owner_requerido/i.test(texto)) {
+                            fallo('El salón no puede quedar sin dueña.');
                         } else if (/usuario_no_registrado/i.test(texto)) {
                             fallo('Ese email no tiene cuenta. Pedile que se registre primero y volvé a intentar.');
                         } else if (/sin_permisos/i.test(texto)) {
@@ -8233,21 +8303,56 @@
             }
 
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    let swRecargado = false;
+                (function () {
+                    const caja = document.getElementById('sw-update');
+                    const boton = document.getElementById('sw-update-btn');
+                    let esperando = null;
+                    let recargando = false;
+
+                    function mostrar(worker) {
+                        esperando = worker;
+                        if (caja) caja.classList.remove('hidden');
+                    }
+
+                    if (boton) {
+                        boton.addEventListener('click', function () {
+                            if (caja) caja.classList.add('hidden');
+                            if (!esperando) { location.reload(); return; }
+                            recargando = true;
+                            esperando.postMessage({ tipo: 'SKIP_WAITING' });
+                            setTimeout(function () { if (recargando) location.reload(); }, 2000);
+                        });
+                    }
+
                     navigator.serviceWorker.addEventListener('controllerchange', function () {
-                        if (swRecargado) return;
-                        swRecargado = true;
+                        if (!recargando) return;
+                        recargando = false;
                         location.reload();
                     });
-                    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (registro) {
-                        if (registro && registro.update) registro.update();
-                        if (registro && registro.waiting) registro.waiting.postMessage({ tipo: 'SKIP_WAITING' });
-                    }).catch(function (error) {
-                        console.warn('Service Worker no registrado:', error);
+
+                    window.addEventListener('load', function () {
+                        navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (registro) {
+                            if (registro.waiting && navigator.serviceWorker.controller) mostrar(registro.waiting);
+                            registro.addEventListener('updatefound', function () {
+                                const nuevo = registro.installing;
+                                if (!nuevo) return;
+                                nuevo.addEventListener('statechange', function () {
+                                    if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+                                        mostrar(nuevo);
+                                    }
+                                });
+                            });
+                            if (registro.update) registro.update().catch(function () {});
+                            document.addEventListener('visibilitychange', function () {
+                                if (!document.hidden && registro.update) registro.update().catch(function () {});
+                            });
+                        }).catch(function (error) {
+                            console.warn('Service Worker no registrado:', error);
+                        });
                     });
-                });
-            }            iniciarAuth();
+                })();
+            }
+            iniciarAuth();
             
             // Sin min en los inputs: los turnos pasados son validos (registro de
             // caja) y el filtro debe poder consultar el historial.
