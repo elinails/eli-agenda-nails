@@ -4236,13 +4236,12 @@
             // La sesión del dueño se guarda en una storageKey aislada para NO pisar
             // la sesión del SuperAdmin (misma origin = mismo localStorage).
             const CLAVE_SOPORTE = 'eli-soporte-auth';
+            // I52: el modo soporte vive SOLO en la URL (?soporte=1).
+            // No se persiste en sessionStorage: una recarga vuelve a la sesión normal
+            // de la dueña (el admin puede generar un enlace nuevo si lo necesita).
             const soporteActivo = (function () {
                 try {
-                    if (new URLSearchParams(location.search).get('soporte') === '1') {
-                        sessionStorage.setItem('eli_soporte', '1');
-                        return true;
-                    }
-                    return sessionStorage.getItem('eli_soporte') === '1';
+                    return new URLSearchParams(location.search).get('soporte') === '1';
                 } catch (error) {
                     return false;
                 }
@@ -4256,7 +4255,6 @@
                 } catch (error) { /* noop */ }
                 window.addEventListener('pagehide', function () {
                     try { localStorage.removeItem(CLAVE_SOPORTE); } catch (error) { /* noop */ }
-                    try { sessionStorage.removeItem('eli_soporte'); } catch (error) { /* noop */ }
                 });
             } else {
                 try { localStorage.removeItem(CLAVE_SOPORTE); } catch (error) { /* noop */ }
@@ -4273,6 +4271,15 @@
             const supabase = SUPABASE_LISTO
                 ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: opcionesAuth })
                 : null;
+
+            // I52 · Respaldo local de la sesión (solo modo normal).
+            // El cliente de Supabase BORRA la sesión del storage cuando un refresh
+            // devuelve un error no reintentable (400/401). El respaldo permite un
+            // único intento de recuperación. En modo soporte no se usa: su sesión
+            // es desechable y no debe mezclarse con la del salón.
+            const CLAVE_RESPALDO = soporteActivo ? null : 'eli_auth_respaldo';
+            const CLAVE_REINTENTO = 'eli_auth_reintento';
+            const CLAVE_ULTIMO_EMAIL = 'eli_ultimo_email';
 
             let bannerTimer = null;
 
@@ -4438,11 +4445,10 @@
             // ── Auth ──
             let appIniciada = false;
 
-            // I24: firma del modo de vista (movil <-> escritorio) para intentar
-            // recuperar la sesion cuando el navegador cambia de contexto.
+            // I24: firma del modo de vista (movil <-> escritorio). I52: ahora solo
+            // sirve para elegir el mensaje del login, no para "renovar" la sesión.
             const CLAVE_MODO = 'eli_modo_vista';
             let cambioDeModo = false;
-            let reintentoHecho = false;
 
             function firmaDeModo() {
                 const ancho = window.innerWidth >= 1024 ? 'D' : 'M';
@@ -4461,12 +4467,191 @@
                 }
             })();
 
+            // ── I52 · Resiliencia de la sesión ─────────────────────────────
+            // @supabase/supabase-js 2.45.4 borra la sesión del storage cuando un
+            // refresh devuelve un error NO reintentable (400/401). Al cambiar a
+            // "Sitio para computadoras" el reload puede disparar dos refresh con
+            // el mismo token: el servidor detecta reuso, revoca la familia y el
+            // cliente limpia el localStorage. Con este respaldo la app reintenta
+            // UNA sola vez antes de pedir login de nuevo.
+            const MENSAJE_SESION_PERDIDA =
+                'Cambiaste el modo de vista o se venció la sesión. Tus datos están guardados: volvé a iniciar sesión.';
+
+            function mensajeSesionPerdida() {
+                return soporteActivo
+                    ? 'El modo soporte terminó o venció su sesión. Pedile un enlace nuevo al administrador.'
+                    : MENSAJE_SESION_PERDIDA;
+            }
+
+            let cerrandoSesion = false;
+            let recuperacionEnCurso = false;
+
+            function claveSesionPrincipal() {
+                if (!supabase || !supabase.auth) return null;
+                if (supabase.auth.storageKey) return supabase.auth.storageKey;
+                try {
+                    return 'sb-' + new URL(SUPABASE_URL).hostname.split('.')[0] + '-auth-token';
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function sesionEnStorage() {
+                const clave = claveSesionPrincipal();
+                if (!clave) return false;
+                try { return !!localStorage.getItem(clave); } catch (error) { return false; }
+            }
+
+            function leerRespaldo() {
+                if (!CLAVE_RESPALDO) return null;
+                try {
+                    const crudo = localStorage.getItem(CLAVE_RESPALDO);
+                    if (!crudo) return null;
+                    const dato = JSON.parse(crudo);
+                    if (!dato || typeof dato.refresh_token !== 'string' || !dato.refresh_token) return null;
+                    return dato;
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            // Guarda solo lo mínimo necesario para renovar. Nunca contraseñas,
+            // nunca tokens en la URL ni en consola.
+            function guardarRespaldo(session) {
+                if (!CLAVE_RESPALDO || !session || !session.refresh_token) return;
+                try {
+                    localStorage.setItem(CLAVE_RESPALDO, JSON.stringify({
+                        access_token: session.access_token || '',
+                        refresh_token: session.refresh_token,
+                        expires_at: session.expires_at || null,
+                        token_type: session.token_type || 'bearer',
+                        user: {
+                            id: session.user && session.user.id ? session.user.id : null,
+                            email: session.user && session.user.email ? session.user.email : ''
+                        }
+                    }));
+                } catch (error) { /* sin storage: la app sigue funcionando */ }
+            }
+
+            function borrarRespaldo() {
+                if (!CLAVE_RESPALDO) return;
+                try { localStorage.removeItem(CLAVE_RESPALDO); } catch (error) { /* noop */ }
+            }
+
+            // Si hay una sesión viva en el storage y todavía no hay respaldo,
+            // la copiamos al toque: así los usuarios ya logueados quedan cubiertos
+            // desde la primera carga, sin esperar a un refresh.
+            function sembrarRespaldoInicial() {
+                if (!CLAVE_RESPALDO || leerRespaldo()) return;
+                const clave = claveSesionPrincipal();
+                if (!clave) return;
+                try {
+                    const crudo = localStorage.getItem(clave);
+                    if (!crudo) return;
+                    const guardada = JSON.parse(crudo);
+                    if (guardada && guardada.refresh_token) guardarRespaldo(guardada);
+                } catch (error) { /* storage ilegible: no hay respaldo */ }
+            }
+
+            // Un intento por carga: evita bucles de recarga y martilleo contra /token.
+            function reintentoYaHecho() {
+                try { return sessionStorage.getItem(CLAVE_REINTENTO) === '1'; } catch (error) { return true; }
+            }
+            function marcarReintento() {
+                try { sessionStorage.setItem(CLAVE_REINTENTO, '1'); } catch (error) { /* noop */ }
+            }
+            function limpiarReintento() {
+                try { sessionStorage.removeItem(CLAVE_REINTENTO); } catch (error) { /* noop */ }
+            }
+
+            function leerUltimoEmail() {
+                try { return localStorage.getItem(CLAVE_ULTIMO_EMAIL) || ''; } catch (error) { return ''; }
+            }
+            function guardarUltimoEmail(correo) {
+                if (!correo) return;
+                try { localStorage.setItem(CLAVE_ULTIMO_EMAIL, String(correo)); } catch (error) { /* noop */ }
+            }
+
+            // Único camino de recuperación. Solo actúa si la sesión desapareció
+            // del storage (o sea: la borró la librería). Usa refreshSession con
+            // refresh_token explícito porque sin él la API responde
+            // AuthSessionMissingError (verificado contra la lib 2.45.4).
+            let recuperacionPromesa = null;
+            function recuperarSesionDelRespaldo() {
+                if (!CLAVE_RESPALDO || !supabase) return Promise.resolve(null);
+                if (recuperacionPromesa) return recuperacionPromesa;   // un solo intento a la vez
+                if (sesionEnStorage()) return Promise.resolve(null);   // la primaria manda
+                if (reintentoYaHecho()) return Promise.resolve(null);  // ya intentamos en esta carga
+                const respaldo = leerRespaldo();
+                if (!respaldo || !respaldo.refresh_token) return Promise.resolve(null);
+                marcarReintento();
+                recuperacionPromesa = (async function () {
+                    try {
+                        const { data, error } = await supabase.auth.refreshSession({ refresh_token: respaldo.refresh_token });
+                        if (error) {
+                            console.warn('I52 · no se pudo recuperar la sesión:', error.message);
+                            return null;
+                        }
+                        // el refresh_token rotó: actualizamos el respaldo ya mismo
+                        if (data && data.session) {
+                            guardarRespaldo(data.session);
+                            limpiarReintento();
+                        }
+                        return (data && data.session) || null;
+                    } catch (error) {
+                        console.warn('I52 · error al recuperar la sesión:', error && error.message);
+                        return null;
+                    }
+                })();
+                return recuperacionPromesa;
+            }
+
+            // Se perdió la sesión (o la revocó el servidor). Primero intentamos
+            // rescatarla una vez; si no se puede, login con mensaje claro.
+            // setTimeout: no llamamos métodos de auth dentro del callback de
+            // onAuthStateChange (la librería lo desaconseja y puede bloquear).
+            function alPerderSesion() {
+                setTimeout(async function () {
+                    if (recuperacionEnCurso) return;
+                    recuperacionEnCurso = true;
+                    try {
+                        const recuperada = await recuperarSesionDelRespaldo();
+                        if (recuperada) await iniciarApp(recuperada);
+                        else mostrarLogin(mensajeSesionPerdida());
+                    } catch (error) {
+                        console.warn('I52 · fallo al recuperar la sesión:', error && error.message);
+                        mostrarLogin(mensajeSesionPerdida());
+                    } finally {
+                        recuperacionEnCurso = false;
+                    }
+                }, 0);
+            }
+
+            // Higiene de refresco (I52): el tick de 30 s no debe correr mientras la
+            // página se descarga (fin del contexto viejo) ni duplicarse con el boot
+            // del nuevo. Es la ventana exacta donde se rompía la sesión.
+            if (supabase && supabase.auth) {
+                window.addEventListener('pagehide', function () {
+                    try { supabase.auth.stopAutoRefresh(); } catch (error) { /* noop */ }
+                });
+                window.addEventListener('pageshow', function () {
+                    try { supabase.auth.startAutoRefresh(); } catch (error) { /* noop */ }
+                });
+                try { supabase.auth.stopAutoRefresh(); } catch (error) { /* noop */ }
+            }
+
             let calendarioIniciado = false;
 
             function mostrarLogin(mensaje) {
                 appIniciada = false;
                 authOcupado(false);
                 authPassword.value = '';
+                // I52: precargamos el último email para que no tenga que reescribirlo
+                // en cada expulsión. La contraseña no se guarda nunca.
+                if (authEmail && !authEmail.value) {
+                    const correo = leerUltimoEmail();
+                    if (correo) authEmail.value = correo;
+                }
                 setAuthError(mensaje || '');
                 authScreen.classList.remove('hidden');
             }
@@ -4492,6 +4677,11 @@
             async function iniciarApp(session) {
                 if (appIniciada) return;
                 appIniciada = true;
+                // I52: cada sesión que entra en la app deja el respaldo al día.
+                // Cubre login, recuperación desde el respaldo y getSession.
+                guardarRespaldo(session);
+                if (session && session.user && session.user.email) guardarUltimoEmail(session.user.email);
+                cierreExplicito = false;
                 ocultarLogin();
                 try {
                     let membresia = await cargarMembresia(session && session.user);
@@ -4584,34 +4774,36 @@
                 cargarAnuncio();
                 cargarFlagsApp();
                 supabase.auth.onAuthStateChange(function(evento, session) {
-                    if (evento === 'SIGNED_OUT') { mostrarLogin(); }
-                    else if (session) { iniciarApp(session); }
+                    if (evento === 'SIGNED_OUT') {
+                        // I52: no expulsar en silencio. Si el logout lo pidió la
+                        // usuaria, no mostramos el aviso de "sesión perdida".
+                        if (cerrandoSesion) return;
+                        alPerderSesion();
+                        return;
+                    }
+                    if (session) {
+                        // Solo escrituras sincrónicas acá: llamar a la API de auth
+                        // dentro de este callback puede bloquear la librería.
+                        guardarRespaldo(session);
+                        limpiarReintento();
+                        if (session.user && session.user.email) guardarUltimoEmail(session.user.email);
+                        iniciarApp(session);
+                    }
                 });
+                // I52: los usuarios que ya estaban logueados quedan cubiertos ya.
+                sembrarRespaldoInicial();
                 try {
                     const { data, error } = await supabase.auth.getSession();
                     if (error) { mostrarLogin('No se pudo comprobar la sesión: ' + error.message); return; }
                     if (data && data.session) { await iniciarApp(data.session); return; }
 
-                    // I24: cambió el modo de vista y no hay sesión -> un reintento
-                    if (cambioDeModo && !reintentoHecho) {
-                        reintentoHecho = true;
-                        try {
-                            await supabase.auth.refreshSession();
-                            const segunda = await supabase.auth.getSession();
-                            if (segunda && segunda.data && segunda.data.session) {
-                                await iniciarApp(segunda.data.session);
-                                return;
-                            }
-                        } catch (errorReintento) {
-                            console.error('No se pudo renovar la sesión:', errorReintento);
-                            mostrarLogin('No se pudo recuperar la sesión. Revisá la conexión y volvé a iniciar sesión.');
-                            return;
-                        }
-                        mostrarLogin('Parece que cambiaste el modo de vista y se perdió la sesión. Volvé a iniciar sesión.');
-                        return;
-                    }
+                    // I52: la sesión desapareció del storage -> un único intento
+                    // con el respaldo (antes era refreshSession() sin argumento,
+                    // que responde AuthSessionMissingError y nunca podía funcionar).
+                    const recuperada = await recuperarSesionDelRespaldo();
+                    if (recuperada) { await iniciarApp(recuperada); return; }
 
-                    mostrarLogin();
+                    mostrarLogin(cambioDeModo ? mensajeSesionPerdida() : '');
                 } catch (error) {
                     console.error(error);
                     mostrarLogin('Error de conexión con el servidor.');
@@ -4770,7 +4962,13 @@
 
             logoutBtn.addEventListener('click', async function() {
                 if (!supabase) return;
+                // I52: el logout es explícito. No intentamos recuperar la sesión
+                // (eso sí sería un agujero) y borramos el respaldo local.
+                cerrandoSesion = true;
                 try { await supabase.auth.signOut(); } catch (error) { console.error(error); }
+                finally { cerrandoSesion = false; }
+                borrarRespaldo();
+                limpiarReintento();
                 cache = [];
                 if (calendar) calendar.removeAllEvents();
                 appointmentsList.innerHTML = '';
