@@ -4681,7 +4681,6 @@
                 // Cubre login, recuperación desde el respaldo y getSession.
                 guardarRespaldo(session);
                 if (session && session.user && session.user.email) guardarUltimoEmail(session.user.email);
-                cierreExplicito = false;
                 ocultarLogin();
                 try {
                     let membresia = await cargarMembresia(session && session.user);
