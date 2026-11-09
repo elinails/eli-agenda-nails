@@ -212,6 +212,12 @@
         .contador { font-size: 12px; color: var(--ink-subtle); }
 
         /* I51 · God Mode V5 */
+        .uso-plan { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 4px 0 10px; }
+        .uso-plan span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold-ink)); }
+        .hist-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+        .hist-item:last-child { border-bottom: 0; }
+        .hist-fecha { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+        .hist-texto { font-size: 12.5px; line-height: 1.35; }
         .glass {
             background: rgba(255, 255, 255, .04);
             -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -927,6 +933,7 @@
             </div>
             <div id="drawer-datos" class="drawer-seccion"></div>
             <div id="drawer-plan" class="drawer-seccion"></div>
+            <div id="drawer-historial" class="drawer-seccion"></div>
             <div id="drawer-acciones" class="drawer-acciones"></div>
             <p id="drawer-nota" class="nota"></p>
         </aside>
@@ -2646,6 +2653,38 @@
             return dl;
         }
 
+        function planDe(planId) {
+            var encontrado = (planesCache || []).filter(function (p) { return p.id === planId; })[0];
+            if (encontrado) return encontrado;
+            var base = PLANES[planId] || {};
+            return {
+                id: planId,
+                nombre: base.nombre || planId || '—',
+                precio: base.precio || 0,
+                limite_empleadas: planId === 'gratis' ? 1 : (planId === 'pro' ? 3 : null)
+            };
+        }
+
+        function pintarHistorialDrawer(s) {
+            var caja = $('drawer-historial');
+            if (!caja) return;
+            caja.textContent = '';
+            var registros = (auditoria || []).filter(function (f) {
+                return String(f.salon_id) === String(s.id);
+            }).slice(0, 5);
+
+            caja.appendChild(crear('h3', '', 'Últimas acciones'));
+            if (!registros.length) {
+                caja.appendChild(crear('p', 'nota', 'Sin acciones registradas para este salón.'));
+                return;
+            }
+            registros.forEach(function (f) {
+                var fila = crear('div', 'hist-item');
+                fila.appendChild(crear('span', 'hist-fecha', fechaHora(f.creado_en)));
+                fila.appendChild(crear('span', 'hist-texto', describirAuditoria(f)));
+                caja.appendChild(fila);
+            });
+        }
         function pintarDetalle(s) {
             if (!s) return;
             var d = s.detalle || {};
@@ -2667,11 +2706,12 @@
             $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
             $('drawer-estado').style.color = s.activo ? 'var(--ok)' : 'var(--danger)';
 
-            pintarPlanDrawer(s);
+            pintarPlanDrawer(s, d);
+            pintarHistorialDrawer(s);
             pintarAcciones(s);
         }
 
-        function pintarPlanDrawer(s) {
+        function pintarPlanDrawer(s, d) {
             var caja = $('drawer-plan');
             caja.textContent = '';
             caja.appendChild(crear('h3', '', 'Suscripción'));
@@ -2688,6 +2728,22 @@
             if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' días)' : ' (vencido)';
             caja.appendChild(filaDetalle('Trial hasta', texto));
             caja.appendChild(filaDetalle('Activo desde', s.suscripcion_desde ? fechaCorta(s.suscripcion_desde) : '—'));
+
+            // I51 · plan, límite de empleadas y consumo
+            var plan = planDe(s.plan_id);
+            var miembrosStaff = Number(campo(d || {}, ["miembros", "cantidad_miembros"], 0)) || 0;
+            var empleadas = Math.max(0, miembrosStaff - 1);
+            var limite = plan && plan.limite_empleadas != null ? Number(plan.limite_empleadas) : null;
+            caja.appendChild(filaDetalle('Plan', (plan && plan.nombre) || s.plan_id || '—'));
+            caja.appendChild(filaDetalle('Límite de empleadas',
+                limite === null ? 'sin límite' : String(limite) + ' · usando ' + empleadas));
+            var barraUso = crear('div', 'uso-plan');
+            var rellenoUso = document.createElement('span');
+            var pct = limite === null ? 10 : Math.min(100, Math.round((empleadas / Math.max(1, limite)) * 100));
+            rellenoUso.style.width = pct + '%';
+            if (limite !== null && empleadas >= limite) rellenoUso.style.background = 'var(--danger)';
+            barraUso.appendChild(rellenoUso);
+            caja.appendChild(barraUso);
         }
 
         function botonAccion(texto, clase, alTocar) {
