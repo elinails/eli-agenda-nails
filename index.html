@@ -1658,6 +1658,43 @@
             color: var(--ink);
         }
         .export-btn:hover { background: var(--blush-2) !important; }
+
+        /* I48 · Megáfono global (anuncios_globales) */
+        .anuncio-global {
+            position: sticky;
+            top: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--surface);
+            color: var(--ink);
+            border-bottom: 1px solid var(--line);
+            font-size: 13.5px;
+            line-height: 1.45;
+        }
+        .anuncio-global.hidden { display: none; }
+        .anuncio-icono { color: var(--blush); flex: 0 0 auto; font-size: 15px; }
+        .anuncio-texto { margin: 0; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+        .anuncio-cerrar {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--ink);
+            opacity: .65;
+            cursor: pointer;
+        }
+        .anuncio-cerrar:hover { opacity: 1; background: var(--blush-2); }
+        @media (max-width: 480px) {
+            .anuncio-global { padding: 9px 12px; font-size: 12.5px; }
+        }
     </style>
 </head>
 <body class="min-h-screen">

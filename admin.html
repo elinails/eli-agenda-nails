@@ -5,1538 +5,2169 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
-    <title>Administración · Eli M. Nails</title>
+    <title>God Mode · Eli M. Nails</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <style>
-        :root[data-theme="dark"] {
-            --paper: #171216;
-            --surface: #221A20;
-            --surface-2: #2C2128;
-            --ink: #F3ECEF;
-            --ink-soft: #A3929B;
-            --line: #3A2E34;
-            --gold: #BE9E6F;
-            --gold-ink: #D9C09A;
-            --danger: #E0796E;
-            --ok: #7FB08A;
-            --shadow: 0 18px 40px rgba(0, 0, 0, .45);
-        }
-        :root[data-theme="light"] {
-            --paper: #FAF6F3;
-            --surface: #FFFFFF;
-            --surface-2: #F3ECE8;
-            --ink: #3B2F35;
-            --ink-soft: #776569;
-            --line: #EADFDB;
-            --gold: #BE9E6F;
-            --gold-ink: #8C6B3A;
-            --danger: #B4453C;
-            --ok: #4E7D5C;
-            --shadow: 0 18px 40px rgba(59, 47, 53, .10);
+        :root {
+            --canvas: #08070A;
+            --surface-1: #101014;
+            --surface-2: #15151B;
+            --surface-3: #1B1B23;
+            --hairline: #26262F;
+            --hairline-2: #34343F;
+            --ink: #F4F1F6;
+            --ink-muted: #B6B0C0;
+            --ink-subtle: #7C7686;
+            --gold: #C9A96A;
+            --gold-2: #E0C48F;
+            --gold-soft: rgba(201, 169, 106, .12);
+            --ok: #7FBF9A;
+            --ok-soft: rgba(127, 191, 154, .12);
+            --warn: #D9B36C;
+            --warn-soft: rgba(217, 179, 108, .12);
+            --danger: #E2705F;
+            --danger-soft: rgba(226, 112, 95, .12);
+            --info: #8FB2D9;
+            --info-soft: rgba(143, 178, 217, .12);
+            --radio: 12px;
+            --sombra: 0 20px 50px rgba(0, 0, 0, .45);
         }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--paper);
+            background: var(--canvas);
             color: var(--ink);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.5;
             min-height: 100dvh;
-            transition: background-color .2s ease, color .2s ease;
+            -webkit-font-smoothing: antialiased;
         }
         .oculto { display: none !important; }
+        button { font-family: inherit; }
+        a { color: var(--gold); }
 
-        header.barra {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--line);
-            background: var(--surface);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        /* ── Acceso (login / 2FA) ── */
+        .acceso {
+            min-height: 100dvh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
         }
-        .marca { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-        .marca strong {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-weight: 600;
-            font-size: 22px;
-            letter-spacing: .01em;
-            white-space: nowrap;
+        .tarjeta-acceso {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface-1);
+            border: 1px solid var(--hairline);
+            border-top: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--sombra);
         }
-        .marca span {
-            font-size: 11px;
-            letter-spacing: .16em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            white-space: nowrap;
-        }
-        .barra-acciones { display: flex; align-items: center; gap: 8px; }
+        .marca { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; letter-spacing: .01em; }
+        .marca-sub { display: block; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-subtle); margin-top: 2px; }
+        .tarjeta-acceso h1 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin: 22px 0 4px; }
+        .tarjeta-acceso .sub { color: var(--ink-subtle); font-size: 13px; margin: 0 0 22px; }
 
-        button { font-family: inherit; font-size: 14px; cursor: pointer; }
+        label { display: block; font-size: 12px; color: var(--ink-muted); margin-bottom: 6px; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+        input[type="search"], select, textarea {
+            width: 100%;
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: 9px;
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 14px;
+            padding: 10px 12px;
+            min-height: 42px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 106, .16);
+        }
+        textarea { resize: vertical; min-height: 110px; }
+        .campo { margin-bottom: 14px; }
+        .codigo { letter-spacing: .5em; text-align: center; font-size: 20px; font-weight: 600; }
+
         .btn {
-            border: 1px solid var(--line);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid var(--hairline);
             background: var(--surface-2);
             color: var(--ink);
             padding: 9px 14px;
             border-radius: 9px;
+            font-size: 13.5px;
             font-weight: 500;
             min-height: 40px;
-            transition: background-color .15s ease, border-color .15s ease;
+            cursor: pointer;
+            transition: background-color .15s ease, border-color .15s ease, transform .06s ease;
         }
-        .btn:hover { border-color: var(--gold); }
-        .btn:disabled { opacity: .55; cursor: not-allowed; }
-        .btn-primario {
-            background: var(--gold);
-            border-color: var(--gold);
-            color: #221A20;
-            font-weight: 600;
-        }
-        .btn-primario:hover { background: var(--gold-ink); border-color: var(--gold-ink); }
-        .btn-peligro { color: var(--danger); border-color: var(--line); background: transparent; }
-        .btn-peligro:hover { border-color: var(--danger); }
-        .btn-ok { color: var(--ok); border-color: var(--line); background: transparent; }
-        .btn-ok:hover { border-color: var(--ok); }
-        .btn-icono { min-width: 40px; padding: 8px 10px; }
-
-        main { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
-
-        .tarjeta {
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 26px;
-            box-shadow: var(--shadow);
-        }
-        .centro { max-width: 380px; margin: 6vh auto 0; }
-
-        h1, h2 {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-weight: 600;
-            margin: 0 0 6px;
-        }
-        h1 { font-size: 30px; }
-        h2 { font-size: 20px; }
-        .sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 22px; }
-
-        label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
-        input {
-            width: 100%;
-            padding: 11px 13px;
-            border-radius: 9px;
-            border: 1px solid var(--line);
-            background: var(--paper);
-            color: var(--ink);
-            font-family: inherit;
-            font-size: 15px;
-            min-height: 44px;
-        }
-        input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
-        .campo { margin-bottom: 14px; }
+        .btn:hover { background: var(--surface-3); border-color: var(--hairline-2); }
+        .btn:active { transform: translateY(1px); }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-primario { background: var(--gold); border-color: var(--gold); color: #1A1409; font-weight: 600; }
+        .btn-primario:hover { background: var(--gold-2); border-color: var(--gold-2); }
+        .btn-peligro { color: var(--danger); border-color: var(--hairline); background: transparent; }
+        .btn-peligro:hover { background: var(--danger-soft); border-color: var(--danger); }
+        .btn-ok { color: var(--ok); border-color: var(--hairline); background: transparent; }
+        .btn-ok:hover { background: var(--ok-soft); border-color: var(--ok); }
+        .btn-ghost { background: transparent; }
+        .btn-icono { width: 40px; padding: 0; }
+        .btn-sm { min-height: 32px; padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+        .btn-bloque { width: 100%; }
 
         .alerta {
             border-radius: 9px;
-            padding: 10px 13px;
-            font-size: 13.5px;
-            margin-bottom: 14px;
+            padding: 10px 12px;
+            font-size: 13px;
+            margin: 12px 0 0;
             border: 1px solid transparent;
         }
-        .alerta.error { background: rgba(224, 121, 110, .12); border-color: var(--danger); color: var(--danger); }
-        .alerta.ok { background: rgba(127, 176, 138, .12); border-color: var(--ok); color: var(--ok); }
+        .alerta.error { background: var(--danger-soft); border-color: rgba(226, 112, 95, .4); color: var(--danger); }
+        .alerta.ok { background: var(--ok-soft); border-color: rgba(127, 191, 154, .4); color: var(--ok); }
 
         .qr-caja {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
-            padding: 16px;
-            border: 1px dashed var(--line);
+            gap: 12px;
+            padding: 14px;
+            border: 1px dashed var(--hairline-2);
             border-radius: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
-        .qr-caja img {
-            width: 190px;
-            height: 190px;
-            background: #fff;
-            border-radius: 10px;
-            padding: 8px;
-        }
-        .secreto {
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 12.5px;
-            letter-spacing: .06em;
-            color: var(--ink-soft);
-            word-break: break-all;
-            text-align: center;
-        }
-        .codigo { letter-spacing: .5em; text-align: center; font-size: 20px; font-weight: 600; }
+        .qr-caja img { width: 180px; height: 180px; background: #fff; border-radius: 10px; padding: 8px; }
+        .secreto { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--ink-subtle); word-break: break-all; text-align: center; margin: 0; }
 
-        .panel-cabecera {
+        /* ── Shell ── */
+        .app { display: flex; min-height: 100dvh; }
+        .sidebar {
+            width: 248px;
+            flex: 0 0 248px;
+            background: var(--surface-1);
+            border-right: 1px solid var(--hairline);
+            padding: 22px 14px;
             display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-bottom: 18px;
+            flex-direction: column;
+            gap: 22px;
+            position: sticky;
+            top: 0;
+            height: 100dvh;
+            z-index: 40;
         }
-        .contador { font-size: 13px; color: var(--ink-soft); }
-
-        table { width: 100%; border-collapse: collapse; }
-        thead th {
+        .sidebar-marca { padding: 0 10px; }
+        .nav { display: flex; flex-direction: column; gap: 3px; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--ink-muted);
+            font-size: 13.5px;
             text-align: left;
-            font-size: 10.5px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            font-weight: 600;
-            padding: 0 12px 10px;
-            border-bottom: 1px solid var(--line);
+            cursor: pointer;
+            width: 100%;
         }
-        tbody td {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--line);
-            font-size: 14px;
-            vertical-align: middle;
-        }
-        tbody tr:last-child td { border-bottom: 0; }
-        tbody tr.inactivo { opacity: .55; }
-        .salon-nombre { font-weight: 600; }
-        .salon-id { font-size: 11px; color: var(--ink-soft); font-family: ui-monospace, monospace; }
-        .vacio { text-align: center; color: var(--ink-soft); padding: 30px 0; font-size: 14px; }
+        .nav-item svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: 0 0 auto; }
+        .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+        .nav-item.activo { background: var(--gold-soft); color: var(--gold-2); box-shadow: inset 2px 0 0 var(--gold); }
+        .sidebar-pie { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hairline); }
+        .admin-email { font-size: 11.5px; color: var(--ink-subtle); word-break: break-all; padding: 0 10px; }
 
-        .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 13px 28px;
+            background: rgba(8, 7, 10, .88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--hairline);
+        }
+        .topbar-titulo h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+        .topbar-titulo p { margin: 1px 0 0; font-size: 12.5px; color: var(--ink-subtle); }
+        .topbar-acciones { display: flex; gap: 8px; align-items: center; }
+        .menu-btn { display: none; }
+        .contenido { width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 28px 70px; }
+
+        .cabecera-seccion { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+        .cabecera-seccion h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+        .cabecera-seccion .sub { margin: 4px 0 0; color: var(--ink-subtle); font-size: 13px; }
+        .contador { font-size: 12px; color: var(--ink-subtle); }
+
+        .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
         .kpi {
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 12px;
+            background: var(--surface-1);
+            border: 1px solid var(--hairline);
+            border-radius: var(--radio);
             padding: 14px 16px;
             display: flex;
             flex-direction: column;
             gap: 2px;
             min-width: 0;
         }
-        .kpi-label {
+        .kpi-label { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-subtle); }
+        .kpi-valor { font-size: 25px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+        .kpi-pie { font-size: 11.5px; color: var(--ink-subtle); }
+        .kpi-destacado { border-color: rgba(201, 169, 106, .35); }
+        .kpi-destacado .kpi-valor { color: var(--gold-2); }
+
+        .panel { background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; }
+        .tabla-panel { padding: 8px 8px 4px; overflow: hidden; }
+        .tabla { width: 100%; border-collapse: collapse; }
+        .tabla thead th {
+            text-align: left;
             font-size: 10.5px;
-            letter-spacing: .12em;
+            letter-spacing: .11em;
             text-transform: uppercase;
-            color: var(--ink-soft);
+            color: var(--ink-subtle);
+            font-weight: 600;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--hairline);
+            white-space: nowrap;
         }
-        .kpi-valor { font-size: 26px; font-weight: 600; line-height: 1.2; }
-        .kpi-pie { font-size: 12px; color: var(--ink-soft); }
+        .tabla tbody td { padding: 12px; border-bottom: 1px solid var(--hairline); font-size: 13.5px; vertical-align: middle; }
+        .tabla tbody tr:last-child td { border-bottom: 0; }
+        .tabla tbody tr:hover { background: var(--surface-2); }
+        .fila-salon { cursor: pointer; }
+        .fila-salon:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+        .salon-nombre { font-weight: 600; }
+        .salon-id { font-size: 11px; color: var(--ink-subtle); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .num { font-variant-numeric: tabular-nums; }
 
         .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
         .toolbar input[type="search"], .toolbar select {
-            flex: 1 1 200px;
+            flex: 1 1 220px;
             min-width: 0;
             min-height: 42px;
-            padding: 9px 13px;
-            border-radius: 9px;
-            border: 1px solid var(--line);
-            background: var(--surface);
-            color: var(--ink);
-            font-family: inherit;
-            font-size: 14px;
+            background: var(--surface-1);
         }
         .toolbar select { flex: 0 0 auto; }
         .toolbar .btn { min-height: 42px; }
 
-        tbody tr.fila-salon { cursor: pointer; }
-        tbody tr.fila-salon:hover { background: var(--surface-2); }
-        tbody tr.fila-salon:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            background: rgba(0, 0, 0, .55);
-            display: flex;
+        .pill {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .02em;
+            white-space: nowrap;
         }
-        .modal-caja {
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            width: 100%;
-            max-width: 470px;
-            max-height: 90dvh;
+        .pill-ok { background: var(--ok-soft); color: var(--ok); }
+        .pill-trial { background: var(--warn-soft); color: var(--warn); }
+        .pill-danger { background: var(--danger-soft); color: var(--danger); }
+        .pill-info { background: var(--info-soft); color: var(--info); }
+        .pill-neutral { background: var(--surface-3); color: var(--ink-muted); }
+        .pill-gold { background: var(--gold-soft); color: var(--gold-2); }
+
+        .plan-botones { display: inline-flex; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
+        .plan-botones button {
+            border: 0;
+            background: transparent;
+            color: var(--ink-muted);
+            font-size: 11.5px;
+            padding: 5px 9px;
+            cursor: pointer;
+            min-height: 30px;
+        }
+        .plan-botones button + button { border-left: 1px solid var(--hairline); }
+        .plan-botones button:hover { background: var(--surface-2); color: var(--ink); }
+        .plan-botones button.activo { background: var(--gold-soft); color: var(--gold-2); font-weight: 600; }
+        .select-inline { min-height: 32px; padding: 4px 8px; font-size: 12px; background: var(--surface-2); border-radius: 7px; }
+        .acciones-fila { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+        .grid-anuncios { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .panel h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+        .panel .sub { margin: 0 0 16px; color: var(--ink-subtle); font-size: 12.5px; }
+        .contador-caracteres { display: flex; justify-content: flex-end; font-size: 11.5px; color: var(--ink-subtle); margin: 4px 0 12px; }
+        .preview-label { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-subtle); }
+        .anuncio-preview {
+            min-height: 54px;
+            border: 1px dashed var(--hairline-2);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--ink-muted);
+            background: var(--surface-2);
+            margin: 6px 0 16px;
+            overflow-wrap: anywhere;
+        }
+        .lista-anuncios { display: flex; flex-direction: column; gap: 10px; }
+        .anuncio-item { border: 1px solid var(--hairline); border-radius: 10px; padding: 12px; background: var(--surface-2); display: flex; flex-direction: column; gap: 8px; }
+        .anuncio-item-texto { font-size: 13px; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .anuncio-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-subtle); }
+
+        .detalle-json {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11.5px;
+            color: var(--ink-muted);
+            max-width: 340px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .vacio { text-align: center; color: var(--ink-subtle); padding: 28px 0; font-size: 13.5px; }
+        .nota { font-size: 12px; color: var(--ink-subtle); margin: 10px 0 0; }
+
+        /* ── Drawer ── */
+        .overlay { position: fixed; inset: 0; z-index: 80; background: rgba(0, 0, 0, .62); display: flex; justify-content: flex-end; }
+        .overlay-confirmar { z-index: 90; justify-content: center; align-items: center; padding: 20px; }
+        .drawer {
+            width: 460px;
+            max-width: 100%;
+            height: 100dvh;
+            background: var(--surface-1);
+            border-left: 1px solid var(--hairline);
+            padding: 24px;
             overflow-y: auto;
-            padding: 22px;
-            box-shadow: var(--shadow);
-        }
-        .modal-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-        .detalle-grid { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
-        .detalle-fila {
             display: flex;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 10px 2px;
-            border-bottom: 1px solid var(--line);
-            font-size: 14px;
+            flex-direction: column;
+            gap: 18px;
+            animation: entrar .18s ease-out;
         }
-        .detalle-fila dt { color: var(--ink-soft); font-size: 12.5px; }
-        .detalle-fila dd { margin: 0; text-align: right; font-weight: 500; word-break: break-word; }
-        .modal-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-        .modal-acciones .btn { flex: 1 1 130px; }
+        @keyframes entrar { from { transform: translateX(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+        .drawer-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .drawer-cabecera h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
+        .drawer-cabecera .sub { margin: 3px 0 0; }
+        .drawer-seccion { border-top: 1px solid var(--hairline); padding-top: 14px; }
+        .drawer-seccion h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-subtle); font-weight: 600; }
+        .detalle-fila { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--hairline); font-size: 13px; }
+        .detalle-fila:last-child { border-bottom: 0; }
+        .detalle-fila dt { color: var(--ink-subtle); font-size: 12px; margin: 0; }
+        .detalle-fila dd { margin: 0; text-align: right; font-weight: 500; overflow-wrap: anywhere; }
+        .drawer-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+        .drawer-acciones .btn { flex: 1 1 140px; }
 
+        .confirmar { width: 100%; max-width: 420px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 14px; padding: 24px; box-shadow: var(--sombra); }
+        .confirmar h2 { margin: 0 0 8px; font-size: 19px; letter-spacing: -.02em; }
+        .confirmar p { margin: 0 0 18px; color: var(--ink-muted); font-size: 13.5px; }
+        .confirmar-acciones { display: flex; gap: 8px; justify-content: flex-end; }
+
+        .toasts { position: fixed; right: 18px; bottom: 18px; z-index: 120; display: flex; flex-direction: column; gap: 8px; max-width: min(360px, calc(100vw - 36px)); }
+        .toast {
+            background: var(--surface-3);
+            border: 1px solid var(--hairline-2);
+            border-left: 3px solid var(--ink-subtle);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 13px;
+            box-shadow: var(--sombra);
+            animation: subir .18s ease-out;
+        }
+        .toast-ok { border-left-color: var(--ok); }
+        .toast-error { border-left-color: var(--danger); }
+        .toast.sale { opacity: 0; transform: translateY(6px); transition: opacity .4s ease, transform .4s ease; }
+        @keyframes subir { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .sidebar-fondo { display: none; }
+
+        @media (max-width: 980px) {
+            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); transition: transform .2s ease; box-shadow: var(--sombra); }
+            body.menu-abierto .sidebar { transform: none; }
+            .sidebar-fondo { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .55); z-index: 35; }
+            body.menu-abierto .sidebar-fondo { display: block; }
+            .menu-btn { display: inline-flex; }
+            .contenido { padding: 20px 18px 70px; }
+            .topbar { padding: 12px 18px; }
+            .grid-anuncios { grid-template-columns: 1fr; }
+        }
         @media (max-width: 720px) {
-            .kpis { grid-template-columns: 1fr; }
-            .modal-overlay { padding: 0; align-items: stretch; }
-            .modal-caja { max-width: none; max-height: none; height: 100dvh; border-radius: 0; border: 0; }
-        }
-
-        .tabs { display: flex; gap: 6px; margin: 0 0 16px; flex-wrap: wrap; }
-        .tab {
-            border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-soft);
-            padding: 9px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 500; min-height: 40px;
-        }
-        .tab[aria-selected="true"] { background: var(--gold); border-color: var(--gold); color: #221A20; font-weight: 600; }
-        .tab-panel.oculto { display: none; }
-        .fila-suscripcion input[type="date"] { min-width: 145px; }
-        .plan-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
-        .plan-basico { color: var(--ink-soft); }
-        .plan-pro { border-color: var(--gold); color: var(--gold-ink); }
-        .plan-premium { border-color: var(--ok); color: var(--ok); }
-        .anuncio-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
-        .anuncio-item:last-child { border-bottom: 0; }
-        .anuncio-texto { flex: 1; min-width: 0; }
-        .anuncio-meta { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
-        .anuncio-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
-        .textarea { width: 100%; min-height: 72px; padding: 10px 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: inherit; font-size: 14px; resize: vertical; }
-
-        /* mobile: tarjetas */
-        @media (max-width: 720px) {
-            thead { display: none; }
-            table, tbody, tr, td { display: block; width: 100%; }
-            tbody tr {
-                border: 1px solid var(--line);
-                border-radius: 12px;
-                padding: 14px;
-                margin-bottom: 12px;
-                background: var(--surface-2);
-            }
-            tbody td { border: 0; padding: 4px 0; display: flex; justify-content: space-between; gap: 12px; }
-            tbody td::before {
+            .kpis { grid-template-columns: 1fr 1fr; }
+            .tabla thead { display: none; }
+            .tabla, .tabla tbody, .tabla tr, .tabla td { display: block; width: 100%; }
+            .tabla tbody tr { border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: var(--surface-2); }
+            .tabla tbody tr:hover { background: var(--surface-2); }
+            .tabla tbody td { border: 0; padding: 5px 0; display: flex; justify-content: space-between; gap: 12px; }
+            .tabla tbody td::before {
                 content: attr(data-label);
-                font-size: 10.5px;
+                font-size: 10px;
                 letter-spacing: .1em;
                 text-transform: uppercase;
-                color: var(--ink-soft);
+                color: var(--ink-subtle);
+                flex: 0 0 auto;
+                padding-top: 2px;
             }
-            tbody td.accion { justify-content: flex-end; padding-top: 10px; }
-            tbody td.accion::before { content: ''; }
+            .tabla tbody td.celda-accion { justify-content: flex-end; padding-top: 10px; }
+            .tabla tbody td.celda-accion::before { content: ''; }
+            .drawer { width: 100%; border-left: 0; padding: 20px; }
+            .drawer-acciones .btn { flex: 1 1 100%; }
+            .contenido { padding: 16px 14px 70px; }
+            .cabecera-seccion h2 { font-size: 20px; }
+            .kpi-valor { font-size: 22px; }
+            .topbar-titulo h1 { font-size: 17px; }
         }
-        footer { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 24px 0 8px; }
+        @media (max-width: 420px) {
+            .kpis { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<header class="barra">
-    <div class="marca">
-        <strong>Eli M. Nails</strong>
-        <span>Administración</span>
-    </div>
-    <div class="barra-acciones">
-        <button type="button" id="tema-btn" class="btn btn-icono" aria-label="Cambiar tema">◐</button>
-        <button type="button" id="salir-btn" class="btn oculto">Salir</button>
-    </div>
-</header>
-
-<main>
     <!-- 1 · LOGIN -->
-    <section id="vista-login" class="tarjeta centro">
-        <h1>Ingresar</h1>
-        <p class="sub">Acceso exclusivo del equipo de administración.</p>
-        <div id="login-alerta" class="alerta error oculto" role="alert"></div>
-        <form id="login-form" novalidate>
-            <div class="campo">
-                <label for="email">Email</label>
-                <input type="email" id="email" autocomplete="email" required>
+    <section id="vista-login" class="acceso">
+        <div class="tarjeta-acceso">
+            <div>
+                <span class="marca">Eli M. Nails</span>
+                <span class="marca-sub">God Mode</span>
             </div>
-            <div class="campo">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" autocomplete="current-password" required>
-            </div>
-            <button type="submit" id="login-btn" class="btn btn-primario" style="width:100%">Entrar</button>
-        </form>
+            <h1>Ingresar</h1>
+            <p class="sub">Acceso exclusivo del equipo de administración.</p>
+            <div id="login-alerta" class="alerta error oculto" role="alert"></div>
+            <form id="login-form" novalidate>
+                <div class="campo">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" autocomplete="email" required>
+                </div>
+                <div class="campo">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primario btn-bloque" style="width:100%">Entrar</button>
+            </form>
+        </div>
     </section>
 
     <!-- 2 · 2FA -->
-    <section id="vista-2fa" class="tarjeta centro oculto">
-        <h1 id="dosfa-titulo">Verificación en dos pasos</h1>
-        <p class="sub" id="dosfa-sub"></p>
-        <div id="dosfa-alerta" class="alerta error oculto" role="alert"></div>
-
-        <div id="dosfa-qr-caja" class="qr-caja oculto">
-            <img id="dosfa-qr" alt="Código QR para configurar la verificación en dos pasos">
-            <p class="secreto" id="dosfa-secreto"></p>
-            <p class="sub" style="margin:0">Escaneá el QR con Google Authenticator (o similar). Si no podés, cargá el código de arriba a mano.</p>
-        </div>
-
-        <form id="dosfa-form" novalidate>
-            <div class="campo">
-                <label for="dosfa-codigo">Código de 6 dígitos</label>
-                <input type="text" id="dosfa-codigo" inputmode="numeric" autocomplete="one-time-code"
-                       maxlength="6" pattern="[0-9]{6}" class="codigo" required>
+    <section id="vista-2fa" class="acceso oculto">
+        <div class="tarjeta-acceso">
+            <div>
+                <span class="marca">Eli M. Nails</span>
+                <span class="marca-sub">God Mode</span>
             </div>
-            <button type="submit" id="dosfa-btn" class="btn btn-primario" style="width:100%">Verificar</button>
-        </form>
-        <p style="text-align:center;margin-top:14px">
-            <button type="button" id="dosfa-salir" class="btn btn-peligro" style="width:100%">Cerrar sesión</button>
-        </p>
+            <h1 id="dosfa-titulo">Verificación en dos pasos</h1>
+            <p class="sub" id="dosfa-sub"></p>
+            <div id="dosfa-alerta" class="alerta error oculto" role="alert"></div>
+            <div id="dosfa-qr-caja" class="qr-caja oculto">
+                <img id="dosfa-qr" alt="Código QR para configurar la verificación en dos pasos">
+                <p class="secreto" id="dosfa-secreto"></p>
+                <p class="nota" style="margin:0">Escaneá el QR con Google Authenticator (o similar). Si no podés, cargá el código de arriba a mano.</p>
+            </div>
+            <form id="dosfa-form" novalidate>
+                <div class="campo">
+                    <label for="dosfa-codigo">Código de 6 dígitos</label>
+                    <input type="text" id="dosfa-codigo" inputmode="numeric" autocomplete="one-time-code"
+                           maxlength="6" pattern="[0-9]{6}" class="codigo" required>
+                </div>
+                <button type="submit" id="dosfa-btn" class="btn btn-primario" style="width:100%">Verificar</button>
+            </form>
+            <p style="margin-top:14px">
+                <button type="button" id="dosfa-salir" class="btn btn-peligro" style="width:100%">Cerrar sesión</button>
+            </p>
+        </div>
     </section>
 
-    <!-- 3 · PANEL -->
-    <section id="vista-panel" class="oculto">
-        <div id="panel-alerta" class="alerta error oculto" role="alert"></div>
-        <div class="panel-cabecera">
-            <div>
-                <h1>Salones</h1>
-                <p class="sub" style="margin:0">Estado general de la plataforma.</p>
+    <!-- 3 · APP -->
+    <div id="app" class="app oculto">
+        <div id="sidebar-fondo" class="sidebar-fondo"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-marca">
+                <span class="marca">Eli M. Nails</span>
+                <span class="marca-sub">God Mode</span>
             </div>
-            <div class="contador" id="panel-contador"></div>
-        </div>
-
-        <div class="tabs" role="tablist" aria-label="Secciones del panel">
-            <button type="button" class="tab" role="tab" data-tab="salones" aria-selected="true">Salones</button>
-            <button type="button" class="tab" role="tab" data-tab="suscripciones" aria-selected="false">Suscripciones</button>
-            <button type="button" class="tab" role="tab" data-tab="anuncios" aria-selected="false">Anuncios</button>
-        </div>
-
-        <div class="tab-panel" id="tab-salones">
-        <div class="kpis" id="panel-kpis">
-            <div class="kpi">
-                <span class="kpi-label">Salones</span>
-                <strong class="kpi-valor" id="kpi-salones">—</strong>
-                <span class="kpi-pie" id="kpi-salones-pie">cargando…</span>
+            <nav class="nav" aria-label="Secciones">
+                <button type="button" class="nav-item activo" data-vista="salones" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 10h.01M9 14h.01M9 18h.01M15 10h.01M15 14h.01M15 18h.01"/></svg>
+                    Salones
+                </button>
+                <button type="button" class="nav-item" data-vista="suscripciones">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>
+                    Suscripciones
+                </button>
+                <button type="button" class="nav-item" data-vista="anuncios">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1ZM14 8.5a4 4 0 0 1 0 7M17 5.5a8 8 0 0 1 0 13"/></svg>
+                    Anuncios
+                </button>
+                <button type="button" class="nav-item" data-vista="auditoria">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M3.5 5h.01M3.5 12h.01M3.5 19h.01"/></svg>
+                    Auditoría
+                </button>
+            </nav>
+            <div class="sidebar-pie">
+                <span class="admin-email" id="admin-email"></span>
+                <a class="nav-item" href="index.html" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg>
+                    Abrir la app
+                </a>
+                <button type="button" id="salir-btn" class="nav-item" style="color:var(--danger)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    Cerrar sesión
+                </button>
             </div>
-            <div class="kpi">
-                <span class="kpi-label">Turnos</span>
-                <strong class="kpi-valor" id="kpi-turnos">—</strong>
-                <span class="kpi-pie">en toda la plataforma</span>
-            </div>
-            <div class="kpi">
-                <span class="kpi-label">Clientas</span>
-                <strong class="kpi-valor" id="kpi-clientes">—</strong>
-                <span class="kpi-pie">registradas</span>
-            </div>
-        </div>
+        </aside>
 
-        <div class="toolbar">
-            <input type="search" id="panel-buscar" placeholder="Buscar salón o email del dueño" aria-label="Buscar salón o email del dueño">
-            <select id="panel-filtro" aria-label="Filtrar por estado">
-                <option value="todos">Todos</option>
-                <option value="activos">Activos</option>
-                <option value="suspendidos">Suspendidos</option>
-            </select>
-            <button type="button" id="panel-csv" class="btn">↓ CSV de dueños</button>
-        </div>
-
-        <div class="tarjeta" style="padding:18px">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Salón</th>
-                        <th>Dueño</th>
-                        <th>Miembros</th>
-                        <th>Turnos</th>
-                        <th>Creado</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="panel-tabla"></tbody>
-            </table>
-            <p id="panel-vacio" class="vacio oculto">No hay salones todavía.</p>
-        </div>
-        </div>
-
-        <div class="tab-panel oculto" id="tab-suscripciones">
-            <div class="panel-cabecera">
-                <div>
-                    <h2>Suscripciones</h2>
-                    <p class="sub" style="margin:0">Plan y vencimiento de cada salón.</p>
+        <div class="app-main">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:12px;min-width:0">
+                    <button type="button" id="menu-btn" class="btn btn-icono menu-btn" aria-label="Abrir menú">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                    </button>
+                    <div class="topbar-titulo">
+                        <h1 id="vista-titulo">Salones</h1>
+                        <p id="vista-sub">Estado general de la plataforma.</p>
+                    </div>
                 </div>
-            </div>
-            <div id="suscripciones-alerta" class="alerta error oculto" role="alert"></div>
-            <div class="tarjeta" style="padding:18px">
-                <table>
-                    <thead>
-                        <tr><th>Salón</th><th>Dueña</th><th>Plan</th><th>Vence</th><th>Estado</th><th></th></tr>
-                    </thead>
-                    <tbody id="suscripciones-tabla"></tbody>
-                </table>
-                <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavía.</p>
-            </div>
-        </div>
-
-        <div class="tab-panel oculto" id="tab-anuncios">
-            <div class="panel-cabecera">
-                <div>
-                    <h2>Anuncios</h2>
-                    <p class="sub" style="margin:0">Mensaje que ven todos los salones al iniciar sesión.</p>
+                <div class="topbar-acciones">
+                    <button type="button" id="refrescar-btn" class="btn btn-sm" title="Actualizar datos">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>
+                        Actualizar
+                    </button>
                 </div>
-            </div>
-            <div id="anuncios-alerta" class="alerta error oculto" role="alert"></div>
-            <div class="tarjeta" style="padding:18px;margin-bottom:14px">
-                <label for="anuncio-mensaje">Mensaje</label>
-                <textarea id="anuncio-mensaje" class="textarea" maxlength="280" placeholder="Ej: Este fin de semana el sistema entra en mantenimiento"></textarea>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:12px">
-                    <div>
-                        <label for="anuncio-tipo">Tipo</label>
-                        <select id="anuncio-tipo" class="btn" style="min-height:42px">
-                            <option value="info">Info</option>
-                            <option value="aviso">Aviso</option>
-                            <option value="urgente">Urgente</option>
+            </header>
+
+            <main class="contenido">
+                <div id="panel-alerta" class="alerta error oculto" role="alert" style="margin:0 0 14px"></div>
+
+                <!-- SALONES -->
+                <section id="seccion-salones" class="seccion">
+                    <div class="cabecera-seccion">
+                        <div>
+                            <h2>Salones</h2>
+                            <p class="sub">Estado general de la plataforma.</p>
+                        </div>
+                        <span class="contador" id="salones-contador"></span>
+                    </div>
+
+                    <div class="kpis">
+                        <div class="kpi">
+                            <span class="kpi-label">Salones</span>
+                            <strong class="kpi-valor" id="kpi-salones">—</strong>
+                            <span class="kpi-pie" id="kpi-salones-pie">cargando…</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Turnos</span>
+                            <strong class="kpi-valor" id="kpi-turnos">—</strong>
+                            <span class="kpi-pie">en toda la plataforma</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Clientas</span>
+                            <strong class="kpi-valor" id="kpi-clientes">—</strong>
+                            <span class="kpi-pie">registradas</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">En trial</span>
+                            <strong class="kpi-valor" id="kpi-trial">—</strong>
+                            <span class="kpi-pie">pruebas activas</span>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="search" id="buscar-salones" placeholder="Buscar salón o email de la dueña" aria-label="Buscar salón o email de la dueña">
+                        <select id="filtro-estado" aria-label="Filtrar por estado">
+                            <option value="todos">Todos</option>
+                            <option value="activos">Activos</option>
+                            <option value="suspendidos">Suspendidos</option>
+                        </select>
+                        <button type="button" id="csv-salones" class="btn">↓ CSV</button>
+                    </div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Salón</th>
+                                    <th>Dueña</th>
+                                    <th>Plan</th>
+                                    <th>Suscripción</th>
+                                    <th>Miembros</th>
+                                    <th>Turnos</th>
+                                    <th>Creado</th>
+                                    <th>Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-salones"></tbody>
+                        </table>
+                        <p id="salones-vacio" class="vacio oculto">No hay salones todavía.</p>
+                    </div>
+                </section>
+
+                <!-- SUSCRIPCIONES -->
+                <section id="seccion-suscripciones" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <div>
+                            <h2>Suscripciones</h2>
+                            <p class="sub">Planes, pruebas y MRR estimado.</p>
+                        </div>
+                    </div>
+
+                    <div class="kpis">
+                        <div class="kpi kpi-destacado">
+                            <span class="kpi-label">MRR estimado</span>
+                            <strong class="kpi-valor" id="kpi-mrr">—</strong>
+                            <span class="kpi-pie">planes activos, por mes</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">En trial</span>
+                            <strong class="kpi-valor" id="kpi-trial-sus">—</strong>
+                            <span class="kpi-pie">pruebas gratuitas</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Activos</span>
+                            <strong class="kpi-valor" id="kpi-activos">—</strong>
+                            <span class="kpi-pie">suscripción al día</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Past due</span>
+                            <strong class="kpi-valor" id="kpi-pastdue">—</strong>
+                            <span class="kpi-pie">pago pendiente</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Gratis</span>
+                            <strong class="kpi-valor" id="kpi-gratis">—</strong>
+                            <span class="kpi-pie">plan sin costo</span>
+                        </div>
+                    </div>
+
+                    <p class="nota" id="suscripciones-nota"></p>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Salón</th>
+                                    <th>Plan</th>
+                                    <th>Estado</th>
+                                    <th>Trial hasta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-suscripciones"></tbody>
+                        </table>
+                        <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavía.</p>
+                    </div>
+                </section>
+
+                <!-- ANUNCIOS -->
+                <section id="seccion-anuncios" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <div>
+                            <h2>Anuncios</h2>
+                            <p class="sub">El megáfono global: se muestra arriba de la app para todos los salones.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid-anuncios">
+                        <div class="panel">
+                            <h3>Publicar anuncio</h3>
+                            <p class="sub">Aparece en la app de todos los salones, incluso en el login.</p>
+                            <label for="anuncio-mensaje">Mensaje</label>
+                            <textarea id="anuncio-mensaje" maxlength="500" rows="4" placeholder="Ej: El sábado 15 hacemos mantenimiento entre las 8 y las 10."></textarea>
+                            <div class="contador-caracteres"><span id="anuncio-contador">0 / 500</span></div>
+
+                            <label for="anuncio-dias">Duración en días (0 = sin vencimiento)</label>
+                            <input type="number" id="anuncio-dias" min="0" max="365" value="0" inputmode="numeric">
+
+                            <div class="preview-label" style="margin-top:14px">Vista previa</div>
+                            <div id="anuncio-preview" class="anuncio-preview">El anuncio se va a ver así.</div>
+
+                            <button type="button" id="anuncio-publicar" class="btn btn-primario btn-bloque">Publicar anuncio</button>
+                            <div id="anuncio-alerta" class="alerta oculto" role="alert"></div>
+                        </div>
+
+                        <div class="panel">
+                            <h3>Publicados</h3>
+                            <p class="sub">Solo el más reciente activo se muestra en la app.</p>
+                            <div id="lista-anuncios" class="lista-anuncios"></div>
+                            <p id="anuncios-vacio" class="vacio oculto">Todavía no hay anuncios.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- AUDITORÍA -->
+                <section id="seccion-auditoria" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <div>
+                            <h2>Auditoría</h2>
+                            <p class="sub">Quién hizo qué, cuándo y sobre qué salón.</p>
+                        </div>
+                        <button type="button" id="refrescar-auditoria" class="btn btn-sm">Actualizar</button>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="search" id="buscar-auditoria" placeholder="Buscar admin, salón o acción" aria-label="Buscar en auditoría">
+                        <select id="filtro-accion" aria-label="Filtrar por acción">
+                            <option value="">Todas las acciones</option>
+                            <option value="impersonar">Impersonaciones</option>
+                            <option value="impersonar_fallido">Intentos fallidos</option>
                         </select>
                     </div>
-                    <div>
-                        <label for="anuncio-dias">Duración (días)</label>
-                        <input type="number" id="anuncio-dias" class="btn" min="0" max="365" value="7" style="min-height:42px;width:110px">
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Admin</th>
+                                    <th>Salón</th>
+                                    <th>Acción</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-auditoria"></tbody>
+                        </table>
+                        <p id="auditoria-vacio" class="vacio oculto">No hay registros.</p>
                     </div>
-                    <button type="button" id="anuncio-crear" class="btn btn-primario">Publicar</button>
-                </div>
-            </div>
-            <div class="tarjeta" style="padding:18px">
-                <div id="anuncios-lista"></div>
-                <p id="anuncios-vacio" class="vacio oculto">No hay anuncios.</p>
-            </div>
-        </div>
-
-        <footer>Panel interno · no compartir este enlace</footer>
-    </section>
-
-    <!-- 4 · DETALLE DEL SALÓN -->
-    <div id="detalle-overlay" class="modal-overlay oculto">
-        <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" id="detalle-caja">
-            <div class="modal-cabecera">
-                <div style="min-width:0">
-                    <h2 id="detalle-titulo">Salón</h2>
-                    <p class="sub" id="detalle-estado" style="margin:0"></p>
-                </div>
-                <button type="button" id="detalle-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">✕</button>
-            </div>
-            <div class="detalle-grid" id="detalle-datos"></div>
-            <div class="modal-acciones">
-                <button type="button" id="detalle-estado-btn" class="btn btn-peligro">Suspender</button>
-                <button type="button" id="detalle-impersonar" class="btn">→ Entrar como</button>
-                <button type="button" id="detalle-recupero" class="btn">✉ Recuperación</button>
-                <button type="button" id="detalle-csv" class="btn">↓ CSV</button>
-            </div>
-            <p class="sub" id="detalle-nota" style="margin:12px 0 0"></p>
+                </section>
+            </main>
         </div>
     </div>
-</main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>
-(function () {
-    'use strict';
+    <!-- 4 · DRAWER DETALLE -->
+    <div id="drawer-overlay" class="overlay oculto">
+        <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo">
+            <div class="drawer-cabecera">
+                <div style="min-width:0">
+                    <h2 id="drawer-titulo">Salón</h2>
+                    <p class="sub" id="drawer-estado" style="margin:0"></p>
+                </div>
+                <button type="button" id="drawer-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">✕</button>
+            </div>
+            <div id="drawer-datos" class="drawer-seccion"></div>
+            <div id="drawer-plan" class="drawer-seccion"></div>
+            <div id="drawer-acciones" class="drawer-acciones"></div>
+            <p id="drawer-nota" class="nota"></p>
+        </aside>
+    </div>
 
-            const SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
-            const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
-    var CLAVE_TEMA = 'eli_admin_tema';
+    <!-- 5 · CONFIRMACIÓN -->
+    <div id="confirm-overlay" class="overlay overlay-confirmar oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="confirm-titulo">
+            <h2 id="confirm-titulo"></h2>
+            <p id="confirm-texto"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="confirm-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="confirm-aceptar" class="btn btn-peligro">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-    // I44 · A: blindaje del formulario ANTES de cualquier dependencia.
-    // Si algo falla mas abajo, el <form> nunca recarga la pagina con "?".
-    ['login-form', 'dosfa-form'].forEach(function (id) {
-        var formulario = document.getElementById(id);
-        if (formulario) {
-            formulario.addEventListener('submit', function (evento) { evento.preventDefault(); });
-        }
-    });
+    <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
 
-    function mostrarErrorInicio(mensaje) {
-        var el = document.getElementById('login-alerta');
-        if (el) { el.textContent = mensaje || ''; el.className = 'alerta error'; }
-        ['vista-2fa', 'vista-panel'].forEach(function (v) { var x = document.getElementById(v); if (x) x.classList.add('oculto'); });
-        var login = document.getElementById('vista-login');
-        if (login) login.classList.remove('oculto');
-    }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script>
+    (function () {
+        'use strict';
 
-    // I44 · B y C: si el CDN no cargo o algo falla, se avisa en pantalla (nunca "pagina muerta")
-    var supabase = null;
-    try {
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-            throw new Error('No se pudo cargar el cliente de datos. Recargá la página.');
-        }
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+        const SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
+
+        const PLANES = {
+            gratis: { nombre: 'Gratis', precio: 0 },
+            pro: { nombre: 'Pro', precio: 9900 },
+            premium: { nombre: 'Premium', precio: 19900 }
+        };
+        const ESTADOS = {
+            trial: { nombre: 'Trial', clase: 'pill-trial' },
+            active: { nombre: 'Activo', clase: 'pill-ok' },
+            past_due: { nombre: 'Past due', clase: 'pill-danger' }
+        };
+        const TITULOS = {
+            salones: { t: 'Salones', s: 'Estado general de la plataforma.' },
+            suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
+            anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
+            auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' }
+        };
+
+        // I44 · A: blindaje de los formularios ANTES de cualquier dependencia.
+        ['login-form', 'dosfa-form'].forEach(function (id) {
+            var formulario = document.getElementById(id);
+            if (formulario) {
+                formulario.addEventListener('submit', function (evento) { evento.preventDefault(); });
+            }
         });
-    } catch (error) {
-        mostrarErrorInicio((error && error.message) || 'No se pudo cargar el cliente de datos. Recargá la página.');
-    }
 
-    var factorPendiente = null;   // { id, modo: 'enrolar' | 'verificar' }
-    var salonesCache = [];
+        function $(id) { return document.getElementById(id); }
 
-    // ── utilidades DOM ──
-    function $(id) { return document.getElementById(id); }
-    function mostrar(nombre) {
-        ['vista-login', 'vista-2fa', 'vista-panel'].forEach(function (v) {
-            var el = $(v);
-            if (el) el.classList.toggle('oculto', v !== nombre);
-        });
-    }
-    function alerta(id, texto, tipo) {
-        var el = $(id);
-        if (!el) return;
-        el.textContent = texto || '';
-        el.className = 'alerta ' + (tipo === 'ok' ? 'ok' : 'error') + (texto ? '' : ' oculto');
-    }
-    function ocupado(boton, texto) {
-        if (!boton) return;
-        if (texto) {
-            boton.dataset.texto = boton.dataset.texto || boton.textContent;
-            boton.textContent = texto;
-            boton.disabled = true;
-        } else {
-            if (boton.dataset.texto) boton.textContent = boton.dataset.texto;
-            boton.disabled = false;
+        function mostrarErrorInicio(mensaje) {
+            var el = $('login-alerta');
+            if (el) { el.textContent = mensaje || ''; el.className = 'alerta error'; }
+            ['vista-2fa', 'app'].forEach(function (v) {
+                var x = $(v);
+                if (x) x.classList.add('oculto');
+            });
+            var login = $('vista-login');
+            if (login) login.classList.remove('oculto');
         }
-    }
-    function fechaCorta(valor) {
-        if (!valor) return '—';
-        var texto = String(valor);
-        var soloFecha = texto.length === 10 && texto.charAt(4) === '-' && texto.charAt(7) === '-';
-        var d = new Date(soloFecha ? texto + 'T00:00:00' : valor);
-        if (isNaN(d.getTime())) return '—';
-        return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    function campo(fila, nombres, porDefecto) {
-        for (var i = 0; i < nombres.length; i++) {
-            var v = fila[nombres[i]];
-            if (v !== undefined && v !== null) return v;
-        }
-        return porDefecto;
-    }
 
-    // ── tema ──
-    function aplicarTema(tema) {
-        document.documentElement.setAttribute('data-theme', tema === 'light' ? 'light' : 'dark');
-        try { localStorage.setItem(CLAVE_TEMA, tema); } catch (e) { /* modo privado */ }
-    }
-    (function temaInicial() {
-        var guardado = 'dark';
-        try { guardado = localStorage.getItem(CLAVE_TEMA) || 'dark'; } catch (e) { /* modo privado */ }
-        aplicarTema(guardado);
-    })();
-    $('tema-btn').addEventListener('click', function () {
-        var actual = document.documentElement.getAttribute('data-theme');
-        aplicarTema(actual === 'dark' ? 'light' : 'dark');
-    });
-
-    // ── flujo principal ──
-    async function arrancar() {
-        if (!supabase) { mostrarErrorInicio('No se pudo cargar el cliente de datos. Recargá la página.'); return; }
+        var supabase = null;
         try {
-            var sesion = await supabase.auth.getSession();
-            if (!sesion.data || !sesion.data.session) {
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                throw new Error('No se pudo cargar el cliente de datos. Recargá la página.');
+            }
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+            });
+        } catch (error) {
+            mostrarErrorInicio((error && error.message) || 'No se pudo cargar el cliente de datos. Recargá la página.');
+        }
+
+        var factorPendiente = null;
+        var usuarioActual = null;
+        var adminEmail = '';
+        var salones = [];
+        var planesDisponibles = true;
+        var detalleActual = null;
+        var focoAnterior = null;
+        var anuncios = [];
+        var auditoria = [];
+        var emailsAdmins = {};
+        var adminEmailsCargados = false;
+        var confirmarResolver = null;
+
+        // ── utilidades ──
+        function mostrar(nombre) {
+            ['vista-login', 'vista-2fa', 'app'].forEach(function (v) {
+                var el = $(v);
+                if (el) el.classList.toggle('oculto', v !== nombre);
+            });
+        }
+        function alerta(id, texto, tipo) {
+            var el = $(id);
+            if (!el) return;
+            el.textContent = texto || '';
+            el.className = 'alerta ' + (tipo === 'ok' ? 'ok' : 'error') + (texto ? '' : ' oculto');
+        }
+        function ocupado(boton, texto) {
+            if (!boton) return;
+            if (texto) {
+                boton.dataset.texto = boton.dataset.texto || boton.textContent;
+                boton.textContent = texto;
+                boton.disabled = true;
+            } else {
+                if (boton.dataset.texto) { boton.textContent = boton.dataset.texto; delete boton.dataset.texto; }
+                boton.disabled = false;
+            }
+        }
+        function fechaCorta(valor) {
+            if (!valor) return '—';
+            var texto = String(valor);
+            var soloFecha = texto.length === 10 && texto.charAt(4) === '-' && texto.charAt(7) === '-';
+            var d = new Date(soloFecha ? texto + 'T00:00:00' : valor);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+        function fechaHora(valor) {
+            if (!valor) return '—';
+            var d = new Date(valor);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' +
+                   d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+        function dinero(valor) {
+            try {
+                return new Intl.NumberFormat('es-AR', {
+                    style: 'currency', currency: 'ARS', maximumFractionDigits: 0
+                }).format(Number(valor) || 0);
+            } catch (error) {
+                return '$ ' + String(Number(valor) || 0);
+            }
+        }
+        function normalizar(texto) {
+            var limpio = String(texto == null ? '' : texto).toLowerCase();
+            if (limpio.normalize) limpio = limpio.normalize('NFD');
+            var salida = '';
+            for (var i = 0; i < limpio.length; i++) {
+                var codigo = limpio.charCodeAt(i);
+                if (codigo >= 768 && codigo <= 879) continue;
+                salida += limpio.charAt(i);
+            }
+            return salida;
+        }
+        function campo(fila, nombres, porDefecto) {
+            for (var i = 0; i < nombres.length; i++) {
+                var v = fila[nombres[i]];
+                if (v !== undefined && v !== null) return v;
+            }
+            return porDefecto;
+        }
+        function recortar(texto, maximo) {
+            var s = String(texto == null ? '' : texto);
+            if (s.length <= maximo) return s;
+            return s.slice(0, maximo - 1) + '…';
+        }
+        function toast(mensaje, tipo) {
+            var caja = $('toasts');
+            if (!caja) return;
+            var nodo = document.createElement('div');
+            nodo.className = 'toast ' + (tipo === 'ok' ? 'toast-ok' : 'toast-error');
+            nodo.setAttribute('role', 'status');
+            nodo.textContent = mensaje;
+            caja.appendChild(nodo);
+            setTimeout(function () { nodo.classList.add('sale'); }, 4200);
+            setTimeout(function () { if (nodo.parentNode) nodo.parentNode.removeChild(nodo); }, 4800);
+        }
+        function crear(tag, clase, texto) {
+            var nodo = document.createElement(tag);
+            if (clase) nodo.className = clase;
+            if (texto != null) nodo.textContent = String(texto);
+            return nodo;
+        }
+        function pill(texto, clase) {
+            return crear('span', 'pill ' + clase, texto);
+        }
+        function diasTrial(valor) {
+            if (!valor) return null;
+            var ms = new Date(valor).getTime() - Date.now();
+            if (isNaN(ms)) return null;
+            return Math.ceil(ms / 86400000);
+        }
+        function planPill(planId) {
+            var plan = PLANES[planId] || PLANES.gratis;
+            var clase = planId === 'premium' ? 'pill-gold' : (planId === 'pro' ? 'pill-info' : 'pill-neutral');
+            return pill(plan.nombre, clase);
+        }
+        function estadoPill(estado) {
+            var info = ESTADOS[estado] || ESTADOS.trial;
+            return pill(info.nombre, info.clase);
+        }
+
+        // ── confirmación reutilizable ──
+        function confirmar(titulo, texto, etiqueta, peligro) {
+            return new Promise(function (resolve) {
+                confirmarResolver = resolve;
+                $('confirm-titulo').textContent = titulo;
+                $('confirm-texto').textContent = texto;
+                var boton = $('confirm-aceptar');
+                boton.textContent = etiqueta || 'Confirmar';
+                boton.className = 'btn ' + (peligro ? 'btn-peligro' : 'btn-primario');
+                $('confirm-overlay').classList.remove('oculto');
+                boton.focus();
+            });
+        }
+        function cerrarConfirmar(valor) {
+            $('confirm-overlay').classList.add('oculto');
+            var resolver = confirmarResolver;
+            confirmarResolver = null;
+            if (resolver) resolver(!!valor);
+        }
+        $('confirm-aceptar').addEventListener('click', function () { cerrarConfirmar(true); });
+        $('confirm-cancelar').addEventListener('click', function () { cerrarConfirmar(false); });
+        $('confirm-overlay').addEventListener('click', function (evento) {
+            if (evento.target === $('confirm-overlay')) cerrarConfirmar(false);
+        });
+
+        // ── tema único (dark SaaS) ──
+        document.documentElement.setAttribute('data-theme', 'dark');
+
+        // ── sesión ──
+        async function arrancar() {
+            if (!supabase) { mostrarErrorInicio('No se pudo cargar el cliente de datos. Recargá la página.'); return; }
+            try {
+                var sesion = await supabase.auth.getSession();
+                if (!sesion.data || !sesion.data.session) { mostrar('vista-login'); return; }
+                usuarioActual = sesion.data.session.user;
+                await continuar();
+            } catch (error) {
+                console.error(error);
+                alerta('login-alerta', 'No se pudo comprobar la sesión. Recargá la página.');
                 mostrar('vista-login');
+            }
+        }
+
+        async function continuar() {
+            var esAdmin = await verificarSuperAdmin();
+            if (!esAdmin) {
+                await supabase.auth.signOut();
+                mostrar('vista-login');
+                alerta('login-alerta', 'No tenés permisos de administrador.');
                 return;
             }
-            await continuar();
-        } catch (error) {
-            console.error(error);
-            alerta('login-alerta', 'No se pudo comprobar la sesión. Recargá la página.');
-            mostrar('vista-login');
-        }
-    }
 
-    async function continuar() {
-        // 1) primero los permisos: un usuario normal no llega ni a enrolar 2FA
-        var esAdmin = await verificarSuperAdmin();
-        if (!esAdmin) {
-            await supabase.auth.signOut();
-            mostrar('vista-login');
-            alerta('login-alerta', 'No tenés permisos de administrador.');
-            $('salir-btn').classList.add('oculto');
-            return;
+            var dosfaListo = await resolverDosFactores();
+            if (!dosfaListo) return;
+
+            mostrar('app');
+            $('admin-email').textContent = adminEmail || (usuarioActual && usuarioActual.email) || '';
+            mostrarSeccion((location.hash || '#salones').slice(1));
+            await cargarTodo();
         }
 
-        // 2) recien despues el segundo factor
-        var dosfaListo = await resolverDosFactores();
-        if (!dosfaListo) return;
-
-        $('salir-btn').classList.remove('oculto');
-        await cargarPanel();
-    }
-
-    // ── 2FA ──
-    async function resolverDosFactores() {
-        var lista = await supabase.auth.mfa.listFactors();
-        if (lista.error) {
-            alerta('login-alerta', 'No se pudo leer el estado del 2FA: ' + lista.error.message);
-            mostrar('vista-login');
-            return false;
-        }
-        var factores = (lista.data && lista.data.totp) || [];
-        var verificado = factores.filter(function (f) { return f.status === 'verified'; })[0];
-
-        if (!verificado) {
-            await iniciarEnrolamiento();
-            return false;
+        async function verificarSuperAdmin() {
+            try {
+                if (!usuarioActual) {
+                    var sesion = await supabase.auth.getSession();
+                    usuarioActual = sesion && sesion.data && sesion.data.session ? sesion.data.session.user : null;
+                }
+                if (!usuarioActual) return false;
+                var consulta = await supabase
+                    .from('super_admins')
+                    .select('user_id, email')
+                    .eq('user_id', usuarioActual.id)
+                    .maybeSingle();
+                if (consulta.error) { console.error('super_admins:', consulta.error); return false; }
+                if (!consulta.data) return false;
+                adminEmail = consulta.data.email || usuarioActual.email || '';
+                return true;
+            } catch (error) {
+                console.error(error);
+                return false;
+            }
         }
 
-        var aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        var nivel = aal && aal.data ? aal.data.currentLevel : 'aal1';
-        if (nivel === 'aal2') return true;
+        // ── 2FA ──
+        async function resolverDosFactores() {
+            var lista = await supabase.auth.mfa.listFactors();
+            if (lista.error) {
+                alerta('login-alerta', 'No se pudo leer el estado del 2FA: ' + lista.error.message);
+                mostrar('vista-login');
+                return false;
+            }
+            var factores = (lista.data && lista.data.totp) || [];
+            var verificado = factores.filter(function (f) { return f.status === 'verified'; })[0];
 
-        factorPendiente = { id: verificado.id, modo: 'verificar' };
-        $('dosfa-titulo').textContent = 'Verificación en dos pasos';
-        $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
-        $('dosfa-qr-caja').classList.add('oculto');
-        $('dosfa-codigo').value = '';
-        alerta('dosfa-alerta', '', 'error');
-        mostrar('vista-2fa');
-        setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
-        return false;
-    }
+            if (!verificado) {
+                await iniciarEnrolamiento();
+                return false;
+            }
 
-    async function iniciarEnrolamiento() {
-        var boton = $('dosfa-btn');
-        ocupado(boton, 'Preparando…');
-        try {
-            var enrol = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Panel admin' });
-            if (enrol.error) throw enrol.error;
-            factorPendiente = { id: enrol.data.id, modo: 'enrolar' };
-            $('dosfa-qr').src = enrol.data.totp.qr_code;
-            $('dosfa-secreto').textContent = enrol.data.totp.secret;
-            $('dosfa-qr-caja').classList.remove('oculto');
-            $('dosfa-titulo').textContent = 'Configurá el 2FA';
-            $('dosfa-sub').textContent = 'Escaneá el código con tu aplicación de autenticación y confirmá con un código de 6 dígitos.';
+            var aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+            var nivel = aal && aal.data ? aal.data.currentLevel : 'aal1';
+            if (nivel === 'aal2') return true;
+
+            factorPendiente = { id: verificado.id, modo: 'verificar' };
+            $('dosfa-titulo').textContent = 'Verificación en dos pasos';
+            $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
+            $('dosfa-qr-caja').classList.add('oculto');
             $('dosfa-codigo').value = '';
             alerta('dosfa-alerta', '', 'error');
             mostrar('vista-2fa');
             setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
-        } catch (error) {
-            alerta('login-alerta', 'No se pudo iniciar el 2FA: ' + (error.message || 'error de conexión'));
-            mostrar('vista-login');
-        } finally {
-            ocupado(boton, '');
-        }
-    }
-
-    async function verificarCodigo(codigo) {
-        var desafio = await supabase.auth.mfa.challenge({ factorId: factorPendiente.id });
-        if (desafio.error) throw desafio.error;
-        var verificado = await supabase.auth.mfa.verify({
-            factorId: factorPendiente.id,
-            challengeId: desafio.data.id,
-            code: codigo
-        });
-        if (verificado.error) throw verificado.error;
-    }
-
-    $('dosfa-form').addEventListener('submit', async function (evento) {
-        evento.preventDefault();
-        var boton = $('dosfa-btn');
-        var codigo = String($('dosfa-codigo').value || '').replace(/\D/g, '');
-        if (!factorPendiente) { alerta('dosfa-alerta', 'Volvé a iniciar sesión.'); return; }
-        if (codigo.length !== 6) { alerta('dosfa-alerta', 'El código tiene que tener 6 dígitos.'); return; }
-        alerta('dosfa-alerta', '');
-        ocupado(boton, 'Verificando…');
-        try {
-            await verificarCodigo(codigo);
-            factorPendiente = null;
-            await continuar();
-        } catch (error) {
-            var mensaje = String((error && error.message) || '');
-            if (/invalid|incorrect|mismatch/i.test(mensaje)) {
-                alerta('dosfa-alerta', 'Código incorrecto. Probá de nuevo.');
-            } else {
-                alerta('dosfa-alerta', 'No se pudo verificar: ' + (mensaje || 'probá de nuevo'));
-            }
-            $('dosfa-codigo').value = '';
-            $('dosfa-codigo').focus();
-        } finally {
-            ocupado(boton, '');
-        }
-    });
-
-    $('dosfa-salir').addEventListener('click', async function () {
-        if (supabase) await supabase.auth.signOut();
-        factorPendiente = null;
-        mostrar('vista-login');
-    });
-
-    // ── superadmin ──
-    async function verificarSuperAdmin() {
-        try {
-            var consulta = await supabase.from('super_admins').select('user_id').limit(1);
-            if (consulta.error) {
-                console.error('super_admins:', consulta.error);
-                return false;
-            }
-            return !!(consulta.data && consulta.data.length);
-        } catch (error) {
-            console.error(error);
             return false;
         }
-    }
 
-    // ── login ──
-    $('login-form').addEventListener('submit', async function (evento) {
-        evento.preventDefault();
-        var boton = $('login-btn');
-        var email = String($('email').value || '').trim();
-        var password = String($('password').value || '');
-        if (!supabase) { alerta('login-alerta', 'No se pudo cargar el cliente de datos. Recargá la página.'); return; }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
-        if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
-        alerta('login-alerta', '');
-        ocupado(boton, 'Entrando…');
-        try {
-            var ingreso = await supabase.auth.signInWithPassword({ email: email, password: password });
-            if (ingreso.error) throw ingreso.error;
-            $('password').value = '';
-            await continuar();
-        } catch (error) {
-            var codigo = String((error && error.code) || '');
-            var texto = String((error && error.message) || '');
-            if (/invalid_credentials|invalid login credentials/i.test(codigo + ' ' + texto)) {
-                alerta('login-alerta', 'Email o contraseña incorrectos.');
-            } else if (/email_not_confirmed/i.test(codigo + texto)) {
-                alerta('login-alerta', 'Tenés que confirmar tu email antes de entrar.');
-            } else {
-                alerta('login-alerta', 'No se pudo iniciar sesión: ' + (texto || 'error de conexión'));
+        async function iniciarEnrolamiento() {
+            var boton = $('dosfa-btn');
+            ocupado(boton, 'Preparando…');
+            try {
+                var enrol = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Panel admin' });
+                if (enrol.error) throw enrol.error;
+                factorPendiente = { id: enrol.data.id, modo: 'enrolar' };
+                $('dosfa-qr').src = enrol.data.totp.qr_code;
+                $('dosfa-secreto').textContent = enrol.data.totp.secret;
+                $('dosfa-qr-caja').classList.remove('oculto');
+                $('dosfa-titulo').textContent = 'Configurá el 2FA';
+                $('dosfa-sub').textContent = 'Escaneá el código con tu aplicación de autenticación y confirmá con un código de 6 dígitos.';
+                $('dosfa-codigo').value = '';
+                alerta('dosfa-alerta', '', 'error');
+                mostrar('vista-2fa');
+                setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
+            } catch (error) {
+                alerta('login-alerta', 'No se pudo iniciar el 2FA: ' + (error.message || 'error de conexión'));
+                mostrar('vista-login');
+            } finally {
+                ocupado(boton, '');
             }
-        } finally {
-            ocupado(boton, '');
         }
-    });
 
-    $('salir-btn').addEventListener('click', async function () {
-        if (supabase) await supabase.auth.signOut();
-        factorPendiente = null;
-        salonesCache = [];
-        $('salir-btn').classList.add('oculto');
-        mostrar('vista-login');
-    });
+        async function verificarCodigo(codigo) {
+            var desafio = await supabase.auth.mfa.challenge({ factorId: factorPendiente.id });
+            if (desafio.error) throw desafio.error;
+            var verificado = await supabase.auth.mfa.verify({
+                factorId: factorPendiente.id,
+                challengeId: desafio.data.id,
+                code: codigo
+            });
+            if (verificado.error) throw verificado.error;
+        }
 
-    // ── panel ──
-    async function cargarPanel() {
-        var tbody = $('panel-tabla');
-        tbody.innerHTML = '';
-        var vacio = $('panel-vacio');
-        var cargando = document.createElement('tr');
-        var celda = document.createElement('td');
-        celda.colSpan = 7;
-        celda.className = 'vacio';
-        celda.textContent = 'Cargando salones…';
-        cargando.appendChild(celda);
-        tbody.appendChild(cargando);
-        if (vacio) vacio.classList.add('oculto');
-        mostrar('vista-panel');
+        $('dosfa-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            var boton = $('dosfa-btn');
+            var codigo = String($('dosfa-codigo').value || '').replace(/\D/g, '');
+            if (!factorPendiente) { alerta('dosfa-alerta', 'Volvé a iniciar sesión.'); return; }
+            if (codigo.length !== 6) { alerta('dosfa-alerta', 'El código tiene que tener 6 dígitos.'); return; }
+            alerta('dosfa-alerta', '');
+            ocupado(boton, 'Verificando…');
+            try {
+                await verificarCodigo(codigo);
+                factorPendiente = null;
+                await continuar();
+            } catch (error) {
+                var mensaje = String((error && error.message) || '');
+                if (/invalid|incorrect|mismatch/i.test(mensaje)) {
+                    alerta('dosfa-alerta', 'Código incorrecto. Probá de nuevo.');
+                } else {
+                    alerta('dosfa-alerta', 'No se pudo verificar: ' + (mensaje || 'probá de nuevo'));
+                }
+                $('dosfa-codigo').value = '';
+                $('dosfa-codigo').focus();
+            } finally {
+                ocupado(boton, '');
+            }
+        });
 
-        try {
+        $('dosfa-salir').addEventListener('click', async function () {
+            if (supabase) await supabase.auth.signOut();
+            factorPendiente = null;
+            mostrar('vista-login');
+        });
+
+        // ── login ──
+        $('login-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            var boton = $('login-btn');
+            var email = String($('email').value || '').trim();
+            var password = String($('password').value || '');
+            if (!supabase) { alerta('login-alerta', 'No se pudo cargar el cliente de datos. Recargá la página.'); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
+            if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+            alerta('login-alerta', '');
+            ocupado(boton, 'Entrando…');
+            try {
+                var ingreso = await supabase.auth.signInWithPassword({ email: email, password: password });
+                if (ingreso.error) throw ingreso.error;
+                usuarioActual = ingreso.data && ingreso.data.user ? ingreso.data.user : null;
+                $('password').value = '';
+                await continuar();
+            } catch (error) {
+                var codigo = String((error && error.code) || '');
+                var texto = String((error && error.message) || '');
+                if (/invalid_credentials|invalid login credentials/i.test(codigo + ' ' + texto)) {
+                    alerta('login-alerta', 'Email o contraseña incorrectos.');
+                } else if (/email_not_confirmed/i.test(codigo + texto)) {
+                    alerta('login-alerta', 'Tenés que confirmar tu email antes de entrar.');
+                } else {
+                    alerta('login-alerta', 'No se pudo iniciar sesión: ' + (texto || 'error de conexión'));
+                }
+            } finally {
+                ocupado(boton, '');
+            }
+        });
+
+        $('salir-btn').addEventListener('click', async function () {
+            if (supabase) await supabase.auth.signOut();
+            factorPendiente = null;
+            usuarioActual = null;
+            salones = [];
+            anuncios = [];
+            auditoria = [];
+            mostrar('vista-login');
+        });
+
+        // ── navegación ──
+        function mostrarSeccion(nombre) {
+            if (!TITULOS[nombre]) nombre = 'salones';
+            document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
+                var activo = boton.dataset.vista === nombre;
+                boton.classList.toggle('activo', activo);
+                if (activo) boton.setAttribute('aria-current', 'page');
+                else boton.removeAttribute('aria-current');
+            });
+            ['salones', 'suscripciones', 'anuncios', 'auditoria'].forEach(function (v) {
+                var seccion = $('seccion-' + v);
+                if (seccion) seccion.classList.toggle('oculto', v !== nombre);
+            });
+            $('vista-titulo').textContent = TITULOS[nombre].t;
+            $('vista-sub').textContent = TITULOS[nombre].s;
+            try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
+            cerrarMenu();
+        }
+
+        document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
+            boton.addEventListener('click', function () { mostrarSeccion(boton.dataset.vista); });
+        });
+        window.addEventListener('hashchange', function () {
+            mostrarSeccion((location.hash || '#salones').slice(1));
+        });
+
+        function abrirMenu() { document.body.classList.add('menu-abierto'); }
+        function cerrarMenu() { document.body.classList.remove('menu-abierto'); }
+        $('menu-btn').addEventListener('click', abrirMenu);
+        $('sidebar-fondo').addEventListener('click', cerrarMenu);
+
+        // ── carga de datos ──
+        async function cargarTodo() {
+            alerta('panel-alerta', '', 'error');
+            try {
+                await cargarSalones();
+            } catch (error) {
+                console.error(error);
+                alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexión'));
+            }
+            await cargarKpis();
+            await cargarAnuncios();
+            await cargarAuditoria();
+            pintarSalones();
+            pintarSuscripciones();
+            pintarAnuncios();
+            pintarAuditoria();
+        }
+
+        async function cargarSalones() {
             var resumen = await supabase.rpc('admin_resumen_salones');
             if (resumen.error) throw resumen.error;
-            salonesCache = resumen.data || [];
-            pintarSalones();
-            cargarKpis();
-        } catch (error) {
-            console.error('No se pudo cargar el resumen:', error);
-            tbody.innerHTML = '';
-            alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexión'));
-        }
-    }
+            var base = resumen.data || [];
 
-    function pintarSalones() {
-        var tbody = $('panel-tabla');
-        var vacio = $('panel-vacio');
-        var lista = salonesFiltrados();
-        tbody.innerHTML = '';
-        var total = salonesCache.length;
-        $('panel-contador').textContent = lista.length === total
-            ? (total === 1 ? '1 salón' : total + ' salones')
-            : lista.length + ' de ' + total + ' salones';
-
-        if (!lista.length) {
-            if (vacio) {
-                vacio.textContent = total
-                    ? 'Ningún salón coincide con el filtro.'
-                    : 'No hay salones todavía.';
-                vacio.classList.remove('oculto');
+            var mapa = {};
+            try {
+                var planes = await supabase
+                    .from('salones')
+                    .select('id, plan_id, estado_suscripcion, trial_hasta, suscripcion_desde, dueno_user_id');
+                if (planes.error) throw planes.error;
+                planesDisponibles = true;
+                (planes.data || []).forEach(function (p) { mapa[p.id] = p; });
+            } catch (error) {
+                planesDisponibles = false;
+                console.warn('No se pudo leer salones (plan):', error);
             }
-            return;
+
+            salones = base.map(function (s) {
+                var id = campo(s, ['id', 'salon_id'], null);
+                var p = mapa[id] || {};
+                return {
+                    id: id,
+                    nombre: campo(s, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
+                    dueno: campo(s, ['dueno', 'dueno_email', 'email_dueno', 'owner_email'], '—'),
+                    miembros: Number(campo(s, ['miembros', 'cantidad_miembros', 'total_miembros'], 0)) || 0,
+                    turnos: Number(campo(s, ['turnos', 'turnos_totales', 'total_turnos'], 0)) || 0,
+                    creado: campo(s, ['creado_en', 'fecha_creacion', 'created_at'], null),
+                    activo: campo(s, ['activo'], true) !== false,
+                    plan_id: campo(s, ['plan_id'], p.plan_id || 'gratis'),
+                    estado: campo(s, ['estado_suscripcion'], p.estado_suscripcion || 'trial'),
+                    trial_hasta: campo(s, ['trial_hasta'], p.trial_hasta || null),
+                    suscripcion_desde: campo(s, ['suscripcion_desde'], p.suscripcion_desde || null),
+                    dueno_user_id: p.dueno_user_id || null
+                };
+            });
         }
-        if (vacio) vacio.classList.add('oculto');
 
-        lista.forEach(function (salon) {
-            var id = campo(salon, ['id', 'salon_id'], null);
-            var nombre = campo(salon, ['nombre', 'salon', 'nombre_salon'], 'Salón');
-            var dueno = campo(salon, ['dueno', 'dueno_email', 'email_dueno', 'owner_email', 'dueno_user_id'], '—');
-            var miembros = campo(salon, ['miembros', 'cantidad_miembros', 'total_miembros'], 0);
-            var turnos = campo(salon, ['turnos', 'turnos_totales', 'total_turnos'], 0);
-            var creado = campo(salon, ['creado_en', 'fecha_creacion', 'created_at'], null);
-            var activo = campo(salon, ['activo'], true) !== false;
+        async function cargarKpis() {
+            var total = salones.length;
+            var activos = salones.filter(function (s) { return s.activo; }).length;
+            var turnos = null;
+            var clientes = null;
+            try {
+                var res = await supabase.rpc('admin_kpis');
+                if (!res.error && res.data && res.data[0]) {
+                    turnos = Number(res.data[0].turnos_total) || 0;
+                    clientes = Number(res.data[0].clientes_total) || 0;
+                    total = Number(res.data[0].salones_total) || total;
+                    activos = Number(res.data[0].salones_activos) || activos;
+                }
+            } catch (error) {
+                console.warn('No se pudieron cargar los KPIs:', error);
+            }
+            $('kpi-salones').textContent = String(total);
+            $('kpi-salones-pie').textContent = activos + (activos === 1 ? ' activo' : ' activos');
+            $('kpi-turnos').textContent = turnos == null ? '—' : String(turnos);
+            $('kpi-clientes').textContent = clientes == null ? '—' : String(clientes);
+            calcularSaas();
+        }
 
-            var fila = document.createElement('tr');
-            fila.className = 'fila-salon' + (activo ? '' : ' inactivo');
-            if (id) {
+        function calcularSaas() {
+            var mrr = 0;
+            var trial = 0;
+            var activos = 0;
+            var pastdue = 0;
+            var gratis = 0;
+            salones.forEach(function (s) {
+                if (s.estado === 'trial') trial++;
+                else if (s.estado === 'past_due') pastdue++;
+                else if (s.estado === 'active') {
+                    activos++;
+                    var plan = PLANES[s.plan_id] || PLANES.gratis;
+                    mrr += plan.precio;
+                }
+                if (s.plan_id === 'gratis') gratis++;
+            });
+            $('kpi-mrr').textContent = dinero(mrr);
+            $('kpi-trial').textContent = String(trial);
+            $('kpi-trial-sus').textContent = String(trial);
+            $('kpi-activos').textContent = String(activos);
+            $('kpi-pastdue').textContent = String(pastdue);
+            $('kpi-gratis').textContent = String(gratis);
+        }
+
+        // ── salones ──
+        var filtroSalones = '';
+        var filtroEstado = 'todos';
+
+        function salonesFiltrados() {
+            var busqueda = normalizar(filtroSalones).trim();
+            return salones.filter(function (s) {
+                if (filtroEstado === 'activos' && !s.activo) return false;
+                if (filtroEstado === 'suspendidos' && s.activo) return false;
+                if (!busqueda) return true;
+                return normalizar(s.nombre).indexOf(busqueda) >= 0 ||
+                       normalizar(s.dueno).indexOf(busqueda) >= 0;
+            });
+        }
+
+        function celda(etiqueta, contenido) {
+            var td = document.createElement('td');
+            td.setAttribute('data-label', etiqueta);
+            if (contenido instanceof Node) td.appendChild(contenido);
+            else td.textContent = contenido == null ? '—' : String(contenido);
+            return td;
+        }
+
+        function pintarSalones() {
+            var tbody = $('tabla-salones');
+            var lista = salonesFiltrados();
+            tbody.textContent = '';
+            $('salones-contador').textContent = lista.length === salones.length
+                ? (salones.length === 1 ? '1 salón' : salones.length + ' salones')
+                : lista.length + ' de ' + salones.length + ' salones';
+
+            var vacio = $('salones-vacio');
+            if (!lista.length) {
+                vacio.textContent = salones.length ? 'Ningún salón coincide con el filtro.' : 'No hay salones todavía.';
+                vacio.classList.remove('oculto');
+                return;
+            }
+            vacio.classList.add('oculto');
+
+            lista.forEach(function (s) {
+                var fila = document.createElement('tr');
+                fila.className = 'fila-salon';
                 fila.tabIndex = 0;
                 fila.setAttribute('role', 'button');
-                fila.setAttribute('aria-label', 'Ver detalle de ' + nombre);
-                fila.addEventListener('click', function () { abrirDetalle(id); });
+                fila.setAttribute('aria-label', 'Ver detalle de ' + s.nombre);
+                fila.addEventListener('click', function () { abrirDetalle(s.id); });
                 fila.addEventListener('keydown', function (evento) {
                     if (evento.key === 'Enter' || evento.key === ' ') {
                         evento.preventDefault();
-                        abrirDetalle(id);
+                        abrirDetalle(s.id);
                     }
                 });
-            }
 
-            var tdNombre = document.createElement('td');
-            tdNombre.setAttribute('data-label', 'Salón');
-            var n = document.createElement('div');
-            n.className = 'salon-nombre';
-            n.textContent = String(nombre);
-            tdNombre.appendChild(n);
-            if (id) {
-                var ident = document.createElement('div');
-                ident.className = 'salon-id';
-                ident.textContent = String(id).slice(0, 8);
-                tdNombre.appendChild(ident);
-            }
+                var tdNombre = document.createElement('td');
+                tdNombre.setAttribute('data-label', 'Salón');
+                tdNombre.appendChild(crear('div', 'salon-nombre', s.nombre));
+                if (s.id) tdNombre.appendChild(crear('div', 'salon-id', String(s.id).slice(0, 8)));
 
-            var tdDueno = document.createElement('td');
-            tdDueno.setAttribute('data-label', 'Dueño');
-            tdDueno.textContent = String(dueno);
+                fila.appendChild(tdNombre);
+                fila.appendChild(celda('Dueña', s.dueno));
+                fila.appendChild(celda('Plan', planPill(s.plan_id)));
+                fila.appendChild(celda('Suscripción', estadoPill(s.estado)));
+                fila.appendChild(celda('Miembros', s.miembros));
+                fila.appendChild(celda('Turnos', s.turnos));
+                fila.appendChild(celda('Creado', fechaCorta(s.creado)));
+                fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
 
-            var tdMiembros = document.createElement('td');
-            tdMiembros.setAttribute('data-label', 'Miembros');
-            tdMiembros.textContent = String(miembros);
-
-            var tdTurnos = document.createElement('td');
-            tdTurnos.setAttribute('data-label', 'Turnos');
-            tdTurnos.textContent = String(turnos);
-
-            var tdCreado = document.createElement('td');
-            tdCreado.setAttribute('data-label', 'Creado');
-            tdCreado.textContent = fechaCorta(creado);
-
-            var tdEstado = document.createElement('td');
-            tdEstado.setAttribute('data-label', 'Estado');
-            tdEstado.textContent = activo ? 'Activo' : 'Suspendido';
-            tdEstado.style.color = activo ? 'var(--ok)' : 'var(--danger)';
-
-            var tdAccion = document.createElement('td');
-            tdAccion.className = 'accion';
-            tdAccion.addEventListener('click', function (evento) { evento.stopPropagation(); });
-            tdAccion.addEventListener('keydown', function (evento) { evento.stopPropagation(); });
-            if (id) {
-                var boton = document.createElement('button');
+                var tdAccion = document.createElement('td');
+                tdAccion.className = 'celda-accion';
+                tdAccion.setAttribute('data-label', '');
+                var boton = crear('button', 'btn btn-sm ' + (s.activo ? 'btn-peligro' : 'btn-ok'), s.activo ? 'Suspender' : 'Activar');
                 boton.type = 'button';
-                boton.className = 'btn ' + (activo ? 'btn-peligro' : 'btn-ok');
-                boton.textContent = activo ? 'Suspender' : 'Activar';
-                boton.addEventListener('click', function () { pedirCambioEstado(boton, id, activo); });
-                tdAccion.appendChild(boton);
-            }
-
-            fila.appendChild(tdNombre);
-            fila.appendChild(tdDueno);
-            fila.appendChild(tdMiembros);
-            fila.appendChild(tdTurnos);
-            fila.appendChild(tdCreado);
-            fila.appendChild(tdEstado);
-            fila.appendChild(tdAccion);
-            tbody.appendChild(fila);
-        });
-    }
-
-    var confirmacionPendiente = null;
-    function pedirCambioEstado(boton, id, activo) {
-        var textoOriginal = activo ? 'Suspender' : 'Activar';
-        if (confirmacionPendiente && confirmacionPendiente.boton === boton) {
-            clearTimeout(confirmacionPendiente.timer);
-            confirmacionPendiente = null;
-            cambiarEstado(boton, id, activo);
-            return;
-        }
-        if (confirmacionPendiente) {
-            clearTimeout(confirmacionPendiente.timer);
-            confirmacionPendiente.boton.textContent = confirmacionPendiente.texto;
-            confirmacionPendiente = null;
-        }
-        boton.textContent = activo ? '¿Suspender?' : '¿Activar?';
-        confirmacionPendiente = {
-            boton: boton,
-            texto: textoOriginal,
-            timer: setTimeout(function () {
-                boton.textContent = textoOriginal;
-                confirmacionPendiente = null;
-            }, 4000)
-        };
-    }
-
-    async function cambiarEstado(boton, id, activoActual) {
-        alerta('panel-alerta', '');
-        ocupado(boton, 'Guardando…');
-        try {
-            var resultado = await supabase.rpc('admin_set_salon_activo', {
-                p_salon: id,
-                p_activo: !activoActual
-            });
-            if (resultado.error) throw resultado.error;
-            var salon = salonesCache.filter(function (s) {
-                return String(campo(s, ['id', 'salon_id'], '')) === String(id);
-            })[0];
-            if (salon) {
-                if (salon.activo !== undefined) salon.activo = !activoActual;
-                if (salon.salon_activo !== undefined) salon.salon_activo = !activoActual;
-            }
-            pintarSalones();
-            alerta('panel-alerta', activoActual ? 'Salón suspendido.' : 'Salón activado.', 'ok');
-        } catch (error) {
-            console.error('No se pudo cambiar el estado:', error);
-            alerta('panel-alerta', 'No se pudo cambiar el estado: ' + (error.message || 'error de conexión'));
-            ocupado(boton, '');
-        }
-    }
-
-    // ── I46 · KPIs, filtros, CSV y detalle ──
-    var filtroTexto = '';
-    var filtroEstado = 'todos';
-    var detalleActual = null;
-    var focoAnterior = null;
-
-    function normalizar(texto) {
-        var limpio = String(texto == null ? '' : texto).toLowerCase();
-        if (limpio.normalize) limpio = limpio.normalize('NFD');
-        var salida = '';
-        for (var i = 0; i < limpio.length; i++) {
-            var codigo = limpio.charCodeAt(i);
-            if (codigo >= 768 && codigo <= 879) continue;
-            salida += limpio.charAt(i);
-        }
-        return salida;
-    }
-
-    function datosSalon(salon) {
-        return {
-            id: campo(salon, ['id', 'salon_id'], null),
-            nombre: campo(salon, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
-            dueno: campo(salon, ['dueno', 'dueno_email', 'email_dueno', 'owner_email', 'dueno_user_id'], '—'),
-            miembros: campo(salon, ['miembros', 'cantidad_miembros', 'total_miembros'], 0),
-            turnos: campo(salon, ['turnos', 'turnos_totales', 'total_turnos'], 0),
-            creado: campo(salon, ['creado_en', 'fecha_creacion', 'created_at'], null),
-            activo: campo(salon, ['activo'], true) !== false
-        };
-    }
-
-    function salonesFiltrados() {
-        var busqueda = normalizar(filtroTexto).trim();
-        return salonesCache.filter(function (salon) {
-            var d = datosSalon(salon);
-            if (filtroEstado === 'activos' && !d.activo) return false;
-            if (filtroEstado === 'suspendidos' && d.activo) return false;
-            if (!busqueda) return true;
-            return normalizar(d.nombre).indexOf(busqueda) >= 0 ||
-                   normalizar(d.dueno).indexOf(busqueda) >= 0;
-        });
-    }
-
-    async function cargarKpis() {
-        try {
-            var resultado = await supabase.rpc('admin_kpis');
-            if (resultado.error) throw resultado.error;
-            var fila = (resultado.data && resultado.data[0]) || {};
-            var total = Number(fila.salones_total) || 0;
-            var activos = Number(fila.salones_activos) || 0;
-            $('kpi-salones').textContent = String(total);
-            $('kpi-salones-pie').textContent = activos + (activos === 1 ? ' activo' : ' activos');
-            $('kpi-turnos').textContent = String(Number(fila.turnos_total) || 0);
-            $('kpi-clientes').textContent = String(Number(fila.clientes_total) || 0);
-        } catch (error) {
-            console.error('No se pudieron cargar los KPIs:', error);
-            $('kpi-salones').textContent = '—';
-            $('kpi-turnos').textContent = '—';
-            $('kpi-clientes').textContent = '—';
-            $('kpi-salones-pie').textContent = 'sin datos';
-        }
-    }
-
-    function celdaDetalle(etiqueta, valor) {
-        var cont = document.createElement('dl');
-        cont.className = 'detalle-fila';
-        var dt = document.createElement('dt');
-        dt.textContent = etiqueta;
-        var dd = document.createElement('dd');
-        if (valor instanceof Node) {
-            dd.appendChild(valor);
-        } else {
-            dd.textContent = String(valor == null ? '—' : valor);
-        }
-        cont.appendChild(dt);
-        cont.appendChild(dd);
-        return cont;
-    }
-
-    function numero(valor) {
-        var n = Number(valor);
-        return isFinite(n) ? n : 0;
-    }
-
-    async function abrirDetalle(id) {
-        if (!id) return;
-        focoAnterior = document.activeElement;
-        $('detalle-titulo').textContent = 'Cargando…';
-        $('detalle-estado').textContent = '';
-        $('detalle-datos').textContent = '';
-        $('detalle-nota').textContent = '';
-        $('detalle-overlay').classList.remove('oculto');
-        document.body.style.overflow = 'hidden';
-        $('detalle-cerrar').focus();
-
-        try {
-            var resultado = await supabase.rpc('admin_salon_detalle', { p_salon: id });
-            if (resultado.error) throw resultado.error;
-            var fila = (resultado.data && resultado.data[0]) || null;
-            if (!fila) throw new Error('No se encontró el salón.');
-            detalleActual = {
-                id: id,
-                nombre: fila.nombre || 'Salón',
-                dueno: fila.dueno_email || '—',
-                creado: fila.creado_en || null,
-                activo: fila.activo !== false,
-                miembros: numero(fila.miembros),
-                turnos: numero(fila.turnos_total),
-                realizados: numero(fila.turnos_realizados),
-                clientes: numero(fila.clientes),
-                ultimo: fila.ultimo_turno || null
-            };
-            pintarDetalle();
-        } catch (error) {
-            console.error('No se pudo cargar el detalle:', error);
-            $('detalle-titulo').textContent = 'No se pudo cargar';
-            $('detalle-estado').textContent = error.message || 'error de conexión';
-            $('detalle-datos').textContent = '';
-        }
-    }
-
-    function pintarDetalle() {
-        if (!detalleActual) return;
-        var d = detalleActual;
-        $('detalle-titulo').textContent = d.nombre;
-        $('detalle-estado').textContent = d.activo ? 'Activo' : 'Suspendido';
-        $('detalle-estado').style.color = d.activo ? 'var(--ok)' : 'var(--danger)';
-
-        var caja = $('detalle-datos');
-        caja.textContent = '';
-        caja.appendChild(celdaDetalle('Dueña', d.dueno));
-        caja.appendChild(celdaDetalle('Registrado', fechaCorta(d.creado)));
-        caja.appendChild(celdaDetalle('Miembros', String(d.miembros)));
-        caja.appendChild(celdaDetalle('Turnos', String(d.turnos) + ' (' + d.realizados + ' realizados)'));
-        caja.appendChild(celdaDetalle('Clientas', String(d.clientes)));
-        caja.appendChild(celdaDetalle('Último turno', d.ultimo ? fechaCorta(d.ultimo) : 'Sin turnos'));
-
-        var boton = $('detalle-estado-btn');
-        boton.textContent = d.activo ? 'Suspender' : 'Activar';
-        boton.className = 'btn ' + (d.activo ? 'btn-peligro' : 'btn-ok');
-        $('detalle-nota').textContent = '';
-    }
-
-    async function cambiarEstadoDesdeDetalle() {
-        if (!detalleActual) return;
-        var boton = $('detalle-estado-btn');
-        var nuevo = !detalleActual.activo;
-        ocupado(boton, 'Guardando…');
-        try {
-            var resultado = await supabase.rpc('admin_set_salon_activo', {
-                p_salon: detalleActual.id,
-                p_activo: nuevo
-            });
-            if (resultado.error) throw resultado.error;
-            detalleActual.activo = nuevo;
-            var enLista = salonesCache.filter(function (s) {
-                return String(campo(s, ['id', 'salon_id'], '')) === String(detalleActual.id);
-            })[0];
-            if (enLista) {
-                if (enLista.activo !== undefined) enLista.activo = nuevo;
-                if (enLista.salon_activo !== undefined) enLista.salon_activo = nuevo;
-            }
-            pintarSalones();
-            alerta('panel-alerta', nuevo ? 'Salón activado.' : 'Salón suspendido.', 'ok');
-            cargarKpis();
-        } catch (error) {
-            console.error('No se pudo cambiar el estado:', error);
-            $('detalle-nota').textContent = 'No se pudo cambiar el estado: ' + (error.message || 'error de conexión');
-        } finally {
-            delete boton.dataset.texto;
-            boton.disabled = false;
-            if (detalleActual) pintarDetalle();
-        }
-    }
-
-    async function enviarRecuperacion() {
-        if (!detalleActual) return;
-        var email = detalleActual.dueno;
-        if (!email || email === '—') {
-            $('detalle-nota').textContent = 'Este salón no tiene email de dueña registrado.';
-            return;
-        }
-        var boton = $('detalle-recupero');
-        ocupado(boton, 'Enviando…');
-        try {
-            var resultado = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: location.origin + '/'
-            });
-            if (resultado.error) throw resultado.error;
-            $('detalle-nota').textContent = 'Le enviamos un mail de recuperación a ' + email + '.';
-        } catch (error) {
-            console.error('No se pudo enviar la recuperación:', error);
-            $('detalle-nota').textContent = 'No se pudo enviar: ' + (error.message || 'error de conexión');
-        } finally {
-            ocupado(boton, '');
-        }
-    }
-
-    function celdaCsv(valor) {
-        var texto = String(valor == null ? '' : valor);
-        var primero = texto.charAt(0);
-        if (primero === '=' || primero === '+' || primero === '-' || primero === '@') texto = "'" + texto;
-        var comilla = String.fromCharCode(34);
-        var salto = String.fromCharCode(10);
-        var retorno = String.fromCharCode(13);
-        if (texto.indexOf(comilla) >= 0 || texto.indexOf(',') >= 0 || texto.indexOf(';') >= 0 ||
-            texto.indexOf(salto) >= 0 || texto.indexOf(retorno) >= 0) {
-            texto = comilla + texto.split(comilla).join(comilla + comilla) + comilla;
-        }
-        return texto;
-    }
-
-    function descargarCsv() {
-        var lista = salonesFiltrados();
-        var separador = String.fromCharCode(13, 10);
-        var lineas = [['Salon', 'Dueno', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
-        lista.forEach(function (salon) {
-            var d = datosSalon(salon);
-            lineas.push([
-                celdaCsv(d.nombre),
-                celdaCsv(d.dueno),
-                celdaCsv(d.miembros),
-                celdaCsv(d.turnos),
-                celdaCsv(fechaCorta(d.creado)),
-                celdaCsv(d.activo ? 'Activo' : 'Suspendido')
-            ].join(','));
-        });
-        var texto = String.fromCharCode(65279) + lineas.join(separador);
-        var blob = new Blob([texto], { type: 'text/csv;charset=utf-8' });
-        var url = URL.createObjectURL(blob);
-        var link = document.createElement('a');
-        link.href = url;
-        link.download = 'salones_' + new Date().toISOString().slice(0, 10) + '.csv';
-        link.rel = 'noopener';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
-        alerta('panel-alerta', 'CSV descargado con ' + lista.length + ' salon(es).', 'ok');
-    }
-
-    function cerrarDetalle() {
-        $('detalle-overlay').classList.add('oculto');
-        document.body.style.overflow = '';
-        detalleActual = null;
-        if (focoAnterior && focoAnterior.focus) focoAnterior.focus();
-        focoAnterior = null;
-    }
-
-    function cerrarDetalleSiAbierto() {
-        if (!$('detalle-overlay').classList.contains('oculto')) cerrarDetalle();
-    }
-
-    // focus trap
-    document.addEventListener('keydown', function (evento) {
-        if ($('detalle-overlay').classList.contains('oculto')) return;
-        if (evento.key === 'Escape') { evento.preventDefault(); cerrarDetalle(); return; }
-        if (evento.key !== 'Tab') return;
-        var caja = $('detalle-caja');
-        var focos = caja.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        if (!focos.length) return;
-        var primero = focos[0];
-        var ultimo = focos[focos.length - 1];
-        if (evento.shiftKey && document.activeElement === primero) {
-            evento.preventDefault();
-            ultimo.focus();
-        } else if (!evento.shiftKey && document.activeElement === ultimo) {
-            evento.preventDefault();
-            primero.focus();
-        }
-    });
-
-    if ($('panel-buscar')) {
-        $('panel-buscar').addEventListener('input', function () {
-            filtroTexto = $('panel-buscar').value;
-            pintarSalones();
-        });
-    }
-    if ($('panel-filtro')) {
-        $('panel-filtro').addEventListener('change', function () {
-            filtroEstado = $('panel-filtro').value;
-            pintarSalones();
-        });
-    }
-    if ($('panel-csv')) $('panel-csv').addEventListener('click', descargarCsv);
-    if ($('detalle-cerrar')) $('detalle-cerrar').addEventListener('click', cerrarDetalle);
-    if ($('detalle-estado-btn')) $('detalle-estado-btn').addEventListener('click', cambiarEstadoDesdeDetalle);
-    if ($('detalle-recupero')) $('detalle-recupero').addEventListener('click', enviarRecuperacion);
-    if ($('detalle-csv')) $('detalle-csv').addEventListener('click', descargarCsv);
-    if ($('detalle-overlay')) {
-        $('detalle-overlay').addEventListener('click', function (evento) {
-            if (evento.target === $('detalle-overlay')) cerrarDetalle();
-        });
-    }
-
-    // ── I48 · God Mode: tabs, suscripciones, anuncios, impersonación ──
-    var tabActual = "salones";
-
-    function mostrarTab(nombre) {
-        tabActual = nombre;
-        Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
-            b.setAttribute("aria-selected", b.getAttribute("data-tab") === nombre ? "true" : "false");
-        });
-        Array.prototype.forEach.call(document.querySelectorAll(".tab-panel"), function (p) {
-            p.classList.toggle("oculto", p.id !== "tab-" + nombre);
-        });
-        if (nombre === "suscripciones") cargarSuscripciones();
-        if (nombre === "anuncios") cargarAnuncios();
-    }
-
-    function planPill(plan) {
-        var p = document.createElement("span");
-        var limpio = String(plan || "basico").toLowerCase();
-        p.className = "plan-pill plan-" + (["basico","pro","premium"].indexOf(limpio) >= 0 ? limpio : "basico");
-        p.textContent = limpio.charAt(0).toUpperCase() + limpio.slice(1);
-        return p;
-    }
-
-    async function cargarSuscripciones() {
-        var tbody = $("suscripciones-tabla");
-        var vacio = $("suscripciones-vacio");
-        tbody.innerHTML = "";
-        alerta("suscripciones-alerta", "");
-        try {
-            var res = await supabase.rpc("admin_suscripciones");
-            if (res.error) throw res.error;
-            var lista = res.data || [];
-            if (!lista.length) { if (vacio) vacio.classList.remove("oculto"); return; }
-            if (vacio) vacio.classList.add("oculto");
-            lista.forEach(function (fila) {
-                var tr = document.createElement("tr");
-                var tdNombre = document.createElement("td");
-                tdNombre.setAttribute("data-label", "Salón");
-                var n = document.createElement("div");
-                n.className = "salon-nombre";
-                n.textContent = String(fila.nombre || "Salón");
-                tdNombre.appendChild(n);
-
-                var tdDueno = document.createElement("td");
-                tdDueno.setAttribute("data-label", "Dueña");
-                tdDueno.textContent = String(fila.dueno_email || "—");
-
-                var tdPlan = document.createElement("td");
-                tdPlan.setAttribute("data-label", "Plan");
-                var sel = document.createElement("select");
-                sel.className = "btn";
-                ["basico","pro","premium"].forEach(function (op) {
-                    var o = document.createElement("option");
-                    o.value = op; o.textContent = op.charAt(0).toUpperCase() + op.slice(1);
-                    if (String(fila.plan || "basico") === op) o.selected = true;
-                    sel.appendChild(o);
+                boton.addEventListener('click', function (evento) {
+                    evento.stopPropagation();
+                    pedirCambioEstado(s, boton);
                 });
-                tdPlan.appendChild(sel);
-
-                var tdVence = document.createElement("td");
-                tdVence.setAttribute("data-label", "Vence");
-                var fecha = document.createElement("input");
-                fecha.type = "date";
-                fecha.className = "btn";
-                if (fila.vence_en) fecha.value = String(fila.vence_en).slice(0, 10);
-                tdVence.appendChild(fecha);
-
-                var tdEstado = document.createElement("td");
-                tdEstado.setAttribute("data-label", "Estado");
-                tdEstado.textContent = String(fila.estado || "activa");
-                tdEstado.style.color = String(fila.estado || "activa") === "activa" ? "var(--ok)" : "var(--danger)";
-
-                var tdAccion = document.createElement("td");
-                tdAccion.className = "accion";
-                var boton = document.createElement("button");
-                boton.type = "button";
-                boton.className = "btn btn-primario";
-                boton.textContent = "Guardar";
-                boton.addEventListener("click", function () { guardarSuscripcion(boton, fila.salon_id, sel.value, fecha.value); });
                 tdAccion.appendChild(boton);
+                fila.appendChild(tdAccion);
 
-                tr.appendChild(tdNombre); tr.appendChild(tdDueno); tr.appendChild(tdPlan);
-                tr.appendChild(tdVence); tr.appendChild(tdEstado); tr.appendChild(tdAccion);
-                tbody.appendChild(tr);
+                tbody.appendChild(fila);
             });
-        } catch (error) {
-            console.error("suscripciones:", error);
-            alerta("suscripciones-alerta", "No se pudieron cargar las suscripciones: " + (error.message || "error"));
         }
-    }
 
-    async function guardarSuscripcion(boton, salonId, plan, vence) {
-        ocupado(boton, "Guardando…");
-        try {
-            var res = await supabase.rpc("admin_set_suscripcion", {
-                p_salon: salonId, p_plan: plan,
-                p_estado: vence && vence < new Date().toISOString().slice(0,10) ? "vencida" : "activa",
-                p_vence: vence || null
-            });
-            if (res.error) throw res.error;
-            alerta("suscripciones-alerta", "Suscripción actualizada.", "ok");
-            cargarSuscripciones();
-        } catch (error) {
-            console.error(error);
-            alerta("suscripciones-alerta", "No se pudo guardar: " + (error.message || "error"));
-        } finally {
-            delete boton.dataset.texto; boton.disabled = false;
+        function salonPorId(id) {
+            return salones.filter(function (s) { return String(s.id) === String(id); })[0] || null;
         }
-    }
 
-    async function cargarAnuncios() {
-        var cont = $("anuncios-lista");
-        var vacio = $("anuncios-vacio");
-        cont.innerHTML = "";
-        try {
-            var res = await supabase.rpc("admin_anuncios");
-            if (res.error) throw res.error;
-            var lista = res.data || [];
-            if (!lista.length) { if (vacio) vacio.classList.remove("oculto"); return; }
-            if (vacio) vacio.classList.add("oculto");
-            lista.forEach(function (a) {
-                var item = document.createElement("div");
-                item.className = "anuncio-item";
-                var texto = document.createElement("div");
-                texto.className = "anuncio-texto";
-                var p = document.createElement("div");
-                p.textContent = String(a.mensaje || "");
-                var meta = document.createElement("div");
-                meta.className = "anuncio-meta";
-                meta.textContent = String(a.tipo || "info") + " · " + (a.activo ? "activo" : "pausado") +
-                    (a.expira_en ? " · vence " + fechaCorta(a.expira_en) : " · sin vencimiento");
-                texto.appendChild(p); texto.appendChild(meta);
-                var acciones = document.createElement("div");
-                acciones.className = "anuncio-acciones";
-                var toggle = document.createElement("button");
-                toggle.type = "button";
-                toggle.className = "btn";
-                toggle.textContent = a.activo ? "Pausar" : "Activar";
-                toggle.addEventListener("click", function () { cambiarAnuncio(a.id, !a.activo, toggle); });
-                var borrar = document.createElement("button");
-                borrar.type = "button";
-                borrar.className = "btn btn-peligro";
-                borrar.textContent = "Borrar";
-                borrar.addEventListener("click", function () { borrarAnuncio(a.id, borrar); });
-                acciones.appendChild(toggle); acciones.appendChild(borrar);
-                item.appendChild(texto); item.appendChild(acciones);
-                cont.appendChild(item);
-            });
-        } catch (error) {
-            console.error("anuncios:", error);
-            alerta("anuncios-alerta", "No se pudieron cargar los anuncios: " + (error.message || "error"));
+        async function pedirCambioEstado(s, boton) {
+            var suspender = s.activo;
+            var ok = await confirmar(
+                suspender ? 'Suspender salón' : 'Activar salón',
+                suspender
+                    ? 'El salón y su equipo no van a poder entrar a la agenda hasta que lo reactives.'
+                    : 'El salón va a poder volver a entrar a la agenda.',
+                suspender ? 'Suspender' : 'Activar',
+                suspender
+            );
+            if (!ok) return;
+            ocupado(boton, 'Guardando…');
+            try {
+                var res = await supabase.rpc('admin_set_salon_activo', { p_salon: s.id, p_activo: !s.activo });
+                if (res.error) throw res.error;
+                s.activo = !s.activo;
+                var enLista = salonPorId(s.id);
+                if (enLista) enLista.activo = s.activo;
+                if (detalleActual && detalleActual.id === s.id) detalleActual.activo = s.activo;
+                pintarSalones();
+                calcularSaas();
+                if (detalleActual && detalleActual.id === s.id) pintarDetalle(detalleActual);
+                toast(s.activo ? 'Salón activado.' : 'Salón suspendido.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexión'), 'error');
+                ocupado(boton, '');
+            }
         }
-    }
 
-    async function crearAnuncio() {
-        var texto = String($("anuncio-mensaje").value || "").trim();
-        if (texto.length < 5) { alerta("anuncios-alerta", "Escribí un mensaje de al menos 5 caracteres."); return; }
-        var boton = $("anuncio-crear");
-        ocupado(boton, "Publicando…");
-        try {
-            var res = await supabase.rpc("admin_anuncio_crear", {
-                p_mensaje: texto,
-                p_tipo: $("anuncio-tipo").value,
-                p_dias: Number($("anuncio-dias").value) || 0
+        // ── suscripciones ──
+        function planBotones(s, alCambiar) {
+            var caja = crear('div', 'plan-botones');
+            ['gratis', 'pro', 'premium'].forEach(function (planId) {
+                var boton = crear('button', s.plan_id === planId ? 'activo' : '', PLANES[planId].nombre);
+                boton.type = 'button';
+                boton.setAttribute('aria-pressed', s.plan_id === planId ? 'true' : 'false');
+                boton.addEventListener('click', function () { alCambiar(planId, boton); });
+                caja.appendChild(boton);
             });
-            if (res.error) throw res.error;
-            $("anuncio-mensaje").value = "";
-            alerta("anuncios-alerta", "Anuncio publicado.", "ok");
-            cargarAnuncios();
-        } catch (error) {
-            console.error(error);
-            alerta("anuncios-alerta", "No se pudo publicar: " + (error.message || "error"));
-        } finally { delete boton.dataset.texto; boton.disabled = false; }
-    }
-
-    async function cambiarAnuncio(id, activo, boton) {
-        ocupado(boton, "…");
-        try {
-            var res = await supabase.rpc("admin_anuncio_estado", { p_id: id, p_activo: activo });
-            if (res.error) throw res.error;
-            cargarAnuncios();
-        } catch (error) {
-            alerta("anuncios-alerta", "No se pudo cambiar: " + (error.message || "error"));
-        } finally { delete boton.dataset.texto; boton.disabled = false; }
-    }
-
-    async function borrarAnuncio(id, boton) {
-        if (boton.dataset.confirmado !== "1") {
-            boton.dataset.confirmado = "1";
-            boton.textContent = "¿Borrar?";
-            setTimeout(function () { if (boton.dataset.confirmado === "1") { boton.dataset.confirmado = ""; boton.textContent = "Borrar"; } }, 4000);
-            return;
+            return caja;
         }
-        ocupado(boton, "…");
-        try {
-            var res = await supabase.rpc("admin_anuncio_borrar", { p_id: id });
-            if (res.error) throw res.error;
-            cargarAnuncios();
-        } catch (error) {
-            alerta("anuncios-alerta", "No se pudo borrar: " + (error.message || "error"));
-        } finally { delete boton.dataset.texto; boton.disabled = false; }
-    }
 
-    async function impersonarSalon() {
-        if (!detalleActual) return;
-        var boton = $("detalle-impersonar");
-        ocupado(boton, "Generando…");
-        $("detalle-nota").textContent = "";
-        try {
-            var destino = location.origin + "/index.html?soporte=1&salon=" + encodeURIComponent(detalleActual.id);
-            var res = await supabase.functions.invoke("impersonate", {
-                body: { salon_id: detalleActual.id, redirect_to: destino }
+        async function cambiarPlan(s, planId) {
+            if (s.plan_id === planId && s.estado === 'active') return;
+            var ahora = new Date().toISOString();
+            try {
+                var res = await supabase
+                    .from('salones')
+                    .update({ plan_id: planId, estado_suscripcion: 'active', suscripcion_desde: ahora })
+                    .eq('id', s.id)
+                    .select('id');
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el plan (permisos RLS).');
+                var enLista = salonPorId(s.id);
+                if (enLista) { enLista.plan_id = planId; enLista.estado = 'active'; enLista.suscripcion_desde = ahora; }
+                s.plan_id = planId;
+                s.estado = 'active';
+                s.suscripcion_desde = ahora;
+                pintarSalones();
+                pintarSuscripciones();
+                calcularSaas();
+                if (detalleActual && detalleActual.id === s.id) {
+                    detalleActual.plan_id = planId;
+                    detalleActual.estado = 'active';
+                    pintarDetalle(detalleActual);
+                }
+                toast('Plan cambiado a ' + PLANES[planId].nombre + '.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo cambiar el plan: ' + (error.message || 'error de conexión'), 'error');
+            }
+        }
+
+        async function cambiarEstadoSuscripcion(s, estado, select) {
+            if (s.estado === estado) return;
+            try {
+                var res = await supabase
+                    .from('salones')
+                    .update({ estado_suscripcion: estado })
+                    .eq('id', s.id)
+                    .select('id');
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el estado (permisos RLS).');
+                var enLista = salonPorId(s.id);
+                if (enLista) enLista.estado = estado;
+                s.estado = estado;
+                pintarSalones();
+                pintarSuscripciones();
+                calcularSaas();
+                if (detalleActual && detalleActual.id === s.id) {
+                    detalleActual.estado = estado;
+                    pintarDetalle(detalleActual);
+                }
+                toast('Suscripción marcada como ' + (ESTADOS[estado] || ESTADOS.trial).nombre + '.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexión'), 'error');
+                if (select) select.value = s.estado;
+            }
+        }
+
+        async function extenderTrial(s, dias, boton) {
+            var base = s.trial_hasta && new Date(s.trial_hasta).getTime() > Date.now()
+                ? new Date(s.trial_hasta)
+                : new Date();
+            base.setDate(base.getDate() + dias);
+            var iso = base.toISOString();
+            ocupado(boton, '…');
+            try {
+                var res = await supabase
+                    .from('salones')
+                    .update({ estado_suscripcion: 'trial', trial_hasta: iso })
+                    .eq('id', s.id)
+                    .select('id');
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el trial (permisos RLS).');
+                var enLista = salonPorId(s.id);
+                if (enLista) { enLista.estado = 'trial'; enLista.trial_hasta = iso; }
+                s.estado = 'trial';
+                s.trial_hasta = iso;
+                pintarSalones();
+                pintarSuscripciones();
+                calcularSaas();
+                if (detalleActual && detalleActual.id === s.id) {
+                    detalleActual.estado = 'trial';
+                    detalleActual.trial_hasta = iso;
+                    pintarDetalle(detalleActual);
+                }
+                toast('Trial extendido ' + dias + ' días (hasta ' + fechaCorta(iso) + ').', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo extender el trial: ' + (error.message || 'error de conexión'), 'error');
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        function pintarSuscripciones() {
+            var tbody = $('tabla-suscripciones');
+            tbody.textContent = '';
+            var vacio = $('suscripciones-vacio');
+            var nota = $('suscripciones-nota');
+            nota.textContent = planesDisponibles ? '' : 'No se pudo leer la tabla salones. Revisá las políticas RLS.';
+
+            if (!salones.length) {
+                vacio.classList.remove('oculto');
+                return;
+            }
+            vacio.classList.add('oculto');
+
+            salones.forEach(function (s) {
+                var fila = document.createElement('tr');
+
+                var tdNombre = document.createElement('td');
+                tdNombre.setAttribute('data-label', 'Salón');
+                tdNombre.appendChild(crear('div', 'salon-nombre', s.nombre));
+                if (s.dueno && s.dueno !== '—') tdNombre.appendChild(crear('div', 'salon-id', s.dueno));
+                fila.appendChild(tdNombre);
+
+                var tdPlan = document.createElement('td');
+                tdPlan.setAttribute('data-label', 'Plan');
+                tdPlan.appendChild(planBotones(s, function (planId) { cambiarPlan(s, planId); }));
+                fila.appendChild(tdPlan);
+
+                var tdEstado = document.createElement('td');
+                tdEstado.setAttribute('data-label', 'Estado');
+                var select = document.createElement('select');
+                select.className = 'select-inline';
+                ['trial', 'active', 'past_due'].forEach(function (clave) {
+                    var opcion = document.createElement('option');
+                    opcion.value = clave;
+                    opcion.textContent = ESTADOS[clave].nombre;
+                    select.appendChild(opcion);
+                });
+                select.value = s.estado;
+                select.addEventListener('change', function () { cambiarEstadoSuscripcion(s, select.value, select); });
+                tdEstado.appendChild(select);
+                fila.appendChild(tdEstado);
+
+                var tdTrial = document.createElement('td');
+                tdTrial.setAttribute('data-label', 'Trial hasta');
+                var dias = diasTrial(s.trial_hasta);
+                var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : '—';
+                if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' d)' : ' (vencido)';
+                tdTrial.textContent = texto;
+                tdTrial.className = 'num';
+                fila.appendChild(tdTrial);
+
+                var tdAcciones = document.createElement('td');
+                tdAcciones.className = 'celda-accion';
+                tdAcciones.setAttribute('data-label', '');
+                var caja = crear('div', 'acciones-fila');
+                [14, 7].forEach(function (diasExtra) {
+                    var boton = crear('button', 'btn btn-sm', '+' + diasExtra + ' d');
+                    boton.type = 'button';
+                    boton.title = 'Extender el trial ' + diasExtra + ' días';
+                    boton.addEventListener('click', function () { extenderTrial(s, diasExtra, boton); });
+                    caja.appendChild(boton);
+                });
+                tdAcciones.appendChild(caja);
+                fila.appendChild(tdAcciones);
+
+                tbody.appendChild(fila);
             });
-            if (res.error) throw res.error;
-            if (!res.data || !res.data.url) throw new Error((res.data && res.data.error) || "Sin enlace de acceso");
-            window.open(res.data.url, "_blank", "noopener");
-            $("detalle-nota").textContent = "Enlace de soporte generado. Se abrió en una pestaña nueva (caduca en minutos).";
-        } catch (error) {
-            console.error("impersonar:", error);
-            $("detalle-nota").textContent = "No se pudo impersonar: " + (error.message || "error de conexión");
-        } finally { boton.textContent = "→ Entrar como"; delete boton.dataset.texto; boton.disabled = false; }
-    }
+        }
 
-    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
-        b.addEventListener("click", function () { mostrarTab(b.getAttribute("data-tab")); });
-    });
-    if ($("anuncio-crear")) $("anuncio-crear").addEventListener("click", crearAnuncio);
-    if ($("detalle-impersonar")) $("detalle-impersonar").addEventListener("click", impersonarSalon);
+        // ── drawer ──
+        function buscarDetalle() {
+            return detalleActual;
+        }
 
-    // ── sesión ──
-    if (supabase) {
-        supabase.auth.onAuthStateChange(function (evento, sesion) {
-            if (evento === 'SIGNED_OUT' || !sesion) {
-                $('salir-btn').classList.add('oculto');
-                if (evento === 'SIGNED_OUT') mostrar('vista-login');
+        function abrirDetalle(id) {
+            var s = salonPorId(id);
+            if (!s) return;
+            detalleActual = {
+                id: s.id,
+                nombre: s.nombre,
+                dueno: s.dueno,
+                activo: s.activo,
+                plan_id: s.plan_id,
+                estado: s.estado,
+                trial_hasta: s.trial_hasta,
+                suscripcion_desde: s.suscripcion_desde,
+                detalle: null
+            };
+            focoAnterior = document.activeElement;
+            $('drawer-titulo').textContent = s.nombre;
+            $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
+            $('drawer-estado').style.color = s.activo ? 'var(--ok)' : 'var(--danger)';
+            $('drawer-datos').textContent = 'Cargando detalle…';
+            $('drawer-plan').textContent = '';
+            $('drawer-acciones').textContent = '';
+            $('drawer-nota').textContent = '';
+            $('drawer-overlay').classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+            $('drawer-cerrar').focus();
+            cargarDetalle(detalleActual);
+        }
+
+        async function cargarDetalle(s) {
+            try {
+                var res = await supabase.rpc('admin_salon_detalle', { p_salon: s.id });
+                if (res.error) throw res.error;
+                var fila = (res.data && res.data[0]) || null;
+                if (!fila) throw new Error('No se encontró el salón.');
+                s.detalle = fila;
+                if (fila.activo !== undefined) s.activo = fila.activo !== false;
+                pintarDetalle(s);
+            } catch (error) {
+                console.error(error);
+                $('drawer-datos').textContent = 'No se pudo cargar el detalle: ' + (error.message || 'error de conexión');
+                pintarPlanDrawer(s);
+                pintarAcciones(s);
+            }
+        }
+
+        function filaDetalle(etiqueta, valor) {
+            var dl = crear('dl', 'detalle-fila');
+            dl.appendChild(crear('dt', '', etiqueta));
+            var dd = crear('dd', '', valor == null ? '—' : String(valor));
+            dl.appendChild(dd);
+            return dl;
+        }
+
+        function pintarDetalle(s) {
+            if (!s) return;
+            var d = s.detalle || {};
+            var caja = $('drawer-datos');
+            caja.textContent = '';
+
+            var titulo = crear('h3', '', 'Resumen');
+            caja.appendChild(titulo);
+            caja.appendChild(filaDetalle('Dueña', campo(d, ['dueno_email', 'dueno'], s.dueno)));
+            caja.appendChild(filaDetalle('Registrado', fechaCorta(campo(d, ['creado_en'], null))));
+            caja.appendChild(filaDetalle('Miembros', String(Number(campo(d, ['miembros'], 0)) || 0)));
+            caja.appendChild(filaDetalle('Turnos', String(Number(campo(d, ['turnos_total'], 0)) || 0) + ' (' + (Number(campo(d, ['turnos_realizados'], 0)) || 0) + ' realizados)'));
+            caja.appendChild(filaDetalle('Clientas', String(Number(campo(d, ['clientes'], 0)) || 0)));
+            var ultimo = campo(d, ['ultimo_turno'], null);
+            caja.appendChild(filaDetalle('Último turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
+            caja.appendChild(filaDetalle('Estado', s.activo ? 'Activo' : 'Suspendido'));
+
+            $('drawer-titulo').textContent = s.nombre;
+            $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
+            $('drawer-estado').style.color = s.activo ? 'var(--ok)' : 'var(--danger)';
+
+            pintarPlanDrawer(s);
+            pintarAcciones(s);
+        }
+
+        function pintarPlanDrawer(s) {
+            var caja = $('drawer-plan');
+            caja.textContent = '';
+            caja.appendChild(crear('h3', '', 'Suscripción'));
+
+            var cajaBotones = crear('div', '', '');
+            cajaBotones.style.marginBottom = '10px';
+            var botones = planBotones(s, function (planId) { cambiarPlan(s, planId); });
+            cajaBotones.appendChild(botones);
+            caja.appendChild(cajaBotones);
+
+            caja.appendChild(filaDetalle('Estado', (ESTADOS[s.estado] || ESTADOS.trial).nombre));
+            var dias = diasTrial(s.trial_hasta);
+            var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : '—';
+            if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' días)' : ' (vencido)';
+            caja.appendChild(filaDetalle('Trial hasta', texto));
+            caja.appendChild(filaDetalle('Activo desde', s.suscripcion_desde ? fechaCorta(s.suscripcion_desde) : '—'));
+        }
+
+        function botonAccion(texto, clase, alTocar) {
+            var boton = crear('button', clase, texto);
+            boton.type = 'button';
+            boton.addEventListener('click', alTocar);
+            return boton;
+        }
+
+        function pintarAcciones(s) {
+            var caja = $('drawer-acciones');
+            caja.textContent = '';
+            caja.appendChild(botonAccion('Entrar como este salón', 'btn btn-primario', function () { pedirImpersonacion(s); }));
+            caja.appendChild(botonAccion('✉ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
+            caja.appendChild(botonAccion('↓ CSV', 'btn', function () { descargarCsv([s]); }));
+            caja.appendChild(botonAccion(s.activo ? 'Suspender' : 'Activar', 'btn ' + (s.activo ? 'btn-peligro' : 'btn-ok'), function () {
+                pedirCambioEstado(s, null);
+            }));
+        }
+
+        async function enviarRecuperacion(s) {
+            var email = s.dueno;
+            if (!email || email === '—') {
+                $('drawer-nota').textContent = 'Este salón no tiene email de dueña registrado.';
+                return;
+            }
+            try {
+                var resultado = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: location.origin + '/'
+                });
+                if (resultado.error) throw resultado.error;
+                $('drawer-nota').textContent = 'Le enviamos un mail de recuperación a ' + email + '.';
+            } catch (error) {
+                console.error(error);
+                $('drawer-nota').textContent = 'No se pudo enviar: ' + (error.message || 'error de conexión');
+            }
+        }
+
+        // ── impersonación ──
+        async function codigoErrorFuncion(error) {
+            try {
+                if (error && error.context && typeof error.context.json === 'function') {
+                    var cuerpo = await error.context.json();
+                    if (cuerpo && cuerpo.error) return String(cuerpo.error);
+                }
+            } catch (e) { /* noop */ }
+            return String((error && error.message) || 'error');
+        }
+
+        function mensajeImpersonacion(codigo) {
+            var mapa = {
+                no_autorizado: 'Tu usuario no tiene permisos de SuperAdmin.',
+                se_requiere_2fa: 'Necesitás completar la verificación en dos pasos.',
+                falta_token: 'La sesión no tiene token. Volvé a iniciar sesión.',
+                token_invalido: 'Tu sesión venció. Volvé a iniciar sesión.',
+                salon_no_encontrado: 'El salón no existe.',
+                sin_dueno: 'El salón no tiene una dueña registrada.',
+                dueno_inactivo: 'La dueña está desactivada.',
+                dueno_sin_email: 'La dueña no tiene email en Auth.',
+                demasiadas_impersonaciones: 'Demasiadas impersonaciones en la última hora.',
+                origen_no_permitido: 'El dominio del panel no está permitido en la Edge Function.',
+                redirect_to_requerido: 'Falta el redirect_to.',
+                redirect_invalido: 'El redirect_to no es válido.',
+                redirect_origen_no_permitido: 'El origen del redirect no está permitido.',
+                redirect_no_permitido_en_auth: 'Falta la URL de redirección en Supabase Auth.',
+                objetivo_superadmin: 'No se puede impersonar a otro SuperAdmin.',
+                config_faltante: 'La Edge Function no tiene configuración.',
+                generate_link_fallido: 'Supabase no pudo generar el link mágico.'
+            };
+            return mapa[codigo] || ('No se pudo abrir el modo soporte (' + codigo + ').');
+        }
+
+        async function pedirImpersonacion(s) {
+            if (!s || !s.id) return;
+            var ok = await confirmar(
+                'Entrar como ' + s.nombre,
+                'Se va a abrir la app como la dueña en una pestaña nueva. Tu sesión de administrador NO se modifica y vas a poder volver al panel cuando quieras.',
+                'Abrir modo soporte',
+                false
+            );
+            if (!ok) return;
+
+            var ventana = window.open('about:blank', '_blank');
+            if (ventana) { try { ventana.opener = null; } catch (error) { /* noop */ } }
+
+            try {
+                var destino = new URL('index.html?soporte=1', window.location.href).href;
+                var res = await supabase.functions.invoke('impersonate', {
+                    body: { salon_id: s.id, redirect_to: destino }
+                });
+                if (res.error) throw res.error;
+                var url = res.data && res.data.url;
+                if (!url) throw new Error('La función no devolvió un enlace.');
+
+                if (ventana) ventana.location.replace(url);
+                else window.open(url, '_blank', 'noopener,noreferrer');
+                toast('Modo soporte abierto. Tu sesión de admin sigue activa.', 'ok');
+                $('drawer-nota').textContent = 'Modo soporte abierto en otra pestaña. Tu sesión de admin sigue activa.';
+            } catch (error) {
+                if (ventana) { try { ventana.close(); } catch (e) { /* noop */ } }
+                var codigo = await codigoErrorFuncion(error);
+                console.error('impersonate:', codigo, error);
+                toast(mensajeImpersonacion(codigo), 'error');
+                $('drawer-nota').textContent = mensajeImpersonacion(codigo);
+            }
+        }
+
+        // ── anuncios ──
+        async function cargarAnuncios() {
+            try {
+                var res = await supabase
+                    .from('anuncios_globales')
+                    .select('id, mensaje, activo, creado_en, expira_en')
+                    .order('creado_en', { ascending: false })
+                    .limit(50);
+                if (res.error) throw res.error;
+                anuncios = res.data || [];
+            } catch (error) {
+                console.warn('anuncios:', error);
+                anuncios = [];
+            }
+        }
+
+        function estadoAnuncio(a) {
+            if (!a.activo) return pill('Inactivo', 'pill-neutral');
+            if (a.expira_en && new Date(a.expira_en).getTime() <= Date.now()) return pill('Vencido', 'pill-danger');
+            return pill('Activo', 'pill-ok');
+        }
+
+        function pintarAnuncios() {
+            var caja = $('lista-anuncios');
+            caja.textContent = '';
+            var vacio = $('anuncios-vacio');
+
+            if (!anuncios.length) {
+                vacio.classList.remove('oculto');
+                return;
+            }
+            vacio.classList.add('oculto');
+
+            anuncios.forEach(function (a) {
+                var item = crear('div', 'anuncio-item');
+                item.appendChild(crear('div', 'anuncio-item-texto', a.mensaje));
+
+                var meta = crear('div', 'anuncio-item-meta');
+                var info = crear('span', '', fechaHora(a.creado_en) + (a.expira_en ? ' · vence ' + fechaCorta(a.expira_en) : ''));
+                meta.appendChild(info);
+
+                var derecha = crear('div', '', '');
+                derecha.style.display = 'flex';
+                derecha.style.alignItems = 'center';
+                derecha.style.gap = '8px';
+                derecha.appendChild(estadoAnuncio(a));
+
+                var boton = crear('button', 'btn btn-sm', a.activo ? 'Desactivar' : 'Activar');
+                boton.type = 'button';
+                boton.addEventListener('click', function () { cambiarActivoAnuncio(a, boton); });
+                derecha.appendChild(boton);
+                meta.appendChild(derecha);
+                item.appendChild(meta);
+                caja.appendChild(item);
+            });
+        }
+
+        function actualizarContadorAnuncio() {
+            var texto = $('anuncio-mensaje').value;
+            $('anuncio-contador').textContent = texto.length + ' / 500';
+            var preview = $('anuncio-preview');
+            preview.textContent = texto.trim() || 'El anuncio se va a ver así.';
+        }
+
+        async function publicarAnuncio() {
+            var mensaje = $('anuncio-mensaje').value.trim();
+            var dias = Math.max(0, Math.min(365, parseInt($('anuncio-dias').value, 10) || 0));
+            var boton = $('anuncio-publicar');
+
+            if (mensaje.length < 3) {
+                alerta('anuncio-alerta', 'Escribí un mensaje de al menos 3 caracteres.', 'error');
+                return;
+            }
+            alerta('anuncio-alerta', '');
+            ocupado(boton, 'Publicando…');
+
+            try {
+                var expira = dias > 0 ? new Date(Date.now() + dias * 86400000).toISOString() : null;
+                var res = await supabase
+                    .from('anuncios_globales')
+                    .insert({
+                        mensaje: mensaje,
+                        activo: true,
+                        creado_por: usuarioActual ? usuarioActual.id : null,
+                        expira_en: expira
+                    })
+                    .select('id')
+                    .maybeSingle();
+                if (res.error) throw res.error;
+                if (!res.data) throw new Error('La base no confirmó la publicación (permisos RLS).');
+
+                // Solo el más reciente queda activo.
+                try {
+                    await supabase
+                        .from('anuncios_globales')
+                        .update({ activo: false })
+                        .neq('id', res.data.id)
+                        .eq('activo', true);
+                } catch (error) { console.warn('No se pudieron desactivar los anteriores:', error); }
+
+                $('anuncio-mensaje').value = '';
+                $('anuncio-dias').value = '0';
+                actualizarContadorAnuncio();
+                await cargarAnuncios();
+                pintarAnuncios();
+                alerta('anuncio-alerta', 'Anuncio publicado. Ya se ve en la app de todos los salones.', 'ok');
+            } catch (error) {
+                console.error(error);
+                alerta('anuncio-alerta', 'No se pudo publicar: ' + (error.message || 'error de conexión'), 'error');
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        async function cambiarActivoAnuncio(a, boton) {
+            ocupado(boton, '…');
+            try {
+                var res = await supabase
+                    .from('anuncios_globales')
+                    .update({ activo: !a.activo })
+                    .eq('id', a.id)
+                    .select('id');
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el anuncio (permisos RLS).');
+                a.activo = !a.activo;
+                pintarAnuncios();
+                toast(a.activo ? 'Anuncio activado.' : 'Anuncio desactivado.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo actualizar: ' + (error.message || 'error de conexión'), 'error');
+                ocupado(boton, '');
+            }
+        }
+
+        // ── auditoría ──
+        function resumenDetalle(detalle) {
+            if (detalle == null) return '—';
+            if (typeof detalle === 'string') return detalle;
+            var partes = [];
+            Object.keys(detalle).some(function (clave) {
+                var valor = detalle[clave];
+                if (valor == null || valor === '') return false;
+                if (typeof valor === 'object') valor = JSON.stringify(valor);
+                partes.push(clave + ': ' + String(valor));
+                return partes.length >= 4;
+            });
+            return partes.length ? partes.join(' · ') : '—';
+        }
+
+        async function cargarAuditoria() {
+            var filas = null;
+            try {
+                var rpc = await supabase.rpc('admin_auditoria', { p_limite: 100, p_offset: 0 });
+                if (!rpc.error && rpc.data) filas = rpc.data;
+            } catch (error) { /* RPC opcional */ }
+
+            if (!filas) {
+                var res = await supabase
+                    .from('auditoria_admin')
+                    .select('id, admin_id, salon_id, accion, detalle, creado_en')
+                    .order('creado_en', { ascending: false })
+                    .limit(100);
+                if (res.error) {
+                    console.warn('auditoria:', res.error);
+                    auditoria = [];
+                    return;
+                }
+                filas = res.data || [];
+            }
+
+            auditoria = filas.map(function (f) {
+                return {
+                    id: campo(f, ['id'], null),
+                    admin_id: campo(f, ['admin_id', 'admin'], null),
+                    salon_id: campo(f, ['salon_id', 'salon'], null),
+                    accion: campo(f, ['accion', 'action'], '—'),
+                    detalle: campo(f, ['detalle', 'detail'], null),
+                    creado_en: campo(f, ['creado_en', 'created_at'], null)
+                };
+            });
+
+            if (!adminEmailsCargados) {
+                try {
+                    var admins = await supabase.from('super_admins').select('user_id, email');
+                    if (!admins.error) {
+                        (admins.data || []).forEach(function (a) { emailsAdmins[a.user_id] = a.email; });
+                        adminEmailsCargados = true;
+                    }
+                } catch (error) { /* noop */ }
+            }
+        }
+
+        function pintarAuditoria() {
+            var tbody = $('tabla-auditoria');
+            var vacio = $('auditoria-vacio');
+            var busqueda = normalizar($('buscar-auditoria').value || '').trim();
+            var accion = $('filtro-accion').value || '';
+
+            var nombres = {};
+            salones.forEach(function (s) { nombres[s.id] = s.nombre; });
+
+            var lista = auditoria.filter(function (f) {
+                if (accion && f.accion !== accion) return false;
+                if (!busqueda) return true;
+                var admin = emailsAdmins[f.admin_id] || String(f.admin_id || '');
+                var salon = nombres[f.salon_id] || '';
+                return normalizar(admin).indexOf(busqueda) >= 0 ||
+                       normalizar(salon).indexOf(busqueda) >= 0 ||
+                       normalizar(f.accion).indexOf(busqueda) >= 0;
+            });
+
+            tbody.textContent = '';
+            if (!lista.length) {
+                vacio.textContent = auditoria.length ? 'Ningún registro coincide con el filtro.' : 'No hay registros de auditoría.';
+                vacio.classList.remove('oculto');
+                return;
+            }
+            vacio.classList.add('oculto');
+
+            lista.forEach(function (f) {
+                var fila = document.createElement('tr');
+                fila.appendChild(celda('Fecha', fechaHora(f.creado_en)));
+                fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || (f.admin_id ? String(f.admin_id).slice(0, 8) : '—')));
+                fila.appendChild(celda('Salón', nombres[f.salon_id] || (f.salon_id ? String(f.salon_id).slice(0, 8) : '—')));
+
+                var tdAccion = document.createElement('td');
+                tdAccion.setAttribute('data-label', 'Acción');
+                var esFallo = /fallido|error/i.test(f.accion);
+                var esImpersonar = /^impersonar$/.test(f.accion);
+                tdAccion.appendChild(pill(f.accion, esFallo ? 'pill-danger' : (esImpersonar ? 'pill-gold' : 'pill-info')));
+                fila.appendChild(tdAccion);
+
+                var tdDetalle = document.createElement('td');
+                tdDetalle.setAttribute('data-label', 'Detalle');
+                var codigo = crear('span', 'detalle-json', resumenDetalle(f.detalle));
+                codigo.title = String(resumenDetalle(f.detalle));
+                tdDetalle.appendChild(codigo);
+                fila.appendChild(tdDetalle);
+
+                tbody.appendChild(fila);
+            });
+        }
+
+        // ── CSV ──
+        function celdaCsv(valor) {
+            var texto = String(valor == null ? '' : valor);
+            var primero = texto.charAt(0);
+            if (primero === '=' || primero === '+' || primero === '-' || primero === '@') texto = "'" + texto;
+            var comilla = String.fromCharCode(34);
+            var salto = String.fromCharCode(10);
+            var retorno = String.fromCharCode(13);
+            if (texto.indexOf(comilla) >= 0 || texto.indexOf(',') >= 0 || texto.indexOf(';') >= 0 ||
+                texto.indexOf(salto) >= 0 || texto.indexOf(retorno) >= 0) {
+                texto = comilla + texto.split(comilla).join(comilla + comilla) + comilla;
+            }
+            return texto;
+        }
+
+        function descargarCsv(listaPersonalizada) {
+            var lista = listaPersonalizada || salonesFiltrados();
+            var separador = String.fromCharCode(13, 10);
+            var lineas = [['Salon', 'Dueno', 'Plan', 'Suscripcion', 'Trial hasta', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
+            lista.forEach(function (s) {
+                lineas.push([
+                    celdaCsv(s.nombre),
+                    celdaCsv(s.dueno),
+                    celdaCsv((PLANES[s.plan_id] || PLANES.gratis).nombre),
+                    celdaCsv((ESTADOS[s.estado] || ESTADOS.trial).nombre),
+                    celdaCsv(fechaCorta(s.trial_hasta)),
+                    celdaCsv(s.miembros),
+                    celdaCsv(s.turnos),
+                    celdaCsv(fechaCorta(s.creado)),
+                    celdaCsv(s.activo ? 'Activo' : 'Suspendido')
+                ].join(','));
+            });
+            var texto = String.fromCharCode(65279) + lineas.join(separador);
+            var blob = new Blob([texto], { type: 'text/csv;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'salones_' + new Date().toISOString().slice(0, 10) + '.csv';
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+            toast('CSV descargado con ' + lista.length + ' salón(es).', 'ok');
+        }
+
+        function cerrarDetalle() {
+            $('drawer-overlay').classList.add('oculto');
+            document.body.style.overflow = '';
+            detalleActual = null;
+            if (focoAnterior && focoAnterior.focus) focoAnterior.focus();
+            focoAnterior = null;
+        }
+
+        // ── eventos ──
+        $('drawer-cerrar').addEventListener('click', cerrarDetalle);
+        $('drawer-overlay').addEventListener('click', function (evento) {
+            if (evento.target === $('drawer-overlay')) cerrarDetalle();
+        });
+
+        document.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Escape') {
+                if (!$('confirm-overlay').classList.contains('oculto')) { cerrarConfirmar(false); return; }
+                if (!$('drawer-overlay').classList.contains('oculto')) { cerrarDetalle(); return; }
+                if (document.body.classList.contains('menu-abierto')) { cerrarMenu(); return; }
+            }
+            if (evento.key !== 'Tab') return;
+
+            var caja = null;
+            if (!$('confirm-overlay').classList.contains('oculto')) caja = $('confirm-overlay').querySelector('.confirmar');
+            else if (!$('drawer-overlay').classList.contains('oculto')) caja = $('drawer');
+            if (!caja) return;
+
+            var focos = caja.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (!focos.length) return;
+            var primero = focos[0];
+            var ultimo = focos[focos.length - 1];
+            if (evento.shiftKey && document.activeElement === primero) {
+                evento.preventDefault();
+                ultimo.focus();
+            } else if (!evento.shiftKey && document.activeElement === ultimo) {
+                evento.preventDefault();
+                primero.focus();
             }
         });
-    }
 
-    arrancar();
-})();
-</script>
+        $('buscar-salones').addEventListener('input', function () {
+            filtroSalones = $('buscar-salones').value;
+            pintarSalones();
+        });
+        $('filtro-estado').addEventListener('change', function () {
+            filtroEstado = $('filtro-estado').value;
+            pintarSalones();
+        });
+        $('csv-salones').addEventListener('click', function () { descargarCsv(); });
+        $('buscar-auditoria').addEventListener('input', pintarAuditoria);
+        $('filtro-accion').addEventListener('change', pintarAuditoria);
+        $('refrescar-auditoria').addEventListener('click', async function () {
+            var boton = $('refrescar-auditoria');
+            ocupado(boton, '…');
+            await cargarAuditoria();
+            pintarAuditoria();
+            ocupado(boton, '');
+            toast('Auditoría actualizada.', 'ok');
+        });
+        $('anuncio-mensaje').addEventListener('input', actualizarContadorAnuncio);
+        $('anuncio-publicar').addEventListener('click', publicarAnuncio);
+        $('refrescar-btn').addEventListener('click', async function () {
+            var boton = $('refrescar-btn');
+            ocupado(boton, 'Actualizando…');
+            await cargarTodo();
+            ocupado(boton, '');
+            toast('Datos actualizados.', 'ok');
+        });
+
+        if (supabase) {
+            supabase.auth.onAuthStateChange(function (evento) {
+                if (evento === 'SIGNED_OUT') {
+                    usuarioActual = null;
+                    mostrar('vista-login');
+                }
+            });
+        }
+
+        actualizarContadorAnuncio();
+        arrancar();
+    })();
+    </script>
 </body>
 </html>
