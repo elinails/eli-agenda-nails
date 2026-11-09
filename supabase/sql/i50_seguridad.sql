@@ -7,8 +7,7 @@
 --   3. deudas / pagos_deudas: solo por user_id, no por salón
 --
 -- Agrega además:
---   4. agregar_miembro_salon() con límite de plan
---   5. trigger de límite de plan (respaldo para cualquier insert)
+--   4/5. límite de plan y alta de miembros (sección 8, versión definitiva)
 --   6. admin_alertas() para el panel
 --
 -- Idempotente: se puede correr varias veces.
@@ -53,100 +52,7 @@ drop policy if exists "Permitir subir logos"      on storage.objects;
 drop policy if exists "Permitir actualizar logos" on storage.objects;
 
 
--- 4) AGREGAR MIEMBRO con validación de plan --------------------------------
-create or replace function public.agregar_miembro_salon(p_email text, p_rol text default 'staff')
-returns bigint
-language plpgsql
-security definer
-set search_path = public, auth
-as $$
-declare
-    v_salon    uuid;
-    v_user     uuid;
-    v_email    text;
-    v_id       bigint;
-    v_plan     text;
-    v_limite   integer;
-    v_activos  integer;
-begin
-    if auth.uid() is null then raise exception 'sin_sesion'; end if;
-
-    select m.salon_id into v_salon
-      from public.miembros_salon m
-     where m.user_id = auth.uid() and m.rol = 'owner' and m.activo
-     limit 1;
-
-    if v_salon is null then raise exception 'sin_permisos'; end if;
-
-    v_email := lower(trim(p_email));
-    if v_email is null or position('@' in v_email) = 0 then raise exception 'email_invalido'; end if;
-
-    select u.id into v_user from auth.users u where lower(u.email::text) = v_email limit 1;
-    if v_user is null then raise exception 'usuario_no_registrado'; end if;
-
-    -- límite de plan (solo cuenta empleadas, la dueña no ocupa cupo)
-    select s.plan_id into v_plan from public.salones s where s.id = v_salon;
-    select p.limite_empleadas into v_limite
-      from public.planes p where p.id = coalesce(v_plan, 'gratis');
-
-    if v_limite is not null then
-        select count(*) into v_activos
-          from public.miembros_salon m
-         where m.salon_id = v_salon and m.rol = 'staff' and m.activo
-           and m.user_id <> v_user;
-
-        if v_activos >= v_limite then
-            raise exception 'limite_plan:%', v_limite using errcode = 'P0002';
-        end if;
-    end if;
-
-    insert into public.miembros_salon (salon_id, user_id, email, rol, activo)
-    values (v_salon, v_user, v_email, coalesce(nullif(p_rol, ''), 'staff'), true)
-    on conflict (salon_id, user_id) do update
-        set rol = excluded.rol, activo = true, email = excluded.email
-    returning id into v_id;
-
-    return v_id;
-end $$;
-grant execute on function public.agregar_miembro_salon(text, text) to authenticated;
-
-
--- 5) Trigger de respaldo del límite (cubre cualquier otro camino) ----------
-create or replace function public.miembros_valida_limite()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    v_plan    text;
-    v_limite  integer;
-    v_activos integer;
-begin
-    if coalesce(NEW.activo, true) is false then return NEW; end if;
-    if NEW.rol = 'owner' then return NEW; end if;
-
-    select s.plan_id into v_plan from public.salones s where s.id = NEW.salon_id;
-    select p.limite_empleadas into v_limite
-      from public.planes p where p.id = coalesce(v_plan, 'gratis');
-
-    if v_limite is null then return NEW; end if;
-
-    select count(*) into v_activos
-      from public.miembros_salon m
-     where m.salon_id = NEW.salon_id and m.rol = 'staff' and m.activo
-       and m.id is distinct from NEW.id;
-
-    if v_activos >= v_limite then
-        raise exception 'limite_plan:%', v_limite using errcode = 'P0002';
-    end if;
-    return NEW;
-end $$;
-
-drop trigger if exists trg_miembros_limite on public.miembros_salon;
-create trigger trg_miembros_limite
-before insert or update of rol, activo on public.miembros_salon
-for each row execute function public.miembros_valida_limite();
+-- 4 y 5) Límite de plan y alta de miembros: ver sección 8 (versión definitiva).
 
 
 -- 6) Alertas de seguridad para el panel ------------------------------------
@@ -245,12 +151,13 @@ begin
         return new;
     end if;
 
-    -- No mover un miembro de salón ni cambiarle el user_id
-    if tg_op = 'UPDATE' and (
-        new.salon_id is distinct from old.salon_id
-        or new.user_id is distinct from old.user_id
-    ) then
-        raise exception 'miembro_inmutable';
+    -- No mover un miembro de salón ni cambiarle el user_id.
+    -- (OLD solo se toca dentro de un IF de UPDATE: en INSERT no está asignado.)
+    if tg_op = 'UPDATE' then
+        if new.salon_id is distinct from old.salon_id
+           or new.user_id is distinct from old.user_id then
+            raise exception 'miembro_inmutable';
+        end if;
     end if;
 
     -- Solo la dueña del salón invita/edita (defensa en profundidad)
@@ -280,13 +187,15 @@ begin
     end if;
 
     -- No degradar a la última dueña
-    if tg_op = 'UPDATE' and old.rol = 'owner' and new.rol <> 'owner'
-       and not exists (
-           select 1 from public.miembros_salon m
-            where m.salon_id = old.salon_id and m.rol = 'owner'
-              and m.id is distinct from old.id
-       ) then
-        raise exception 'owner_requerido';
+    if tg_op = 'UPDATE' then
+        if old.rol = 'owner' and new.rol <> 'owner'
+           and not exists (
+               select 1 from public.miembros_salon m
+                where m.salon_id = old.salon_id and m.rol = 'owner'
+                  and m.id is distinct from old.id
+           ) then
+            raise exception 'owner_requerido';
+        end if;
     end if;
 
     if new.activo is false then
@@ -295,8 +204,10 @@ begin
 
     -- Si la fila ya estaba activa, el cupo no cambia: permitir editar
     -- email/rol sin bloquear a salones en gracia por downgrade.
-    if tg_op = 'UPDATE' and old.activo is true then
-        return new;
+    if tg_op = 'UPDATE' then
+        if old.activo is true then
+            return new;
+        end if;
     end if;
 
     -- Límite: dueña + staff activos
