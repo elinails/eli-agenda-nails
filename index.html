@@ -1342,6 +1342,9 @@
         .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+        /* I39 · navegacion por rol */
+        .nav-item.hidden { display: none; }
+
         /* I38 · rentabilidad */
         .dona-chip {
             display: inline-block;
@@ -2018,7 +2021,7 @@
                     </button>
                 </div>
 
-                <div>
+                <div id="panel-servicios">
                     <h2 class="panel-title">Servicios</h2>
                     <p class="setting-note">Precios base y duración. Se usan al agendar y para calcular la tarjeta.</p>
                     <div class="flex justify-end mt-3">
@@ -2027,6 +2030,16 @@
                         </button>
                     </div>
                     <div id="servicios-list" class="space-y-3 mt-3" aria-busy="true"></div>
+                </div>
+
+                <div id="panel-miembros" class="hidden">
+                    <h2 class="panel-title">Miembros del salón</h2>
+                    <p class="setting-note">Quién puede entrar a la agenda y con qué permisos.</p>
+                    <div class="flex justify-end mt-3">
+                        <button type="button" id="miembros-btn" class="btn-secondary px-4 py-2.5 rounded-lg font-medium text-sm">
+                            <i class="fas fa-users mr-2" aria-hidden="true"></i> Ver miembros
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2350,7 +2363,41 @@
                 </div>
             </div>
         </div>
-    </div>    <!-- I38 · Método de pago -->
+    </div>    <!-- I39 · Miembros del salón -->
+    <div id="miembros-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Miembros del salón</h3>
+                    <button type="button" id="close-miembros-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div id="miembros-list" class="space-y-2 mb-5"></div>
+                <form id="miembro-form" class="space-y-3" novalidate>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="miembro-email">Email de la persona</label>
+                        <input id="miembro-email" type="email" required maxlength="160"
+                               class="w-full px-4 py-2 rounded-lg border border-line" placeholder="sofia@mail.com">
+                    </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="miembro-rol">Rol</label>
+                        <select id="miembro-rol" class="w-full px-4 py-2 rounded-lg border border-line">
+                            <option value="staff" selected>Empleada</option>
+                            <option value="owner">Dueña</option>
+                        </select>
+                    </div>
+                    <p class="setting-note">La cuenta tiene que existir en Supabase Auth para poder asignarla.</p>
+                    <p id="miembro-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                    <button type="submit" id="miembro-save" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Agregar al salón
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- I38 · Método de pago -->
     <div id="metodo-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
@@ -2639,6 +2686,7 @@
             function apiLista(tabla, columnaOrden) {
                 return async function list() {
                     let consulta = supabase.from(tabla).select('*');
+                    if (contexto.salonId) consulta = consulta.eq('salon_id', contexto.salonId);
                     const orden = typeof columnaOrden === 'function' ? columnaOrden() : columnaOrden;
                     if (orden) consulta = consulta.order(orden, { ascending: true });
                     const { data, error } = await consulta;
@@ -2651,7 +2699,13 @@
                 return {
                     list: apiLista(tabla),
                     async create(fila) {
-                        const { data, error } = await supabase.from(tabla).insert(fila).select().single();
+                        const datos = Object.assign({}, fila);
+                        if (contexto.salonId && datos.salon_id == null) datos.salon_id = contexto.salonId;
+                        // I39: la clienta/turno queda a nombre de quien la carga
+                        if ((tabla === 'turnos' || tabla === 'clientes') && contexto.userId && datos.staff_user_id == null) {
+                            datos.staff_user_id = contexto.userId;
+                        }
+                        const { data, error } = await supabase.from(tabla).insert(datos).select().single();
                         if (error) throw error;
                         return data;
                     },
@@ -2683,6 +2737,42 @@
             };
 
             const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas'];
+
+            // I39 · contexto multi-tenant. Vive SOLO en memoria (nunca en localStorage).
+            const contexto = { salonId: null, rol: null, userId: null, email: null };
+
+            function esOwner() { return contexto.rol === 'owner'; }
+            function esStaff() { return contexto.rol === 'staff'; }
+
+            async function cargarMembresia(user) {
+                contexto.userId = user && user.id ? user.id : null;
+                contexto.email = user && user.email ? user.email : '';
+                if (!supabase || !contexto.userId) return null;
+                const { data, error } = await supabase
+                    .from('miembros_salon')
+                    .select('salon_id, rol, activo')
+                    .eq('user_id', contexto.userId)
+                    .eq('activo', true)
+                    .limit(1);
+                if (error) throw error;
+                if (!data || !data.length) return null;
+                contexto.salonId = data[0].salon_id;
+                contexto.rol = data[0].rol === 'owner' ? 'owner' : 'staff';
+                return contexto;
+            }
+
+            function aplicarRol() {
+                const staff = esStaff();
+                document.querySelectorAll('.nav-item[data-section="inicio"], .nav-item[data-section="finanzas"]').forEach(function (boton) {
+                    boton.classList.toggle('hidden', staff);
+                });
+                const panelServicios = document.getElementById('panel-servicios');
+                if (panelServicios) panelServicios.classList.toggle('hidden', staff);
+                const panelMiembros = document.getElementById('panel-miembros');
+                if (panelMiembros) panelMiembros.classList.toggle('hidden', staff);
+                const panelDeudas = document.getElementById('panel-deudas');
+                if (panelDeudas) panelDeudas.classList.toggle('hidden', staff);
+            }
 
             async function cargarTodo() {
                 if (!supabase) return;
@@ -2763,6 +2853,8 @@
             let seccionActual = 'agenda';
 
             function mostrarSeccion(nombre) {
+                // I39: una empleada no entra a Inicio ni a Finanzas, ni escribiendo la seccion a mano
+                if (esStaff() && (nombre === 'inicio' || nombre === 'finanzas')) nombre = 'agenda';
                 const destino = SECCIONES[nombre] ? nombre : 'agenda';
                 document.querySelectorAll('.section').forEach(function(seccion) {
                     seccion.classList.toggle('hidden', seccion.dataset.section !== destino);
@@ -2961,7 +3053,9 @@
                             .eq('id', editando);
                         if (error) throw error;
                     } else {
-                        const { error } = await supabase.from('turnos').insert(toDb(appointment));
+                        const filaNueva = toDb(appointment);
+                        if (contexto.userId) filaNueva.staff_user_id = contexto.userId;
+                        const { error } = await supabase.from('turnos').insert(filaNueva);
                         if (error) throw error;
                     }
                     await loadAppointments();
@@ -2993,10 +3087,12 @@
             let cache = [];
 
             async function fetchTurnos() {
-                const { data, error } = await supabase.from('turnos')
-                    .select('*')
-                    .order(COLS.date, { ascending: true })
-                    .order(COLS.time, { ascending: true });
+                let consulta = supabase.from('turnos').select('*');
+                // I39: defensa en profundidad (RLS ya filtra, esto acota igual)
+                if (contexto.salonId) consulta = consulta.eq('salon_id', contexto.salonId);
+                if (esStaff() && contexto.userId) consulta = consulta.eq('staff_user_id', contexto.userId);
+                consulta = consulta.order(COLS.date, { ascending: true }).order(COLS.time, { ascending: true });
+                const { data, error } = await consulta;
                 if (error) throw error;
                 return (data || []).map(fromDb);
             }
@@ -3596,7 +3692,11 @@
 
             async function insertarEnTabla(tabla, filas) {
                 for (let i = 0; i < filas.length; i += 200) {
-                    const lote = filas.slice(i, i + 200);
+                    const lote = filas.slice(i, i + 200).map(function (fila) {
+                        const copia = Object.assign({}, fila);
+                        if (contexto.salonId) copia.salon_id = contexto.salonId;
+                        return copia;
+                    });
                     const insertado = await supabase.from(tabla).insert(lote);
                     if (insertado.error) throw insertado.error;
                 }
@@ -3825,6 +3925,7 @@
                 };
                 fila[COLS.date] = a.date;
                 fila[COLS.time] = a.time;
+                if (contexto.salonId) fila.salon_id = contexto.salonId;
                 return fila;
             }
 
@@ -3832,7 +3933,9 @@
             async function detectarColumnas() {
                 if (!supabase) return;
                 try {
-                    const { error } = await supabase.from('turnos').select('appointment_date').limit(1);
+                    let sondeo = supabase.from('turnos').select('appointment_date');
+                    if (contexto.salonId) sondeo = sondeo.eq('salon_id', contexto.salonId);
+                    const { error } = await sondeo.limit(1);
                     if (!error) { COLS.date = 'appointment_date'; COLS.time = 'appointment_time'; }
                 } catch (error) { /* se mantienen date/time */ }
             }
@@ -3896,8 +3999,15 @@
                 appIniciada = true;
                 ocultarLogin();
                 try {
+                    const membresia = await cargarMembresia(session && session.user);
+                    if (!membresia) {
+                        appIniciada = false;
+                        mostrarLogin('Tu cuenta no tiene un salón asignado. Pedile a la dueña que te agregue.');
+                        return;
+                    }
+                    aplicarRol();
                     await arrancar();
-                    mostrarSeccion('agenda');
+                    mostrarSeccion(esStaff() ? 'agenda' : 'agenda');
                 } catch (error) {
                     console.error(error);
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
@@ -4124,7 +4234,11 @@
                         'Migrar',
                         async function() {
                             try {
-                                const { error } = await supabase.from('turnos').insert(locales.map(toDb));
+                                const filasLocales = locales.map(toDb).map(function (fila) {
+                        if (contexto.userId) fila.staff_user_id = contexto.userId;
+                        return fila;
+                    });
+                    const { error } = await supabase.from('turnos').insert(filasLocales);
                                 if (error) throw error;
                                 localStorage.setItem('eli_migrado', '1');
                                 migrateBtn.classList.add('hidden');
@@ -5814,6 +5928,13 @@
                 const verFinanzas = document.getElementById('ver-finanzas-btn');
                 if (verFinanzas) verFinanzas.addEventListener('click', function () { mostrarSeccion('finanzas'); });
 
+                const miembrosBtn = document.getElementById('miembros-btn');
+                if (miembrosBtn) miembrosBtn.addEventListener('click', abrirMiembrosModal);
+                const cerrarMiembros = document.getElementById('close-miembros-modal');
+                if (cerrarMiembros) cerrarMiembros.addEventListener('click', function () { cerrarModal(document.getElementById('miembros-modal')); });
+                const miembroForm = document.getElementById('miembro-form');
+                if (miembroForm) miembroForm.addEventListener('submit', function (evento) { evento.preventDefault(); agregarMiembro(); });
+
                 Array.prototype.forEach.call(document.querySelectorAll('#metodo-modal [data-metodo]'), function (boton) {
                     boton.addEventListener('click', function () {
                         const turno = turnoMetodoPendiente;
@@ -6548,6 +6669,115 @@
             }
 
             let cancelandoTurno = false;
+            let guardandoMiembro = false;
+
+            async function renderMiembros() {
+                const cont = document.getElementById('miembros-list');
+                if (!cont || !supabase) return;
+                cont.innerHTML = '';
+                const cargando = document.createElement('p');
+                cargando.className = 'vacio-dash';
+                cargando.textContent = 'Cargando miembros…';
+                cont.appendChild(cargando);
+                try {
+                    const { data, error } = await supabase
+                        .from('miembros_salon')
+                        .select('id, user_id, email, nombre, rol, activo')
+                        .eq('salon_id', contexto.salonId);
+                    if (error) throw error;
+                    cont.innerHTML = '';
+                    const filas = data || [];
+                    if (!filas.length) {
+                        const vacio = document.createElement('p');
+                        vacio.className = 'vacio-dash';
+                        vacio.textContent = 'Todavía no hay miembros cargados.';
+                        cont.appendChild(vacio);
+                        return;
+                    }
+                    filas.forEach(function (miembro) {
+                        const fila = document.createElement('div');
+                        fila.className = 'data-row';
+                        const info = document.createElement('div');
+                        const titulo = document.createElement('div');
+                        titulo.className = 'data-title';
+                        titulo.textContent = miembro.email || miembro.nombre || miembro.user_id || 'Miembro';
+                        if (miembro.user_id === contexto.userId) titulo.textContent += ' (vos)';
+                        const meta = document.createElement('div');
+                        meta.className = 'data-meta';
+                        meta.textContent = (miembro.rol === 'owner' ? 'Dueña' : 'Empleada') +
+                            (miembro.activo === false ? ' · inactiva' : '');
+                        info.appendChild(titulo);
+                        info.appendChild(meta);
+                        const valor = document.createElement('div');
+                        valor.className = 'data-value';
+                        valor.textContent = miembro.rol === 'owner' ? 'OWNER' : 'STAFF';
+                        fila.appendChild(info);
+                        fila.appendChild(valor);
+                        cont.appendChild(fila);
+                    });
+                } catch (error) {
+                    console.error('No se pudieron cargar los miembros:', error);
+                    cont.innerHTML = '';
+                    const fallo = document.createElement('p');
+                    fallo.className = 'vacio-dash';
+                    fallo.textContent = 'No se pudieron cargar los miembros.';
+                    cont.appendChild(fallo);
+                }
+            }
+
+            function abrirMiembrosModal() {
+                const error = document.getElementById('miembro-error');
+                if (error) { error.textContent = ''; error.classList.add('hidden'); }
+                const form = document.getElementById('miembro-form');
+                if (form) form.reset();
+                renderMiembros();
+                abrirModal(document.getElementById('miembros-modal'));
+            }
+
+            async function agregarMiembro() {
+                if (guardandoMiembro) return;
+                const boton = document.getElementById('miembro-save');
+                const errorEl = document.getElementById('miembro-error');
+                const email = String((document.getElementById('miembro-email') || {}).value || '').trim().toLowerCase();
+                const rol = (document.getElementById('miembro-rol') || {}).value === 'owner' ? 'owner' : 'staff';
+                const fallo = function (mensaje) {
+                    if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
+                };
+                if (!/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email)) { fallo('Escribí un email válido.'); return; }
+                if (errorEl) errorEl.classList.add('hidden');
+                const textoBoton = boton ? boton.textContent : '';
+                guardandoMiembro = true;
+                if (boton) { boton.textContent = 'Agregando…'; boton.disabled = true; }
+                try {
+                    let listo = false;
+                    try {
+                        const { error } = await supabase.rpc('agregar_miembro_salon', { p_email: email, p_rol: rol });
+                        if (!error) listo = true;
+                        else if (!/does not exist|PGRST202|Could not find the function/i.test(String(error.message || '') + ' ' + String(error.code || ''))) throw error;
+                    } catch (errorRpc) {
+                        if (!/does not exist|PGRST202|Could not find the function/i.test(String(errorRpc.message || '') + ' ' + String(errorRpc.code || ''))) throw errorRpc;
+                    }
+                    if (!listo) {
+                        const { error } = await supabase.from('miembros_salon').insert({
+                            salon_id: contexto.salonId,
+                            email: email,
+                            rol: rol,
+                            activo: true
+                        });
+                        if (error) throw error;
+                    }
+                    mostrarBanner('Miembro agregado al salón.', 'ok');
+                    const campo = document.getElementById('miembro-email');
+                    if (campo) campo.value = '';
+                    await renderMiembros();
+                } catch (error) {
+                    console.error('No se pudo agregar el miembro:', error);
+                    fallo('No se pudo agregar. Verificá que la cuenta exista y que el SQL de F2 esté aplicado.');
+                } finally {
+                    guardandoMiembro = false;
+                    if (boton) { boton.textContent = textoBoton; boton.disabled = false; }
+                }
+            }
 
             function cancelarTurno(turno) {
                 if (cancelandoTurno) return;
