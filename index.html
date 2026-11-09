@@ -1342,6 +1342,43 @@
         .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+        /* I38 · dashboard 360 */
+        @media (min-width: 768px) {
+            .dash-kpis { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); }
+            .dash-kpis > :first-child { grid-column: auto; }
+        }
+        .fin-hint-suave { color: var(--gold-ink); font-weight: 500; }
+        .fin-hint-suave:empty { display: none; }
+        .barras-leyenda {
+            display: flex;
+            gap: 14px;
+            justify-content: flex-end;
+            font-size: 11.5px;
+            color: var(--ink-soft);
+            margin-bottom: 6px;
+        }
+        .barras-leyenda i {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            margin-right: 5px;
+        }
+        .barras-leyenda i.ingreso { background: var(--gold); }
+        .barras-leyenda i.gasto { background: var(--ink-soft); opacity: .4; }
+        .barra-par {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            width: 100%;
+            height: 100%;
+        }
+        .barra-par .barra { width: 42%; min-height: 3px; }
+        .barra.gasto { background: var(--ink-soft); opacity: .35; }
+        .dona-vacia { color: var(--ink-soft); font-size: 13px; }
+        .dona-nota { font-size: 11.5px; color: var(--ink-soft); margin: -4px 0 8px; }
+
         /* I37: botones de cerrar con area tactil comoda (44x44) */
         .modal-content button[aria-label="Cerrar"] {
             min-width: 44px;
@@ -1737,6 +1774,7 @@
                         <span class="fin-label">Ingresos</span>
                         <strong class="fin-value" id="ini-ingresos">$ 0</strong>
                         <span class="fin-hint">Turnos realizados</span>
+                        <span class="fin-hint fin-hint-suave" id="ini-proyeccion"></span>
                     </div>
                     <div class="fin-card">
                         <span class="fin-label">Gastos</span>
@@ -1758,6 +1796,11 @@
                         <strong class="fin-value" id="ini-cancelados">0</strong>
                         <span class="fin-hint">Turnos cancelados</span>
                     </div>
+                    <div class="fin-card">
+                        <span class="fin-label">Deuda pendiente</span>
+                        <strong class="fin-value fin-value-gastos" id="ini-deuda">$ 0</strong>
+                        <span class="fin-hint" id="ini-deuda-hint">Sin deudas</span>
+                    </div>
                 </div>
 
                 <div class="dash-acciones">
@@ -1767,7 +1810,11 @@
                 </div>
 
                 <div class="dash-panel">
-                    <h3 class="dash-title">Evolución de ingresos</h3>
+                    <h3 class="dash-title">Evolución de ingresos y gastos</h3>
+                    <div class="barras-leyenda">
+                        <span><i class="ingreso"></i>Ingresos</span>
+                        <span><i class="gasto"></i>Gastos</span>
+                    </div>
                     <div class="barras" id="dash-evolucion"></div>
                 </div>
 
@@ -1782,6 +1829,15 @@
                     <div class="dash-panel">
                         <h3 class="dash-title">Top 3 clientas</h3>
                         <div id="dash-top" class="top-lista"></div>
+                    </div>
+                </div>
+
+                <div class="dash-panel">
+                    <h3 class="dash-title">Gastos por categoría</h3>
+                    <p class="dona-nota">No incluye pagos de deudas.</p>
+                    <div class="dona-wrap">
+                        <div class="dona" id="dash-dona-gastos" role="img" aria-label="Distribución de gastos por categoría"></div>
+                        <ul class="dona-leyenda" id="dash-leyenda-gastos"></ul>
                     </div>
                 </div>
             </div>
@@ -4811,27 +4867,41 @@
                     let mes = base.mes - i;
                     while (mes < 1) { mes += 12; anio -= 1; }
                     const prefijo = anio + '-' + String(mes).padStart(2, '0');
-                    const total = (store.turnos || []).filter(function (t) {
+                    const ingresosMes = (store.turnos || []).filter(function (t) {
                         return t.status === 'completed' && String(fechaDeFila(t)).slice(0, 7) === prefijo;
                     }).reduce(function (suma, t) { return suma + (Number(t.price) || 0); }, 0);
-                    meses.push({ etiqueta: NOMBRES_MES[mes - 1], total: total, actual: i === 0 });
+                    const gastosMesGraf = (store.gastos || []).filter(function (g) {
+                        return String(g.fecha || '').slice(0, 7) === prefijo;
+                    }).reduce(function (suma, g) { return suma + (Number(g.monto) || 0); }, 0) +
+                        (store.pagos_deudas || []).filter(function (p) {
+                            return String(p.fecha || '').slice(0, 7) === prefijo;
+                        }).reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
+                    meses.push({ etiqueta: NOMBRES_MES[mes - 1], ingresos: ingresosMes, gastos: gastosMesGraf, actual: i === 0 });
                 }
-                const maximo = Math.max.apply(null, meses.map(function (m) { return m.total; }).concat([1]));
+                const maximo = Math.max.apply(null, meses.map(function (m) { return Math.max(m.ingresos, m.gastos); }).concat([1]));
                 meses.forEach(function (m) {
                     const col = document.createElement('div');
                     col.className = 'barra-col';
                     const valor = document.createElement('span');
                     valor.className = 'barra-valor';
-                    valor.textContent = m.total > 0 ? money(m.total) : '';
-                    const barra = document.createElement('div');
-                    barra.className = 'barra' + (m.actual ? ' actual' : '');
-                    barra.style.height = Math.max(3, Math.round((m.total / maximo) * 110)) + 'px';
-                    barra.title = m.etiqueta + ': ' + money(m.total);
+                    valor.textContent = m.ingresos > 0 ? money(m.ingresos) : '';
+                    const par = document.createElement('div');
+                    par.className = 'barra-par';
+                    const barraIngreso = document.createElement('div');
+                    barraIngreso.className = 'barra ingreso' + (m.actual ? ' actual' : '');
+                    barraIngreso.style.height = Math.max(3, Math.round((m.ingresos / maximo) * 110)) + 'px';
+                    barraIngreso.title = 'Ingresos ' + m.etiqueta + ': ' + money(m.ingresos);
+                    const barraGasto = document.createElement('div');
+                    barraGasto.className = 'barra gasto';
+                    barraGasto.style.height = Math.max(3, Math.round((m.gastos / maximo) * 110)) + 'px';
+                    barraGasto.title = 'Gastos ' + m.etiqueta + ': ' + money(m.gastos);
+                    par.appendChild(barraIngreso);
+                    par.appendChild(barraGasto);
                     const mes = document.createElement('span');
                     mes.className = 'barra-mes';
                     mes.textContent = m.etiqueta;
                     col.appendChild(valor);
-                    col.appendChild(barra);
+                    col.appendChild(par);
                     col.appendChild(mes);
                     cont.appendChild(col);
                 });
@@ -4850,10 +4920,13 @@
                 });
                 const lista = Object.keys(grupos).map(function (k) { return { nombre: k, total: grupos[k] }; })
                     .sort(function (a, b) { return b.total - a.total; });
+                dona.style.display = '';
                 const suma = lista.reduce(function (s, g) { return s + g.total; }, 0);
                 if (!suma) {
+                    dona.style.display = 'none';
                     const p = document.createElement('li');
-                    p.textContent = 'Sin turnos realizados en el período.';
+                    p.className = 'dona-vacia';
+                    p.textContent = 'Sin turnos realizados este mes.';
                     leyenda.appendChild(p);
                     return;
                 }
@@ -4882,6 +4955,54 @@
                 dona.style.background = 'conic-gradient(' + paradas.join(', ') + ')';
             }
 
+            function renderGastosCategoria(gastosMes) {
+                const dona = document.getElementById('dash-dona-gastos');
+                const leyenda = document.getElementById('dash-leyenda-gastos');
+                if (!dona || !leyenda) return;
+                dona.style.display = '';
+                dona.style.background = 'var(--line)';
+                leyenda.innerHTML = '';
+                const grupos = {};
+                (gastosMes || []).forEach(function (g) {
+                    const clave = categoriaValida(g.categoria);
+                    grupos[clave] = (grupos[clave] || 0) + (Number(g.monto) || 0);
+                });
+                const lista = Object.keys(grupos).map(function (k) { return { nombre: k, total: grupos[k] }; })
+                    .sort(function (a, b) { return b.total - a.total; });
+                const suma = lista.reduce(function (s, g) { return s + g.total; }, 0);
+                if (!suma) {
+                    dona.style.display = 'none';
+                    const vacio = document.createElement('li');
+                    vacio.className = 'dona-vacia';
+                    vacio.textContent = 'Sin gastos cargados este mes.';
+                    leyenda.appendChild(vacio);
+                    return;
+                }
+                const colores = ['var(--gold)', 'var(--blush)', 'var(--ink-soft)', 'var(--gold-ink)', 'var(--line)'];
+                const paradas = [];
+                let acumulado = 0;
+                lista.forEach(function (g, i) {
+                    const color = colores[i % colores.length];
+                    const pct = (g.total / suma) * 100;
+                    paradas.push(color + ' ' + acumulado.toFixed(2) + '% ' + (acumulado + pct).toFixed(2) + '%');
+                    acumulado += pct;
+                    const item = document.createElement('li');
+                    const punto = document.createElement('span');
+                    punto.className = 'dona-punto';
+                    punto.style.background = color;
+                    const nombre = document.createElement('span');
+                    nombre.textContent = g.nombre;
+                    const pctEl = document.createElement('span');
+                    pctEl.className = 'dona-pct';
+                    pctEl.textContent = Math.round(pct) + '%';
+                    item.appendChild(punto);
+                    item.appendChild(nombre);
+                    item.appendChild(pctEl);
+                    leyenda.appendChild(item);
+                });
+                dona.style.background = 'conic-gradient(' + paradas.join(', ') + ')';
+            }
+
             function renderTopClientas(realizados) {
                 const cont = document.getElementById('dash-top');
                 if (!cont) return;
@@ -4899,7 +5020,7 @@
                 if (!top.length) {
                     const p = document.createElement('p');
                     p.className = 'vacio-dash';
-                    p.textContent = 'Sin visitas registradas en el período.';
+                    p.textContent = 'Todavía no hay clientas con turnos realizados.';
                     cont.appendChild(p);
                     return;
                 }
@@ -5740,10 +5861,28 @@
                 const balanceEl = document.getElementById('ini-balance');
                 if (balanceEl) balanceEl.classList.toggle('negativo', (ingresos - totalGastos) < 0);
 
+                // I38: deuda pendiente (misma cuenta que Finanzas)
+                const deudaPendiente = (store.deudas || []).reduce(function (suma, d) { return suma + saldoDeDeuda(d); }, 0);
+                const deudasAbiertas = (store.deudas || []).filter(function (d) { return !deudaEstaPagada(d); }).length;
+                setTexto('ini-deuda', money(deudaPendiente));
+                setTexto('ini-deuda-hint', deudasAbiertas === 0
+                    ? 'Sin deudas'
+                    : deudasAbiertas + (deudasAbiertas === 1 ? ' deuda sin saldar' : ' deudas sin saldar'));
+
+                // I38: proyeccion de lo agendado este mes
+                const agendadosMes = delMes.filter(function (t) {
+                    return t.status === 'pending' || t.status === 'confirmed';
+                });
+                const proyeccion = agendadosMes.reduce(function (suma, t) { return suma + (Number(t.price) || 0); }, 0);
+                setTexto('ini-proyeccion', proyeccion > 0
+                    ? 'Proyección: ' + money(proyeccion) + ' por turnos agendados'
+                    : '');
+
                 renderProximoTurno();
                 renderEvolucion({ anio: partes.anio, mes: partes.mes, cantidad: 6 });
                 renderServiciosMes(realizados);
                 renderTopClientas(realizados);
+                renderGastosCategoria(gastosMes);
             }
 
             function renderCaja() {
