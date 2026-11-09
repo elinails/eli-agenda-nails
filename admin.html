@@ -210,6 +210,28 @@
         .cabecera-seccion .sub { margin: 4px 0 0; color: var(--ink-subtle); font-size: 13px; }
         .contador { font-size: 12px; color: var(--ink-subtle); }
 
+        /* I49 · gráficos, switches, usuarios */
+        .graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .grafico { padding: 16px; }
+        .grafico-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+        .grafico-cabecera h2 { font-size: 15px; margin: 0; }
+        .grafico-nota { font-size: 11px; color: var(--ink-soft); }
+        .barras { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+        .barra-caja { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; }
+        .barra { width: 100%; border-radius: 5px 5px 2px 2px; background: linear-gradient(180deg, var(--gold), rgba(190,158,111,.35)); min-height: 2px; }
+        .barra-mes { font-size: 9.5px; color: var(--ink-soft); white-space: nowrap; }
+        .switch-fila { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+        .switch-fila:last-child { border-bottom: 0; }
+        .switch-texto strong { display: block; font-size: 14px; }
+        .switch-texto span { font-size: 12px; color: var(--ink-soft); }
+        .switch { position: relative; width: 46px; height: 26px; flex: 0 0 auto; }
+        .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+        .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background .16s ease; }
+        .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .16s ease; }
+        .switch input:checked + span { background: var(--ok); }
+        .switch input:checked + span::after { transform: translateX(20px); }
+        @media (max-width: 720px) { .graficos { grid-template-columns: 1fr; } }
+
         .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
         .kpi {
             background: var(--surface-1);
@@ -487,11 +509,19 @@
             <nav class="nav" aria-label="Secciones">
                 <button type="button" class="nav-item activo" data-vista="salones" aria-current="page">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 10h.01M9 14h.01M9 18h.01M15 10h.01M15 14h.01M15 18h.01"/></svg>
-                    Salones
+                    Inicio
                 </button>
                 <button type="button" class="nav-item" data-vista="suscripciones">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>
                     Suscripciones
+                </button>
+                <button type="button" class="nav-item" data-vista="planes">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+                    Planes
+                </button>
+                <button type="button" class="nav-item" data-vista="usuarios">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Usuarios
                 </button>
                 <button type="button" class="nav-item" data-vista="anuncios">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1ZM14 8.5a4 4 0 0 1 0 7M17 5.5a8 8 0 0 1 0 13"/></svg>
@@ -500,6 +530,10 @@
                 <button type="button" class="nav-item" data-vista="auditoria">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M3.5 5h.01M3.5 12h.01M3.5 19h.01"/></svg>
                     Auditoría
+                </button>
+                <button type="button" class="nav-item" data-vista="ajustes">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+                    Ajustes
                 </button>
             </nav>
             <div class="sidebar-pie">
@@ -539,6 +573,23 @@
 
                 <!-- SALONES -->
                 <section id="seccion-salones" class="seccion">
+                    <div class="graficos">
+                        <div class="panel grafico">
+                            <div class="grafico-cabecera">
+                                <h2>Evolución del MRR</h2>
+                                <span class="grafico-nota">últimos 12 meses</span>
+                            </div>
+                            <div class="barras" id="grafico-mrr" aria-label="Evolución del MRR"></div>
+                        </div>
+                        <div class="panel grafico">
+                            <div class="grafico-cabecera">
+                                <h2>Salones nuevos</h2>
+                                <span class="grafico-nota">por mes</span>
+                            </div>
+                            <div class="barras" id="grafico-salones" aria-label="Salones nuevos por mes"></div>
+                        </div>
+                    </div>
+
                     <div class="kpis">
                         <div class="kpi">
                             <span class="kpi-label">Salones</span>
@@ -568,6 +619,7 @@
                             <option value="todos">Todos</option>
                             <option value="activos">Activos</option>
                             <option value="suspendidos">Suspendidos</option>
+                            <option value="inactivos">Inactivos (15 días)</option>
                         </select>
                         <button type="button" id="csv-salones" class="btn">↓ CSV</button>
                         <span class="contador" id="salones-contador"></span>
@@ -584,6 +636,7 @@
                                     <th>Miembros</th>
                                     <th>Turnos</th>
                                     <th>Creado</th>
+                                    <th>Último turno</th>
                                     <th>Estado</th>
                                     <th></th>
                                 </tr>
@@ -699,6 +752,70 @@
                         <p id="auditoria-vacio" class="vacio oculto">No hay registros.</p>
                     </div>
                 </section>
+                <!-- PLANES -->
+                <section id="seccion-planes" class="seccion oculto">
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Precio</th>
+                                    <th>Límite empleadas</th>
+                                    <th>Descripción</th>
+                                    <th>Activo</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-planes"></tbody>
+                        </table>
+                        <p id="planes-vacio" class="vacio oculto">No hay planes cargados.</p>
+                    </div>
+                    <div class="panel" style="margin-top:14px;padding:18px">
+                        <h2 style="margin:0 0 6px">Nuevo plan</h2>
+                        <div class="toolbar" style="margin-top:12px">
+                            <input type="text" id="plan-id" placeholder="id (ej: anual)" maxlength="20" aria-label="Id del plan">
+                            <input type="text" id="plan-nombre" placeholder="Nombre" maxlength="40" aria-label="Nombre del plan">
+                            <input type="number" id="plan-precio" placeholder="Precio" min="0" step="100" aria-label="Precio">
+                            <input type="number" id="plan-limite" placeholder="Límite empleadas" min="1" aria-label="Límite de empleadas">
+                            <button type="button" id="plan-crear" class="btn btn-primario">Agregar</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- USUARIOS -->
+                <section id="seccion-usuarios" class="seccion oculto">
+                    <div class="toolbar">
+                        <input type="search" id="buscar-usuarios" placeholder="Buscar por email o salón" aria-label="Buscar usuarios">
+                        <span class="contador" id="usuarios-contador"></span>
+                    </div>
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Salón</th>
+                                    <th>Rol</th>
+                                    <th>Alta</th>
+                                    <th>Último acceso</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-usuarios"></tbody>
+                        </table>
+                        <p id="usuarios-vacio" class="vacio oculto">No hay usuarios.</p>
+                    </div>
+                </section>
+
+                <!-- AJUSTES -->
+                <section id="seccion-ajustes" class="seccion oculto">
+                    <div class="panel" style="padding:18px">
+                        <h2 style="margin:0 0 4px">Interruptores de emergencia</h2>
+                        <p class="muted" style="margin:0 0 14px">Se aplican al instante en todas las apps.</p>
+                        <div id="lista-flags"></div>
+                        <p id="flags-vacio" class="vacio oculto">No hay ajustes cargados.</p>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
@@ -753,10 +870,13 @@
             past_due: { nombre: 'Past due', clase: 'pill-danger' }
         };
         const TITULOS = {
-            salones: { t: 'Salones', s: 'Estado general de la plataforma.' },
+            salones: { t: 'Inicio', s: 'Estado general de la plataforma.' },
             suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
+            planes: { t: 'Planes', s: 'Precios y límites de cada plan.' },
+            usuarios: { t: 'Usuarios', s: 'Todas las cuentas registradas.' },
             anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
-            auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' }
+            auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' },
+            ajustes: { t: 'Ajustes', s: 'Interruptores de emergencia de la plataforma.' }
         };
 
         // I44 · A: blindaje de los formularios ANTES de cualquier dependencia.
@@ -1135,6 +1255,276 @@
             mostrar('vista-login');
         });
 
+        // ── I49 · series, planes, usuarios y flags ──
+        var planesCache = [];
+        var usuariosCache = [];
+        var flagsCache = [];
+        var filtroUsuarios = '';
+
+        function mesCorto(valor) {
+            var d = new Date(String(valor).slice(0, 10) + 'T00:00:00');
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('es-AR', { month: 'short' });
+        }
+
+        function pintarSerie(id, serie, campoValor, esDinero) {
+            var cont = $(id);
+            if (!cont) return;
+            cont.textContent = '';
+            if (!serie || !serie.length) return;
+            var maximo = 0;
+            serie.forEach(function (f) { maximo = Math.max(maximo, Number(f[campoValor]) || 0); });
+            serie.forEach(function (f) {
+                var valor = Number(f[campoValor]) || 0;
+                var caja = crear('div', 'barra-caja');
+                var barra = crear('div', 'barra');
+                barra.style.height = (maximo ? Math.max(3, Math.round(valor / maximo * 100)) : 3) + '%';
+                barra.title = (esDinero ? dinero(valor) : valor + ' salón(es)') + ' · ' + mesCorto(f.mes);
+                caja.appendChild(barra);
+                caja.appendChild(crear('span', 'barra-mes', mesCorto(f.mes)));
+                cont.appendChild(caja);
+            });
+        }
+
+        async function cargarSeries() {
+            try {
+                var res = await supabase.rpc('admin_series_mensuales');
+                if (res.error) throw res.error;
+                var serie = res.data || [];
+                pintarSerie('grafico-mrr', serie, 'mrr', true);
+                pintarSerie('grafico-salones', serie, 'salones_nuevos', false);
+            } catch (error) {
+                console.warn('series:', error);
+            }
+        }
+
+        async function cargarPlanes() {
+            try {
+                var res = await supabase.rpc('admin_planes');
+                if (res.error) throw res.error;
+                planesCache = res.data || [];
+                pintarPlanes();
+            } catch (error) {
+                console.warn('planes:', error);
+                planesCache = Object.keys(PLANES).map(function (k) {
+                    return { id: k, nombre: PLANES[k].nombre, precio: PLANES[k].precio, limite_empleadas: null, descripcion: '', activo: true };
+                });
+                pintarPlanes();
+            }
+        }
+
+        function pintarPlanes() {
+            var tbody = $('tabla-planes');
+            if (!tbody) return;
+            tbody.textContent = '';
+            var vacio = $('planes-vacio');
+            if (!planesCache.length) { if (vacio) vacio.classList.remove('oculto'); return; }
+            if (vacio) vacio.classList.add('oculto');
+            planesCache.forEach(function (p) {
+                var fila = document.createElement('tr');
+                fila.appendChild(celda('Plan', p.id));
+
+                var tdPrecio = document.createElement('td');
+                tdPrecio.setAttribute('data-label', 'Precio');
+                var precio = document.createElement('input');
+                precio.type = 'number'; precio.min = '0'; precio.step = '100';
+                precio.className = 'btn'; precio.style.width = '110px';
+                precio.value = String(Number(p.precio) || 0);
+                tdPrecio.appendChild(precio);
+                fila.appendChild(tdPrecio);
+
+                var tdLimite = document.createElement('td');
+                tdLimite.setAttribute('data-label', 'Límite empleadas');
+                var limite = document.createElement('input');
+                limite.type = 'number'; limite.min = '1';
+                limite.className = 'btn'; limite.style.width = '90px';
+                limite.placeholder = 'sin límite';
+                if (p.limite_empleadas != null) limite.value = String(p.limite_empleadas);
+                tdLimite.appendChild(limite);
+                fila.appendChild(tdLimite);
+
+                var tdDesc = document.createElement('td');
+                tdDesc.setAttribute('data-label', 'Descripción');
+                var desc = document.createElement('input');
+                desc.type = 'text'; desc.maxLength = 120;
+                desc.className = 'btn'; desc.style.width = '100%'; desc.style.minWidth = '160px';
+                desc.value = String(p.descripcion || '');
+                tdDesc.appendChild(desc);
+                fila.appendChild(tdDesc);
+
+                fila.appendChild(celda('Activo', pill(p.activo ? 'Sí' : 'No', p.activo ? 'pill-ok' : 'pill-danger')));
+
+                var tdAccion = document.createElement('td');
+                tdAccion.className = 'celda-accion';
+                var guardar = crear('button', 'btn btn-sm btn-primario', 'Guardar');
+                guardar.type = 'button';
+                guardar.addEventListener('click', function () {
+                    guardarPlan(p.id, p.nombre, precio.value, limite.value, desc.value, p.activo, guardar);
+                });
+                tdAccion.appendChild(guardar);
+                fila.appendChild(tdAccion);
+                tbody.appendChild(fila);
+            });
+        }
+
+        async function guardarPlan(id, nombre, precio, limite, descripcion, activo, boton) {
+            ocupado(boton, '…');
+            try {
+                var res = await supabase.rpc('admin_plan_guardar', {
+                    p_id: id, p_nombre: nombre,
+                    p_precio: Number(precio) || 0,
+                    p_limite: limite === '' ? null : Number(limite),
+                    p_descripcion: descripcion || null,
+                    p_activo: activo !== false
+                });
+                if (res.error) throw res.error;
+                toast('Plan actualizado.', 'ok');
+                await cargarPlanes();
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo guardar el plan: ' + (error.message || 'error'), 'error');
+            } finally { delete boton.dataset.texto; boton.disabled = false; }
+        }
+
+        async function crearPlanNuevo() {
+            var id = String($('plan-id').value || '').trim().toLowerCase();
+            var nombre = String($('plan-nombre').value || '').trim();
+            if (!id || !nombre) { toast('Completá id y nombre del plan.', 'error'); return; }
+            var boton = $('plan-crear');
+            ocupado(boton, '…');
+            try {
+                var res = await supabase.rpc('admin_plan_guardar', {
+                    p_id: id, p_nombre: nombre,
+                    p_precio: Number($('plan-precio').value) || 0,
+                    p_limite: $('plan-limite').value === '' ? null : Number($('plan-limite').value),
+                    p_descripcion: null, p_activo: true
+                });
+                if (res.error) throw res.error;
+                $('plan-id').value = ''; $('plan-nombre').value = ''; $('plan-precio').value = ''; $('plan-limite').value = '';
+                toast('Plan creado.', 'ok');
+                await cargarPlanes();
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo crear: ' + (error.message || 'error'), 'error');
+            } finally { delete boton.dataset.texto; boton.disabled = false; }
+        }
+
+        async function cargarUsuarios() {
+            try {
+                var res = await supabase.rpc('admin_todos_usuarios');
+                if (res.error) throw res.error;
+                usuariosCache = res.data || [];
+                pintarUsuarios();
+            } catch (error) {
+                console.warn('usuarios:', error);
+                usuariosCache = [];
+                pintarUsuarios();
+            }
+        }
+
+        function pintarUsuarios() {
+            var tbody = $('tabla-usuarios');
+            if (!tbody) return;
+            tbody.textContent = '';
+            var busqueda = normalizar(filtroUsuarios).trim();
+            var lista = usuariosCache.filter(function (u) {
+                if (!busqueda) return true;
+                return normalizar(u.email).indexOf(busqueda) >= 0 ||
+                       normalizar(u.salon_nombre || '').indexOf(busqueda) >= 0;
+            });
+            var vacio = $('usuarios-vacio');
+            var contador = $('usuarios-contador');
+            if (contador) contador.textContent = lista.length + ' de ' + usuariosCache.length + ' usuarios';
+            if (!lista.length) { if (vacio) vacio.classList.remove('oculto'); return; }
+            if (vacio) vacio.classList.add('oculto');
+            lista.forEach(function (u) {
+                var fila = document.createElement('tr');
+                fila.appendChild(celda('Email', u.email || '—'));
+                fila.appendChild(celda('Salón', u.salon_nombre || '—'));
+                fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : '')));
+                fila.appendChild(celda('Alta', fechaCorta(u.creado_en)));
+                fila.appendChild(celda('Último acceso', u.ultimo_acceso ? fechaCorta(u.ultimo_acceso) : 'nunca'));
+                var td = document.createElement('td');
+                td.className = 'celda-accion';
+                if (u.salon_id) {
+                    var boton = crear('button', 'btn btn-sm', '→ Entrar');
+                    boton.type = 'button';
+                    boton.addEventListener('click', function () { impersonarUsuario(u, boton); });
+                    td.appendChild(boton);
+                }
+                fila.appendChild(td);
+                tbody.appendChild(fila);
+            });
+        }
+
+        async function impersonarUsuario(u, boton) {
+            ocupado(boton, '…');
+            try {
+                var destino = location.origin + '/index.html?soporte=1&salon=' + encodeURIComponent(u.salon_id);
+                var res = await supabase.functions.invoke('impersonate', {
+                    body: { salon_id: u.salon_id, user_id: u.id, redirect_to: destino }
+                });
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.url) throw new Error((res.data && res.data.error) || 'Sin enlace');
+                window.open(res.data.url, '_blank', 'noopener');
+                toast('Enlace de soporte generado para ' + u.email + '.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo impersonar: ' + (error.message || 'error'), 'error');
+            } finally { delete boton.dataset.texto; boton.textContent = '→ Entrar'; boton.disabled = false; }
+        }
+
+        async function cargarFlags() {
+            try {
+                var res = await supabase.rpc('admin_flags');
+                if (res.error) throw res.error;
+                flagsCache = res.data || [];
+                pintarFlags();
+            } catch (error) {
+                console.warn('flags:', error);
+            }
+        }
+
+        function pintarFlags() {
+            var cont = $('lista-flags');
+            if (!cont) return;
+            cont.textContent = '';
+            var vacio = $('flags-vacio');
+            if (!flagsCache.length) { if (vacio) vacio.classList.remove('oculto'); return; }
+            if (vacio) vacio.classList.add('oculto');
+            flagsCache.forEach(function (f) {
+                var fila = crear('div', 'switch-fila');
+                var texto = crear('div', 'switch-texto');
+                texto.appendChild(crear('strong', '', f.descripcion || f.clave));
+                texto.appendChild(crear('span', '', f.clave));
+                var sw = crear('label', 'switch');
+                var input = document.createElement('input');
+                input.type = 'checkbox';
+                input.checked = f.valor_boolean !== false;
+                input.setAttribute('aria-label', f.descripcion || f.clave);
+                input.addEventListener('change', function () { cambiarFlag(f.clave, input.checked, input); });
+                sw.appendChild(input);
+                sw.appendChild(crear('span', ''));
+                fila.appendChild(texto);
+                fila.appendChild(sw);
+                cont.appendChild(fila);
+            });
+        }
+
+        async function cambiarFlag(clave, valor, input) {
+            input.disabled = true;
+            try {
+                var res = await supabase.rpc('admin_set_flag', { p_clave: clave, p_valor: valor });
+                if (res.error) throw res.error;
+                toast('Ajuste ' + clave + ': ' + (valor ? 'activado' : 'desactivado') + '.', 'ok');
+                flagsCache.forEach(function (f) { if (f.clave === clave) f.valor_boolean = valor; });
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo cambiar: ' + (error.message || 'error'), 'error');
+                input.checked = !valor;
+            } finally { input.disabled = false; }
+        }
+
         // ── navegación ──
         function mostrarSeccion(nombre) {
             if (!TITULOS[nombre]) nombre = 'salones';
@@ -1144,7 +1534,7 @@
                 if (activo) boton.setAttribute('aria-current', 'page');
                 else boton.removeAttribute('aria-current');
             });
-            ['salones', 'suscripciones', 'anuncios', 'auditoria'].forEach(function (v) {
+            ['salones', 'suscripciones', 'planes', 'usuarios', 'anuncios', 'auditoria', 'ajustes'].forEach(function (v) {
                 var seccion = $('seccion-' + v);
                 if (seccion) seccion.classList.toggle('oculto', v !== nombre);
             });
@@ -1176,6 +1566,10 @@
                 alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexión'));
             }
             await cargarKpis();
+            await cargarSeries();
+            await cargarPlanes();
+            await cargarUsuarios();
+            await cargarFlags();
             await cargarAnuncios();
             await cargarAuditoria();
             pintarSalones();
@@ -1217,6 +1611,7 @@
                     estado: campo(s, ['estado_suscripcion'], p.estado_suscripcion || 'trial'),
                     trial_hasta: campo(s, ['trial_hasta'], p.trial_hasta || null),
                     suscripcion_desde: campo(s, ['suscripcion_desde'], p.suscripcion_desde || null),
+                    ultimoTurno: campo(s, ['ultimo_turno', 'ultimoTurno'], null),
                     dueno_user_id: p.dueno_user_id || null
                 };
             });
@@ -1278,10 +1673,35 @@
             return salones.filter(function (s) {
                 if (filtroEstado === 'activos' && !s.activo) return false;
                 if (filtroEstado === 'suspendidos' && s.activo) return false;
+                if (filtroEstado === 'inactivos' && !salonInactivo(s)) return false;
                 if (!busqueda) return true;
                 return normalizar(s.nombre).indexOf(busqueda) >= 0 ||
                        normalizar(s.dueno).indexOf(busqueda) >= 0;
             });
+        }
+
+        // I49 · churn: sin turnos en 15 días (o nunca)
+        const DIAS_CHURN = 15;
+        function diasSinTurno(s) {
+            if (!s.ultimoTurno) return null;
+            var partes = String(s.ultimoTurno).slice(0, 10).split('-');
+            if (partes.length !== 3) return null;
+            var fecha = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+            if (isNaN(fecha.getTime())) return null;
+            return Math.floor((Date.now() - fecha.getTime()) / 86400000);
+        }
+        function salonInactivo(s) {
+            var dias = diasSinTurno(s);
+            if (dias === null) return true;
+            return dias > DIAS_CHURN;
+        }
+        function mailtoReenganche(s) {
+            var destino = String(s.dueno || '').trim();
+            if (!destino || destino === '—') return null;
+            var asunto = '¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
+            var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salón') + '.\n\n' +
+                'Si querés, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo Eli M. Nails';
+            return 'mailto:' + encodeURIComponent(destino) + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
         }
 
         function celda(etiqueta, contenido) {
@@ -1334,11 +1754,23 @@
                 fila.appendChild(celda('Miembros', s.miembros));
                 fila.appendChild(celda('Turnos', s.turnos));
                 fila.appendChild(celda('Creado', fechaCorta(s.creado)));
+                var celdaUltimo = celda('Último turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
+                if (salonInactivo(s)) celdaUltimo.appendChild(pill('Inactivo', 'pill-danger'));
+                fila.appendChild(celdaUltimo);
                 fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
 
                 var tdAccion = document.createElement('td');
                 tdAccion.className = 'celda-accion';
                 tdAccion.setAttribute('data-label', '');
+                var enlace = mailtoReenganche(s);
+                if (enlace && salonInactivo(s)) {
+                    var correo = crear('a', 'btn btn-sm', '✉');
+                    correo.href = enlace;
+                    correo.title = 'Escribir a la dueña';
+                    correo.setAttribute('aria-label', 'Escribir a ' + s.dueno);
+                    correo.addEventListener('click', function (evento) { evento.stopPropagation(); });
+                    tdAccion.appendChild(correo);
+                }
                 var boton = crear('button', 'btn btn-sm ' + (s.activo ? 'btn-peligro' : 'btn-ok'), s.activo ? 'Suspender' : 'Activar');
                 boton.type = 'button';
                 boton.addEventListener('click', function (evento) {
@@ -2105,6 +2537,14 @@
             filtroSalones = $('buscar-salones').value;
             pintarSalones();
         });
+        if ($('buscar-usuarios')) {
+            $('buscar-usuarios').addEventListener('input', function () {
+                filtroUsuarios = $('buscar-usuarios').value;
+                pintarUsuarios();
+            });
+        }
+        if ($('plan-crear')) $('plan-crear').addEventListener('click', crearPlanNuevo);
+
         $('filtro-estado').addEventListener('change', function () {
             filtroEstado = $('filtro-estado').value;
             pintarSalones();

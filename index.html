@@ -1342,6 +1342,15 @@
         .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+        /* I49 · feature flags */
+        body.sin-whatsapp .whatsapp-btn,
+        body.sin-whatsapp #modal-whatsapp-btn,
+        body.sin-whatsapp #whatsapp-btn { display: none !important; }
+        .aviso-registro {
+            margin-top: 10px; font-size: 12.5px; line-height: 1.4;
+            color: var(--ink-soft); text-align: center;
+        }
+
         /* I48 · anuncios y modo soporte */
         .ads-banner {
             position: sticky; top: 0; z-index: 70;
@@ -4281,6 +4290,41 @@
                 } catch (error) { /* sin anuncios: seguimos */ }
             }
 
+            // I49 · feature flags públicas (se leen antes del login)
+            var flagsApp = { registro_abierto: true, whatsapp_habilitado: true };
+
+            async function cargarFlagsApp() {
+                try {
+                    const { data, error } = await supabase.rpc("flags_publicos");
+                    if (error || !data || !data.length) return;
+                    flagsApp = {
+                        registro_abierto: data[0].registro_abierto !== false,
+                        whatsapp_habilitado: data[0].whatsapp_habilitado !== false
+                    };
+                    aplicarFlags();
+                } catch (error) { /* sin flags: todo habilitado */ }
+            }
+
+            function aplicarFlags() {
+                const botonAlta = document.getElementById("email-signup-btn");
+                if (botonAlta) {
+                    botonAlta.classList.toggle("hidden", !flagsApp.registro_abierto);
+                    let aviso = document.getElementById("aviso-registro");
+                    if (!flagsApp.registro_abierto) {
+                        if (!aviso) {
+                            aviso = document.createElement("p");
+                            aviso.id = "aviso-registro";
+                            aviso.className = "aviso-registro";
+                            aviso.textContent = "El registro de nuevos salones está cerrado por el momento.";
+                            botonAlta.parentNode.appendChild(aviso);
+                        }
+                    } else if (aviso) {
+                        aviso.remove();
+                    }
+                }
+                document.body.classList.toggle("sin-whatsapp", !flagsApp.whatsapp_habilitado);
+            }
+
             function mostrarBanner(mensaje, tipo, opciones) {
                 const opts = opciones || {};
                 appBanner.innerHTML = '';
@@ -4457,6 +4501,7 @@
                     aplicarRol();
                     aplicarLogo();
                     aplicarModoSoporte();
+                    cargarFlagsApp();
                     await arrancar();
                     mostrarSeccion("agenda");
                 } catch (error) {
@@ -4978,6 +5023,7 @@
             }
 
             function abrirWhatsAppReactivacion(cliente) {
+                if (!flagsApp.whatsapp_habilitado) return;
                 const telefono = telefonoWhatsApp(cliente && cliente.telefono);
                 if (!telefono) return;
                 const nombre = String((cliente && cliente.nombre) || '').trim().split(' ').filter(Boolean)[0] || '';
@@ -7970,6 +8016,10 @@
             }
 
             async function sendWhatsApp(appointment) {
+                if (!flagsApp.whatsapp_habilitado) {
+                    mostrarBanner("El envío por WhatsApp está deshabilitado por el administrador.", "error");
+                    return;
+                }
                 const texto = mensajeTurnoTexto(appointment);
                 let archivo = null;
                 try {
