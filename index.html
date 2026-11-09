@@ -2967,7 +2967,7 @@
                 try {
                     const consultaSalon = await supabase
                         .from('salones')
-                        .select('nombre, logo_url, activo')
+                        .select('nombre, logo_url, activo, plan_id')
                         .eq('id', contexto.salonId)
                         .limit(1);
                     if (!consultaSalon.error && consultaSalon.data && consultaSalon.data.length) {
@@ -2979,6 +2979,7 @@
                             return { estado: 'suspendido' };
                         }
                         contexto.nombreSalon = salon.nombre || '';
+                        contexto.planId = salon.plan_id || 'gratis';
                         contexto.logoUrl = urlLogoValida(salon.logo_url);
                     }
                 } catch (error) { /* sin salon visible: queda el logo por defecto */ }
@@ -7530,6 +7531,26 @@
                 abrirModal(document.getElementById('miembros-modal'));
             }
 
+            async function limiteDelPlan() {
+                const planId = contexto.planId || 'gratis';
+                const base = {
+                    gratis: { nombre: 'Gratis', limite: 1 },
+                    pro: { nombre: 'Pro', limite: 3 },
+                    premium: { nombre: 'Premium', limite: null }
+                };
+                try {
+                    const { data, error } = await supabase
+                        .from('planes')
+                        .select('nombre, limite_empleadas')
+                        .eq('id', planId)
+                        .limit(1);
+                    if (!error && data && data.length) {
+                        return { nombre: data[0].nombre || planId, limite: data[0].limite_empleadas };
+                    }
+                } catch (e) { /* fallback local */ }
+                return base[planId] || base.gratis;
+            }
+
             async function agregarMiembro() {
                 if (guardandoMiembro) return;
                 const boton = document.getElementById('miembro-save');
@@ -7539,28 +7560,37 @@
                 const fallo = function (mensaje) {
                     if (errorEl) { errorEl.textContent = mensaje; errorEl.classList.remove('hidden'); }
                 };
-                if (!/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email)) { fallo('Escribí un email válido.'); return; }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { fallo('Escribí un email válido.'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
+                if (!esOwner()) { fallo('Solo la dueña puede agregar miembros.'); return; }
+
+                const plan = await limiteDelPlan();
+                const empleadasActivas = (store.miembros || []).filter(function (m) {
+                    return m.rol !== 'owner' && m.activo !== false;
+                }).length;
+                if (plan.limite !== null && empleadasActivas >= plan.limite) {
+                    fallo('Tu plan ' + plan.nombre + ' solo permite ' + plan.limite + ' empleada' +
+                          (plan.limite === 1 ? '' : 's') + '. Pasate a Pro para agregar más.');
+                    return;
+                }
                 const textoBoton = boton ? boton.textContent : '';
                 guardandoMiembro = true;
                 if (boton) { boton.textContent = 'Agregando…'; boton.disabled = true; }
                 try {
-                    let listo = false;
-                    try {
-                        const { error } = await supabase.rpc('agregar_miembro_salon', { p_email: email, p_rol: rol });
-                        if (!error) listo = true;
-                        else if (!/does not exist|PGRST202|Could not find the function/i.test(String(error.message || '') + ' ' + String(error.code || ''))) throw error;
-                    } catch (errorRpc) {
-                        if (!/does not exist|PGRST202|Could not find the function/i.test(String(errorRpc.message || '') + ' ' + String(errorRpc.code || ''))) throw errorRpc;
-                    }
-                    if (!listo) {
-                        const { error } = await supabase.from('miembros_salon').insert({
-                            salon_id: contexto.salonId,
-                            email: email,
-                            rol: rol,
-                            activo: true
-                        });
-                        if (error) throw error;
+                    const { error } = await supabase.rpc('agregar_miembro_salon', { p_email: email, p_rol: rol });
+                    if (error) {
+                        const texto = String(error.message || error.code || '');
+                        if (/limite_plan/i.test(texto)) {
+                            fallo('Tu plan ' + plan.nombre + ' solo permite ' + plan.limite + ' empleada' +
+                                  (plan.limite === 1 ? '' : 's') + '. Pasate a Pro para agregar más.');
+                        } else if (/usuario_no_registrado/i.test(texto)) {
+                            fallo('Ese email no tiene cuenta. Pedile que se registre primero y volvé a intentar.');
+                        } else if (/sin_permisos/i.test(texto)) {
+                            fallo('Solo la dueña puede agregar miembros.');
+                        } else {
+                            throw error;
+                        }
+                        return;
                     }
                     mostrarBanner('Miembro agregado al salón.', 'ok');
                     const campo = document.getElementById('miembro-email');
@@ -8204,7 +8234,16 @@
 
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('sw.js').catch(function(error) {
+                    let swRecargado = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', function () {
+                        if (swRecargado) return;
+                        swRecargado = true;
+                        location.reload();
+                    });
+                    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (registro) {
+                        if (registro && registro.update) registro.update();
+                        if (registro && registro.waiting) registro.waiting.postMessage({ tipo: 'SKIP_WAITING' });
+                    }).catch(function (error) {
                         console.warn('Service Worker no registrado:', error);
                     });
                 });

@@ -2,7 +2,7 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-const CACHE = 'eli-nails-v3';
+const CACHE = 'eli-nails-v4';
 const SHELL = [
     './',
     'index.html',
@@ -12,6 +12,11 @@ const SHELL = [
     'apple-touch-icon.png',
     'favicon-32.png'
 ];
+
+// I50: permite que la pagina pida activar la version nueva
+self.addEventListener('message', function (evento) {
+    if (evento.data && evento.data.tipo === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('install', function(evento) {
     evento.waitUntil(

@@ -211,6 +211,14 @@
         .cabecera-seccion .sub { margin: 4px 0 0; color: var(--ink-subtle); font-size: 13px; }
         .contador { font-size: 12px; color: var(--ink-subtle); }
 
+        /* I50 · alertas de seguridad */
+        .badge-alerta {
+            margin-left: 6px; min-width: 18px; height: 18px; padding: 0 5px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 999px; background: var(--danger); color: #fff;
+            font-size: 10.5px; font-weight: 700; line-height: 1;
+        }
+
         /* I49 · gráficos, switches, usuarios */
         .graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
         .grafico { padding: 16px; }
@@ -533,6 +541,7 @@
                 <button type="button" class="nav-item" data-vista="auditoria">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M3.5 5h.01M3.5 12h.01M3.5 19h.01"/></svg>
                     Auditoría
+                    <span id="auditoria-badge" class="badge-alerta oculto">0</span>
                 </button>
                 <button type="button" class="nav-item" data-vista="ajustes">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
@@ -576,6 +585,7 @@
 
                 <!-- SALONES -->
                 <section id="seccion-salones" class="seccion">
+                    <div id="alertas-banner" class="alerta error oculto" role="alert" style="margin:0 0 14px"></div>
                     <div class="graficos">
                         <div class="panel grafico">
                             <div class="grafico-cabecera">
@@ -1484,6 +1494,10 @@
                 if (u.salon_id) {
                     var boton = crear('button', 'btn btn-sm', '→ Entrar');
                     boton.type = 'button';
+                    if (bloqueoImpersonacion()) {
+                        boton.disabled = true;
+                        boton.title = 'Bloqueado por intentos fallidos de impersonación';
+                    }
                     boton.addEventListener('click', function () { impersonarUsuario(u, boton); });
                     td.appendChild(boton);
                 }
@@ -1507,6 +1521,7 @@
             ocupado(boton, '…');
             try {
                 var destino = new URL('index.html?soporte=1', window.location.href).href;
+                if (bloqueoImpersonacion()) { toast('Impersonación bloqueada por intentos fallidos. Revisá Auditoría.', 'error'); return; }
                 var res = await supabase.functions.invoke('impersonate', {
                     body: { salon_id: u.salon_id, user_id: u.id, redirect_to: destino }
                 });
@@ -1521,6 +1536,53 @@
                 console.error('impersonate usuario:', codigo, error);
                 toast(mensajeImpersonacion(codigo), 'error');
             } finally { ocupado(boton, ''); }
+        }
+
+        // ── I50 · alertas de seguridad ──
+        var alertasCache = { fallidos_1h: 0, fallidos_24h: 0, ips: 0, ultimo: null };
+        var LIMITE_FALLOS = 10;
+
+        async function cargarAlertas() {
+            try {
+                var res = await supabase.rpc("admin_alertas");
+                if (res.error) throw res.error;
+                var fila = (res.data && res.data[0]) || {};
+                alertasCache = {
+                    fallidos_1h: Number(fila.fallidos_1h) || 0,
+                    fallidos_24h: Number(fila.fallidos_24h) || 0,
+                    ips: Number(fila.ips_sospechosas) || 0,
+                    ultimo: fila.ultimo_fallo || null
+                };
+                pintarAlertas();
+            } catch (error) {
+                console.warn("alertas:", error);
+            }
+        }
+
+        function bloqueoImpersonacion() {
+            return alertasCache.fallidos_1h >= LIMITE_FALLOS;
+        }
+
+        function pintarAlertas() {
+            var banner = $("alertas-banner");
+            var badge = $("auditoria-badge");
+            var n = alertasCache.fallidos_1h;
+            if (badge) {
+                badge.textContent = String(n);
+                badge.classList.toggle("oculto", n === 0);
+            }
+            if (banner) {
+                if (n === 0) {
+                    banner.classList.add("oculto");
+                    banner.textContent = "";
+                } else {
+                    banner.classList.remove("oculto");
+                    banner.textContent = "⚠ " + n + " intento" + (n === 1 ? "" : "s") +
+                        " de impersonación fallido" + (n === 1 ? "" : "s") + " en la última hora" +
+                        (bloqueoImpersonacion() ? ". La impersonación está bloqueada hasta revisarlo." : ".");
+                }
+            }
+            pintarUsuarios();
         }
 
         async function cargarFlags() {
@@ -1630,6 +1692,7 @@
             await cargarPlanes();
             await cargarUsuarios();
             await cargarFlags();
+            await cargarAlertas();
             await cargarAnuncios();
             await cargarAuditoria();
             pintarSalones();
@@ -2251,6 +2314,7 @@
 
             try {
                 var destino = new URL('index.html?soporte=1', window.location.href).href;
+                if (bloqueoImpersonacion()) { toast('Impersonación bloqueada por intentos fallidos. Revisá Auditoría.', 'error'); return; }
                 var res = await supabase.functions.invoke('impersonate', {
                     body: { salon_id: s.id, redirect_to: destino }
                 });
