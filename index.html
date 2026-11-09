@@ -1337,7 +1337,21 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        /* I37: el meta del turno lleva seña + saldo; en 390px corta en 2 lineas sin partir los montos */
+        .appt-meta { white-space: normal; line-height: 1.35; }
+        .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
+
+        /* I37: botones de cerrar con area tactil comoda (44x44) */
+        .modal-content button[aria-label="Cerrar"] {
+            min-width: 44px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin: -8px -8px -8px 0;
+        }
 
 
         /* ── I28 · deudas nivel contable ── */
@@ -2815,6 +2829,7 @@
                     status: appointmentStatusInput.value
                 };
 
+                if (appointment.serviceType === '__editar_servicios__') appointment.serviceType = '';
                 if (!appointment.clientName || !appointment.serviceType || !appointment.date || !appointment.time) {
                     mostrarBanner('Completá clienta, servicio, fecha y hora.', 'error');
                     return;
@@ -2855,11 +2870,22 @@
                     }
                     await loadAppointments();
                     await recargar('turnos');
+                    const recienGuardado = cache.find(function (fila) {
+                        return fila.clientName === appointment.clientName &&
+                               fila.date === appointment.date &&
+                               fila.time === appointment.time;
+                    }) || appointment;
                     resetForm();
                     showView('appointments');
+                    mostrarBanner(
+                        'Turno guardado: ' + appointment.clientName + ' · ' +
+                        etiquetaDia(appointment.date) + ' a las ' + String(appointment.time || '').slice(0, 5) + '.',
+                        'ok',
+                        { duracion: 7000, accion: { texto: 'Ver ficha', alTocar: function () { showAppointmentDetails(recienGuardado); } } }
+                    );
                 } catch (error) {
                     console.error('Error guardando el turno:', error);
-                    mostrarBanner('No se pudo guardar el turno: ' + (error.message || 'error de conexión'), 'error');
+                    mostrarBanner(mensajeError(error), 'error');
                 } finally {
                     guardandoTurno = false;
                     saveBtn.disabled = false;
@@ -2998,11 +3024,20 @@
                     name.textContent = appointment.clientName;
                     const meta = document.createElement('div');
                     meta.className = 'appt-meta';
-                    meta.textContent = appointment.serviceType +
-                        (Number(appointment.sena) > 0
-                            ? ' · Seña: ' + money(appointment.sena) +
-                              ' · Saldo: ' + money(Math.max(0, (Number(appointment.price) || 0) - (Number(appointment.sena) || 0)))
-                            : '');
+                    // I37: cada dato en un span que no se parte, el salto cae entre datos
+                    const partesMeta = [appointment.serviceType];
+                    if (Number(appointment.sena) > 0) {
+                        partesMeta.push('Seña: ' + money(appointment.sena));
+                        partesMeta.push('Saldo: ' + money(Math.max(0, (Number(appointment.price) || 0) - (Number(appointment.sena) || 0))));
+                    }
+                    partesMeta.forEach(function (texto, indice) {
+                        const parte = document.createElement('span');
+                        parte.className = 'meta-parte';
+                        parte.textContent = texto;
+                        meta.appendChild(parte);
+                        // el separador va afuera del span: ahi si puede cortar la linea
+                        if (indice < partesMeta.length - 1) meta.appendChild(document.createTextNode(' · '));
+                    });
                     who.appendChild(name);
                     who.appendChild(meta);
                     
@@ -3906,6 +3941,8 @@
 
                 setAuthError('');
                 authOcupado(true);
+                const textoLogin = emailLoginBtn.textContent;
+                emailLoginBtn.textContent = 'Entrando…';
                 try {
                     const { data, error } = await supabase.auth.signInWithPassword({
                         email: datos.email,
@@ -3917,6 +3954,7 @@
                     console.error('Error de login:', error);
                     setAuthError(mensajeAuth(error));
                 } finally {
+                    emailLoginBtn.textContent = textoLogin;
                     authOcupado(false);
                 }
             });
@@ -5437,6 +5475,27 @@
 
             const CATEGORIAS = ['General', 'Insumos', 'Alquiler', 'Servicios', 'Marketing'];
 
+            // I37: traduce errores tecnicos a algo que Eli pueda entender.
+            function mensajeError(error) {
+                const texto = String((error && (error.message || error.error_description)) || '').trim();
+                const codigo = String((error && (error.code || error.error_code)) || '');
+                const todo = texto + ' ' + codigo;
+                if (/failed to fetch|fetch failed|networkerror|load failed|network request failed|network connection/i.test(todo)) {
+                    return 'Sin conexión. Revisá internet y volvé a intentar.';
+                }
+                if (/jwt expired|refresh token|invalid claim|PGRST30[13]|session_not_found/i.test(todo)) {
+                    return 'Se venció la sesión. Cerrá sesión y volvé a entrar.';
+                }
+                if (/duplicate key|23505|already exists/i.test(todo)) {
+                    return 'Ese registro ya existe.';
+                }
+                if (/violates foreign key|23503|violates row-level/i.test(todo)) {
+                    return 'No se puede porque tiene otros datos asociados.';
+                }
+                if (texto) console.warn('Error técnico:', texto);
+                return 'No se pudo guardar. Probá de nuevo en un momento.';
+            }
+
             function categoriaValida(valor) {
                 const texto = String(valor == null ? '' : valor).trim();
                 return CATEGORIAS.indexOf(texto) >= 0 ? texto : 'General';
@@ -5485,7 +5544,8 @@
                 if (!isFinite(monto) || monto <= 0) { fallo('El monto debe ser mayor a 0.'); return; }
                 if (!fecha) { fallo('Elegí una fecha.'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
-                if (boton) boton.disabled = true;
+                const textoBoton = boton ? boton.textContent : '';
+                if (boton) { boton.textContent = 'Guardando…'; boton.disabled = true; }
                 const categoria = categoriaValida((document.getElementById('gasto-categoria') || {}).value);
                 const datos = { descripcion: descripcion, monto: monto, fecha: fecha, categoria: categoria };
                 const editando = gastoEditandoId;
@@ -5501,8 +5561,9 @@
                     refrescarPaneles();
                     mostrarBanner(editando ? 'Gasto actualizado.' : 'Gasto agregado.', 'ok');
                 } catch (error) {
-                    fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
+                    fallo(mensajeError(error));
                 } finally {
+                    if (boton) boton.textContent = textoBoton;
                     if (boton) boton.disabled = false;
                 }
             }
@@ -5548,7 +5609,8 @@
                 if (descripcion.length < 2) { fallo('Escribí una descripción.'); return; }
                 if (!isFinite(montoTotal) || montoTotal <= 0) { fallo('El monto total tiene que ser mayor a 0.'); return; }
                 if (errorEl) errorEl.classList.add('hidden');
-                if (boton) boton.disabled = true;
+                const textoBoton = boton ? boton.textContent : '';
+                if (boton) { boton.textContent = 'Guardando…'; boton.disabled = true; }
                 try {
                     const acreedor = String((document.getElementById('deuda-acreedor') || {}).value || '').trim().slice(0, 80);
                     await api.deudas.create({
@@ -5563,8 +5625,9 @@
                     refrescarPaneles();
                     mostrarBanner('Deuda agregada.', 'ok');
                 } catch (error) {
-                    fallo('No se pudo guardar: ' + (error.message || 'error de conexión'));
+                    fallo(mensajeError(error));
                 } finally {
+                    if (boton) boton.textContent = textoBoton;
                     if (boton) boton.disabled = false;
                 }
             }            (function conectarDashboard() {
@@ -5915,6 +5978,10 @@
                             (servicio.precio_base != null ? ' · ' + money(servicio.precio_base) : '');
                         selectServicio.appendChild(opcion);
                     });
+                    const editarServicios = document.createElement('option');
+                    editarServicios.value = '__editar_servicios__';
+                    editarServicios.textContent = '＋ Editar servicios…';
+                    selectServicio.appendChild(editarServicios);
                     if (actualServicio) asegurarOpcion(selectServicio, actualServicio);
                 }
             }
@@ -5946,6 +6013,19 @@
             const selectServicioTurno = document.getElementById('service-type');
             if (selectServicioTurno) {
                 selectServicioTurno.addEventListener('change', function() {
+                    if (selectServicioTurno.value === '__editar_servicios__') {
+                        selectServicioTurno.value = '';
+                        const idOcultoReset = document.getElementById('appointment-servicio-id');
+                        if (idOcultoReset) idOcultoReset.value = '';
+                        if (appointmentPriceInput) appointmentPriceInput.value = '';
+                        mostrarSeccion('ajustes');
+                        const panelServicios = document.getElementById('servicios-list');
+                        if (panelServicios && panelServicios.scrollIntoView) {
+                            setTimeout(function () { panelServicios.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 350);
+                        }
+                        mostrarBanner('Servicios: agregá o editá precios y duración.', 'ok', { duracion: 6000 });
+                        return;
+                    }
                     const opcion = selectServicioTurno.options[selectServicioTurno.selectedIndex];
                     const idOculto = document.getElementById('appointment-servicio-id');
                     if (idOculto) idOculto.value = opcion && opcion.dataset.id ? opcion.dataset.id : '';
