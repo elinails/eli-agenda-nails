@@ -12,3 +12,7 @@ node_modules/
 # Toolchain de build (no se sube: Vercel sirve solo estaticos)
 package.json
 package-lock.json
+
+# I48 · temporales de pruebas y del CLI de Supabase
+rest_openapi.json
+supabase/.temp/
