@@ -177,6 +177,18 @@ end $$;
 grant execute on function public.admin_alertas() to authenticated;
 
 
+
+
+-- 7) STORAGE · bucket legacy "tickets" (la app no lo usa) ------------------
+drop policy if exists "ver tickets propios"    on storage.objects;
+drop policy if exists "subir tickets propios"  on storage.objects;
+drop policy if exists "borrar tickets propios" on storage.objects;
+
+-- opcional: borrar el bucket cuando esté vacío
+-- delete from storage.buckets b
+--  where b.id = 'tickets'
+--    and not exists (select 1 from storage.objects o where o.bucket_id = 'tickets');
+
 notify pgrst, 'reload schema';
 
 -- ============================================================================
