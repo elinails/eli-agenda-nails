@@ -1342,6 +1342,19 @@
         .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+        /* I38 · rentabilidad */
+        .dona-chip {
+            display: inline-block;
+            font-size: 9.5px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: var(--gold-ink);
+            color: var(--paper);
+            margin-left: 6px;
+            vertical-align: middle;
+            letter-spacing: .02em;
+        }
+
         /* I38 · dashboard 360 */
         @media (min-width: 768px) {
             .dash-kpis { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); }
@@ -1773,7 +1786,7 @@
                     <div class="fin-card">
                         <span class="fin-label">Ingresos</span>
                         <strong class="fin-value" id="ini-ingresos">$ 0</strong>
-                        <span class="fin-hint">Turnos realizados</span>
+                        <span class="fin-hint" id="ini-desglose">Turnos realizados</span>
                         <span class="fin-hint fin-hint-suave" id="ini-proyeccion"></span>
                     </div>
                     <div class="fin-card">
@@ -2146,11 +2159,18 @@
                         <p class="text-sm text-ink-soft">Notas</p>
                         <p class="font-medium" id="modal-notes"></p>
                     </div>
+                    <div>
+                        <p class="text-sm text-ink-soft">Método de pago</p>
+                        <p class="font-medium" id="modal-metodo">Efectivo</p>
+                    </div>
                 </div>
                 
                 <div class="modal-actions">
                     <button type="button" id="modal-complete-btn" class="btn-complete text-sm">
                         <i class="fas fa-check" aria-hidden="true"></i> Marcar como Realizado
+                    </button>
+                    <button type="button" id="modal-cancel-btn" class="btn-danger text-sm hidden">
+                        <i class="fas fa-ban mr-2" aria-hidden="true"></i> Cancelar turno
                     </button>
                     <button type="button" id="modal-edit-btn" class="btn-primary px-4 py-2 rounded-lg font-medium text-sm">
                         <i class="fas fa-edit mr-2"></i> Editar
@@ -2330,7 +2350,27 @@
                 </div>
             </div>
         </div>
-    </div>    <!-- Confirmation Modal -->
+    </div>    <!-- I38 · Método de pago -->
+    <div id="metodo-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-bold">¿Cómo te pagó?</h3>
+                    <button type="button" id="close-metodo-modal" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-ink-soft mb-4" id="metodo-sub"></p>
+                <div class="grid gap-2">
+                    <button type="button" class="btn-secondary w-full py-3 rounded-lg font-medium" data-metodo="efectivo">Efectivo</button>
+                    <button type="button" class="btn-secondary w-full py-3 rounded-lg font-medium" data-metodo="transferencia">Transferencia</button>
+                    <button type="button" class="btn-secondary w-full py-3 rounded-lg font-medium" data-metodo="tarjeta">Tarjeta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
             <div class="p-6">
@@ -3202,6 +3242,7 @@
                             'Seña': Number(t.sena) || 0,
                             'Saldo': Math.max(0, (Number(t.price) || 0) - (Number(t.sena) || 0)),
                             'Estado': getStatusText(t.status),
+                            'Método de pago': etiquetaMetodo(t.metodo_pago != null ? t.metodo_pago : t.metodoPago),
                             'Notas': t.notes || ''
                         };
                     });
@@ -3416,7 +3457,8 @@
                         price: Math.round(price),
                         sena: Math.round(sena),
                         notes: notes,
-                        status: status
+                        status: status,
+                        metodo_pago: normalizarMetodo(r.metodo_pago != null ? r.metodo_pago : r.metodoPago)
                     };
                     fila[COLS.date] = date;
                     fila[COLS.time] = horaCruda;
@@ -3762,6 +3804,7 @@
                     date: fecha,
                     time: hora,                    price: r.price || 0,
                     sena: Number(r.sena) || 0,
+                    metodoPago: normalizarMetodo(r.metodo_pago),
                     notes: r.notes || '',
                     status: normalizarEstado(r.status),
                     timestamp: new Date(fecha + 'T' + hora + ':00').getTime()
@@ -3776,6 +3819,7 @@
                     servicio_id: a.servicioId != null ? a.servicioId : null,
                     price: a.price,
                     sena: a.sena != null ? Number(a.sena) : 0,
+                    metodo_pago: normalizarMetodo(a.metodoPago),
                     notes: a.notes,
                     status: normalizarEstado(a.status)
                 };
@@ -4196,7 +4240,9 @@
                     nombre.textContent = servicio.nombre || 'Sin nombre';
                     const meta = document.createElement('div');
                     meta.className = 'data-meta';
-                    meta.textContent = (servicio.duracion_minutos || 0) + ' min';
+                    const porHora = valorPorHora(servicio);
+                    meta.textContent = (servicio.duracion_minutos || 0) + ' min' +
+                        (porHora > 0 ? ' · Equivale a ' + money(porHora) + ' / hora' : '');
                     info.appendChild(nombre);
                     info.appendChild(meta);
 
@@ -4930,6 +4976,13 @@
                     leyenda.appendChild(p);
                     return;
                 }
+                let masRentable = null;
+                let mejorHora = 0;
+                lista.forEach(function (g) {
+                    const servicio = (store.servicios || []).find(function (s) { return String(s.nombre) === String(g.nombre); });
+                    const porHora = valorPorHora(servicio || {});
+                    if (porHora > mejorHora) { mejorHora = porHora; masRentable = g.nombre; }
+                });
                 const colores = ['var(--gold)', 'var(--blush)', 'var(--ink-soft)', 'var(--gold-ink)', 'var(--line)'];
                 const paradas = [];
                 let acumulado = 0;
@@ -4943,6 +4996,12 @@
                     punto.style.background = colores[i];
                     const nombre = document.createElement('span');
                     nombre.textContent = g.nombre;
+                    if (masRentable && g.nombre === masRentable) {
+                        const chip = document.createElement('span');
+                        chip.className = 'dona-chip';
+                        chip.textContent = 'Más rentable';
+                        nombre.appendChild(chip);
+                    }
                     const pctEl = document.createElement('span');
                     pctEl.className = 'dona-pct';
                     pctEl.textContent = Math.round(pct) + '%';
@@ -5755,6 +5814,17 @@
                 const verFinanzas = document.getElementById('ver-finanzas-btn');
                 if (verFinanzas) verFinanzas.addEventListener('click', function () { mostrarSeccion('finanzas'); });
 
+                Array.prototype.forEach.call(document.querySelectorAll('#metodo-modal [data-metodo]'), function (boton) {
+                    boton.addEventListener('click', function () {
+                        const turno = turnoMetodoPendiente;
+                        const metodo = boton.dataset.metodo;
+                        cerrarMetodoModal();
+                        if (turno) ejecutarMarcarRealizado(turno, metodo);
+                    });
+                });
+                const cerrarMetodoBtn = document.getElementById('close-metodo-modal');
+                if (cerrarMetodoBtn) cerrarMetodoBtn.addEventListener('click', cerrarMetodoModal);
+
                 const abrirGasto = document.getElementById('abrir-gasto-btn');
                 if (abrirGasto) abrirGasto.addEventListener('click', function () { abrirGastoModal(); });
                 const formGasto = document.getElementById('gasto-form-modal');
@@ -5850,6 +5920,18 @@
                 const pagosMes = (store.pagos_deudas || []).filter(function (p) { return enPeriodo(p.fecha, ctx); });
                 const totalDeudas = pagosMes.reduce(function (suma, p) { return suma + (Number(p.monto) || 0); }, 0);
                 const totalGastos = gastosPropios + totalDeudas;
+
+                // I38: desglose efectivo / banco
+                const porMetodo = { efectivo: 0, banco: 0 };
+                realizados.forEach(function (t) {
+                    const metodo = normalizarMetodo(t.metodoPago || t.metodo_pago);
+                    const monto = Number(t.price) || 0;
+                    if (metodo === 'efectivo') porMetodo.efectivo += monto;
+                    else porMetodo.banco += monto;
+                });
+                setTexto('ini-desglose', ingresos > 0
+                    ? 'Efectivo: ' + money(porMetodo.efectivo) + ' · Banco: ' + money(porMetodo.banco)
+                    : 'Turnos realizados');
 
                 setTexto('ini-ingresos', money(ingresos));
                 setTexto('ini-gastos', money(totalGastos));
@@ -6390,29 +6472,44 @@
                         'Este turno es del ' + formatDate(turno.date) + '. Hoy es ' + formatDate(todayISO()) +
                         '. ¿Estás segura de que ya se realizó?',
                         'Sí, realizado',
-                        function() { ejecutarMarcarRealizado(turno); }
+                        function() { abrirMetodoModal(turno); }
                     );
                     return;
                 }
 
-                ejecutarMarcarRealizado(turno);
+                abrirMetodoModal(turno);
             }
 
-            async function ejecutarMarcarRealizado(turno) {
+            let turnoMetodoPendiente = null;
+
+            function abrirMetodoModal(turno) {
+                turnoMetodoPendiente = turno;
+                const sub = document.getElementById('metodo-sub');
+                if (sub) sub.textContent = (turno.clientName || 'La clienta') + ' · ' + money(turno.price || 0);
+                abrirModal(document.getElementById('metodo-modal'));
+            }
+
+            function cerrarMetodoModal() {
+                cerrarModal(document.getElementById('metodo-modal'));
+                turnoMetodoPendiente = null;
+            }
+
+            async function ejecutarMarcarRealizado(turno, metodo) {
                 if (marcandoRealizado) return;
                 const boton = document.getElementById('modal-complete-btn');
                 const estadoAnterior = normalizarEstado(turno.status);
+                const metodoPago = normalizarMetodo(metodo);
                 marcandoRealizado = true;
                 if (boton) boton.disabled = true;
                 try {
                     const { error } = await supabase.from('turnos')
-                        .update({ status: 'completed' })
+                        .update({ status: 'completed', metodo_pago: metodoPago })
                         .eq('id', turno.id);
                     if (error) throw error;
                     cerrarModal(appointmentModal);
                     await loadAppointments();
                     await recargar('turnos');
-                    mostrarBanner('Turno marcado como realizado.', 'ok', {
+                    mostrarBanner('Turno marcado como realizado (' + etiquetaMetodo(metodoPago) + ').', 'ok', {
                         duracion: 6000,
                         accion: {
                             texto: 'Deshacer',
@@ -6450,6 +6547,43 @@
                 }
             }
 
+            let cancelandoTurno = false;
+
+            function cancelarTurno(turno) {
+                if (cancelandoTurno) return;
+                pedirConfirmacion(
+                    'Cancelar turno',
+                    '¿Cancelar el turno de ' + (turno.clientName || 'la clienta') + ' del ' + formatDate(turno.date) + '?',
+                    'Sí, cancelar',
+                    async function () {
+                        if (cancelandoTurno) return;
+                        cancelandoTurno = true;
+                        const estadoAnterior = normalizarEstado(turno.status);
+                        try {
+                            const { error } = await supabase.from('turnos')
+                                .update({ status: 'cancelled' })
+                                .eq('id', turno.id);
+                            if (error) throw error;
+                            cerrarModal(appointmentModal);
+                            await loadAppointments();
+                            await recargar('turnos');
+                            mostrarBanner('Turno cancelado.', 'ok', {
+                                duracion: 7000,
+                                accion: {
+                                    texto: 'Deshacer',
+                                    alTocar: function () { deshacerRealizado(turno, estadoAnterior); }
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error cancelando el turno:', error);
+                            mostrarBanner(mensajeError(error), 'error');
+                        } finally {
+                            cancelandoTurno = false;
+                        }
+                    }
+                );
+            }
+
             function showAppointmentDetails(appointment) {
                 document.getElementById('modal-title').textContent = `Turno #${appointment.id}`;
                 document.getElementById('modal-client').textContent = appointment.clientName;
@@ -6473,6 +6607,8 @@
                 }
                 document.getElementById('modal-status').textContent = getStatusText(appointment.status);
                 document.getElementById('modal-notes').textContent = appointment.notes || '--';
+                const metodoEl = document.getElementById('modal-metodo');
+                if (metodoEl) metodoEl.textContent = etiquetaMetodo(appointment.metodoPago || appointment.metodo_pago);
                 
                 // Set status color
                 const statusElement = document.getElementById('modal-status');
@@ -6493,8 +6629,15 @@
 
                 const completarBtn = document.getElementById('modal-complete-btn');
                 if (completarBtn) {
-                    completarBtn.classList.toggle('hidden', appointment.status === 'completed');
+                    completarBtn.classList.toggle('hidden', appointment.status === 'completed' || appointment.status === 'cancelled');
                     completarBtn.onclick = function() { marcarRealizado(appointment); };
+                }
+
+                const cancelarBtn = document.getElementById('modal-cancel-btn');
+                if (cancelarBtn) {
+                    const puedeCancelar = appointment.status === 'pending' || appointment.status === 'confirmed';
+                    cancelarBtn.classList.toggle('hidden', !puedeCancelar);
+                    cancelarBtn.onclick = function() { cancelarTurno(appointment); };
                 }
                 
                 document.getElementById('modal-close-btn').onclick = function() {
@@ -6932,6 +7075,25 @@
             function normalizarEstado(estado) {
                 const clave = String(estado || '').trim().toLowerCase();
                 return ESTADOS_CANONICOS[clave] || 'pending';
+            }
+
+            const METODOS_PAGO = { efectivo: 'Efectivo', transferencia: 'Transferencia', tarjeta: 'Tarjeta' };
+
+            function normalizarMetodo(valor) {
+                const clave = String(valor == null ? '' : valor).trim().toLowerCase();
+                return METODOS_PAGO[clave] ? clave : 'efectivo';
+            }
+
+            function etiquetaMetodo(valor) {
+                return METODOS_PAGO[normalizarMetodo(valor)];
+            }
+
+            // I38 · rentabilidad: cuanto deja cada hora de ese servicio
+            function valorPorHora(servicio) {
+                const precio = Number(servicio && servicio.precio_base) || 0;
+                const minutos = Number(servicio && servicio.duracion_minutos) || 0;
+                if (precio <= 0 || minutos <= 0) return 0;
+                return Math.round((precio / minutos) * 60);
             }
 
             function getStatusText(status) {
