@@ -4515,8 +4515,9 @@
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
                     return;
                 }
-                // El megáfono se lee al arrancar: así también se ve en el login.
+                // El megáfono y los flags se leen al arrancar: también aplican en el login.
                 cargarAnuncio();
+                cargarFlagsApp();
                 supabase.auth.onAuthStateChange(function(evento, session) {
                     if (evento === 'SIGNED_OUT') { mostrarLogin(); }
                     else if (session) { iniciarApp(session); }
@@ -4668,6 +4669,10 @@
             });
 
             emailSignupBtn.addEventListener('click', async function() {
+                if (!flagsApp.registro_abierto) {
+                    setAuthError('El registro de nuevos salones está cerrado por el momento.');
+                    return;
+                }
                 if (!emailAuthForm.reportValidity()) return;
                 const datos = validarCredenciales();
                 if (!datos) return;
@@ -5023,7 +5028,10 @@
             }
 
             function abrirWhatsAppReactivacion(cliente) {
-                if (!flagsApp.whatsapp_habilitado) return;
+                if (!flagsApp.whatsapp_habilitado) {
+                    mostrarBanner('El envío por WhatsApp está deshabilitado por el administrador.', 'error');
+                    return;
+                }
                 const telefono = telefonoWhatsApp(cliente && cliente.telefono);
                 if (!telefono) return;
                 const nombre = String((cliente && cliente.nombre) || '').trim().split(' ').filter(Boolean)[0] || '';

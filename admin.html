@@ -91,6 +91,7 @@
             box-shadow: 0 0 0 3px rgba(201, 169, 106, .16);
         }
         textarea { resize: vertical; min-height: 110px; }
+        input[type="checkbox"] { accent-color: var(--gold); }
         .campo { margin-bottom: 14px; }
         .codigo { letter-spacing: .5em; text-align: center; font-size: 20px; font-weight: 600; }
 
@@ -215,18 +216,19 @@
         .grafico { padding: 16px; }
         .grafico-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
         .grafico-cabecera h2 { font-size: 15px; margin: 0; }
-        .grafico-nota { font-size: 11px; color: var(--ink-soft); }
+        .grafico-nota { font-size: 11px; color: var(--ink-subtle); }
+        .muted { color: var(--ink-subtle); font-size: 12.5px; }
         .barras { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
-        .barra-caja { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; }
+        .barra-caja { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; }
         .barra { width: 100%; border-radius: 5px 5px 2px 2px; background: linear-gradient(180deg, var(--gold), rgba(190,158,111,.35)); min-height: 2px; }
-        .barra-mes { font-size: 9.5px; color: var(--ink-soft); white-space: nowrap; }
-        .switch-fila { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+        .barra-mes { font-size: 9.5px; color: var(--ink-subtle); white-space: nowrap; }
+        .switch-fila { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--hairline); }
         .switch-fila:last-child { border-bottom: 0; }
         .switch-texto strong { display: block; font-size: 14px; }
-        .switch-texto span { font-size: 12px; color: var(--ink-soft); }
+        .switch-texto span { font-size: 12px; color: var(--ink-subtle); }
         .switch { position: relative; width: 46px; height: 26px; flex: 0 0 auto; }
         .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-        .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background .16s ease; }
+        .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--hairline-2); transition: background .16s ease; }
         .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .16s ease; }
         .switch input:checked + span { background: var(--ok); }
         .switch input:checked + span::after { transform: translateX(20px); }
@@ -268,7 +270,7 @@
         .tabla tbody tr:hover { background: var(--surface-2); }
         .fila-salon { cursor: pointer; }
         .fila-salon:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-        .salon-nombre { font-weight: 600; }
+        .salon-nombre { font-weight: 600; white-space: nowrap; }
         .salon-id { font-size: 11px; color: var(--ink-subtle); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
         .num { font-variant-numeric: tabular-nums; }
 
@@ -431,6 +433,7 @@
             }
             .tabla tbody td.celda-accion { justify-content: flex-end; padding-top: 10px; }
             .tabla tbody td.celda-accion::before { content: ''; }
+            .salon-nombre { white-space: normal; }
             .drawer { width: 100%; border-left: 0; padding: 20px; }
             .drawer-acciones .btn { flex: 1 1 100%; }
             .contenido { padding: 16px 14px 70px; }
@@ -602,7 +605,7 @@
                             <span class="kpi-pie">en toda la plataforma</span>
                         </div>
                         <div class="kpi">
-                            <span class="kpi-label">Clientas</span>
+                            <span class="kpi-label">Clientes totales</span>
                             <strong class="kpi-valor" id="kpi-clientes">—</strong>
                             <span class="kpi-pie">registradas</span>
                         </div>
@@ -810,7 +813,7 @@
                 <section id="seccion-ajustes" class="seccion oculto">
                     <div class="panel" style="padding:18px">
                         <h2 style="margin:0 0 4px">Interruptores de emergencia</h2>
-                        <p class="muted" style="margin:0 0 14px">Se aplican al instante en todas las apps.</p>
+                        <p class="muted" style="margin:0 0 14px">Se aplican la próxima vez que cada salón abra la app.</p>
                         <div id="lista-flags"></div>
                         <p id="flags-vacio" class="vacio oculto">No hay ajustes cargados.</p>
                     </div>
@@ -876,7 +879,7 @@
             usuarios: { t: 'Usuarios', s: 'Todas las cuentas registradas.' },
             anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
             auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' },
-            ajustes: { t: 'Ajustes', s: 'Interruptores de emergencia de la plataforma.' }
+            ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' }
         };
 
         // I44 · A: blindaje de los formularios ANTES de cualquier dependencia.
@@ -1022,10 +1025,15 @@
             if (isNaN(ms)) return null;
             return Math.ceil(ms / 86400000);
         }
+        function datosPlan(planId) {
+            var encontrado = planesCache.filter(function (p) { return p.id === planId; })[0];
+            return encontrado || PLANES[planId] || PLANES.gratis;
+        }
+        function nombrePlan(planId) { return datosPlan(planId).nombre || planId; }
+        function precioPlan(planId) { return Number(datosPlan(planId).precio) || 0; }
         function planPill(planId) {
-            var plan = PLANES[planId] || PLANES.gratis;
             var clase = planId === 'premium' ? 'pill-gold' : (planId === 'pro' ? 'pill-info' : 'pill-neutral');
-            return pill(plan.nombre, clase);
+            return pill(nombrePlan(planId), clase);
         }
         function estadoPill(estado) {
             var info = ESTADOS[estado] || ESTADOS.trial;
@@ -1304,12 +1312,14 @@
                 if (res.error) throw res.error;
                 planesCache = res.data || [];
                 pintarPlanes();
+                calcularSaas();
             } catch (error) {
                 console.warn('planes:', error);
                 planesCache = Object.keys(PLANES).map(function (k) {
                     return { id: k, nombre: PLANES[k].nombre, precio: PLANES[k].precio, limite_empleadas: null, descripcion: '', activo: true };
                 });
                 pintarPlanes();
+                calcularSaas();
             }
         }
 
@@ -1322,7 +1332,17 @@
             if (vacio) vacio.classList.add('oculto');
             planesCache.forEach(function (p) {
                 var fila = document.createElement('tr');
-                fila.appendChild(celda('Plan', p.id));
+
+                var tdPlan = document.createElement('td');
+                tdPlan.setAttribute('data-label', 'Plan');
+                tdPlan.appendChild(crear('div', 'salon-id', p.id));
+                var nombre = document.createElement('input');
+                nombre.type = 'text'; nombre.maxLength = 40;
+                nombre.className = 'btn'; nombre.style.width = '100%'; nombre.style.minWidth = '130px';
+                nombre.value = String(p.nombre || '');
+                nombre.setAttribute('aria-label', 'Nombre del plan ' + p.id);
+                tdPlan.appendChild(nombre);
+                fila.appendChild(tdPlan);
 
                 var tdPrecio = document.createElement('td');
                 tdPrecio.setAttribute('data-label', 'Precio');
@@ -1352,14 +1372,21 @@
                 tdDesc.appendChild(desc);
                 fila.appendChild(tdDesc);
 
-                fila.appendChild(celda('Activo', pill(p.activo ? 'Sí' : 'No', p.activo ? 'pill-ok' : 'pill-danger')));
+                var tdActivo = document.createElement('td');
+                tdActivo.setAttribute('data-label', 'Activo');
+                var activo = document.createElement('input');
+                activo.type = 'checkbox';
+                activo.checked = p.activo !== false;
+                activo.setAttribute('aria-label', 'Plan ' + p.id + ' activo');
+                tdActivo.appendChild(activo);
+                fila.appendChild(tdActivo);
 
                 var tdAccion = document.createElement('td');
                 tdAccion.className = 'celda-accion';
                 var guardar = crear('button', 'btn btn-sm btn-primario', 'Guardar');
                 guardar.type = 'button';
                 guardar.addEventListener('click', function () {
-                    guardarPlan(p.id, p.nombre, precio.value, limite.value, desc.value, p.activo, guardar);
+                    guardarPlan(p.id, nombre.value, precio.value, limite.value, desc.value, activo.checked, guardar);
                 });
                 tdAccion.appendChild(guardar);
                 fila.appendChild(tdAccion);
@@ -1380,6 +1407,10 @@
                 if (res.error) throw res.error;
                 toast('Plan actualizado.', 'ok');
                 await cargarPlanes();
+                await cargarSeries();
+                calcularSaas();
+                pintarSalones();
+                pintarSuscripciones();
             } catch (error) {
                 console.error(error);
                 toast('No se pudo guardar el plan: ' + (error.message || 'error'), 'error');
@@ -1403,6 +1434,10 @@
                 $('plan-id').value = ''; $('plan-nombre').value = ''; $('plan-precio').value = ''; $('plan-limite').value = '';
                 toast('Plan creado.', 'ok');
                 await cargarPlanes();
+                await cargarSeries();
+                calcularSaas();
+                pintarSalones();
+                pintarSuscripciones();
             } catch (error) {
                 console.error(error);
                 toast('No se pudo crear: ' + (error.message || 'error'), 'error');
@@ -1441,7 +1476,7 @@
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Email', u.email || '—'));
                 fila.appendChild(celda('Salón', u.salon_nombre || '—'));
-                fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : '')));
+                fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral'))));
                 fila.appendChild(celda('Alta', fechaCorta(u.creado_en)));
                 fila.appendChild(celda('Último acceso', u.ultimo_acceso ? fechaCorta(u.ultimo_acceso) : 'nunca'));
                 var td = document.createElement('td');
@@ -1458,27 +1493,51 @@
         }
 
         async function impersonarUsuario(u, boton) {
+            if (!u || !u.salon_id || !u.id) return;
+            var ok = await confirmar(
+                'Entrar como ' + (u.email || 'usuario'),
+                'Se va a abrir la app como esta persona en una pestaña nueva. Tu sesión de administrador NO se modifica.',
+                'Abrir modo soporte',
+                false
+            );
+            if (!ok) return;
+
+            var ventana = window.open('about:blank', '_blank');
+            if (ventana) { try { ventana.opener = null; } catch (error) { /* noop */ } }
             ocupado(boton, '…');
             try {
-                var destino = location.origin + '/index.html?soporte=1&salon=' + encodeURIComponent(u.salon_id);
+                var destino = new URL('index.html?soporte=1', window.location.href).href;
                 var res = await supabase.functions.invoke('impersonate', {
                     body: { salon_id: u.salon_id, user_id: u.id, redirect_to: destino }
                 });
                 if (res.error) throw res.error;
                 if (!res.data || !res.data.url) throw new Error((res.data && res.data.error) || 'Sin enlace');
-                window.open(res.data.url, '_blank', 'noopener');
-                toast('Enlace de soporte generado para ' + u.email + '.', 'ok');
+                if (ventana) ventana.location.replace(res.data.url);
+                else window.open(res.data.url, '_blank', 'noopener,noreferrer');
+                toast('Modo soporte abierto para ' + (u.email || u.id) + '. Tu sesión de admin sigue activa.', 'ok');
             } catch (error) {
-                console.error(error);
-                toast('No se pudo impersonar: ' + (error.message || 'error'), 'error');
-            } finally { delete boton.dataset.texto; boton.textContent = '→ Entrar'; boton.disabled = false; }
+                if (ventana) { try { ventana.close(); } catch (e) { /* noop */ } }
+                var codigo = await codigoErrorFuncion(error);
+                console.error('impersonate usuario:', codigo, error);
+                toast(mensajeImpersonacion(codigo), 'error');
+            } finally { ocupado(boton, ''); }
         }
 
         async function cargarFlags() {
             try {
                 var res = await supabase.rpc('admin_flags');
-                if (res.error) throw res.error;
-                flagsCache = res.data || [];
+                if (res.error) {
+                    // Fallback: la RPC pública ya existe en la base.
+                    var pub = await supabase.rpc('flags_publicos');
+                    if (pub.error) throw res.error;
+                    var fila = (pub.data && pub.data[0]) || {};
+                    flagsCache = [
+                        { clave: 'registro_abierto', valor_boolean: fila.registro_abierto !== false, descripcion: 'Registro abierto', detalle: 'Permitir el alta de nuevos salones.' },
+                        { clave: 'whatsapp_habilitado', valor_boolean: fila.whatsapp_habilitado !== false, descripcion: 'WhatsApp habilitado', detalle: 'Habilitar el envío de tarjetas por WhatsApp.' }
+                    ];
+                } else {
+                    flagsCache = res.data || [];
+                }
                 pintarFlags();
             } catch (error) {
                 console.warn('flags:', error);
@@ -1495,8 +1554,9 @@
             flagsCache.forEach(function (f) {
                 var fila = crear('div', 'switch-fila');
                 var texto = crear('div', 'switch-texto');
-                texto.appendChild(crear('strong', '', f.descripcion || f.clave));
-                texto.appendChild(crear('span', '', f.clave));
+                var etiquetas = { registro_abierto: 'Registro abierto', whatsapp_habilitado: 'WhatsApp habilitado' };
+                texto.appendChild(crear('strong', '', etiquetas[f.clave] || f.descripcion || f.clave));
+                texto.appendChild(crear('span', '', f.detalle || f.descripcion || f.clave));
                 var sw = crear('label', 'switch');
                 var input = document.createElement('input');
                 input.type = 'checkbox';
@@ -1651,8 +1711,7 @@
                 else if (s.estado === 'past_due') pastdue++;
                 else if (s.estado === 'active') {
                     activos++;
-                    var plan = PLANES[s.plan_id] || PLANES.gratis;
-                    mrr += plan.precio;
+                    mrr += precioPlan(s.plan_id);
                 }
                 if (s.plan_id === 'gratis') gratis++;
             });
@@ -1821,8 +1880,10 @@
         // ── suscripciones ──
         function planBotones(s, alCambiar) {
             var caja = crear('div', 'plan-botones');
-            ['gratis', 'pro', 'premium'].forEach(function (planId) {
-                var boton = crear('button', s.plan_id === planId ? 'activo' : '', PLANES[planId].nombre);
+            var ids = planesCache.filter(function (p) { return p.activo !== false; }).map(function (p) { return p.id; });
+            if (!ids.length) ids = ['gratis', 'pro', 'premium'];
+            ids.forEach(function (planId) {
+                var boton = crear('button', s.plan_id === planId ? 'activo' : '', nombrePlan(planId));
                 boton.type = 'button';
                 boton.setAttribute('aria-pressed', s.plan_id === planId ? 'true' : 'false');
                 boton.addEventListener('click', function () { alCambiar(planId, boton); });
@@ -1855,7 +1916,7 @@
                     detalleActual.estado = 'active';
                     pintarDetalle(detalleActual);
                 }
-                toast('Plan cambiado a ' + PLANES[planId].nombre + '.', 'ok');
+                toast('Plan cambiado a ' + nombrePlan(planId) + '.', 'ok');
             } catch (error) {
                 console.error(error);
                 toast('No se pudo cambiar el plan: ' + (error.message || 'error de conexión'), 'error');
@@ -2012,6 +2073,7 @@
                 estado: s.estado,
                 trial_hasta: s.trial_hasta,
                 suscripcion_desde: s.suscripcion_desde,
+                ultimoTurno: s.ultimoTurno,
                 detalle: null
             };
             focoAnterior = document.activeElement;
@@ -2065,7 +2127,7 @@
             caja.appendChild(filaDetalle('Registrado', fechaCorta(campo(d, ['creado_en'], null))));
             caja.appendChild(filaDetalle('Miembros', String(Number(campo(d, ['miembros'], 0)) || 0)));
             caja.appendChild(filaDetalle('Turnos', String(Number(campo(d, ['turnos_total'], 0)) || 0) + ' (' + (Number(campo(d, ['turnos_realizados'], 0)) || 0) + ' realizados)'));
-            caja.appendChild(filaDetalle('Clientas', String(Number(campo(d, ['clientes'], 0)) || 0)));
+            caja.appendChild(filaDetalle('Clientes', String(Number(campo(d, ['clientes'], 0)) || 0)));
             var ultimo = campo(d, ['ultimo_turno'], null);
             caja.appendChild(filaDetalle('Último turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
             caja.appendChild(filaDetalle('Estado', s.activo ? 'Activo' : 'Suspendido'));
@@ -2108,6 +2170,13 @@
             var caja = $('drawer-acciones');
             caja.textContent = '';
             caja.appendChild(botonAccion('Entrar como este salón', 'btn btn-primario', function () { pedirImpersonacion(s); }));
+            var enlace = mailtoReenganche(s);
+            if (enlace) {
+                var contacto = crear('a', 'btn', '✉ Contactar');
+                contacto.href = enlace;
+                contacto.style.textDecoration = 'none';
+                caja.appendChild(contacto);
+            }
             caja.appendChild(botonAccion('✉ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
             caja.appendChild(botonAccion('↓ CSV', 'btn', function () { descargarCsv([s]); }));
             caja.appendChild(botonAccion(s.activo ? 'Suspender' : 'Activar', 'btn ' + (s.activo ? 'btn-peligro' : 'btn-ok'), function () {
@@ -2465,14 +2534,15 @@
         function descargarCsv(listaPersonalizada) {
             var lista = listaPersonalizada || salonesFiltrados();
             var separador = String.fromCharCode(13, 10);
-            var lineas = [['Salon', 'Dueno', 'Plan', 'Suscripcion', 'Trial hasta', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
+            var lineas = [['Salon', 'Dueno', 'Plan', 'Suscripcion', 'Trial hasta', 'Ultimo turno', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
             lista.forEach(function (s) {
                 lineas.push([
                     celdaCsv(s.nombre),
                     celdaCsv(s.dueno),
-                    celdaCsv((PLANES[s.plan_id] || PLANES.gratis).nombre),
+                    celdaCsv(nombrePlan(s.plan_id)),
                     celdaCsv((ESTADOS[s.estado] || ESTADOS.trial).nombre),
                     celdaCsv(fechaCorta(s.trial_hasta)),
+                    celdaCsv(fechaCorta(s.ultimoTurno)),
                     celdaCsv(s.miembros),
                     celdaCsv(s.turnos),
                     celdaCsv(fechaCorta(s.creado)),

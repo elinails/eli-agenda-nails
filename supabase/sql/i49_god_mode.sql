@@ -149,7 +149,8 @@ begin
                            from public.salones s
                            join public.planes p on p.id = s.plan_id
                           where date_trunc('month', s.creado_en)::date <= m.mes
-                            and coalesce(s.estado_suscripcion, 'trial') in ('active', 'trial')), 0)
+                            and s.activo is not false
+                            and coalesce(s.estado_suscripcion, 'trial') = 'active'), 0)
         from meses m
         order by m.mes;
 end $$;
