@@ -1667,6 +1667,14 @@
                             <input type="hidden" id="appointment-servicio-id">
                         </div>
 
+                        <div id="staff-bloque">
+                            <label for="appointment-staff" class="block text-sm font-medium text-ink-soft mb-1">Atiende</label>
+                            <select id="appointment-staff"
+                                    class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                                <option value="">Yo (dueña)</option>
+                            </select>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="appointment-date" class="block text-sm font-medium text-ink-soft mb-1">Fecha <span class="text-st-pending font-bold" aria-hidden="true">*</span></label>
@@ -2679,8 +2687,9 @@
                 gastos: [],
                 deudas: [],
                 pagos_deudas: [],
-                cargando: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false },
-                cargado: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false }
+                miembros: [],
+                cargando: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false, miembros: false },
+                cargado: { turnos: false, clientes: false, servicios: false, gastos: false, deudas: false, pagos_deudas: false, miembros: false }
             };
 
             function apiLista(tabla, columnaOrden) {
@@ -2733,10 +2742,11 @@
                 servicios: apiCrud('servicios'),
                 gastos: apiCrud('gastos'),
                 deudas: apiCrud('deudas'),
-                pagos_deudas: apiCrud('pagos_deudas')
+                pagos_deudas: apiCrud('pagos_deudas'),
+                miembros: { list: apiLista('miembros_salon', 'creado_en') }
             };
 
-            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas'];
+            const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas', 'miembros'];
 
             // I39 · contexto multi-tenant. Vive SOLO en memoria (nunca en localStorage).
             const contexto = { salonId: null, rol: null, userId: null, email: null };
@@ -2744,21 +2754,41 @@
             function esOwner() { return contexto.rol === 'owner'; }
             function esStaff() { return contexto.rol === 'staff'; }
 
+            // I40: devuelve { estado: 'activa' | 'inactiva' | 'ninguna' }
             async function cargarMembresia(user) {
                 contexto.userId = user && user.id ? user.id : null;
                 contexto.email = user && user.email ? user.email : '';
-                if (!supabase || !contexto.userId) return null;
+                if (!supabase || !contexto.userId) return { estado: 'ninguna' };
                 const { data, error } = await supabase
                     .from('miembros_salon')
                     .select('salon_id, rol, activo')
                     .eq('user_id', contexto.userId)
-                    .eq('activo', true)
                     .limit(1);
                 if (error) throw error;
-                if (!data || !data.length) return null;
+                if (!data || !data.length) return { estado: 'ninguna' };
+                if (data[0].activo === false) {
+                    contexto.salonId = null;
+                    contexto.rol = null;
+                    return { estado: 'inactiva' };
+                }
                 contexto.salonId = data[0].salon_id;
                 contexto.rol = data[0].rol === 'owner' ? 'owner' : 'staff';
-                return contexto;
+                return { estado: 'activa', salonId: contexto.salonId, rol: contexto.rol };
+            }
+
+            // I40: alta automatica del salon (SaaS). La RPC crea salon + membresia owner.
+            async function crearSalonInicial() {
+                try {
+                    const { data, error } = await supabase.rpc('crear_salon_inicial');
+                    if (error) throw error;
+                    return { ok: true, salonId: data };
+                } catch (error) {
+                    const texto = String((error && (error.message || error.code)) || '');
+                    if (/cuenta_desactivada/i.test(texto)) return { ok: false, motivo: 'desactivada' };
+                    if (/does not exist|PGRST202|Could not find the function/i.test(texto)) return { ok: false, motivo: 'sin_funcion' };
+                    console.error('No se pudo crear el salón:', error);
+                    return { ok: false, motivo: 'error' };
+                }
             }
 
             function aplicarRol() {
@@ -2772,6 +2802,8 @@
                 if (panelMiembros) panelMiembros.classList.toggle('hidden', staff);
                 const panelDeudas = document.getElementById('panel-deudas');
                 if (panelDeudas) panelDeudas.classList.toggle('hidden', staff);
+                const bloqueStaff = document.getElementById('staff-bloque');
+                if (bloqueStaff) bloqueStaff.classList.toggle('hidden', staff);
             }
 
             async function cargarTodo() {
@@ -2945,6 +2977,8 @@
                 if (servicioIdReset) servicioIdReset.value = '';
                 const tituloForm = document.getElementById('form-title');
                 if (tituloForm) tituloForm.textContent = 'Nuevo Turno';
+                const staffReset = document.getElementById('appointment-staff');
+                if (staffReset) staffReset.value = contexto.userId || '';
                 if (appointmentSenaInput) appointmentSenaInput.value = '';
                 actualizarAyudaSena();
                 saveBtn.classList.remove('hidden');
@@ -3047,14 +3081,21 @@
                 saveBtn.disabled = true;
                 updateBtn.disabled = true;
                 try {
+                    const selectStaffTurno = document.getElementById('appointment-staff');
+                    const staffElegido = esStaff()
+                        ? contexto.userId
+                        : ((selectStaffTurno && selectStaffTurno.value) || contexto.userId);
+
                     if (editando) {
+                        const filaEdicion = toDb(appointment);
+                        if (staffElegido) filaEdicion.staff_user_id = staffElegido;
                         const { error } = await supabase.from('turnos')
-                            .update(toDb(appointment))
+                            .update(filaEdicion)
                             .eq('id', editando);
                         if (error) throw error;
                     } else {
                         const filaNueva = toDb(appointment);
-                        if (contexto.userId) filaNueva.staff_user_id = contexto.userId;
+                        if (staffElegido) filaNueva.staff_user_id = staffElegido;
                         const { error } = await supabase.from('turnos').insert(filaNueva);
                         if (error) throw error;
                     }
@@ -3905,6 +3946,7 @@
                     time: hora,                    price: r.price || 0,
                     sena: Number(r.sena) || 0,
                     metodoPago: normalizarMetodo(r.metodo_pago),
+                    staffUserId: r.staff_user_id || null,
                     notes: r.notes || '',
                     status: normalizarEstado(r.status),
                     timestamp: new Date(fecha + 'T' + hora + ':00').getTime()
@@ -3999,15 +4041,39 @@
                 appIniciada = true;
                 ocultarLogin();
                 try {
-                    const membresia = await cargarMembresia(session && session.user);
-                    if (!membresia) {
+                    let membresia = await cargarMembresia(session && session.user);
+
+                    if (membresia.estado === 'inactiva') {
                         appIniciada = false;
-                        mostrarLogin('Tu cuenta no tiene un salón asignado. Pedile a la dueña que te agregue.');
+                        mostrarLogin('Tu cuenta está desactivada. Hablá con la dueña del salón.');
                         return;
                     }
+
+                    if (membresia.estado === 'ninguna') {
+                        const alta = await crearSalonInicial();
+                        if (!alta.ok) {
+                            appIniciada = false;
+                            if (alta.motivo === 'desactivada') {
+                                mostrarLogin('Tu cuenta está desactivada. Hablá con la dueña del salón.');
+                            } else if (alta.motivo === 'sin_funcion') {
+                                mostrarLogin('Falta habilitar el alta automática de salones. Avisale al administrador.');
+                            } else {
+                                mostrarLogin('No pudimos crear tu salón. Probá de nuevo en un momento.');
+                            }
+                            return;
+                        }
+                        membresia = await cargarMembresia(session && session.user);
+                    }
+
+                    if (membresia.estado !== 'activa') {
+                        appIniciada = false;
+                        mostrarLogin('No pudimos cargar tu salón. Probá de nuevo en un momento.');
+                        return;
+                    }
+
                     aplicarRol();
                     await arrancar();
-                    mostrarSeccion(esStaff() ? 'agenda' : 'agenda');
+                    mostrarSeccion('agenda');
                 } catch (error) {
                     console.error(error);
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
@@ -6320,6 +6386,24 @@
                             (servicio.precio_base != null ? ' · ' + money(servicio.precio_base) : '');
                         selectServicio.appendChild(opcion);
                     });
+                    const selectStaff = document.getElementById('appointment-staff');
+                    if (selectStaff) {
+                        const staffActual = selectStaff.value;
+                        selectStaff.innerHTML = '';
+                        const yo = document.createElement('option');
+                        yo.value = contexto.userId || '';
+                        yo.textContent = 'Yo (dueña)';
+                        selectStaff.appendChild(yo);
+                        (store.miembros || []).forEach(function (miembro) {
+                            if (miembro.rol !== 'staff' || miembro.activo === false || !miembro.user_id) return;
+                            const opcion = document.createElement('option');
+                            opcion.value = miembro.user_id;
+                            opcion.textContent = miembro.nombre || miembro.email || 'Empleada';
+                            selectStaff.appendChild(opcion);
+                        });
+                        if (staffActual) asegurarOpcion(selectStaff, staffActual);
+                    }
+
                     const editarServicios = document.createElement('option');
                     editarServicios.value = '__editar_servicios__';
                     editarServicios.textContent = '＋ Editar servicios…';
@@ -6670,6 +6754,39 @@
 
             let cancelandoTurno = false;
             let guardandoMiembro = false;
+            let cambiandoMiembro = false;
+
+            function cambiarEstadoMiembro(miembro) {
+                if (cambiandoMiembro) return;
+                if (miembro.user_id && miembro.user_id === contexto.userId) return;
+                const activar = miembro.activo === false;
+                const quien = miembro.email || miembro.nombre || 'esta persona';
+                pedirConfirmacion(
+                    activar ? 'Reactivar miembro' : 'Desactivar miembro',
+                    activar
+                        ? '¿Reactivar a ' + quien + '? Va a poder volver a entrar a la agenda.'
+                        : '¿Desactivar a ' + quien + '? No va a poder entrar más, pero su historial de turnos se conserva.',
+                    activar ? 'Reactivar' : 'Desactivar',
+                    async function () {
+                        if (cambiandoMiembro) return;
+                        cambiandoMiembro = true;
+                        try {
+                            const { error } = await supabase.from('miembros_salon')
+                                .update({ activo: activar })
+                                .eq('id', miembro.id);
+                            if (error) throw error;
+                            mostrarBanner(activar ? 'Miembro reactivado.' : 'Miembro desactivado.', 'ok');
+                            await recargar('miembros');
+                            await renderMiembros();
+                        } catch (error) {
+                            console.error('No se pudo cambiar el estado del miembro:', error);
+                            mostrarBanner(mensajeError(error), 'error');
+                        } finally {
+                            cambiandoMiembro = false;
+                        }
+                    }
+                );
+            }
 
             async function renderMiembros() {
                 const cont = document.getElementById('miembros-list');
@@ -6711,8 +6828,21 @@
                         const valor = document.createElement('div');
                         valor.className = 'data-value';
                         valor.textContent = miembro.rol === 'owner' ? 'OWNER' : 'STAFF';
+
+                        const acciones = document.createElement('div');
+                        acciones.className = 'row-actions';
+                        const esYo = miembro.user_id && miembro.user_id === contexto.userId;
+                        if (!esYo && miembro.rol !== 'owner') {
+                            acciones.appendChild(botonAccion(
+                                miembro.activo === false ? 'fa-user-check' : 'fa-user-slash',
+                                (miembro.activo === false ? 'Reactivar ' : 'Desactivar ') + (miembro.email || ''),
+                                function () { cambiarEstadoMiembro(miembro); }
+                            ));
+                        }
+
                         fila.appendChild(info);
                         fila.appendChild(valor);
+                        fila.appendChild(acciones);
                         cont.appendChild(fila);
                     });
                 } catch (error) {
@@ -6899,6 +7029,8 @@
                 actualizarAyudaSena();
                 appointmentNotesInput.value = appointment.notes || '';
                 appointmentStatusInput.value = appointment.status;
+                const staffEditando = document.getElementById('appointment-staff');
+                if (staffEditando) staffEditando.value = appointment.staffUserId || contexto.userId || '';
                 
                 const tituloForm = document.getElementById('form-title');
                 if (tituloForm) tituloForm.textContent = 'Editar turno';
