@@ -292,6 +292,25 @@
             .modal-caja { max-width: none; max-height: none; height: 100dvh; border-radius: 0; border: 0; }
         }
 
+        .tabs { display: flex; gap: 6px; margin: 0 0 16px; flex-wrap: wrap; }
+        .tab {
+            border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-soft);
+            padding: 9px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 500; min-height: 40px;
+        }
+        .tab[aria-selected="true"] { background: var(--gold); border-color: var(--gold); color: #221A20; font-weight: 600; }
+        .tab-panel.oculto { display: none; }
+        .fila-suscripcion input[type="date"] { min-width: 145px; }
+        .plan-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+        .plan-basico { color: var(--ink-soft); }
+        .plan-pro { border-color: var(--gold); color: var(--gold-ink); }
+        .plan-premium { border-color: var(--ok); color: var(--ok); }
+        .anuncio-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+        .anuncio-item:last-child { border-bottom: 0; }
+        .anuncio-texto { flex: 1; min-width: 0; }
+        .anuncio-meta { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
+        .anuncio-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+        .textarea { width: 100%; min-height: 72px; padding: 10px 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: inherit; font-size: 14px; resize: vertical; }
+
         /* mobile: tarjetas */
         @media (max-width: 720px) {
             thead { display: none; }
@@ -385,6 +404,13 @@
             <div class="contador" id="panel-contador"></div>
         </div>
 
+        <div class="tabs" role="tablist" aria-label="Secciones del panel">
+            <button type="button" class="tab" role="tab" data-tab="salones" aria-selected="true">Salones</button>
+            <button type="button" class="tab" role="tab" data-tab="suscripciones" aria-selected="false">Suscripciones</button>
+            <button type="button" class="tab" role="tab" data-tab="anuncios" aria-selected="false">Anuncios</button>
+        </div>
+
+        <div class="tab-panel" id="tab-salones">
         <div class="kpis" id="panel-kpis">
             <div class="kpi">
                 <span class="kpi-label">Salones</span>
@@ -430,6 +456,60 @@
             </table>
             <p id="panel-vacio" class="vacio oculto">No hay salones todavía.</p>
         </div>
+        </div>
+
+        <div class="tab-panel oculto" id="tab-suscripciones">
+            <div class="panel-cabecera">
+                <div>
+                    <h2>Suscripciones</h2>
+                    <p class="sub" style="margin:0">Plan y vencimiento de cada salón.</p>
+                </div>
+            </div>
+            <div id="suscripciones-alerta" class="alerta error oculto" role="alert"></div>
+            <div class="tarjeta" style="padding:18px">
+                <table>
+                    <thead>
+                        <tr><th>Salón</th><th>Dueña</th><th>Plan</th><th>Vence</th><th>Estado</th><th></th></tr>
+                    </thead>
+                    <tbody id="suscripciones-tabla"></tbody>
+                </table>
+                <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavía.</p>
+            </div>
+        </div>
+
+        <div class="tab-panel oculto" id="tab-anuncios">
+            <div class="panel-cabecera">
+                <div>
+                    <h2>Anuncios</h2>
+                    <p class="sub" style="margin:0">Mensaje que ven todos los salones al iniciar sesión.</p>
+                </div>
+            </div>
+            <div id="anuncios-alerta" class="alerta error oculto" role="alert"></div>
+            <div class="tarjeta" style="padding:18px;margin-bottom:14px">
+                <label for="anuncio-mensaje">Mensaje</label>
+                <textarea id="anuncio-mensaje" class="textarea" maxlength="280" placeholder="Ej: Este fin de semana el sistema entra en mantenimiento"></textarea>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:12px">
+                    <div>
+                        <label for="anuncio-tipo">Tipo</label>
+                        <select id="anuncio-tipo" class="btn" style="min-height:42px">
+                            <option value="info">Info</option>
+                            <option value="aviso">Aviso</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="anuncio-dias">Duración (días)</label>
+                        <input type="number" id="anuncio-dias" class="btn" min="0" max="365" value="7" style="min-height:42px;width:110px">
+                    </div>
+                    <button type="button" id="anuncio-crear" class="btn btn-primario">Publicar</button>
+                </div>
+            </div>
+            <div class="tarjeta" style="padding:18px">
+                <div id="anuncios-lista"></div>
+                <p id="anuncios-vacio" class="vacio oculto">No hay anuncios.</p>
+            </div>
+        </div>
+
         <footer>Panel interno · no compartir este enlace</footer>
     </section>
 
@@ -446,6 +526,7 @@
             <div class="detalle-grid" id="detalle-datos"></div>
             <div class="modal-acciones">
                 <button type="button" id="detalle-estado-btn" class="btn btn-peligro">Suspender</button>
+                <button type="button" id="detalle-impersonar" class="btn">→ Entrar como</button>
                 <button type="button" id="detalle-recupero" class="btn">✉ Recuperación</button>
                 <button type="button" id="detalle-csv" class="btn">↓ CSV</button>
             </div>
@@ -1214,6 +1295,235 @@
             if (evento.target === $('detalle-overlay')) cerrarDetalle();
         });
     }
+
+    // ── I48 · God Mode: tabs, suscripciones, anuncios, impersonación ──
+    var tabActual = "salones";
+
+    function mostrarTab(nombre) {
+        tabActual = nombre;
+        Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
+            b.setAttribute("aria-selected", b.getAttribute("data-tab") === nombre ? "true" : "false");
+        });
+        Array.prototype.forEach.call(document.querySelectorAll(".tab-panel"), function (p) {
+            p.classList.toggle("oculto", p.id !== "tab-" + nombre);
+        });
+        if (nombre === "suscripciones") cargarSuscripciones();
+        if (nombre === "anuncios") cargarAnuncios();
+    }
+
+    function planPill(plan) {
+        var p = document.createElement("span");
+        var limpio = String(plan || "basico").toLowerCase();
+        p.className = "plan-pill plan-" + (["basico","pro","premium"].indexOf(limpio) >= 0 ? limpio : "basico");
+        p.textContent = limpio.charAt(0).toUpperCase() + limpio.slice(1);
+        return p;
+    }
+
+    async function cargarSuscripciones() {
+        var tbody = $("suscripciones-tabla");
+        var vacio = $("suscripciones-vacio");
+        tbody.innerHTML = "";
+        alerta("suscripciones-alerta", "");
+        try {
+            var res = await supabase.rpc("admin_suscripciones");
+            if (res.error) throw res.error;
+            var lista = res.data || [];
+            if (!lista.length) { if (vacio) vacio.classList.remove("oculto"); return; }
+            if (vacio) vacio.classList.add("oculto");
+            lista.forEach(function (fila) {
+                var tr = document.createElement("tr");
+                var tdNombre = document.createElement("td");
+                tdNombre.setAttribute("data-label", "Salón");
+                var n = document.createElement("div");
+                n.className = "salon-nombre";
+                n.textContent = String(fila.nombre || "Salón");
+                tdNombre.appendChild(n);
+
+                var tdDueno = document.createElement("td");
+                tdDueno.setAttribute("data-label", "Dueña");
+                tdDueno.textContent = String(fila.dueno_email || "—");
+
+                var tdPlan = document.createElement("td");
+                tdPlan.setAttribute("data-label", "Plan");
+                var sel = document.createElement("select");
+                sel.className = "btn";
+                ["basico","pro","premium"].forEach(function (op) {
+                    var o = document.createElement("option");
+                    o.value = op; o.textContent = op.charAt(0).toUpperCase() + op.slice(1);
+                    if (String(fila.plan || "basico") === op) o.selected = true;
+                    sel.appendChild(o);
+                });
+                tdPlan.appendChild(sel);
+
+                var tdVence = document.createElement("td");
+                tdVence.setAttribute("data-label", "Vence");
+                var fecha = document.createElement("input");
+                fecha.type = "date";
+                fecha.className = "btn";
+                if (fila.vence_en) fecha.value = String(fila.vence_en).slice(0, 10);
+                tdVence.appendChild(fecha);
+
+                var tdEstado = document.createElement("td");
+                tdEstado.setAttribute("data-label", "Estado");
+                tdEstado.textContent = String(fila.estado || "activa");
+                tdEstado.style.color = String(fila.estado || "activa") === "activa" ? "var(--ok)" : "var(--danger)";
+
+                var tdAccion = document.createElement("td");
+                tdAccion.className = "accion";
+                var boton = document.createElement("button");
+                boton.type = "button";
+                boton.className = "btn btn-primario";
+                boton.textContent = "Guardar";
+                boton.addEventListener("click", function () { guardarSuscripcion(boton, fila.salon_id, sel.value, fecha.value); });
+                tdAccion.appendChild(boton);
+
+                tr.appendChild(tdNombre); tr.appendChild(tdDueno); tr.appendChild(tdPlan);
+                tr.appendChild(tdVence); tr.appendChild(tdEstado); tr.appendChild(tdAccion);
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("suscripciones:", error);
+            alerta("suscripciones-alerta", "No se pudieron cargar las suscripciones: " + (error.message || "error"));
+        }
+    }
+
+    async function guardarSuscripcion(boton, salonId, plan, vence) {
+        ocupado(boton, "Guardando…");
+        try {
+            var res = await supabase.rpc("admin_set_suscripcion", {
+                p_salon: salonId, p_plan: plan,
+                p_estado: vence && vence < new Date().toISOString().slice(0,10) ? "vencida" : "activa",
+                p_vence: vence || null
+            });
+            if (res.error) throw res.error;
+            alerta("suscripciones-alerta", "Suscripción actualizada.", "ok");
+            cargarSuscripciones();
+        } catch (error) {
+            console.error(error);
+            alerta("suscripciones-alerta", "No se pudo guardar: " + (error.message || "error"));
+        } finally {
+            delete boton.dataset.texto; boton.disabled = false;
+        }
+    }
+
+    async function cargarAnuncios() {
+        var cont = $("anuncios-lista");
+        var vacio = $("anuncios-vacio");
+        cont.innerHTML = "";
+        try {
+            var res = await supabase.rpc("admin_anuncios");
+            if (res.error) throw res.error;
+            var lista = res.data || [];
+            if (!lista.length) { if (vacio) vacio.classList.remove("oculto"); return; }
+            if (vacio) vacio.classList.add("oculto");
+            lista.forEach(function (a) {
+                var item = document.createElement("div");
+                item.className = "anuncio-item";
+                var texto = document.createElement("div");
+                texto.className = "anuncio-texto";
+                var p = document.createElement("div");
+                p.textContent = String(a.mensaje || "");
+                var meta = document.createElement("div");
+                meta.className = "anuncio-meta";
+                meta.textContent = String(a.tipo || "info") + " · " + (a.activo ? "activo" : "pausado") +
+                    (a.expira_en ? " · vence " + fechaCorta(a.expira_en) : " · sin vencimiento");
+                texto.appendChild(p); texto.appendChild(meta);
+                var acciones = document.createElement("div");
+                acciones.className = "anuncio-acciones";
+                var toggle = document.createElement("button");
+                toggle.type = "button";
+                toggle.className = "btn";
+                toggle.textContent = a.activo ? "Pausar" : "Activar";
+                toggle.addEventListener("click", function () { cambiarAnuncio(a.id, !a.activo, toggle); });
+                var borrar = document.createElement("button");
+                borrar.type = "button";
+                borrar.className = "btn btn-peligro";
+                borrar.textContent = "Borrar";
+                borrar.addEventListener("click", function () { borrarAnuncio(a.id, borrar); });
+                acciones.appendChild(toggle); acciones.appendChild(borrar);
+                item.appendChild(texto); item.appendChild(acciones);
+                cont.appendChild(item);
+            });
+        } catch (error) {
+            console.error("anuncios:", error);
+            alerta("anuncios-alerta", "No se pudieron cargar los anuncios: " + (error.message || "error"));
+        }
+    }
+
+    async function crearAnuncio() {
+        var texto = String($("anuncio-mensaje").value || "").trim();
+        if (texto.length < 5) { alerta("anuncios-alerta", "Escribí un mensaje de al menos 5 caracteres."); return; }
+        var boton = $("anuncio-crear");
+        ocupado(boton, "Publicando…");
+        try {
+            var res = await supabase.rpc("admin_anuncio_crear", {
+                p_mensaje: texto,
+                p_tipo: $("anuncio-tipo").value,
+                p_dias: Number($("anuncio-dias").value) || 0
+            });
+            if (res.error) throw res.error;
+            $("anuncio-mensaje").value = "";
+            alerta("anuncios-alerta", "Anuncio publicado.", "ok");
+            cargarAnuncios();
+        } catch (error) {
+            console.error(error);
+            alerta("anuncios-alerta", "No se pudo publicar: " + (error.message || "error"));
+        } finally { delete boton.dataset.texto; boton.disabled = false; }
+    }
+
+    async function cambiarAnuncio(id, activo, boton) {
+        ocupado(boton, "…");
+        try {
+            var res = await supabase.rpc("admin_anuncio_estado", { p_id: id, p_activo: activo });
+            if (res.error) throw res.error;
+            cargarAnuncios();
+        } catch (error) {
+            alerta("anuncios-alerta", "No se pudo cambiar: " + (error.message || "error"));
+        } finally { delete boton.dataset.texto; boton.disabled = false; }
+    }
+
+    async function borrarAnuncio(id, boton) {
+        if (boton.dataset.confirmado !== "1") {
+            boton.dataset.confirmado = "1";
+            boton.textContent = "¿Borrar?";
+            setTimeout(function () { if (boton.dataset.confirmado === "1") { boton.dataset.confirmado = ""; boton.textContent = "Borrar"; } }, 4000);
+            return;
+        }
+        ocupado(boton, "…");
+        try {
+            var res = await supabase.rpc("admin_anuncio_borrar", { p_id: id });
+            if (res.error) throw res.error;
+            cargarAnuncios();
+        } catch (error) {
+            alerta("anuncios-alerta", "No se pudo borrar: " + (error.message || "error"));
+        } finally { delete boton.dataset.texto; boton.disabled = false; }
+    }
+
+    async function impersonarSalon() {
+        if (!detalleActual) return;
+        var boton = $("detalle-impersonar");
+        ocupado(boton, "Generando…");
+        $("detalle-nota").textContent = "";
+        try {
+            var destino = location.origin + "/index.html?soporte=1&salon=" + encodeURIComponent(detalleActual.id);
+            var res = await supabase.functions.invoke("impersonate", {
+                body: { salon_id: detalleActual.id, redirect_to: destino }
+            });
+            if (res.error) throw res.error;
+            if (!res.data || !res.data.url) throw new Error((res.data && res.data.error) || "Sin enlace de acceso");
+            window.open(res.data.url, "_blank", "noopener");
+            $("detalle-nota").textContent = "Enlace de soporte generado. Se abrió en una pestaña nueva (caduca en minutos).";
+        } catch (error) {
+            console.error("impersonar:", error);
+            $("detalle-nota").textContent = "No se pudo impersonar: " + (error.message || "error de conexión");
+        } finally { delete boton.dataset.texto; boton.disabled = false; }
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
+        b.addEventListener("click", function () { mostrarTab(b.getAttribute("data-tab")); });
+    });
+    if ($("anuncio-crear")) $("anuncio-crear").addEventListener("click", crearAnuncio);
+    if ($("detalle-impersonar")) $("detalle-impersonar").addEventListener("click", impersonarSalon);
 
     // ── sesión ──
     if (supabase) {
