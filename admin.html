@@ -332,9 +332,35 @@
             const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
     var CLAVE_TEMA = 'eli_admin_tema';
 
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    // I44 · A: blindaje del formulario ANTES de cualquier dependencia.
+    // Si algo falla mas abajo, el <form> nunca recarga la pagina con "?".
+    ['login-form', 'dosfa-form'].forEach(function (id) {
+        var formulario = document.getElementById(id);
+        if (formulario) {
+            formulario.addEventListener('submit', function (evento) { evento.preventDefault(); });
+        }
     });
+
+    function mostrarErrorInicio(mensaje) {
+        var el = document.getElementById('login-alerta');
+        if (el) { el.textContent = mensaje || ''; el.className = 'alerta error'; }
+        ['vista-2fa', 'vista-panel'].forEach(function (v) { var x = document.getElementById(v); if (x) x.classList.add('oculto'); });
+        var login = document.getElementById('vista-login');
+        if (login) login.classList.remove('oculto');
+    }
+
+    // I44 · B y C: si el CDN no cargo o algo falla, se avisa en pantalla (nunca "pagina muerta")
+    var supabase = null;
+    try {
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            throw new Error('No se pudo cargar el cliente de datos. Recargá la página.');
+        }
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+        });
+    } catch (error) {
+        mostrarErrorInicio((error && error.message) || 'No se pudo cargar el cliente de datos. Recargá la página.');
+    }
 
     var factorPendiente = null;   // { id, modo: 'enrolar' | 'verificar' }
     var salonesCache = [];
@@ -395,6 +421,7 @@
 
     // ── flujo principal ──
     async function arrancar() {
+        if (!supabase) { mostrarErrorInicio('No se pudo cargar el cliente de datos. Recargá la página.'); return; }
         try {
             var sesion = await supabase.auth.getSession();
             if (!sesion.data || !sesion.data.session) {
@@ -521,7 +548,7 @@
     });
 
     $('dosfa-salir').addEventListener('click', async function () {
-        await supabase.auth.signOut();
+        if (supabase) await supabase.auth.signOut();
         factorPendiente = null;
         mostrar('vista-login');
     });
@@ -547,6 +574,7 @@
         var boton = $('login-btn');
         var email = String($('email').value || '').trim();
         var password = String($('password').value || '');
+        if (!supabase) { alerta('login-alerta', 'No se pudo cargar el cliente de datos. Recargá la página.'); return; }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
         if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
         alerta('login-alerta', '');
@@ -572,7 +600,7 @@
     });
 
     $('salir-btn').addEventListener('click', async function () {
-        await supabase.auth.signOut();
+        if (supabase) await supabase.auth.signOut();
         factorPendiente = null;
         salonesCache = [];
         $('salir-btn').classList.add('oculto');
@@ -737,12 +765,14 @@
     }
 
     // ── sesión ──
-    supabase.auth.onAuthStateChange(function (evento, sesion) {
-        if (evento === 'SIGNED_OUT' || !sesion) {
-            $('salir-btn').classList.add('oculto');
-            if (evento === 'SIGNED_OUT') mostrar('vista-login');
-        }
-    });
+    if (supabase) {
+        supabase.auth.onAuthStateChange(function (evento, sesion) {
+            if (evento === 'SIGNED_OUT' || !sesion) {
+                $('salir-btn').classList.add('oculto');
+                if (evento === 'SIGNED_OUT') mostrar('vista-login');
+            }
+        });
+    }
 
     arrancar();
 })();
