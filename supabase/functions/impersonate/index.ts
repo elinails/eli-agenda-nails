@@ -224,6 +224,12 @@ Deno.serve(async (req: Request) => {
     return await fallo(400, "salon_id_invalido");
   }
 
+  // 5b) I49 · user_id opcional: impersonar a una empleada puntual
+  const userIdSolicitado = typeof body.user_id === "string" ? body.user_id.trim() : "";
+  if (userIdSolicitado && !UUID.test(userIdSolicitado)) {
+    return await fallo(400, "user_id_invalido");
+  }
+
   // 6) redirect_to: solo http(s) y solo orígenes de la allowlist
   let redirectTo = typeof body.redirect_to === "string" ? body.redirect_to.trim() : "";
   if (!redirectTo) {
@@ -276,56 +282,80 @@ Deno.serve(async (req: Request) => {
     return await fallo(429, "demasiadas_impersonaciones", { intentos: count });
   }
 
-  // 9) Dueño del salón, resuelto en el servidor (nunca desde el navegador)
-  const { data: miembros, error: miembrosError } = await supabaseAdmin
-    .from("miembros_salon")
-    .select("user_id, activo")
-    .eq("salon_id", salon.id)
-    .eq("rol", "owner")
-    .order("creado_en", { ascending: true })
-    .limit(10);
+  // 9) Objetivo: el user_id pedido (validado como miembro) o la dueña
+  let objetivoId = "";
 
-  if (miembrosError) {
-    console.error("impersonate · miembros_salon:", miembrosError.message);
-    return responder({ error: "error_interno" }, 500, cors);
-  }
+  if (userIdSolicitado) {
+    const { data: miembro, error: miembroError } = await supabaseAdmin
+      .from("miembros_salon")
+      .select("user_id, activo")
+      .eq("salon_id", salon.id)
+      .eq("user_id", userIdSolicitado)
+      .maybeSingle();
 
-  const lista = miembros ?? [];
-  const dueno = lista.find((m) => m.activo !== false);
-  if (!dueno) {
-    const hayInactivo = lista.length > 0;
-    return await fallo(
-      hayInactivo ? 409 : 404,
-      hayInactivo ? "dueno_inactivo" : "sin_dueno",
-      { salon: salon.nombre },
-    );
+    if (miembroError) {
+      console.error("impersonate · miembro:", miembroError.message);
+      return responder({ error: "error_interno" }, 500, cors);
+    }
+    if (!miembro) {
+      return await fallo(404, "usuario_no_es_del_salon", { salon: salon.nombre });
+    }
+    if (miembro.activo === false) {
+      return await fallo(409, "usuario_inactivo", { salon: salon.nombre });
+    }
+    objetivoId = miembro.user_id;
+  } else {
+    const { data: miembros, error: miembrosError } = await supabaseAdmin
+      .from("miembros_salon")
+      .select("user_id, activo")
+      .eq("salon_id", salon.id)
+      .eq("rol", "owner")
+      .order("creado_en", { ascending: true })
+      .limit(10);
+
+    if (miembrosError) {
+      console.error("impersonate · miembros_salon:", miembrosError.message);
+      return responder({ error: "error_interno" }, 500, cors);
+    }
+
+    const lista = miembros ?? [];
+    const dueno = lista.find((m) => m.activo !== false);
+    if (!dueno) {
+      const hayInactivo = lista.length > 0;
+      return await fallo(
+        hayInactivo ? 409 : 404,
+        hayInactivo ? "dueno_inactivo" : "sin_dueno",
+        { salon: salon.nombre },
+      );
+    }
+    objetivoId = dueno.user_id;
   }
 
   // 10) No se impersona a otro SuperAdmin
   const { data: objetivoSuper } = await supabaseAdmin
     .from("super_admins")
     .select("user_id")
-    .eq("user_id", dueno.user_id)
+    .eq("user_id", objetivoId)
     .maybeSingle();
 
   if (objetivoSuper) {
     return await fallo(403, "objetivo_superadmin", { salon: salon.nombre });
   }
 
-  // 11) Email del dueño (desde Auth, no desde el body)
-  const { data: duenoAuth, error: duenoError } = await supabaseAdmin.auth.admin
-    .getUserById(dueno.user_id);
+  // 11) Email del objetivo (desde Auth, nunca desde el body)
+  const { data: objetivoAuth, error: objetivoError } = await supabaseAdmin.auth.admin
+    .getUserById(objetivoId);
 
-  if (duenoError || !duenoAuth?.user?.email) {
-    console.error("impersonate · getUserById:", duenoError?.message || "sin email");
-    return await fallo(409, "dueno_sin_email", { salon: salon.nombre });
+  if (objetivoError || !objetivoAuth?.user?.email) {
+    console.error("impersonate · getUserById:", objetivoError?.message || "sin email");
+    return await fallo(409, "objetivo_sin_email", { salon: salon.nombre });
   }
-  const emailDueno = duenoAuth.user.email;
+  const emailObjetivo = objetivoAuth.user.email;
 
   // 12) Magic link
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
     type: "magiclink",
-    email: emailDueno,
+    email: emailObjetivo,
     options: { redirectTo },
   });
 
@@ -350,7 +380,7 @@ Deno.serve(async (req: Request) => {
   await auditar("impersonar", {
     salon: salon.nombre,
     salon_activo: salon.activo !== false,
-    dueno: emailDueno,
+    objetivo: emailObjetivo, objetivo_id: objetivoId,
     redirect_to: redirectTo,
   });
 
