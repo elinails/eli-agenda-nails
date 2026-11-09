@@ -13,7 +13,7 @@
  *   - No se confía en ningún email/user_id que mande el navegador: se recibe salon_id
  *     y el dueño se resuelve contra la base.
  *   - redirect_to se valida contra una allowlist de orígenes (anti open-redirect).
- *   - El action_link es una credencial: no se loguea ni se guarda en la auditoría.
+ *   - El action_link y el token_hash son credenciales: no se loguean ni se guardan.
  *   - Se exige sesión AAL2 (2FA) del SuperAdmin cuando el claim `aal` está presente.
  */
 
@@ -371,8 +371,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const actionLink = linkData?.properties?.action_link;
-  if (!actionLink) {
-    console.error("impersonate · generateLink sin action_link");
+  // I51: el token_hash permite canjear el enlace con verifyOtp (sin PKCE).
+  const hashedToken = linkData?.properties?.hashed_token;
+  if (!actionLink && !hashedToken) {
+    console.error("impersonate · generateLink sin action_link ni token_hash");
     return await fallo(502, "link_sin_url", { salon: salon.nombre });
   }
 
@@ -382,6 +384,7 @@ Deno.serve(async (req: Request) => {
     salon_activo: salon.activo !== false,
     objetivo: emailObjetivo, objetivo_id: objetivoId,
     redirect_to: redirectTo,
+    via: hashedToken ? "token_hash" : "action_link",
   });
 
   console.log("impersonate · ok", { admin: adminUser.id, salon: salon.id });
@@ -390,6 +393,8 @@ Deno.serve(async (req: Request) => {
     {
       ok: true,
       url: actionLink,
+      token_hash: hashedToken || null,
+      type: "magiclink",
       salon: { id: salon.id, nombre: salon.nombre },
     },
     200,
