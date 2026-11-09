@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>Administración · Eli M. Nails</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <style>
+        :root[data-theme="dark"] {
+            --paper: #171216;
+            --surface: #221A20;
+            --surface-2: #2C2128;
+            --ink: #F3ECEF;
+            --ink-soft: #A3929B;
+            --line: #3A2E34;
+            --gold: #BE9E6F;
+            --gold-ink: #D9C09A;
+            --danger: #E0796E;
+            --ok: #7FB08A;
+            --shadow: 0 18px 40px rgba(0, 0, 0, .45);
+        }
+        :root[data-theme="light"] {
+            --paper: #FAF6F3;
+            --surface: #FFFFFF;
+            --surface-2: #F3ECE8;
+            --ink: #3B2F35;
+            --ink-soft: #776569;
+            --line: #EADFDB;
+            --gold: #BE9E6F;
+            --gold-ink: #8C6B3A;
+            --danger: #B4453C;
+            --ok: #4E7D5C;
+            --shadow: 0 18px 40px rgba(59, 47, 53, .10);
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100dvh;
+            transition: background-color .2s ease, color .2s ease;
+        }
+        .oculto { display: none !important; }
+
+        header.barra {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .marca { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+        .marca strong {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: .01em;
+            white-space: nowrap;
+        }
+        .marca span {
+            font-size: 11px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            white-space: nowrap;
+        }
+        .barra-acciones { display: flex; align-items: center; gap: 8px; }
+
+        button { font-family: inherit; font-size: 14px; cursor: pointer; }
+        .btn {
+            border: 1px solid var(--line);
+            background: var(--surface-2);
+            color: var(--ink);
+            padding: 9px 14px;
+            border-radius: 9px;
+            font-weight: 500;
+            min-height: 40px;
+            transition: background-color .15s ease, border-color .15s ease;
+        }
+        .btn:hover { border-color: var(--gold); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-primario {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #221A20;
+            font-weight: 600;
+        }
+        .btn-primario:hover { background: var(--gold-ink); border-color: var(--gold-ink); }
+        .btn-peligro { color: var(--danger); border-color: var(--line); background: transparent; }
+        .btn-peligro:hover { border-color: var(--danger); }
+        .btn-ok { color: var(--ok); border-color: var(--line); background: transparent; }
+        .btn-ok:hover { border-color: var(--ok); }
+        .btn-icono { min-width: 40px; padding: 8px 10px; }
+
+        main { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+
+        .tarjeta {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 26px;
+            box-shadow: var(--shadow);
+        }
+        .centro { max-width: 380px; margin: 6vh auto 0; }
+
+        h1, h2 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 600;
+            margin: 0 0 6px;
+        }
+        h1 { font-size: 30px; }
+        h2 { font-size: 20px; }
+        .sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 22px; }
+
+        label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 11px 13px;
+            border-radius: 9px;
+            border: 1px solid var(--line);
+            background: var(--paper);
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 15px;
+            min-height: 44px;
+        }
+        input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+        .campo { margin-bottom: 14px; }
+
+        .alerta {
+            border-radius: 9px;
+            padding: 10px 13px;
+            font-size: 13.5px;
+            margin-bottom: 14px;
+            border: 1px solid transparent;
+        }
+        .alerta.error { background: rgba(224, 121, 110, .12); border-color: var(--danger); color: var(--danger); }
+        .alerta.ok { background: rgba(127, 176, 138, .12); border-color: var(--ok); color: var(--ok); }
+
+        .qr-caja {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            margin-bottom: 18px;
+        }
+        .qr-caja img {
+            width: 190px;
+            height: 190px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 8px;
+        }
+        .secreto {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12.5px;
+            letter-spacing: .06em;
+            color: var(--ink-soft);
+            word-break: break-all;
+            text-align: center;
+        }
+        .codigo { letter-spacing: .5em; text-align: center; font-size: 20px; font-weight: 600; }
+
+        .panel-cabecera {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .contador { font-size: 13px; color: var(--ink-soft); }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            text-align: left;
+            font-size: 10.5px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            font-weight: 600;
+            padding: 0 12px 10px;
+            border-bottom: 1px solid var(--line);
+        }
+        tbody td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--line);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr.inactivo { opacity: .55; }
+        .salon-nombre { font-weight: 600; }
+        .salon-id { font-size: 11px; color: var(--ink-soft); font-family: ui-monospace, monospace; }
+        .vacio { text-align: center; color: var(--ink-soft); padding: 30px 0; font-size: 14px; }
+
+        /* mobile: tarjetas */
+        @media (max-width: 720px) {
+            thead { display: none; }
+            table, tbody, tr, td { display: block; width: 100%; }
+            tbody tr {
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 14px;
+                margin-bottom: 12px;
+                background: var(--surface-2);
+            }
+            tbody td { border: 0; padding: 4px 0; display: flex; justify-content: space-between; gap: 12px; }
+            tbody td::before {
+                content: attr(data-label);
+                font-size: 10.5px;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                color: var(--ink-soft);
+            }
+            tbody td.accion { justify-content: flex-end; padding-top: 10px; }
+            tbody td.accion::before { content: ''; }
+        }
+        footer { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 24px 0 8px; }
+    </style>
+</head>
+<body>
+
+<header class="barra">
+    <div class="marca">
+        <strong>Eli M. Nails</strong>
+        <span>Administración</span>
+    </div>
+    <div class="barra-acciones">
+        <button type="button" id="tema-btn" class="btn btn-icono" aria-label="Cambiar tema">◐</button>
+        <button type="button" id="salir-btn" class="btn oculto">Salir</button>
+    </div>
+</header>
+
+<main>
+    <!-- 1 · LOGIN -->
+    <section id="vista-login" class="tarjeta centro">
+        <h1>Ingresar</h1>
+        <p class="sub">Acceso exclusivo del equipo de administración.</p>
+        <div id="login-alerta" class="alerta error oculto" role="alert"></div>
+        <form id="login-form" novalidate>
+            <div class="campo">
+                <label for="email">Email</label>
+                <input type="email" id="email" autocomplete="email" required>
+            </div>
+            <div class="campo">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" id="login-btn" class="btn btn-primario" style="width:100%">Entrar</button>
+        </form>
+    </section>
+
+    <!-- 2 · 2FA -->
+    <section id="vista-2fa" class="tarjeta centro oculto">
+        <h1 id="dosfa-titulo">Verificación en dos pasos</h1>
+        <p class="sub" id="dosfa-sub"></p>
+        <div id="dosfa-alerta" class="alerta error oculto" role="alert"></div>
+
+        <div id="dosfa-qr-caja" class="qr-caja oculto">
+            <img id="dosfa-qr" alt="Código QR para configurar la verificación en dos pasos">
+            <p class="secreto" id="dosfa-secreto"></p>
+            <p class="sub" style="margin:0">Escaneá el QR con Google Authenticator (o similar). Si no podés, cargá el código de arriba a mano.</p>
+        </div>
+
+        <form id="dosfa-form" novalidate>
+            <div class="campo">
+                <label for="dosfa-codigo">Código de 6 dígitos</label>
+                <input type="text" id="dosfa-codigo" inputmode="numeric" autocomplete="one-time-code"
+                       maxlength="6" pattern="[0-9]{6}" class="codigo" required>
+            </div>
+            <button type="submit" id="dosfa-btn" class="btn btn-primario" style="width:100%">Verificar</button>
+        </form>
+        <p style="text-align:center;margin-top:14px">
+            <button type="button" id="dosfa-salir" class="btn btn-peligro" style="width:100%">Cerrar sesión</button>
+        </p>
+    </section>
+
+    <!-- 3 · PANEL -->
+    <section id="vista-panel" class="oculto">
+        <div id="panel-alerta" class="alerta error oculto" role="alert"></div>
+        <div class="panel-cabecera">
+            <div>
+                <h1>Salones</h1>
+                <p class="sub" style="margin:0">Estado general de la plataforma.</p>
+            </div>
+            <div class="contador" id="panel-contador"></div>
+        </div>
+        <div class="tarjeta" style="padding:18px">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Salón</th>
+                        <th>Dueño</th>
+                        <th>Miembros</th>
+                        <th>Turnos</th>
+                        <th>Creado</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="panel-tabla"></tbody>
+            </table>
+            <p id="panel-vacio" class="vacio oculto">No hay salones todavía.</p>
+        </div>
+        <footer>Panel interno · no compartir este enlace</footer>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var SUPABASE_URL = 'https://wppleywdprvblbajeubl.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
+    var CLAVE_TEMA = 'eli_admin_tema';
+
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    });
+
+    var factorPendiente = null;   // { id, modo: 'enrolar' | 'verificar' }
+    var salonesCache = [];
+
+    // ── utilidades DOM ──
+    function $(id) { return document.getElementById(id); }
+    function mostrar(nombre) {
+        ['vista-login', 'vista-2fa', 'vista-panel'].forEach(function (v) {
+            var el = $(v);
+            if (el) el.classList.toggle('oculto', v !== nombre);
+        });
+    }
+    function alerta(id, texto, tipo) {
+        var el = $(id);
+        if (!el) return;
+        el.textContent = texto || '';
+        el.className = 'alerta ' + (tipo === 'ok' ? 'ok' : 'error') + (texto ? '' : ' oculto');
+    }
+    function ocupado(boton, texto) {
+        if (!boton) return;
+        if (texto) {
+            boton.dataset.texto = boton.dataset.texto || boton.textContent;
+            boton.textContent = texto;
+            boton.disabled = true;
+        } else {
+            if (boton.dataset.texto) boton.textContent = boton.dataset.texto;
+            boton.disabled = false;
+        }
+    }
+    function fechaCorta(valor) {
+        if (!valor) return '—';
+        var d = new Date(valor);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function campo(fila, nombres, porDefecto) {
+        for (var i = 0; i < nombres.length; i++) {
+            var v = fila[nombres[i]];
+            if (v !== undefined && v !== null) return v;
+        }
+        return porDefecto;
+    }
+
+    // ── tema ──
+    function aplicarTema(tema) {
+        document.documentElement.setAttribute('data-theme', tema === 'light' ? 'light' : 'dark');
+        try { localStorage.setItem(CLAVE_TEMA, tema); } catch (e) { /* modo privado */ }
+    }
+    (function temaInicial() {
+        var guardado = 'dark';
+        try { guardado = localStorage.getItem(CLAVE_TEMA) || 'dark'; } catch (e) { /* modo privado */ }
+        aplicarTema(guardado);
+    })();
+    $('tema-btn').addEventListener('click', function () {
+        var actual = document.documentElement.getAttribute('data-theme');
+        aplicarTema(actual === 'dark' ? 'light' : 'dark');
+    });
+
+    // ── flujo principal ──
+    async function arrancar() {
+        try {
+            var sesion = await supabase.auth.getSession();
+            if (!sesion.data || !sesion.data.session) {
+                mostrar('vista-login');
+                return;
+            }
+            await continuar();
+        } catch (error) {
+            console.error(error);
+            alerta('login-alerta', 'No se pudo comprobar la sesión. Recargá la página.');
+            mostrar('vista-login');
+        }
+    }
+
+    async function continuar() {
+        // 1) primero los permisos: un usuario normal no llega ni a enrolar 2FA
+        var esAdmin = await verificarSuperAdmin();
+        if (!esAdmin) {
+            await supabase.auth.signOut();
+            mostrar('vista-login');
+            alerta('login-alerta', 'No tenés permisos de administrador.');
+            $('salir-btn').classList.add('oculto');
+            return;
+        }
+
+        // 2) recien despues el segundo factor
+        var dosfaListo = await resolverDosFactores();
+        if (!dosfaListo) return;
+
+        $('salir-btn').classList.remove('oculto');
+        await cargarPanel();
+    }
+
+    // ── 2FA ──
+    async function resolverDosFactores() {
+        var lista = await supabase.auth.mfa.listFactors();
+        if (lista.error) {
+            alerta('login-alerta', 'No se pudo leer el estado del 2FA: ' + lista.error.message);
+            mostrar('vista-login');
+            return false;
+        }
+        var factores = (lista.data && lista.data.totp) || [];
+        var verificado = factores.filter(function (f) { return f.status === 'verified'; })[0];
+
+        if (!verificado) {
+            await iniciarEnrolamiento();
+            return false;
+        }
+
+        var aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        var nivel = aal && aal.data ? aal.data.currentLevel : 'aal1';
+        if (nivel === 'aal2') return true;
+
+        factorPendiente = { id: verificado.id, modo: 'verificar' };
+        $('dosfa-titulo').textContent = 'Verificación en dos pasos';
+        $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
+        $('dosfa-qr-caja').classList.add('oculto');
+        $('dosfa-codigo').value = '';
+        alerta('dosfa-alerta', '', 'error');
+        mostrar('vista-2fa');
+        setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
+        return false;
+    }
+
+    async function iniciarEnrolamiento() {
+        var boton = $('dosfa-btn');
+        ocupado(boton, 'Preparando…');
+        try {
+            var enrol = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Panel admin' });
+            if (enrol.error) throw enrol.error;
+            factorPendiente = { id: enrol.data.id, modo: 'enrolar' };
+            $('dosfa-qr').src = enrol.data.totp.qr_code;
+            $('dosfa-secreto').textContent = enrol.data.totp.secret;
+            $('dosfa-qr-caja').classList.remove('oculto');
+            $('dosfa-titulo').textContent = 'Configurá el 2FA';
+            $('dosfa-sub').textContent = 'Escaneá el código con tu aplicación de autenticación y confirmá con un código de 6 dígitos.';
+            $('dosfa-codigo').value = '';
+            alerta('dosfa-alerta', '', 'error');
+            mostrar('vista-2fa');
+            setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
+        } catch (error) {
+            alerta('login-alerta', 'No se pudo iniciar el 2FA: ' + (error.message || 'error de conexión'));
+            mostrar('vista-login');
+        } finally {
+            ocupado(boton, '');
+        }
+    }
+
+    async function verificarCodigo(codigo) {
+        var desafio = await supabase.auth.mfa.challenge({ factorId: factorPendiente.id });
+        if (desafio.error) throw desafio.error;
+        var verificado = await supabase.auth.mfa.verify({
+            factorId: factorPendiente.id,
+            challengeId: desafio.data.id,
+            code: codigo
+        });
+        if (verificado.error) throw verificado.error;
+    }
+
+    $('dosfa-form').addEventListener('submit', async function (evento) {
+        evento.preventDefault();
+        var boton = $('dosfa-btn');
+        var codigo = String($('dosfa-codigo').value || '').replace(/\D/g, '');
+        if (!factorPendiente) { alerta('dosfa-alerta', 'Volvé a iniciar sesión.'); return; }
+        if (codigo.length !== 6) { alerta('dosfa-alerta', 'El código tiene que tener 6 dígitos.'); return; }
+        alerta('dosfa-alerta', '');
+        ocupado(boton, 'Verificando…');
+        try {
+            await verificarCodigo(codigo);
+            factorPendiente = null;
+            await continuar();
+        } catch (error) {
+            var mensaje = String((error && error.message) || '');
+            if (/invalid|incorrect|mismatch/i.test(mensaje)) {
+                alerta('dosfa-alerta', 'Código incorrecto. Probá de nuevo.');
+            } else {
+                alerta('dosfa-alerta', 'No se pudo verificar: ' + (mensaje || 'probá de nuevo'));
+            }
+            $('dosfa-codigo').value = '';
+            $('dosfa-codigo').focus();
+        } finally {
+            ocupado(boton, '');
+        }
+    });
+
+    $('dosfa-salir').addEventListener('click', async function () {
+        await supabase.auth.signOut();
+        factorPendiente = null;
+        mostrar('vista-login');
+    });
+
+    // ── superadmin ──
+    async function verificarSuperAdmin() {
+        try {
+            var consulta = await supabase.from('super_admins').select('user_id').limit(1);
+            if (consulta.error) {
+                console.error('super_admins:', consulta.error);
+                return false;
+            }
+            return !!(consulta.data && consulta.data.length);
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
+
+    // ── login ──
+    $('login-form').addEventListener('submit', async function (evento) {
+        evento.preventDefault();
+        var boton = $('login-btn');
+        var email = String($('email').value || '').trim();
+        var password = String($('password').value || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
+        if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+        alerta('login-alerta', '');
+        ocupado(boton, 'Entrando…');
+        try {
+            var ingreso = await supabase.auth.signInWithPassword({ email: email, password: password });
+            if (ingreso.error) throw ingreso.error;
+            $('password').value = '';
+            await continuar();
+        } catch (error) {
+            var codigo = String((error && error.code) || '');
+            var texto = String((error && error.message) || '');
+            if (/invalid_credentials|invalid login credentials/i.test(codigo + ' ' + texto)) {
+                alerta('login-alerta', 'Email o contraseña incorrectos.');
+            } else if (/email_not_confirmed/i.test(codigo + texto)) {
+                alerta('login-alerta', 'Tenés que confirmar tu email antes de entrar.');
+            } else {
+                alerta('login-alerta', 'No se pudo iniciar sesión: ' + (texto || 'error de conexión'));
+            }
+        } finally {
+            ocupado(boton, '');
+        }
+    });
+
+    $('salir-btn').addEventListener('click', async function () {
+        await supabase.auth.signOut();
+        factorPendiente = null;
+        salonesCache = [];
+        $('salir-btn').classList.add('oculto');
+        mostrar('vista-login');
+    });
+
+    // ── panel ──
+    async function cargarPanel() {
+        var tbody = $('panel-tabla');
+        tbody.innerHTML = '';
+        var vacio = $('panel-vacio');
+        var cargando = document.createElement('tr');
+        var celda = document.createElement('td');
+        celda.colSpan = 7;
+        celda.className = 'vacio';
+        celda.textContent = 'Cargando salones…';
+        cargando.appendChild(celda);
+        tbody.appendChild(cargando);
+        if (vacio) vacio.classList.add('oculto');
+        mostrar('vista-panel');
+
+        try {
+            var resumen = await supabase.rpc('admin_resumen_salones');
+            if (resumen.error) throw resumen.error;
+            salonesCache = resumen.data || [];
+            pintarSalones();
+        } catch (error) {
+            console.error('No se pudo cargar el resumen:', error);
+            tbody.innerHTML = '';
+            alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexión'));
+        }
+    }
+
+    function pintarSalones() {
+        var tbody = $('panel-tabla');
+        var vacio = $('panel-vacio');
+        tbody.innerHTML = '';
+        $('panel-contador').textContent = salonesCache.length === 1 ? '1 salón' : (salonesCache.length + ' salones');
+
+        if (!salonesCache.length) {
+            if (vacio) vacio.classList.remove('oculto');
+            return;
+        }
+        if (vacio) vacio.classList.add('oculto');
+
+        salonesCache.forEach(function (salon) {
+            var id = campo(salon, ['id', 'salon_id'], null);
+            var nombre = campo(salon, ['nombre', 'salon', 'nombre_salon'], 'Salón');
+            var dueno = campo(salon, ['dueno', 'dueno_email', 'email_dueno', 'owner_email', 'dueno_user_id'], '—');
+            var miembros = campo(salon, ['miembros', 'cantidad_miembros', 'total_miembros'], 0);
+            var turnos = campo(salon, ['turnos', 'turnos_totales', 'total_turnos'], 0);
+            var creado = campo(salon, ['creado_en', 'fecha_creacion', 'created_at'], null);
+            var activo = campo(salon, ['activo'], true) !== false;
+
+            var fila = document.createElement('tr');
+            if (!activo) fila.className = 'inactivo';
+
+            var tdNombre = document.createElement('td');
+            tdNombre.setAttribute('data-label', 'Salón');
+            var n = document.createElement('div');
+            n.className = 'salon-nombre';
+            n.textContent = String(nombre);
+            tdNombre.appendChild(n);
+            if (id) {
+                var ident = document.createElement('div');
+                ident.className = 'salon-id';
+                ident.textContent = String(id).slice(0, 8);
+                tdNombre.appendChild(ident);
+            }
+
+            var tdDueno = document.createElement('td');
+            tdDueno.setAttribute('data-label', 'Dueño');
+            tdDueno.textContent = String(dueno);
+
+            var tdMiembros = document.createElement('td');
+            tdMiembros.setAttribute('data-label', 'Miembros');
+            tdMiembros.textContent = String(miembros);
+
+            var tdTurnos = document.createElement('td');
+            tdTurnos.setAttribute('data-label', 'Turnos');
+            tdTurnos.textContent = String(turnos);
+
+            var tdCreado = document.createElement('td');
+            tdCreado.setAttribute('data-label', 'Creado');
+            tdCreado.textContent = fechaCorta(creado);
+
+            var tdEstado = document.createElement('td');
+            tdEstado.setAttribute('data-label', 'Estado');
+            tdEstado.textContent = activo ? 'Activo' : 'Suspendido';
+            tdEstado.style.color = activo ? 'var(--ok)' : 'var(--danger)';
+
+            var tdAccion = document.createElement('td');
+            tdAccion.className = 'accion';
+            if (id) {
+                var boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'btn ' + (activo ? 'btn-peligro' : 'btn-ok');
+                boton.textContent = activo ? 'Suspender' : 'Activar';
+                boton.addEventListener('click', function () { pedirCambioEstado(boton, id, activo); });
+                tdAccion.appendChild(boton);
+            }
+
+            fila.appendChild(tdNombre);
+            fila.appendChild(tdDueno);
+            fila.appendChild(tdMiembros);
+            fila.appendChild(tdTurnos);
+            fila.appendChild(tdCreado);
+            fila.appendChild(tdEstado);
+            fila.appendChild(tdAccion);
+            tbody.appendChild(fila);
+        });
+    }
+
+    var confirmacionPendiente = null;
+    function pedirCambioEstado(boton, id, activo) {
+        var textoOriginal = activo ? 'Suspender' : 'Activar';
+        if (confirmacionPendiente && confirmacionPendiente.boton === boton) {
+            clearTimeout(confirmacionPendiente.timer);
+            confirmacionPendiente = null;
+            cambiarEstado(boton, id, activo);
+            return;
+        }
+        if (confirmacionPendiente) {
+            clearTimeout(confirmacionPendiente.timer);
+            confirmacionPendiente.boton.textContent = confirmacionPendiente.texto;
+            confirmacionPendiente = null;
+        }
+        boton.textContent = activo ? '¿Suspender?' : '¿Activar?';
+        confirmacionPendiente = {
+            boton: boton,
+            texto: textoOriginal,
+            timer: setTimeout(function () {
+                boton.textContent = textoOriginal;
+                confirmacionPendiente = null;
+            }, 4000)
+        };
+    }
+
+    async function cambiarEstado(boton, id, activoActual) {
+        alerta('panel-alerta', '');
+        ocupado(boton, 'Guardando…');
+        try {
+            var resultado = await supabase.rpc('admin_set_salon_activo', {
+                p_salon: id,
+                p_activo: !activoActual
+            });
+            if (resultado.error) throw resultado.error;
+            var salon = salonesCache.filter(function (s) {
+                return String(campo(s, ['id', 'salon_id'], '')) === String(id);
+            })[0];
+            if (salon) {
+                if (salon.activo !== undefined) salon.activo = !activoActual;
+                if (salon.salon_activo !== undefined) salon.salon_activo = !activoActual;
+            }
+            pintarSalones();
+            alerta('panel-alerta', activoActual ? 'Salón suspendido.' : 'Salón activado.', 'ok');
+        } catch (error) {
+            console.error('No se pudo cambiar el estado:', error);
+            alerta('panel-alerta', 'No se pudo cambiar el estado: ' + (error.message || 'error de conexión'));
+            ocupado(boton, '');
+        }
+    }
+
+    // ── sesión ──
+    supabase.auth.onAuthStateChange(function (evento, sesion) {
+        if (evento === 'SIGNED_OUT' || !sesion) {
+            $('salir-btn').classList.add('oculto');
+            if (evento === 'SIGNED_OUT') mostrar('vista-login');
+        }
+    });
+
+    arrancar();
+})();
+</script>
+</body>
+</html>

@@ -2826,12 +2826,19 @@
                 try {
                     const consultaSalon = await supabase
                         .from('salones')
-                        .select('nombre, logo_url')
+                        .select('nombre, logo_url, activo')
                         .eq('id', contexto.salonId)
                         .limit(1);
                     if (!consultaSalon.error && consultaSalon.data && consultaSalon.data.length) {
-                        contexto.nombreSalon = consultaSalon.data[0].nombre || '';
-                        contexto.logoUrl = consultaSalon.data[0].logo_url || '';
+                        const salon = consultaSalon.data[0];
+                        if (salon.activo === false) {
+                            // I42: el superadmin suspendio el salon
+                            contexto.salonId = null;
+                            contexto.rol = null;
+                            return { estado: 'suspendido' };
+                        }
+                        contexto.nombreSalon = salon.nombre || '';
+                        contexto.logoUrl = salon.logo_url || '';
                     }
                 } catch (error) { /* sin salon visible: queda el logo por defecto */ }
                 return { estado: 'activa', salonId: contexto.salonId, rol: contexto.rol };
@@ -4105,6 +4112,12 @@
                 ocultarLogin();
                 try {
                     let membresia = await cargarMembresia(session && session.user);
+
+                    if (membresia.estado === 'suspendido') {
+                        appIniciada = false;
+                        mostrarLogin('Tu salón está suspendido. Escribinos para reactivarlo.');
+                        return;
+                    }
 
                     if (membresia.estado === 'inactiva') {
                         appIniciada = false;
