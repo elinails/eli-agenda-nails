@@ -16,3 +16,6 @@ package-lock.json
 # I48 · temporales de pruebas y del CLI de Supabase
 rest_openapi.json
 supabase/.temp/
+
+# I48 · capturas de QA visual (locales, no se publican)
+_qa_*

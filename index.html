@@ -1344,7 +1344,7 @@
 
         /* I48 · anuncios y modo soporte */
         .ads-banner {
-            position: sticky; top: 0; z-index: 55;
+            position: sticky; top: 0; z-index: 70;
             display: flex; align-items: center; gap: 10px;
             padding: 10px 16px; font-size: 13.5px; line-height: 1.4;
             background: var(--surface-2); border-bottom: 1px solid var(--line); color: var(--ink);
@@ -1354,7 +1354,7 @@
         .ads-texto { flex: 1; min-width: 0; }
         .ads-cerrar { border: 0; background: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; }
         .soporte-banner {
-            position: sticky; top: 0; z-index: 56;
+            position: sticky; top: 0; z-index: 71;
             padding: 10px 16px; font-size: 13px; font-weight: 600;
             background: #7A3E2E; color: #FFF4EF; text-align: center;
         }
@@ -1658,43 +1658,6 @@
             color: var(--ink);
         }
         .export-btn:hover { background: var(--blush-2) !important; }
-
-        /* I48 · Megáfono global (anuncios_globales) */
-        .anuncio-global {
-            position: sticky;
-            top: 0;
-            z-index: 80;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            background: var(--surface);
-            color: var(--ink);
-            border-bottom: 1px solid var(--line);
-            font-size: 13.5px;
-            line-height: 1.45;
-        }
-        .anuncio-global.hidden { display: none; }
-        .anuncio-icono { color: var(--blush); flex: 0 0 auto; font-size: 15px; }
-        .anuncio-texto { margin: 0; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-        .anuncio-cerrar {
-            flex: 0 0 auto;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--ink);
-            opacity: .65;
-            cursor: pointer;
-        }
-        .anuncio-cerrar:hover { opacity: 1; background: var(--blush-2); }
-        @media (max-width: 480px) {
-            .anuncio-global { padding: 9px 12px; font-size: 12.5px; }
-        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -4227,15 +4190,50 @@
             }
 
             const SUPABASE_LISTO = (typeof window.supabase !== 'undefined') && supabaseConfigurada();
+
+            // I48 · Modo soporte: la impersonación abre index.html?soporte=1.
+            // La sesión del dueño se guarda en una storageKey aislada para NO pisar
+            // la sesión del SuperAdmin (misma origin = mismo localStorage).
+            const CLAVE_SOPORTE = 'eli-soporte-auth';
+            const soporteActivo = (function () {
+                try {
+                    if (new URLSearchParams(location.search).get('soporte') === '1') {
+                        sessionStorage.setItem('eli_soporte', '1');
+                        return true;
+                    }
+                    return sessionStorage.getItem('eli_soporte') === '1';
+                } catch (error) {
+                    return false;
+                }
+            })();
+
+            if (soporteActivo) {
+                try {
+                    const url = new URL(location.href);
+                    url.searchParams.delete('soporte');
+                    history.replaceState(null, '', url.pathname + url.search + url.hash);
+                } catch (error) { /* noop */ }
+                window.addEventListener('pagehide', function () {
+                    try { localStorage.removeItem(CLAVE_SOPORTE); } catch (error) { /* noop */ }
+                    try { sessionStorage.removeItem('eli_soporte'); } catch (error) { /* noop */ }
+                });
+            } else {
+                try { localStorage.removeItem(CLAVE_SOPORTE); } catch (error) { /* noop */ }
+            }
+
+            const opcionesAuth = {
+                flowType: 'pkce',
+                detectSessionInUrl: true,
+                persistSession: true,
+                autoRefreshToken: true
+            };
+            if (soporteActivo) opcionesAuth.storageKey = CLAVE_SOPORTE;
+
             const supabase = SUPABASE_LISTO
-                ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-                    auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
-                  })
+                ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: opcionesAuth })
                 : null;
 
             let bannerTimer = null;
-            // I48 · modo soporte (solo lectura) y anuncios
-            const soporteActivo = /[?&]soporte=1(&|$)/.test(location.search);
 
             function aplicarModoSoporte() {
                 if (!soporteActivo) return;
@@ -4254,21 +4252,25 @@
             }
 
             async function cargarAnuncio() {
+                if (!supabase) return;
                 try {
                     const { data, error } = await supabase
-                        .from("anuncios")
-                        .select("id, mensaje, tipo")
+                        .from("anuncios_globales")
+                        .select("id, mensaje, creado_en, expira_en")
+                        .eq("activo", true)
+                        .order("creado_en", { ascending: false })
                         .limit(1);
                     if (error || !data || !data.length) return;
                     const aviso = data[0];
+                    if (!aviso.mensaje) return;
+                    if (aviso.expira_en && new Date(aviso.expira_en).getTime() <= Date.now()) return;
                     const oculto = localStorage.getItem("eli_anuncio_oculto_" + aviso.id) === "1";
                     if (oculto) return;
                     const banner = document.getElementById("anuncio-banner");
                     const texto = document.getElementById("anuncio-texto");
                     if (!banner || !texto) return;
-                    texto.textContent = aviso.mensaje || "";
+                    texto.textContent = aviso.mensaje;
                     banner.classList.remove("hidden");
-                    banner.classList.add("ads-" + (aviso.tipo || "info"));
                     const cerrar = document.getElementById("anuncio-cerrar");
                     if (cerrar) {
                         cerrar.addEventListener("click", function () {
@@ -4457,7 +4459,6 @@
                     aplicarModoSoporte();
                     await arrancar();
                     mostrarSeccion("agenda");
-                    cargarAnuncio();
                 } catch (error) {
                     console.error(error);
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
@@ -4469,6 +4470,8 @@
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
                     return;
                 }
+                // El megáfono se lee al arrancar: así también se ve en el login.
+                cargarAnuncio();
                 supabase.auth.onAuthStateChange(function(evento, session) {
                     if (evento === 'SIGNED_OUT') { mostrarLogin(); }
                     else if (session) { iniciarApp(session); }

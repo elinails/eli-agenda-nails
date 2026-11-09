@@ -252,13 +252,14 @@
 
         .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
         .toolbar input[type="search"], .toolbar select {
-            flex: 1 1 220px;
             min-width: 0;
             min-height: 42px;
             background: var(--surface-1);
         }
-        .toolbar select { flex: 0 0 auto; }
-        .toolbar .btn { min-height: 42px; }
+        .toolbar input[type="search"] { flex: 1 1 260px; width: auto; }
+        .toolbar select { flex: 0 0 180px; width: auto; }
+        .toolbar .btn { flex: 0 0 auto; min-height: 42px; width: auto; }
+        .toolbar .contador { margin-left: auto; align-self: center; }
 
         .pill {
             display: inline-flex;
@@ -415,7 +416,7 @@
             .kpi-valor { font-size: 22px; }
             .topbar-titulo h1 { font-size: 17px; }
         }
-        @media (max-width: 420px) {
+        @media (max-width: 360px) {
             .kpis { grid-template-columns: 1fr; }
         }
     </style>
@@ -538,14 +539,6 @@
 
                 <!-- SALONES -->
                 <section id="seccion-salones" class="seccion">
-                    <div class="cabecera-seccion">
-                        <div>
-                            <h2>Salones</h2>
-                            <p class="sub">Estado general de la plataforma.</p>
-                        </div>
-                        <span class="contador" id="salones-contador"></span>
-                    </div>
-
                     <div class="kpis">
                         <div class="kpi">
                             <span class="kpi-label">Salones</span>
@@ -577,6 +570,7 @@
                             <option value="suspendidos">Suspendidos</option>
                         </select>
                         <button type="button" id="csv-salones" class="btn">↓ CSV</button>
+                        <span class="contador" id="salones-contador"></span>
                     </div>
 
                     <div class="panel tabla-panel">
@@ -602,13 +596,6 @@
 
                 <!-- SUSCRIPCIONES -->
                 <section id="seccion-suscripciones" class="seccion oculto">
-                    <div class="cabecera-seccion">
-                        <div>
-                            <h2>Suscripciones</h2>
-                            <p class="sub">Planes, pruebas y MRR estimado.</p>
-                        </div>
-                    </div>
-
                     <div class="kpis">
                         <div class="kpi kpi-destacado">
                             <span class="kpi-label">MRR estimado</span>
@@ -658,13 +645,6 @@
 
                 <!-- ANUNCIOS -->
                 <section id="seccion-anuncios" class="seccion oculto">
-                    <div class="cabecera-seccion">
-                        <div>
-                            <h2>Anuncios</h2>
-                            <p class="sub">El megáfono global: se muestra arriba de la app para todos los salones.</p>
-                        </div>
-                    </div>
-
                     <div class="grid-anuncios">
                         <div class="panel">
                             <h3>Publicar anuncio</h3>
@@ -694,14 +674,6 @@
 
                 <!-- AUDITORÍA -->
                 <section id="seccion-auditoria" class="seccion oculto">
-                    <div class="cabecera-seccion">
-                        <div>
-                            <h2>Auditoría</h2>
-                            <p class="sub">Quién hizo qué, cuándo y sobre qué salón.</p>
-                        </div>
-                        <button type="button" id="refrescar-auditoria" class="btn btn-sm">Actualizar</button>
-                    </div>
-
                     <div class="toolbar">
                         <input type="search" id="buscar-auditoria" placeholder="Buscar admin, salón o acción" aria-label="Buscar en auditoría">
                         <select id="filtro-accion" aria-label="Filtrar por acción">
@@ -869,7 +841,7 @@
             if (!valor) return '—';
             var d = new Date(valor);
             if (isNaN(d.getTime())) return '—';
-            return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' +
+            return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' · ' +
                    d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         }
         function dinero(valor) {
@@ -1238,7 +1210,7 @@
                     nombre: campo(s, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
                     dueno: campo(s, ['dueno', 'dueno_email', 'email_dueno', 'owner_email'], '—'),
                     miembros: Number(campo(s, ['miembros', 'cantidad_miembros', 'total_miembros'], 0)) || 0,
-                    turnos: Number(campo(s, ['turnos', 'turnos_totales', 'total_turnos'], 0)) || 0,
+                    turnos: Number(campo(s, ['turnos', 'turnos_total', 'turnos_totales', 'total_turnos'], 0)) || 0,
                     creado: campo(s, ['creado_en', 'fecha_creacion', 'created_at'], null),
                     activo: campo(s, ['activo'], true) !== false,
                     plan_id: campo(s, ['plan_id'], p.plan_id || 'gratis'),
@@ -1972,7 +1944,9 @@
                 return {
                     id: campo(f, ['id'], null),
                     admin_id: campo(f, ['admin_id', 'admin'], null),
+                    admin_email: campo(f, ['admin_email', 'email'], null),
                     salon_id: campo(f, ['salon_id', 'salon'], null),
+                    salon_nombre: campo(f, ['salon_nombre', 'nombre_salon'], null),
                     accion: campo(f, ['accion', 'action'], '—'),
                     detalle: campo(f, ['detalle', 'detail'], null),
                     creado_en: campo(f, ['creado_en', 'created_at'], null)
@@ -2002,8 +1976,8 @@
             var lista = auditoria.filter(function (f) {
                 if (accion && f.accion !== accion) return false;
                 if (!busqueda) return true;
-                var admin = emailsAdmins[f.admin_id] || String(f.admin_id || '');
-                var salon = nombres[f.salon_id] || '';
+                var admin = emailsAdmins[f.admin_id] || f.admin_email || String(f.admin_id || '');
+                var salon = nombres[f.salon_id] || f.salon_nombre || '';
                 return normalizar(admin).indexOf(busqueda) >= 0 ||
                        normalizar(salon).indexOf(busqueda) >= 0 ||
                        normalizar(f.accion).indexOf(busqueda) >= 0;
@@ -2020,8 +1994,8 @@
             lista.forEach(function (f) {
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Fecha', fechaHora(f.creado_en)));
-                fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || (f.admin_id ? String(f.admin_id).slice(0, 8) : '—')));
-                fila.appendChild(celda('Salón', nombres[f.salon_id] || (f.salon_id ? String(f.salon_id).slice(0, 8) : '—')));
+                fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || f.admin_email || (f.admin_id ? String(f.admin_id).slice(0, 8) : '—')));
+                fila.appendChild(celda('Salón', nombres[f.salon_id] || f.salon_nombre || (f.salon_id ? String(f.salon_id).slice(0, 8) : '—')));
 
                 var tdAccion = document.createElement('td');
                 tdAccion.setAttribute('data-label', 'Acción');
@@ -2138,14 +2112,6 @@
         $('csv-salones').addEventListener('click', function () { descargarCsv(); });
         $('buscar-auditoria').addEventListener('input', pintarAuditoria);
         $('filtro-accion').addEventListener('change', pintarAuditoria);
-        $('refrescar-auditoria').addEventListener('click', async function () {
-            var boton = $('refrescar-auditoria');
-            ocupado(boton, '…');
-            await cargarAuditoria();
-            pintarAuditoria();
-            ocupado(boton, '');
-            toast('Auditoría actualizada.', 'ok');
-        });
         $('anuncio-mensaje').addEventListener('input', actualizarContadorAnuncio);
         $('anuncio-publicar').addEventListener('click', publicarAnuncio);
         $('refrescar-btn').addEventListener('click', async function () {
