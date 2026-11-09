@@ -1389,6 +1389,7 @@
         .tag-canceladora { background: rgba(224, 121, 110, .16); border-color: var(--danger); color: var(--danger); }
         .tag-otra { background: var(--surface-2); border-color: var(--line); color: var(--ink-soft); }
         .tag-inactiva { background: rgba(214, 137, 74, .18); border-color: #C97E3E; color: #A8642B; }
+        .tag-sin-turnos { background: var(--surface-2); border-color: var(--line); color: var(--ink-soft); }
         [data-theme="dark"] .tag-frecuente { color: #A9BEDC; }
         [data-theme="dark"] .tag-inactiva { color: #E0A46A; }
         .chips-etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -2658,8 +2659,8 @@
                     </div>
                     <div>
                         <label for="cliente-preferencias" class="block text-sm font-medium text-ink-soft mb-1">Preferencias</label>
-                        <input type="text" id="cliente-preferencias" maxlength="120" class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none"
-                               placeholder="Ej: alérgica al acrílico">
+                        <textarea id="cliente-preferencias" rows="2" maxlength="300" class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none"
+                                  placeholder="Ej: alérgica al acrílico, prefiere tonos nude"></textarea>
                     </div>
                 </div>
                 <div>
@@ -4829,9 +4830,14 @@
                 return Math.floor((hoy.getTime() - antes.getTime()) / 86400000);
             }
 
+            // I45b: > 45 dias sin venir = Inactiva. Nunca vino = "Sin turnos" (otro estado).
+            function clienteSinTurnos(cliente) {
+                return diasSinVenir(cliente) === null;
+            }
+
             function clienteInactivo(cliente) {
                 const dias = diasSinVenir(cliente);
-                if (dias === null) return true;          // nunca tuvo un turno realizado
+                if (dias === null) return false;
                 return dias > DIAS_INACTIVA;
             }
 
@@ -4923,6 +4929,11 @@
                         inactiva.className = 'tag-cliente tag-inactiva';
                         inactiva.textContent = 'Inactiva';
                         nombre.appendChild(inactiva);
+                    } else if (clienteSinTurnos(cliente)) {
+                        const sinTurnos = document.createElement('span');
+                        sinTurnos.className = 'tag-cliente tag-sin-turnos';
+                        sinTurnos.textContent = 'Sin turnos';
+                        nombre.appendChild(sinTurnos);
                     }
 
                     const meta = document.createElement('div');
