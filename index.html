@@ -1342,6 +1342,76 @@
         .appt-meta .meta-parte { white-space: nowrap; }
         #modal-notes, #confirm-message { overflow-wrap: anywhere; }
 
+        /* I45 · CRM de clientes */
+        .filtro-inactivas {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: var(--ink-soft);
+            cursor: pointer;
+            min-height: 44px;
+            padding: 0 4px;
+            white-space: nowrap;
+        }
+        .filtro-inactivas input { width: 17px; height: 17px; accent-color: var(--gold-ink); }
+        .data-title-crm {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2px 0;
+            white-space: normal;
+            overflow: visible;
+        }
+        .data-title-crm .data-nombre {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tag-cliente {
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-left: 6px;
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+        .tag-vip { background: rgba(190, 158, 111, .22); border-color: var(--gold); color: var(--gold-ink); }
+        .tag-nueva { background: rgba(127, 176, 138, .20); border-color: var(--done); color: var(--done); }
+        .tag-frecuente { background: rgba(120, 150, 190, .18); border-color: #7C93B8; color: #5C7295; }
+        .tag-canceladora { background: rgba(224, 121, 110, .16); border-color: var(--danger); color: var(--danger); }
+        .tag-otra { background: var(--surface-2); border-color: var(--line); color: var(--ink-soft); }
+        .tag-inactiva { background: rgba(214, 137, 74, .18); border-color: #C97E3E; color: #A8642B; }
+        [data-theme="dark"] .tag-frecuente { color: #A9BEDC; }
+        [data-theme="dark"] .tag-inactiva { color: #E0A46A; }
+        .chips-etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip-etiqueta { position: relative; cursor: pointer; }
+        .chip-etiqueta input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        .chip-etiqueta span {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface-2);
+            color: var(--ink-soft);
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+        }
+        .chip-etiqueta input:checked + span {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #221A20;
+        }
+        .chip-etiqueta input:focus-visible + span { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
+
         /* I41 · logo del salon */
         .mi-salon-fila { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
         .mi-salon-acciones { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
@@ -1798,7 +1868,11 @@
         <section class="section hidden" data-section="clientes">
             <div class="panel">
                 <div class="section-toolbar">
-                    <input type="search" id="clientes-search" placeholder="Buscar por nombre o teléfono" autocomplete="off" aria-label="Buscar clientes">
+                    <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o etiqueta" autocomplete="off" aria-label="Buscar clientes">
+                    <label class="filtro-inactivas" for="clientes-inactivas">
+                        <input type="checkbox" id="clientes-inactivas">
+                        <span>Solo inactivas</span>
+                    </label>
                     <button type="button" id="nuevo-cliente-btn" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
                         <i class="fas fa-plus mr-2"></i> Nuevo cliente
                     </button>
@@ -2566,6 +2640,26 @@
                         <label for="cliente-email" class="block text-sm font-medium text-ink-soft mb-1">Email</label>
                         <input type="email" id="cliente-email" maxlength="120" autocomplete="email"
                                class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-ink-soft mb-1" id="cliente-etiquetas-label">Etiquetas</label>
+                    <div class="chips-etiquetas" id="cliente-etiquetas" role="group" aria-labelledby="cliente-etiquetas-label">
+                        <label class="chip-etiqueta"><input type="checkbox" value="VIP"><span>VIP</span></label>
+                        <label class="chip-etiqueta"><input type="checkbox" value="Nueva"><span>Nueva</span></label>
+                        <label class="chip-etiqueta"><input type="checkbox" value="Frecuente"><span>Frecuente</span></label>
+                        <label class="chip-etiqueta"><input type="checkbox" value="Canceladora"><span>Canceladora</span></label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="cliente-nacimiento" class="block text-sm font-medium text-ink-soft mb-1">Nacimiento</label>
+                        <input type="date" id="cliente-nacimiento" class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="cliente-preferencias" class="block text-sm font-medium text-ink-soft mb-1">Preferencias</label>
+                        <input type="text" id="cliente-preferencias" maxlength="120" class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none"
+                               placeholder="Ej: alérgica al acrílico">
                     </div>
                 </div>
                 <div>
@@ -3466,6 +3560,9 @@
                             'Nombre': c.nombre || '',
                             'Teléfono': c.telefono || '',
                             'Email': c.email || '',
+                            'Etiquetas': etiquetasDeCliente(c).join(', '),
+                            'Nacimiento': c.fecha_nacimiento ? String(c.fecha_nacimiento).slice(0, 10) : '',
+                            'Preferencias': c.preferencias || '',
                             'Cargada por': nombreStaff(c.staff_user_id) || 'Dueña',
                             'Notas': c.notas || ''
                         };
@@ -3643,6 +3740,15 @@
                 if (anio < 2000 || anio > 2100) return null;
                 return iso;
             }
+            // I45: las fechas de nacimiento son anteriores al 2000
+            function fechaNacimientoValida(valor) {
+                if (!valor) return null;
+                const iso = typeof valor === 'string' ? valor.trim() : '';
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || !parseLocalDate(iso)) return null;
+                const anio = Number(iso.slice(0, 4));
+                if (anio < 1900 || anio > 2100) return null;
+                return iso;
+            }
             function numeroValido(valor, minimo, maximo) {
                 const num = Number(valor);
                 if (!Number.isFinite(num) || num < minimo || num > maximo) return null;
@@ -3726,7 +3832,33 @@
                     if (email === null) return { ok: false, error: 'Cliente ' + n + ': email inválido.' };
                     const notas = r.notas == null ? '' : textoLimpio(r.notas, 2000);
                     if (notas === null) return { ok: false, error: 'Cliente ' + n + ': notas inválidas.' };
-                    const fila = { nombre: nombre, telefono: telefono, email: email, notas: notas };
+                    // I45: etiquetas / nacimiento / preferencias
+                    const etiquetasCrudas = Array.isArray(r.etiquetas)
+                        ? r.etiquetas
+                        : (r.etiquetas == null ? [] : String(r.etiquetas).split(','));
+                    const etiquetas = [];
+                    for (let i = 0; i < etiquetasCrudas.length && etiquetas.length < 6; i++) {
+                        const limpia = textoLimpio(etiquetasCrudas[i], 20);
+                        if (limpia === null) return { ok: false, error: 'Cliente ' + n + ': etiqueta inválida.' };
+                        if (limpia) etiquetas.push(limpia);
+                    }
+                    let nacimiento = null;
+                    if (r.fecha_nacimiento) {
+                        nacimiento = fechaNacimientoValida(r.fecha_nacimiento);
+                        if (!nacimiento) return { ok: false, error: 'Cliente ' + n + ': fecha de nacimiento inválida.' };
+                    }
+                    const preferencias = r.preferencias == null ? '' : textoLimpio(r.preferencias, 300);
+                    if (preferencias === null) return { ok: false, error: 'Cliente ' + n + ': preferencias inválidas.' };
+
+                    const fila = {
+                        nombre: nombre,
+                        telefono: telefono,
+                        email: email,
+                        notas: notas,
+                        etiquetas: etiquetas,
+                        fecha_nacimiento: nacimiento,
+                        preferencias: preferencias
+                    };
                     // I43: no perder quien cargo la clienta
                     const staffCliente = staffValido(r.staff_user_id != null ? r.staff_user_id : r.staffUserId);
                     if (staffCliente) fila.staff_user_id = staffCliente;
@@ -4467,6 +4599,9 @@
 
             const clienteModal = document.getElementById('cliente-modal');
             const clienteForm = document.getElementById('cliente-form');
+            const clienteNacimientoInput = document.getElementById('cliente-nacimiento');
+            const clientePreferenciasInput = document.getElementById('cliente-preferencias');
+            const clienteEtiquetasBox = document.getElementById('cliente-etiquetas');
             const clienteIdInput = document.getElementById('cliente-id');
             const clienteNombreInput = document.getElementById('cliente-nombre');
             const clienteTelefonoInput = document.getElementById('cliente-telefono');
@@ -4476,8 +4611,10 @@
             const clienteTitulo = document.getElementById('cliente-modal-title');
             const clienteSaveBtn = document.getElementById('cliente-save');
             const clientesSearch = document.getElementById('clientes-search');
+            const clientesInactivasCheck = document.getElementById('clientes-inactivas');
 
             let filtroClientes = '';
+            let filtroSoloInactivas = false;
             let clienteCallback = null;
 
             function setErrorModal(elemento, mensaje) {
@@ -4507,7 +4644,14 @@
                 boton.setAttribute('aria-label', etiqueta);
                 boton.title = etiqueta;
                 const i = document.createElement('i');
-                i.className = 'fas ' + icono;
+                const marcas = ['fa-whatsapp', 'fa-instagram', 'fa-facebook', 'fa-tiktok'];
+                if (marcas.indexOf(icono) >= 0) {
+                    // ojo: la clase "fab" es el boton flotante de la app, no FontAwesome
+                    i.className = 'fa-brands ' + icono;
+                    i.style.fontFamily = '"Font Awesome 6 Brands", "Font Awesome 5 Brands", sans-serif';
+                } else {
+                    i.className = 'fas ' + icono;
+                }
                 i.setAttribute('aria-hidden', 'true');
                 boton.appendChild(i);
                 boton.addEventListener('click', alClick);
@@ -4654,6 +4798,68 @@
             }
 
             // ── clientes ──
+            // I45 · CRM: etiquetas, inactividad y reactivacion
+            const DIAS_INACTIVA = 45;
+            const ETIQUETAS_CLIENTE = ['VIP', 'Nueva', 'Frecuente', 'Canceladora'];
+
+            function etiquetasDeCliente(cliente) {
+                const crudo = cliente && cliente.etiquetas;
+                if (Array.isArray(crudo)) {
+                    return crudo.map(function (t) { return String(t == null ? '' : t).trim(); }).filter(Boolean).slice(0, 6);
+                }
+                if (typeof crudo === 'string' && crudo) {
+                    return crudo.split(',').map(function (t) { return t.trim(); }).filter(Boolean).slice(0, 6);
+                }
+                return [];
+            }
+
+            function ultimoTurnoRealizado(cliente) {
+                const hechos = turnosDeCliente(cliente).filter(function (t) { return t.status === 'completed'; });
+                if (!hechos.length) return null;
+                const fechas = hechos.map(function (t) { return fechaDeFila(t); }).filter(Boolean).sort();
+                return fechas.length ? fechas[fechas.length - 1] : null;
+            }
+
+            function diasSinVenir(cliente) {
+                const ultimo = ultimoTurnoRealizado(cliente);
+                if (!ultimo) return null;
+                const hoy = parseLocalDate(todayISO());
+                const antes = parseLocalDate(ultimo);
+                if (!hoy || !antes) return null;
+                return Math.floor((hoy.getTime() - antes.getTime()) / 86400000);
+            }
+
+            function clienteInactivo(cliente) {
+                const dias = diasSinVenir(cliente);
+                if (dias === null) return true;          // nunca tuvo un turno realizado
+                return dias > DIAS_INACTIVA;
+            }
+
+            function telefonoWhatsApp(valor) {
+                const crudo = String(valor == null ? '' : valor);
+                let digitos = '';
+                for (let i = 0; i < crudo.length; i++) {
+                    const caracter = crudo.charAt(i);
+                    if (caracter >= '0' && caracter <= '9') digitos += caracter;
+                }
+                if (!digitos) return '';
+                if (digitos.indexOf('54') === 0) return digitos;
+                digitos = digitos.replace(/^0+/, '');
+                // saca el 15 del celular: 2 a 4 digitos + 15 + 6 a 8 digitos
+                digitos = digitos.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2');
+                return '549' + digitos;
+            }
+
+            function abrirWhatsAppReactivacion(cliente) {
+                const telefono = telefonoWhatsApp(cliente && cliente.telefono);
+                if (!telefono) return;
+                const nombre = String((cliente && cliente.nombre) || '').trim().split(' ').filter(Boolean)[0] || '';
+                const mensaje = '¡Hola ' + nombre + '! Hace un tiempo no te vemos por Eli Nails. ' +
+                    '¿Te gustaría agendar un turno para esta semana? 💅';
+                const url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
+                window.open(url, '_blank', 'noopener');
+            }
+
             function turnosDeCliente(cliente) {
                 const nombre = normalizar(cliente.nombre);
                 return store.turnos.filter(function(turno) {
@@ -4673,14 +4879,17 @@
                 }
                 const filtro = normalizar(filtroClientes);
                 const lista = store.clientes.filter(function(cliente) {
+                    if (filtroSoloInactivas && !clienteInactivo(cliente)) return false;
                     if (!filtro) return true;
                     return normalizar(cliente.nombre).indexOf(filtro) >= 0 ||
                            normalizar(cliente.telefono).indexOf(filtro) >= 0 ||
-                           normalizar(cliente.email).indexOf(filtro) >= 0;
+                           normalizar(cliente.email).indexOf(filtro) >= 0 ||
+                           normalizar(etiquetasDeCliente(cliente).join(' ')).indexOf(filtro) >= 0 ||
+                           normalizar(cliente.preferencias || '').indexOf(filtro) >= 0;
                 });
                 cont.innerHTML = '';
                 if (!lista.length) {
-                    pintarVacio(cont, 'fa-user-friends', filtro
+                    pintarVacio(cont, 'fa-user-friends', (filtro || filtroSoloInactivas)
                         ? 'No hay clientes que coincidan con la búsqueda.'
                         : 'Todavía no cargaste clientes. Agregá el primero con "Nuevo cliente".');
                     return;
@@ -4695,11 +4904,32 @@
 
                     const info = document.createElement('div');
                     const nombre = document.createElement('div');
-                    nombre.className = 'data-title';
-                    nombre.textContent = cliente.nombre || 'Sin nombre';
+                    nombre.className = 'data-title data-title-crm';
+                    const nombreTexto = document.createElement('span');
+                    nombreTexto.className = 'data-nombre';
+                    nombreTexto.textContent = cliente.nombre || 'Sin nombre';
+                    nombre.appendChild(nombreTexto);
+
+                    const etiquetas = etiquetasDeCliente(cliente);
+                    etiquetas.forEach(function (etiqueta) {
+                        const badge = document.createElement('span');
+                        const conocida = ETIQUETAS_CLIENTE.indexOf(etiqueta) >= 0;
+                        badge.className = 'tag-cliente ' + (conocida ? 'tag-' + normalizar(etiqueta).replace(/[^a-z]/g, '') : 'tag-otra');
+                        badge.textContent = etiqueta;
+                        nombre.appendChild(badge);
+                    });
+                    if (clienteInactivo(cliente)) {
+                        const inactiva = document.createElement('span');
+                        inactiva.className = 'tag-cliente tag-inactiva';
+                        inactiva.textContent = 'Inactiva';
+                        nombre.appendChild(inactiva);
+                    }
+
                     const meta = document.createElement('div');
                     meta.className = 'data-meta';
-                    meta.textContent = cliente.telefono || cliente.email || 'Sin datos de contacto';
+                    const contacto = cliente.telefono || cliente.email || 'Sin datos de contacto';
+                    const preferencias = String(cliente.preferencias || '').trim();
+                    meta.textContent = preferencias ? (contacto + ' · ' + preferencias) : contacto;
                     info.appendChild(nombre);
                     info.appendChild(meta);
 
@@ -4710,6 +4940,9 @@
 
                     const acciones = document.createElement('div');
                     acciones.className = 'row-actions';
+                    if (clienteInactivo(cliente) && telefonoWhatsApp(cliente.telefono)) {
+                        acciones.appendChild(botonAccion('fa-whatsapp', 'Reactivar a ' + (cliente.nombre || ''), function() { abrirWhatsAppReactivacion(cliente); }));
+                    }
                     acciones.appendChild(botonAccion('fa-pen', 'Editar ' + (cliente.nombre || ''), function() { abrirCliente(cliente.id); }));
                     acciones.appendChild(botonAccion('fa-trash-alt', 'Borrar ' + (cliente.nombre || ''), function() { borrarCliente(cliente.id); }, true));
 
@@ -4886,6 +5119,14 @@
                     clienteTelefonoInput.value = cliente.telefono || '';
                     clienteEmailInput.value = cliente.email || '';
                     clienteNotasInput.value = cliente.notas || '';
+                    if (clienteNacimientoInput) clienteNacimientoInput.value = String(cliente.fecha_nacimiento || '').slice(0, 10);
+                    if (clientePreferenciasInput) clientePreferenciasInput.value = cliente.preferencias || '';
+                    const etiquetasGuardadas = etiquetasDeCliente(cliente);
+                    if (clienteEtiquetasBox) {
+                        Array.prototype.forEach.call(clienteEtiquetasBox.querySelectorAll('input'), function (caja) {
+                            caja.checked = etiquetasGuardadas.indexOf(caja.value) >= 0;
+                        });
+                    }
                     clienteTitulo.textContent = 'Editar cliente';
                 } else {
                     clienteTitulo.textContent = 'Nuevo cliente';
@@ -4923,11 +5164,17 @@
                     return;
                 }
 
+                const etiquetasElegidas = clienteEtiquetasBox
+                    ? Array.prototype.slice.call(clienteEtiquetasBox.querySelectorAll('input:checked')).map(function (caja) { return caja.value; })
+                    : [];
                 const fila = {
                     nombre: nombre,
                     telefono: clienteTelefonoInput.value.trim(),
                     email: clienteEmailInput.value.trim(),
-                    notas: clienteNotasInput.value.trim()
+                    notas: clienteNotasInput.value.trim(),
+                    etiquetas: etiquetasElegidas,
+                    fecha_nacimiento: (clienteNacimientoInput && clienteNacimientoInput.value) ? clienteNacimientoInput.value : null,
+                    preferencias: (clientePreferenciasInput ? clientePreferenciasInput.value.trim() : '')
                 };
                 clienteSaveBtn.disabled = true;
                 try {
@@ -5015,6 +5262,12 @@
             if (clientesSearch) {
                 clientesSearch.addEventListener('input', function() {
                     filtroClientes = clientesSearch.value;
+                    renderClientes();
+                });
+            }
+            if (clientesInactivasCheck) {
+                clientesInactivasCheck.addEventListener('change', function() {
+                    filtroSoloInactivas = clientesInactivasCheck.checked;
                     renderClientes();
                 });
             }            // ─────────────────────────────────────────────────────────────
