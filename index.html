@@ -2016,7 +2016,7 @@
                                 <span class="paleta-nombre">Negro y Blanco</span>
                             </button>
                         </div>
-                    </div>                <div>
+                    </div>                <div id="panel-datos">
                     <h2 class="panel-title">Datos</h2>
                     <p class="setting-note">Exportá o restaurá todos los turnos en JSON.</p>
                     <p id="data-status" class="mt-2 text-sm" role="status" aria-live="polite" hidden></p>
@@ -2759,12 +2759,16 @@
                         return data;
                     },
                     async update(id, fila) {
-                        const { data, error } = await supabase.from(tabla).update(fila).eq('id', id).select().single();
+                        let consulta = supabase.from(tabla).update(fila).eq('id', id);
+                        if (contexto.salonId) consulta = consulta.eq('salon_id', contexto.salonId);
+                        const { data, error } = await consulta.select().single();
                         if (error) throw error;
                         return data;
                     },
                     async remove(id) {
-                        const { error } = await supabase.from(tabla).delete().eq('id', id);
+                        let consulta = supabase.from(tabla).delete().eq('id', id);
+                        if (contexto.salonId) consulta = consulta.eq('salon_id', contexto.salonId);
+                        const { error } = await consulta;
                         if (error) throw error;
                     }
                 };
@@ -2793,7 +2797,7 @@
 
             // I41: aplica el logo del salon (o el de por defecto) en toda la UI
             function aplicarLogo() {
-                const url = contexto.logoUrl || LOGO_POR_DEFECTO;
+                const url = urlLogoValida(contexto.logoUrl) || LOGO_POR_DEFECTO;
                 document.querySelectorAll('img[data-logo]').forEach(function (img) {
                     if (img.getAttribute('src') !== url) img.setAttribute('src', url);
                 });
@@ -2838,7 +2842,7 @@
                             return { estado: 'suspendido' };
                         }
                         contexto.nombreSalon = salon.nombre || '';
-                        contexto.logoUrl = salon.logo_url || '';
+                        contexto.logoUrl = urlLogoValida(salon.logo_url);
                     }
                 } catch (error) { /* sin salon visible: queda el logo por defecto */ }
                 return { estado: 'activa', salonId: contexto.salonId, rol: contexto.rol };
@@ -2874,6 +2878,8 @@
                 if (bloqueStaff) bloqueStaff.classList.toggle('hidden', staff);
                 const panelMiSalon = document.getElementById('panel-mi-salon');
                 if (panelMiSalon) panelMiSalon.classList.toggle('hidden', staff);
+                const panelDatos = document.getElementById('panel-datos');
+                if (panelDatos) panelDatos.classList.toggle('hidden', staff);
             }
 
             async function cargarTodo() {
@@ -3161,7 +3167,8 @@
                         if (staffElegido) filaEdicion.staff_user_id = staffElegido;
                         const { error } = await supabase.from('turnos')
                             .update(filaEdicion)
-                            .eq('id', editando);
+                            .eq('id', editando)
+                            .eq('salon_id', contexto.salonId);
                         if (error) throw error;
                     } else {
                         const filaNueva = toDb(appointment);
@@ -3449,6 +3456,7 @@
                             'Seña': Number(t.sena) || 0,
                             'Saldo': Math.max(0, (Number(t.price) || 0) - (Number(t.sena) || 0)),
                             'Estado': getStatusText(t.status),
+                            'Atiende': nombreStaff(t.staff_user_id) || 'Dueña',
                             'Método de pago': etiquetaMetodo(t.metodo_pago != null ? t.metodo_pago : t.metodoPago),
                             'Notas': t.notes || ''
                         };
@@ -3458,6 +3466,7 @@
                             'Nombre': c.nombre || '',
                             'Teléfono': c.telefono || '',
                             'Email': c.email || '',
+                            'Cargada por': nombreStaff(c.staff_user_id) || 'Dueña',
                             'Notas': c.notas || ''
                         };
                     });
@@ -3640,6 +3649,33 @@
                 return num;
             }
 
+            // I43: un respaldo manipulado no puede inyectar una empleada de otro salon
+            function staffValido(valor) {
+                if (!valor) return null;
+                const existe = (store.miembros || []).some(function (m) {
+                    return String(m.user_id) === String(valor);
+                });
+                return existe ? valor : null;
+            }
+
+            // I43: solo URLs seguras para el logo
+            function urlLogoValida(valor) {
+                const url = String(valor == null ? '' : valor).trim();
+                if (!url) return '';
+                if (url.indexOf('https://') === 0) return url;
+                if (url.indexOf('data:image/') === 0) return url;
+                return '';
+            }
+
+            function nombreStaff(userId) {
+                if (!userId) return '';
+                const miembro = (store.miembros || []).find(function (m) {
+                    return String(m.user_id) === String(userId);
+                });
+                if (!miembro) return '';
+                return miembro.nombre || miembro.email || '';
+            }
+
             const LIMPIADORES = {
                 turnos: function (r, n) {
                     const clientName = textoLimpio(r.client_name != null ? r.client_name : r.clientName, 120);
@@ -3673,6 +3709,11 @@
                     if (clienteId != null) fila.cliente_id = clienteId;
                     const servicioId = r.servicio_id != null ? r.servicio_id : r.servicioId;
                     if (servicioId != null) fila.servicio_id = servicioId;
+                    // I43: no perder la empleada asignada al restaurar
+                    const staffRespaldo = staffValido(r.staff_user_id != null ? r.staff_user_id : r.staffUserId);
+                    if (staffRespaldo) fila.staff_user_id = staffRespaldo;
+                    const salonRespaldo = r.salon_id != null ? r.salon_id : r.salonId;
+                    if (salonRespaldo) fila.salon_id = salonRespaldo;
                     if (r.id != null) fila.id = r.id;
                     return { ok: true, fila: fila };
                 },
@@ -3686,6 +3727,11 @@
                     const notas = r.notas == null ? '' : textoLimpio(r.notas, 2000);
                     if (notas === null) return { ok: false, error: 'Cliente ' + n + ': notas inválidas.' };
                     const fila = { nombre: nombre, telefono: telefono, email: email, notas: notas };
+                    // I43: no perder quien cargo la clienta
+                    const staffCliente = staffValido(r.staff_user_id != null ? r.staff_user_id : r.staffUserId);
+                    if (staffCliente) fila.staff_user_id = staffCliente;
+                    const salonCliente = r.salon_id != null ? r.salon_id : r.salonId;
+                    if (salonCliente) fila.salon_id = salonCliente;
                     if (r.id != null) fila.id = r.id;
                     return { ok: true, fila: fila };
                 },
@@ -3790,13 +3836,18 @@
             }
 
             async function borrarTodoDeTabla(tabla) {
-                const consulta = await supabase.from(tabla).select('id');
-                if (consulta.error) throw consulta.error;
-                const ids = (consulta.data || []).map(function (fila) { return fila.id; });
+                // I43: solo mira y borra filas del salon actual
+                let consulta = supabase.from(tabla).select('id');
+                if (contexto.salonId) consulta = consulta.eq('salon_id', contexto.salonId);
+                const lectura = await consulta;
+                if (lectura.error) throw lectura.error;
+                const ids = (lectura.data || []).map(function (fila) { return fila.id; });
                 for (let i = 0; i < ids.length; i += 200) {
                     const lote = ids.slice(i, i + 200);
-                    const borrado = await supabase.from(tabla).delete().in('id', lote);
-                    if (borrado.error) throw borrado.error;
+                    let borrado = supabase.from(tabla).delete().in('id', lote);
+                    if (contexto.salonId) borrado = borrado.eq('salon_id', contexto.salonId);
+                    const resultado = await borrado;
+                    if (resultado.error) throw resultado.error;
                 }
                 return ids.length;
             }
@@ -3852,6 +3903,11 @@
             }
 
             async function restaurarDesdeTexto(texto) {
+                // I43: solo la duena puede restaurar (borra y reinserta datos)
+                if (!esOwner()) {
+                    setDataStatus('error', 'No tenés permisos para restaurar respaldos. Pedile a la dueña del salón.');
+                    return;
+                }
                 const resultado = validarRespaldo(texto);
                 if (!resultado.ok) {
                     setDataStatus('error', resultado.error);
@@ -6799,7 +6855,8 @@
                 try {
                     const { error } = await supabase.from('turnos')
                         .update({ status: 'completed', metodo_pago: metodoPago })
-                        .eq('id', turno.id);
+                        .eq('id', turno.id)
+                        .eq('salon_id', contexto.salonId);
                     if (error) throw error;
                     cerrarModal(appointmentModal);
                     await loadAppointments();
@@ -6829,7 +6886,8 @@
                 try {
                     const { error } = await supabase.from('turnos')
                         .update({ status: estadoAnterior })
-                        .eq('id', turno.id);
+                        .eq('id', turno.id)
+                        .eq('salon_id', contexto.salonId);
                     if (error) throw error;
                     await loadAppointments();
                     await recargar('turnos');
@@ -6878,7 +6936,7 @@
                     const url = ((publica && publica.data && publica.data.publicUrl) || '') + '?v=' + Date.now();
                     const guardado = await supabase.from('salones').update({ logo_url: url }).eq('id', contexto.salonId);
                     if (guardado.error) throw guardado.error;
-                    contexto.logoUrl = url;
+                    contexto.logoUrl = urlLogoValida(url);
                     logoGrisCache = null;
                     logoGrisUrl = null;
                     aplicarLogo();
@@ -6940,7 +6998,8 @@
                         try {
                             const { error } = await supabase.from('miembros_salon')
                                 .update({ activo: activar })
-                                .eq('id', miembro.id);
+                                .eq('id', miembro.id)
+                                .eq('salon_id', contexto.salonId);
                             if (error) throw error;
                             mostrarBanner(activar ? 'Miembro reactivado.' : 'Miembro desactivado.', 'ok');
                             await recargar('miembros');
@@ -7089,7 +7148,8 @@
                         try {
                             const { error } = await supabase.from('turnos')
                                 .update({ status: 'cancelled' })
-                                .eq('id', turno.id);
+                                .eq('id', turno.id)
+                                .eq('salon_id', contexto.salonId);
                             if (error) throw error;
                             cerrarModal(appointmentModal);
                             await loadAppointments();
@@ -7238,7 +7298,7 @@
             // Delete appointment (P2: Supabase)
             async function deleteAppointment(id) {
                 try {
-                    const { error } = await supabase.from('turnos').delete().eq('id', id);
+                    const { error } = await supabase.from('turnos').delete().eq('id', id).eq('salon_id', contexto.salonId);
                     if (error) throw error;
                     await loadAppointments();
                     await recargar('turnos');
@@ -7298,8 +7358,9 @@
 
             // I41: logo del salon para los canvas, con caida al logo por defecto
             async function cargarLogoParaCanvas() {
-                if (contexto.logoUrl) {
-                    const propio = await cargarImagen(contexto.logoUrl);
+                const urlSegura = urlLogoValida(contexto.logoUrl);
+                if (urlSegura) {
+                    const propio = await cargarImagen(urlSegura);
                     if (propio && (propio.naturalWidth || propio.width)) return propio;
                 }
                 return await cargarImagen(LOGO_POR_DEFECTO);
