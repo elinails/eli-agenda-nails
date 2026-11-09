@@ -1516,7 +1516,7 @@
         } catch (error) {
             console.error("impersonar:", error);
             $("detalle-nota").textContent = "No se pudo impersonar: " + (error.message || "error de conexión");
-        } finally { delete boton.dataset.texto; boton.disabled = false; }
+        } finally { boton.textContent = "→ Entrar como"; delete boton.dataset.texto; boton.disabled = false; }
     }
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) {
