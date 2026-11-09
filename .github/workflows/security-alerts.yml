@@ -1,0 +1,89 @@
+name: Alertas de seguridad
+
+# Cada 15 minutos: impersonaciones fallidas y logins fallidos.
+# Secrets requeridos:
+#   DATABASE_URL        connection string de Supabase
+#   RESEND_API_KEY      API key de Resend
+#   ADMIN_ALERT_EMAIL   email que recibe la alerta
+#   ALERT_FROM          remitente verificado en Resend (default: onboarding@resend.dev)
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alertas:
+    name: Fallos de impersonación y login
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Evaluar y notificar
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ADMIN_ALERT_EMAIL: ${{ secrets.ADMIN_ALERT_EMAIL }}
+          ALERT_FROM: ${{ secrets.ALERT_FROM }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Falta DATABASE_URL."
+            exit 1
+          fi
+
+          FALLOS="$(psql "$DATABASE_URL" -At -c "
+            select count(*) from public.auditoria_admin
+             where accion = 'impersonar_fallido'
+               and creado_en > now() - interval '15 minutes';")"
+
+          # La forma exacta del payload de Auth puede variar; si falla, no rompe la alerta.
+          LOGINS="$(psql "$DATABASE_URL" -At -c "
+            select count(*) from auth.audit_log_entries
+             where created_at > now() - interval '15 minutes'
+               and payload->>'action' = 'login'
+               and (payload->>'error_code' is not null
+                    or payload->>'success' = 'false');" 2>/dev/null || echo 0)"
+
+          FALLOS="${FALLOS:-0}"
+          LOGINS="${LOGINS:-0}"
+          echo "Fallos de impersonación: $FALLOS · Logins fallidos: $LOGINS"
+
+          if [ "$FALLOS" -lt 5 ] && [ "$LOGINS" -lt 10 ]; then
+            echo "Sin alertas."
+            exit 0
+          fi
+
+          # Una sola alerta por hora (tabla creada por i50_seguridad.sql).
+          CLAVE="seg:$(date -u +%Y%m%d%H)"
+          ENVIADA="$(psql "$DATABASE_URL" -At -c "
+            insert into public.seguridad_alertas (clave) values ('$CLAVE')
+            on conflict do nothing returning clave;" 2>/dev/null || true)"
+          if [ -z "$ENVIADA" ]; then
+            echo "Alerta ya enviada en esta hora."
+            exit 0
+          fi
+
+          if [ -z "$RESEND_API_KEY" ] || [ -z "$ADMIN_ALERT_EMAIL" ]; then
+            echo "::error::Faltan RESEND_API_KEY y/o ADMIN_ALERT_EMAIL."
+            exit 1
+          fi
+
+          FROM="${ALERT_FROM:-onboarding@resend.dev}"
+          BODY="$(printf '{"from":"%s","to":["%s"],"subject":"Alerta de seguridad · Eli Nails","html":"<p><strong>%s</strong> intento(s) fallido(s) de impersonación y <strong>%s</strong> login(s) fallido(s) en los últimos 15 minutos.</p><p>Revisá el panel de Auditoría.</p>"}' \
+            "$FROM" "$ADMIN_ALERT_EMAIL" "$FALLOS" "$LOGINS")"
+
+          curl -sS --fail -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$BODY"
+
+          echo "Alerta enviada."

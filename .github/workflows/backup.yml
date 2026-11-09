@@ -1,35 +1,51 @@
-name: Backup semanal
+name: Backup diario (public + auth + storage)
 
-# Domingo 23:00 en Argentina (UTC-3) = lunes 02:00 UTC.
+# Todos los días 23:00 Argentina (UTC-3) = 02:00 UTC.
 # Argentina no tiene horario de verano, así que el horario es estable todo el año.
+#
+# Secrets requeridos:
+#   DATABASE_URL          connection string de Supabase (postgres, SSL)
+#   BACKUP_PASSPHRASE     frase para cifrar los dumps (repo público)
+# Secrets opcionales (Storage S3):
+#   S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_ENDPOINT, S3_BUCKET, S3_REGION
 on:
   schedule:
-    - cron: '0 2 * * 1'
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  backup:
-    name: pg_dump de Supabase
+  database:
+    name: pg_dump public + auth
     runs-on: ubuntu-latest
-    # Misma versión mayor que el servidor: pg_dump nuevo puede leer un servidor viejo,
-    # al revés falla con "server version mismatch".
     container:
       image: postgres:17
 
     steps:
-      - name: Comprobar el secret
+      - name: Comprobar secrets
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
+          set -euo pipefail
           if [ -z "$DATABASE_URL" ]; then
             echo "::error::Falta el secret DATABASE_URL (Settings > Secrets and variables > Actions)."
             exit 1
           fi
+          if [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Falta BACKUP_PASSPHRASE. El repo es público: los dumps NO se suben sin cifrar."
+            exit 1
+          fi
 
-      - name: Generar el respaldo
+      - name: Instalar gpg
+        run: |
+          if ! command -v gpg >/dev/null 2>&1; then
+            apt-get update && apt-get install -y --no-install-recommends gnupg
+          fi
+
+      - name: Generar respaldos
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PGSSLMODE: require
@@ -37,7 +53,6 @@ jobs:
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/backup"
           FECHA="$(date -u +%Y-%m-%d)"
-          ARCHIVO="eli_${FECHA}.sql.gz"
           pg_dump "$DATABASE_URL" \
             --schema=public \
             --no-owner \
@@ -45,31 +60,96 @@ jobs:
             --clean \
             --if-exists \
             --format=plain \
-            | gzip -9 > "$GITHUB_WORKSPACE/backup/${ARCHIVO}"
+            | gzip -9 > "$GITHUB_WORKSPACE/backup/public_${FECHA}.sql.gz"
+          pg_dump "$DATABASE_URL" \
+            --schema=auth \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            --format=plain \
+            | gzip -9 > "$GITHUB_WORKSPACE/backup/auth_${FECHA}.sql.gz"
           echo "FECHA=${FECHA}" >> "$GITHUB_ENV"
-          echo "ARCHIVO=${ARCHIVO}" >> "$GITHUB_ENV"
 
-      - name: Verificar el respaldo
+      - name: Cifrar dumps
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
-          RUTA="$GITHUB_WORKSPACE/backup/${ARCHIVO}"
-          if [ ! -s "$RUTA" ]; then
-            echo "::error::El respaldo quedó vacío."
-            exit 1
-          fi
-          gzip -t "$RUTA"
-          LINEAS="$(gunzip -c "$RUTA" | wc -l)"
-          TAMANO="$(du -h "$RUTA" | cut -f1)"
-          echo "Respaldo: ${ARCHIVO} · ${TAMANO} · ${LINEAS} líneas SQL"
-          if [ "$LINEAS" -lt 10 ]; then
-            echo "::error::El respaldo tiene muy pocas líneas. Revisar la conexión."
-            exit 1
-          fi
+          for archivo in "$GITHUB_WORKSPACE"/backup/*.sql.gz; do
+            gpg --batch --yes --passphrase "$BACKUP_PASSPHRASE" \
+                --symmetric --cipher-algo AES256 "$archivo"
+            rm -f "$archivo"
+          done
 
-      - name: Subir el artifact
+      - name: Verificar dumps cifrados
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          ls -lh "$GITHUB_WORKSPACE/backup"
+          for archivo in "$GITHUB_WORKSPACE"/backup/*.sql.gz.gpg; do
+            gpg --batch --yes --passphrase "$BACKUP_PASSPHRASE" \
+                --decrypt "$archivo" | gzip -t
+          done
+
+      - name: Subir artifact cifrado
         uses: actions/upload-artifact@v4
         with:
           name: eli-backup-${{ env.FECHA }}
-          path: ${{ github.workspace }}/backup/*.sql.gz
+          path: ${{ github.workspace }}/backup/*.gpg
           retention-days: 90
           if-no-files-found: error
+
+  storage:
+    name: Storage logos (S3 opcional)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Comprobar credenciales S3
+        id: check
+        env:
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$S3_ACCESS_KEY_ID" ] || [ -z "$S3_SECRET_ACCESS_KEY" ] \
+             || [ -z "$S3_ENDPOINT" ] || [ -z "$S3_BUCKET" ]; then
+            echo "::warning::Storage omitido: faltan secrets S3_* (Dashboard Supabase > Storage > S3 access keys)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sincronizar bucket
+        if: steps.check.outputs.ready == 'true'
+        env:
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_REGION: ${{ secrets.S3_REGION }}
+        run: |
+          set -euo pipefail
+          if ! command -v aws >/dev/null 2>&1; then
+            python3 -m pip install --user --break-system-packages --quiet awscli
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+          export AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY"
+          export AWS_DEFAULT_REGION="${S3_REGION:-us-east-1}"
+          mkdir -p storage
+          aws s3 sync "s3://${S3_BUCKET}" "storage/${S3_BUCKET}" \
+            --endpoint-url "$S3_ENDPOINT" --only-show-errors
+          tar -czf "storage/storage_$(date -u +%Y-%m-%d).tar.gz" -C storage "${S3_BUCKET}"
+
+      - name: Subir artifact de Storage
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eli-storage-${{ github.run_id }}
+          path: storage/*.tar.gz
+          retention-days: 30
+          if-no-files-found: warn
