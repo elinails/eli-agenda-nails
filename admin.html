@@ -700,6 +700,15 @@
         .pill-info { background: var(--info-soft); color: var(--info); }
         .pill-neutral { background: var(--surface-3); color: var(--ink-muted); }
         .pill-gold { background: var(--gold-soft); color: var(--gold-2); }
+        .perfil-celda { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .perfil-rubro { font-size: 11.5px; color: var(--ink-subtle); white-space: nowrap; }
+        .perfil-falta {
+            font-size: 10.5px;
+            color: var(--danger);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-weight: 600;
+        }
 
         .plan-botones { display: inline-flex; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
         .plan-botones button {
@@ -1142,12 +1151,25 @@
                     </div>
 
                     <div class="toolbar">
-                        <input type="search" id="buscar-salones" placeholder="Buscar salón o email de la dueña" aria-label="Buscar salón o email de la dueña">
+                        <input type="search" id="buscar-salones" placeholder="Buscar salón, dueña, rubro o slug" aria-label="Buscar salón, dueña, rubro o slug">
                         <select id="filtro-estado" aria-label="Filtrar por estado">
                             <option value="todos">Todos</option>
                             <option value="activos">Activos</option>
                             <option value="suspendidos">Suspendidos</option>
                             <option value="inactivos">Inactivos (15 días)</option>
+                        </select>
+                        <select id="filtro-publicacion" aria-label="Filtrar por estado de publicación">
+                            <option value="todos">Todos los perfiles</option>
+                            <option value="publicados">Publicados</option>
+                            <option value="pendientes">Pendientes</option>
+                        </select>
+                        <select id="filtro-rubro" aria-label="Filtrar por rubro">
+                            <option value="">Todos los rubros</option>
+                            <option value="nails">Nails</option>
+                            <option value="peluqueria">Peluquería</option>
+                            <option value="maquillaje">Maquillaje</option>
+                            <option value="barberia">Barbería</option>
+                            <option value="sin-rubro">Sin rubro</option>
                         </select>
                         <button type="button" id="csv-salones" class="btn">↓ CSV</button>
                         <span class="contador" id="salones-contador"></span>
@@ -1166,6 +1188,7 @@
                                     <th>Creado</th>
                                     <th>Último turno</th>
                                     <th>Estado</th>
+                                    <th>Perfil</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -1477,6 +1500,12 @@
             active: { nombre: 'Activo', clase: 'pill-ok' },
             past_due: { nombre: 'Past due', clase: 'pill-danger' }
         };
+        const RUBROS = {
+            nails: 'Nails',
+            peluqueria: 'Peluquería',
+            maquillaje: 'Maquillaje',
+            barberia: 'Barbería'
+        };
         const TITULOS = {
             salones: { t: 'Inicio', s: 'Estado general de la plataforma.' },
             suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
@@ -1527,6 +1556,7 @@
         var adminEmail = '';
         var salones = [];
         var planesDisponibles = true;
+        var perfilDisponible = true;
         var detalleActual = null;
         var focoAnterior = null;
         var anuncios = [];
@@ -2518,6 +2548,10 @@
                     return admin + ' suspendió ' + (salon || 'un salón');
                 case 'salon_activado':
                     return admin + ' reactivó ' + (salon || 'un salón');
+                case 'salon_publicado':
+                    return admin + ' publicó el perfil de ' + (salon || 'un salón') + ' en Elima Belleza';
+                case 'salon_despublicado':
+                    return admin + ' despublicó el perfil de ' + (salon || 'un salón');
                 case 'salon_cancelado':
                     return admin + ' marcó como cancelada la suscripción de ' + (salon || 'un salón');
                 case 'plan_cambio':
@@ -2721,7 +2755,10 @@
             var out = [];
 
             salones.forEach(function (s) {
-                if (normalizar(s.nombre).indexOf(busqueda) >= 0 || normalizar(s.dueno || '').indexOf(busqueda) >= 0) {
+                if (normalizar(s.nombre).indexOf(busqueda) >= 0 ||
+                    normalizar(s.dueno || '').indexOf(busqueda) >= 0 ||
+                    normalizar(RUBROS[s.rubro] || '').indexOf(busqueda) >= 0 ||
+                    normalizar(s.slug || '').indexOf(busqueda) >= 0) {
                     out.push({ tipo: 'salon', etiqueta: s.nombre + ' · ' + (s.dueno || ''), texto: s.nombre, id: s.id });
                 }
             });
@@ -2866,22 +2903,40 @@
             pintarAuditoria();
         }
 
+        function errorFaltaColumna(error) {
+            if (!error) return false;
+            return error.code === '42703' ||
+                   error.code === 'PGRST204' ||
+                   /column .* does not exist/i.test(String(error.message || ''));
+        }
+
         async function cargarSalones() {
             var resumen = await supabase.rpc('admin_resumen_salones');
             if (resumen.error) throw resumen.error;
             var base = resumen.data || [];
 
             var mapa = {};
+            perfilDisponible = true;
             try {
+                var CAMPOS_PLAN = 'id, plan_id, estado_suscripcion, trial_hasta, suscripcion_desde, dueno_user_id';
+                var CAMPOS_PERFIL = CAMPOS_PLAN + ', rubro, publicado, slug';
                 var planes = await supabase
                     .from('salones')
-                    .select('id, plan_id, estado_suscripcion, trial_hasta, suscripcion_desde, dueno_user_id');
+                    .select(CAMPOS_PERFIL);
+                if (planes.error && errorFaltaColumna(planes.error)) {
+                    // I62 todavía no está aplicado: el admin sigue funcionando.
+                    perfilDisponible = false;
+                    planes = await supabase
+                        .from('salones')
+                        .select(CAMPOS_PLAN);
+                }
                 if (planes.error) throw planes.error;
                 planesDisponibles = true;
                 (planes.data || []).forEach(function (p) { mapa[p.id] = p; });
             } catch (error) {
                 planesDisponibles = false;
-                console.warn('No se pudo leer salones (plan):', error);
+                perfilDisponible = false;
+                console.warn('No se pudo leer salones (plan/perfil):', error);
             }
 
             salones = base.map(function (s) {
@@ -2900,7 +2955,10 @@
                     trial_hasta: campo(s, ['trial_hasta'], p.trial_hasta || null),
                     suscripcion_desde: campo(s, ['suscripcion_desde'], p.suscripcion_desde || null),
                     ultimoTurno: campo(s, ['ultimo_turno', 'ultimoTurno'], null),
-                    dueno_user_id: p.dueno_user_id || null
+                    dueno_user_id: p.dueno_user_id || null,
+                    rubro: campo(s, ['rubro'], p.rubro || ''),
+                    publicado: campo(s, ['publicado'], p.publicado) === true,
+                    slug: campo(s, ['slug'], p.slug || '')
                 };
             });
         }
@@ -2954,6 +3012,12 @@
         // ── salones ──
         var filtroSalones = '';
         var filtroEstado = 'todos';
+        var filtroPublicacion = 'todos';
+        var filtroRubro = '';
+
+        function perfilCompleto(s) {
+            return !!(s && s.slug && s.rubro);
+        }
 
         function salonesFiltrados() {
             var busqueda = normalizar(filtroSalones).trim();
@@ -2961,9 +3025,15 @@
                 if (filtroEstado === 'activos' && !s.activo) return false;
                 if (filtroEstado === 'suspendidos' && s.activo) return false;
                 if (filtroEstado === 'inactivos' && !salonInactivo(s)) return false;
+                if (filtroPublicacion === 'publicados' && s.publicado !== true) return false;
+                if (filtroPublicacion === 'pendientes' && s.publicado === true) return false;
+                if (filtroRubro === 'sin-rubro' && s.rubro) return false;
+                if (filtroRubro && filtroRubro !== 'sin-rubro' && s.rubro !== filtroRubro) return false;
                 if (!busqueda) return true;
                 return normalizar(s.nombre).indexOf(busqueda) >= 0 ||
-                       normalizar(s.dueno).indexOf(busqueda) >= 0;
+                       normalizar(s.dueno).indexOf(busqueda) >= 0 ||
+                       normalizar(RUBROS[s.rubro] || '').indexOf(busqueda) >= 0 ||
+                       normalizar(s.slug || '').indexOf(busqueda) >= 0;
             });
         }
 
@@ -3046,9 +3116,20 @@
                 fila.appendChild(celdaUltimo);
                 fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
 
+                var tdPerfil = document.createElement('td');
+                tdPerfil.setAttribute('data-label', 'Perfil');
+                var cajaPerfil = crear('div', 'perfil-celda');
+                var publicado = s.publicado === true;
+                cajaPerfil.appendChild(pill(publicado ? 'Publicado' : 'Pendiente', publicado ? 'pill-ok' : 'pill-neutral'));
+                cajaPerfil.appendChild(crear('span', 'perfil-rubro', RUBROS[s.rubro] || 'Sin rubro'));
+                if (!s.slug) cajaPerfil.appendChild(crear('span', 'perfil-falta', 'sin slug'));
+                tdPerfil.appendChild(cajaPerfil);
+                fila.appendChild(tdPerfil);
+
                 var tdAccion = document.createElement('td');
                 tdAccion.className = 'celda-accion';
                 tdAccion.setAttribute('data-label', '');
+                var cajaAcciones = crear('div', 'acciones-fila');
                 var enlace = mailtoReenganche(s);
                 if (enlace && salonInactivo(s)) {
                     var correo = crear('a', 'btn btn-sm', '✉');
@@ -3056,15 +3137,34 @@
                     correo.title = 'Escribir a la dueña';
                     correo.setAttribute('aria-label', 'Escribir a ' + s.dueno);
                     correo.addEventListener('click', function (evento) { evento.stopPropagation(); });
-                    tdAccion.appendChild(correo);
+                    cajaAcciones.appendChild(correo);
                 }
+
+                var botonPerfil = crear('button', 'btn btn-sm ' + (publicado ? '' : 'btn-ok'), publicado ? 'Despublicar' : 'Aprobar');
+                botonPerfil.type = 'button';
+                botonPerfil.setAttribute('aria-label', (publicado ? 'Despublicar perfil de ' : 'Aprobar perfil de ') + s.nombre);
+                if (!publicado && (!perfilDisponible || !perfilCompleto(s))) {
+                    botonPerfil.disabled = true;
+                    botonPerfil.title = !perfilDisponible
+                        ? 'Faltan las columnas de perfil público en la base'
+                        : 'Completá rubro y slug desde la app de la dueña para aprobar';
+                } else {
+                    botonPerfil.title = publicado ? 'Quitar de Elima Belleza' : 'Publicar en Elima Belleza';
+                }
+                botonPerfil.addEventListener('click', function (evento) {
+                    evento.stopPropagation();
+                    pedirCambioPublicacion(s, botonPerfil);
+                });
+                cajaAcciones.appendChild(botonPerfil);
+
                 var boton = crear('button', 'btn btn-sm ' + (s.activo ? 'btn-peligro' : 'btn-ok'), s.activo ? 'Suspender' : 'Activar');
                 boton.type = 'button';
                 boton.addEventListener('click', function (evento) {
                     evento.stopPropagation();
                     pedirCambioEstado(s, boton);
                 });
-                tdAccion.appendChild(boton);
+                cajaAcciones.appendChild(boton);
+                tdAccion.appendChild(cajaAcciones);
                 fila.appendChild(tdAccion);
 
                 tbody.appendChild(fila);
@@ -3101,6 +3201,54 @@
             } catch (error) {
                 console.error(error);
                 toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexión'), 'error');
+                ocupado(boton, '');
+            }
+        }
+
+        async function pedirCambioPublicacion(s, boton) {
+            var publicar = s.publicado !== true;
+            if (publicar && !perfilDisponible) {
+                toast('No se pudieron leer las columnas del perfil público. Revisá la migración I62.', 'error');
+                return;
+            }
+            if (publicar && !perfilCompleto(s)) {
+                toast('Completá rubro y slug desde la app de la dueña antes de aprobar el perfil.', 'error');
+                return;
+            }
+
+            var ok = await confirmar(
+                publicar ? 'Aprobar perfil público' : 'Despublicar perfil público',
+                publicar
+                    ? 'El salón va a aparecer en Elima Belleza. Verificá que rubro, bio, portada y slug estén completos.'
+                    : 'El salón va a dejar de aparecer en Elima Belleza. Su perfil y sus datos se conservan.',
+                publicar ? 'Aprobar' : 'Despublicar',
+                !publicar
+            );
+            if (!ok) return;
+
+            ocupado(boton, 'Guardando…');
+            try {
+                var res = await supabase
+                    .from('salones')
+                    .update({ publicado: publicar })
+                    .eq('id', s.id)
+                    .select('id, publicado')
+                    .single();
+                if (res.error) throw res.error;
+                if (!res.data) throw new Error('La base no actualizó el perfil (permisos RLS).');
+
+                var valor = res.data.publicado === true;
+                s.publicado = valor;
+                var enLista = salonPorId(s.id);
+                if (enLista) enLista.publicado = valor;
+                if (detalleActual && detalleActual.id === s.id) detalleActual.publicado = valor;
+                pintarSalones();
+                if (detalleActual && detalleActual.id === s.id) pintarDetalle(detalleActual);
+                toast(valor ? 'Perfil publicado en Elima Belleza.' : 'Perfil despublicado.', 'ok');
+            } catch (error) {
+                console.error(error);
+                toast('No se pudo cambiar la publicación: ' + (error.message || 'error de conexión'), 'error');
+            } finally {
                 ocupado(boton, '');
             }
         }
@@ -3318,6 +3466,9 @@
                 trial_hasta: s.trial_hasta,
                 suscripcion_desde: s.suscripcion_desde,
                 ultimoTurno: s.ultimoTurno,
+                rubro: s.rubro || '',
+                publicado: s.publicado === true,
+                slug: s.slug || '',
                 detalle: null
             };
             focoAnterior = document.activeElement;
@@ -3407,6 +3558,9 @@
             var ultimo = campo(d, ['ultimo_turno'], null);
             caja.appendChild(filaDetalle('Último turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
             caja.appendChild(filaDetalle('Estado', s.activo ? 'Activo' : 'Suspendido'));
+            caja.appendChild(filaDetalle('Perfil público', s.publicado === true ? 'Publicado' : 'Pendiente'));
+            caja.appendChild(filaDetalle('Rubro', RUBROS[s.rubro] || 'Sin rubro'));
+            caja.appendChild(filaDetalle('Slug', s.slug || '—'));
 
             $('drawer-titulo').textContent = s.nombre;
             $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
@@ -3472,6 +3626,21 @@
             }
             caja.appendChild(botonAccion('✉ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
             caja.appendChild(botonAccion('↓ CSV', 'btn', function () { descargarCsv([s]); }));
+
+            var publicado = s.publicado === true;
+            var botonPerfil = botonAccion(
+                publicado ? 'Despublicar perfil' : 'Aprobar perfil',
+                'btn ' + (publicado ? '' : 'btn-ok'),
+                function () { pedirCambioPublicacion(s, botonPerfil); }
+            );
+            if (!publicado && (!perfilDisponible || !perfilCompleto(s))) {
+                botonPerfil.disabled = true;
+                botonPerfil.title = !perfilDisponible
+                    ? 'Faltan las columnas de perfil público en la base'
+                    : 'Completá rubro y slug desde la app de la dueña para aprobar';
+            }
+            caja.appendChild(botonPerfil);
+
             caja.appendChild(botonAccion(s.activo ? 'Suspender' : 'Activar', 'btn ' + (s.activo ? 'btn-peligro' : 'btn-ok'), function () {
                 pedirCambioEstado(s, null);
             }));
@@ -4262,7 +4431,7 @@
         function descargarCsv(listaPersonalizada) {
             var lista = listaPersonalizada || salonesFiltrados();
             var separador = String.fromCharCode(13, 10);
-            var lineas = [['Salon', 'Dueno', 'Plan', 'Suscripcion', 'Trial hasta', 'Ultimo turno', 'Miembros', 'Turnos', 'Creado', 'Estado'].join(',')];
+            var lineas = [['Salon', 'Dueno', 'Plan', 'Suscripcion', 'Trial hasta', 'Ultimo turno', 'Miembros', 'Turnos', 'Creado', 'Estado', 'Perfil', 'Rubro', 'Slug'].join(',')];
             lista.forEach(function (s) {
                 lineas.push([
                     celdaCsv(s.nombre),
@@ -4274,7 +4443,10 @@
                     celdaCsv(s.miembros),
                     celdaCsv(s.turnos),
                     celdaCsv(fechaCorta(s.creado)),
-                    celdaCsv(s.activo ? 'Activo' : 'Suspendido')
+                    celdaCsv(s.activo ? 'Activo' : 'Suspendido'),
+                    celdaCsv(s.publicado === true ? 'Publicado' : 'Pendiente'),
+                    celdaCsv(RUBROS[s.rubro] || ''),
+                    celdaCsv(s.slug || '')
                 ].join(','));
             });
             var texto = String.fromCharCode(65279) + lineas.join(separador);
@@ -4347,6 +4519,18 @@
             filtroEstado = $('filtro-estado').value;
             pintarSalones();
         });
+        if ($('filtro-publicacion')) {
+            $('filtro-publicacion').addEventListener('change', function () {
+                filtroPublicacion = $('filtro-publicacion').value;
+                pintarSalones();
+            });
+        }
+        if ($('filtro-rubro')) {
+            $('filtro-rubro').addEventListener('change', function () {
+                filtroRubro = $('filtro-rubro').value;
+                pintarSalones();
+            });
+        }
         $('csv-salones').addEventListener('click', function () { descargarCsv(); });
         $('buscar-auditoria').addEventListener('input', pintarAuditoria);
         $('filtro-accion').addEventListener('change', pintarAuditoria);

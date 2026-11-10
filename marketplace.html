@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F3">
+<meta name="description" content="Elima Belleza: descubrí salones de uñas, peluquería, maquillaje y barbería cerca tuyo.">
+<meta property="og:title" content="Elima Belleza · Salones de belleza">
+<meta property="og:description" content="Descubrí salones de uñas, peluquería, maquillaje y barbería. Reseñas reales de clientas.">
+<meta property="og:type" content="website">
+<title>Elima Belleza · Salones de belleza</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #FAF6F3;
+        --surface: #FFFFFF;
+        --surface-2: #F7EFEC;
+        --blush: #E9D3DC;
+        --blush-2: #F4E7EC;
+        --ink: #3B2F35;
+        --ink-soft: #776569;
+        --ink-faint: #9C8B90;
+        --line: #EADFDB;
+        --gold: #BE9E6F;
+        --gold-ink: #8C6B3A;
+        --gold-soft: rgba(190, 158, 111, .16);
+        --shadow: 0 1px 2px rgba(59, 47, 53, .04), 0 8px 24px rgba(59, 47, 53, .06);
+        --shadow-lg: 0 24px 60px rgba(59, 47, 53, .18);
+        --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+        --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --radio: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100dvh;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: var(--gold-ink); }
+    button { font-family: inherit; }
+
+    .envoltura { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── header ── */
+    .cabecera {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: rgba(250, 246, 243, .92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--line);
+    }
+    .cabecera-fila {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 64px;
+    }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+    .marca-logo {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 1px solid var(--line); background: var(--surface);
+    }
+    .marca-texto { display: grid; line-height: 1.05; }
+    .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: .01em; }
+    .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+    .cabecera-acciones { display: flex; align-items: center; gap: 8px; }
+    .btn-app {
+        display: inline-flex; align-items: center; gap: 8px;
+        min-height: 40px; padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 13px; font-weight: 500;
+        text-decoration: none;
+        transition: border-color .16s ease, background-color .16s ease;
+    }
+    .btn-app:hover { border-color: var(--gold); background: var(--surface-2); }
+
+    /* ── hero ── */
+    .hero { padding-top: 56px; padding-bottom: 28px; text-align: center; }
+    .hero-etiqueta {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+        color: var(--gold-ink);
+        background: var(--gold-soft);
+        border-radius: 999px;
+        padding: 6px 14px;
+        margin-bottom: 18px;
+    }
+    .hero h1 {
+        font-family: var(--serif);
+        font-size: clamp(34px, 6vw, 56px);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -.01em;
+        margin: 0 auto 12px;
+        max-width: 18ch;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold-ink); }
+    .hero p { margin: 0 auto; max-width: 52ch; color: var(--ink-soft); font-size: 15.5px; }
+
+    /* ── buscador ── */
+    .buscador { margin: 28px auto 0; max-width: 620px; position: relative; }
+    .buscador-icono {
+        position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+        width: 18px; height: 18px; color: var(--ink-faint); pointer-events: none;
+    }
+    .buscador input {
+        width: 100%;
+        min-height: 54px;
+        padding: 0 52px 0 48px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 15px;
+        font-family: inherit;
+        box-shadow: var(--shadow);
+        outline: none;
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .buscador input::placeholder { color: var(--ink-faint); }
+    .buscador input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+    .buscador-limpiar {
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 0; background: var(--surface-2); color: var(--ink-soft);
+        font-size: 16px; line-height: 1; cursor: pointer;
+    }
+    .buscador-limpiar[hidden] { display: none; }
+
+    /* ── filtros ── */
+    .filtros {
+        display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+        margin: 22px auto 0;
+    }
+    .chip {
+        display: inline-flex; align-items: center;
+        min-height: 40px; padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink-soft);
+        font-size: 13px; font-weight: 500;
+        cursor: pointer;
+        transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+    }
+    .chip:hover { border-color: var(--gold); color: var(--ink); }
+    .chip[aria-pressed="true"] {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+    }
+
+    /* ── resultados ── */
+    .resultados { padding-top: 34px; padding-bottom: 80px; }
+    .resultados-barra {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 12px; margin-bottom: 18px;
+    }
+    .resultados-titulo { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0; }
+    .resultados-cuenta { font-size: 13px; color: var(--ink-soft); }
+
+    .grilla {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 22px;
+    }
+
+    .tarjeta {
+        display: flex; flex-direction: column;
+        text-align: left;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radio);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        cursor: pointer;
+        font-family: inherit;
+        color: var(--ink);
+        transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .tarjeta:hover { transform: translateY(-2px); border-color: var(--gold); box-shadow: var(--shadow-lg); }
+    .tarjeta:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 2px; }
+
+    .tarjeta-portada {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        background: linear-gradient(135deg, var(--blush-2), var(--surface-2));
+        overflow: hidden;
+    }
+    .tarjeta-portada img { width: 100%; height: 100%; object-fit: cover; }
+    .tarjeta-inicial {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--serif); font-size: 64px; font-weight: 600;
+        color: var(--gold-ink); opacity: .55;
+    }
+    .tarjeta-rubro {
+        position: absolute; left: 12px; top: 12px;
+        background: rgba(255, 255, 255, .94);
+        color: var(--gold-ink);
+        font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+        border-radius: 999px; padding: 5px 11px;
+    }
+    .tarjeta-cuerpo { display: flex; flex-direction: column; gap: 6px; padding: 16px 16px 18px; flex: 1; }
+    .tarjeta-nombre { font-family: var(--serif); font-size: 21px; font-weight: 600; line-height: 1.2; margin: 0; }
+    .tarjeta-bio {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 13.5px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .estrellas { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
+    .estrellas-iconos { color: var(--gold); font-size: 14px; letter-spacing: .06em; }
+    .estrellas-texto { font-size: 12.5px; color: var(--ink-soft); }
+
+    /* ── esqueletos ── */
+    .esqueleto { pointer-events: none; }
+    .esqueleto .tarjeta-portada,
+    .esqueleto .barra { background: linear-gradient(90deg, var(--surface-2), var(--blush-2), var(--surface-2)); background-size: 200% 100%; animation: brillo 1.3s ease-in-out infinite; }
+    .esqueleto .barra { height: 12px; border-radius: 6px; margin-top: 8px; }
+    .esqueleto .barra.corta { width: 55%; }
+    @keyframes brillo { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+
+    /* ── vacío / error ── */
+    .aviso {
+        text-align: center;
+        padding: 56px 24px;
+        border: 1px dashed var(--line);
+        border-radius: var(--radio);
+        background: var(--surface);
+        color: var(--ink-soft);
+    }
+    .aviso h2 { font-family: var(--serif); font-size: 24px; color: var(--ink); margin: 0 0 8px; }
+    .aviso p { margin: 0 0 16px; }
+    .aviso button {
+        min-height: 42px; padding: 0 18px;
+        border-radius: 999px; border: 1px solid var(--gold);
+        background: var(--gold); color: #fff; font-weight: 600; font-size: 13.5px;
+        cursor: pointer;
+    }
+
+    /* ── modal ── */
+    .modal-fondo {
+        position: fixed; inset: 0; z-index: 80;
+        background: rgba(59, 47, 53, .55);
+        backdrop-filter: blur(3px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+    }
+    .modal-fondo[hidden] { display: none; }
+    .modal {
+        width: min(560px, 100%);
+        max-height: min(86dvh, 720px);
+        overflow-y: auto;
+        background: var(--surface);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        animation: subir .18s ease;
+    }
+    @keyframes subir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .modal-portada { aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--blush-2), var(--surface-2)); position: relative; }
+    .modal-portada img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-cerrar {
+        position: absolute; right: 12px; top: 12px;
+        width: 38px; height: 38px; border-radius: 50%;
+        border: 0; background: rgba(255, 255, 255, .92); color: var(--ink);
+        font-size: 18px; line-height: 1; cursor: pointer;
+    }
+    .modal-cuerpo { padding: 20px 22px 24px; display: grid; gap: 12px; }
+    .modal-rubro { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-ink); font-weight: 600; }
+    .modal-nombre { font-family: var(--serif); font-size: 28px; margin: 0; line-height: 1.15; }
+    .modal-bio { margin: 0; color: var(--ink-soft); white-space: pre-line; }
+    .modal-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .modal-acciones a, .modal-acciones button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        min-height: 46px; padding: 0 20px;
+        border-radius: 999px;
+        font-size: 14px; font-weight: 600;
+        text-decoration: none;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        cursor: pointer;
+    }
+    .modal-acciones a.principal { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+    /* ── pie ── */
+    .pie {
+        border-top: 1px solid var(--line);
+        padding: 28px 0 40px;
+        color: var(--ink-faint);
+        font-size: 12.5px;
+        text-align: center;
+    }
+    .pie a { color: var(--ink-soft); }
+
+    .sr-solo {
+        position: absolute; width: 1px; height: 1px;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
+
+    @media (max-width: 560px) {
+        .hero { padding-top: 38px; padding-bottom: 20px; }
+        .hero p { font-size: 14.5px; }
+        .grilla { grid-template-columns: 1fr 1fr; gap: 14px; }
+        .tarjeta-nombre { font-size: 17px; }
+        .tarjeta-bio { display: none; }
+        .tarjeta-cuerpo { padding: 12px 12px 14px; }
+        .btn-app span { display: none; }
+        .btn-app { padding: 0 12px; }
+    }
+    @media (max-width: 400px) {
+        .grilla { grid-template-columns: 1fr; }
+        .tarjeta-bio { display: -webkit-box; }
+    }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+    <div class="envoltura cabecera-fila">
+        <a class="marca" href="index.html" aria-label="Elima Belleza, ir al inicio">
+            <img class="marca-logo" src="icon-192.png" alt="" width="34" height="34">
+            <span class="marca-texto">
+                <span class="marca-nombre">Elima Belleza</span>
+                <span class="marca-sub">Directorio</span>
+            </span>
+        </a>
+        <div class="cabecera-acciones">
+            <a class="btn-app" href="index.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 3v3M16 3v3M3 10h18"/>
+                </svg>
+                <span>Mi agenda</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero envoltura">
+        <span class="hero-etiqueta">Elima Belleza</span>
+        <h1>Encontrá tu <em>salón de belleza</em> ideal</h1>
+        <p>Uñas, pelo, maquillaje y barbería. Perfiles verificados y reseñas de clientas reales.</p>
+
+        <div class="buscador">
+            <svg class="buscador-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
+            </svg>
+            <label class="sr-solo" for="buscador">Buscar salón</label>
+            <input id="buscador" type="search" placeholder="Buscar por nombre del salón…" autocomplete="off" spellcheck="false">
+            <button type="button" id="buscador-limpiar" class="buscador-limpiar" aria-label="Borrar búsqueda" hidden>×</button>
+        </div>
+
+        <div class="filtros" id="filtros" role="group" aria-label="Filtrar por rubro"></div>
+    </section>
+
+    <section class="resultados envoltura" aria-labelledby="resultados-titulo">
+        <div class="resultados-barra">
+            <h2 class="resultados-titulo" id="resultados-titulo">Salones</h2>
+            <span class="resultados-cuenta" id="resultados-cuenta" role="status" aria-live="polite"></span>
+        </div>
+        <div class="grilla" id="grilla" aria-busy="true"></div>
+        <div id="aviso" hidden></div>
+    </section>
+</main>
+
+<footer class="pie">
+    <div class="envoltura">
+        <p>Elima Belleza · cada salón administra su agenda con <a href="index.html">Eli M. Nails</a>.</p>
+        <p>¿Tenés un salón? <a href="index.html">Sumate</a>.</p>
+    </div>
+</footer>
+
+<div class="modal-fondo" id="modal-fondo" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-nombre" id="modal">
+        <div class="modal-portada" id="modal-portada">
+            <button type="button" class="modal-cerrar" id="modal-cerrar" aria-label="Cerrar">×</button>
+        </div>
+        <div class="modal-cuerpo">
+            <span class="modal-rubro" id="modal-rubro"></span>
+            <h2 class="modal-nombre" id="modal-nombre"></h2>
+            <div class="estrellas" id="modal-estrellas">
+                <span class="estrellas-iconos" aria-hidden="true"></span>
+                <span class="estrellas-texto"></span>
+            </div>
+            <p class="modal-bio" id="modal-bio"></p>
+            <div class="modal-acciones" id="modal-acciones"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── configuración ────────────────────────────────────────────────────
+    // La publishable key es pública: la seguridad la da RLS + la RPC.
+    var SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
+    var RPC = SUPABASE_URL + '/rest/v1/rpc/public_marketplace_salones';
+
+    var RUBROS = [
+        { id: '',           nombre: 'Todos' },
+        { id: 'nails',      nombre: 'Nails' },
+        { id: 'peluqueria', nombre: 'Peluquería' },
+        { id: 'maquillaje', nombre: 'Maquillaje' },
+        { id: 'barberia',   nombre: 'Barbería' }
+    ];
+    var NOMBRE_RUBRO = { nails: 'Nails', peluqueria: 'Peluquería', maquillaje: 'Maquillaje', barberia: 'Barbería' };
+
+    var estado = {
+        rubro: '',
+        busqueda: '',
+        salones: [],
+        cargando: true,
+        error: ''
+    };
+
+    var $ = function (id) { return document.getElementById(id); };
+    var grilla = $('grilla');
+    var aviso = $('aviso');
+    var cuenta = $('resultados-cuenta');
+    var titulo = $('resultados-titulo');
+    var entrada = $('buscador');
+    var limpiar = $('buscador-limpiar');
+    var filtros = $('filtros');
+    var modalFondo = $('modal-fondo');
+    var focoPrevio = null;
+
+    // ── utilidades ───────────────────────────────────────────────────────
+    function urlSegura(valor) {
+        var texto = String(valor == null ? '' : valor).trim();
+        if (!texto) return '';
+        try {
+            var url = new URL(texto);
+            if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+            return url.href;
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function instagramUrl(valor) {
+        var usuario = String(valor == null ? '' : valor).trim().replace(/^@+/, '');
+        if (!usuario) return '';
+        try {
+            return 'https://instagram.com/' + encodeURIComponent(usuario);
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function inicialDe(nombre) {
+        var limpio = String(nombre == null ? '' : nombre).trim();
+        return limpio ? limpio.charAt(0).toUpperCase() : 'E';
+    }
+
+    function estrellasDe(numero) {
+        var valor = Number(numero) || 0;
+        var llenas = Math.max(0, Math.min(5, Math.round(valor)));
+        var texto = '';
+        for (var i = 0; i < 5; i++) texto += (i < llenas ? '★' : '☆');
+        return texto;
+    }
+
+    function textoResenas(fila) {
+        var cantidad = Number(fila.count_resenas) || 0;
+        if (!cantidad) return 'Sin reseñas todavía';
+        var promedio = Number(fila.promedio_estrellas) || 0;
+        return promedio.toFixed(1) + ' · ' + cantidad + (cantidad === 1 ? ' reseña' : ' reseñas');
+    }
+
+    // ── datos ────────────────────────────────────────────────────────────
+    async function consultar(rubro, busqueda) {
+        var cuerpo = {
+            p_rubro: rubro ? rubro : null,
+            p_busqueda: busqueda ? busqueda : null
+        };
+        var respuesta = await fetch(RPC, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY
+            },
+            body: JSON.stringify(cuerpo)
+        });
+        if (!respuesta.ok) {
+            throw new Error('La consulta falló (HTTP ' + respuesta.status + ').');
+        }
+        var datos = await respuesta.json();
+        return Array.isArray(datos) ? datos : [];
+    }
+
+    // ── render ───────────────────────────────────────────────────────────
+    function pintarFiltros() {
+        filtros.textContent = '';
+        RUBROS.forEach(function (rubro) {
+            var boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'chip';
+            boton.textContent = rubro.nombre;
+            boton.setAttribute('aria-pressed', rubro.id === estado.rubro ? 'true' : 'false');
+            boton.addEventListener('click', function () {
+                if (estado.rubro === rubro.id) return;
+                estado.rubro = rubro.id;
+                actualizarUrl();
+                pintarFiltros();
+                cargar();
+            });
+            filtros.appendChild(boton);
+        });
+    }
+
+    function tarjeta(fila) {
+        var boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'tarjeta';
+        boton.setAttribute('aria-label', 'Ver ' + String(fila.nombre == null ? 'salón' : fila.nombre));
+
+        var portada = document.createElement('div');
+        portada.className = 'tarjeta-portada';
+        var foto = urlSegura(fila.foto_portada_url) || urlSegura(fila.logo_url);
+        if (foto) {
+            var img = document.createElement('img');
+            img.src = foto;
+            img.alt = '';
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.addEventListener('error', function () { img.remove(); portada.appendChild(inicial(fila)); });
+            portada.appendChild(img);
+        } else {
+            portada.appendChild(inicial(fila));
+        }
+        var rubro = document.createElement('span');
+        rubro.className = 'tarjeta-rubro';
+        rubro.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
+        portada.appendChild(rubro);
+        boton.appendChild(portada);
+
+        var cuerpo = document.createElement('div');
+        cuerpo.className = 'tarjeta-cuerpo';
+
+        var nombre = document.createElement('h3');
+        nombre.className = 'tarjeta-nombre';
+        nombre.textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
+        cuerpo.appendChild(nombre);
+
+        if (fila.bio) {
+            var bio = document.createElement('p');
+            bio.className = 'tarjeta-bio';
+            bio.textContent = String(fila.bio);
+            cuerpo.appendChild(bio);
+        }
+
+        cuerpo.appendChild(bloqueEstrellas(fila));
+        boton.appendChild(cuerpo);
+
+        boton.addEventListener('click', function () { abrirModal(fila); });
+        return boton;
+    }
+
+    function inicial(fila) {
+        var caja = document.createElement('span');
+        caja.className = 'tarjeta-inicial';
+        caja.setAttribute('aria-hidden', 'true');
+        caja.textContent = inicialDe(fila.nombre);
+        return caja;
+    }
+
+    function bloqueEstrellas(fila) {
+        var caja = document.createElement('div');
+        caja.className = 'estrellas';
+        var iconos = document.createElement('span');
+        iconos.className = 'estrellas-iconos';
+        iconos.setAttribute('aria-hidden', 'true');
+        iconos.textContent = estrellasDe(fila.promedio_estrellas);
+        var texto = document.createElement('span');
+        texto.className = 'estrellas-texto';
+        texto.textContent = textoResenas(fila);
+        caja.appendChild(iconos);
+        caja.appendChild(texto);
+        return caja;
+    }
+
+    function esqueletos(cantidad) {
+        grilla.textContent = '';
+        for (var i = 0; i < cantidad; i++) {
+            var caja = document.createElement('div');
+            caja.className = 'tarjeta esqueleto';
+            var portada = document.createElement('div');
+            portada.className = 'tarjeta-portada';
+            caja.appendChild(portada);
+            var cuerpo = document.createElement('div');
+            cuerpo.className = 'tarjeta-cuerpo';
+            var b1 = document.createElement('div');
+            b1.className = 'barra';
+            var b2 = document.createElement('div');
+            b2.className = 'barra corta';
+            cuerpo.appendChild(b1);
+            cuerpo.appendChild(b2);
+            caja.appendChild(cuerpo);
+            grilla.appendChild(caja);
+        }
+    }
+
+    function mostrarAviso(tituloTexto, texto, accion) {
+        aviso.textContent = '';
+        var caja = document.createElement('div');
+        caja.className = 'aviso';
+        var h = document.createElement('h2');
+        h.textContent = tituloTexto;
+        var p = document.createElement('p');
+        p.textContent = texto;
+        caja.appendChild(h);
+        caja.appendChild(p);
+        if (accion) {
+            var boton = document.createElement('button');
+            boton.type = 'button';
+            boton.textContent = accion.etiqueta;
+            boton.addEventListener('click', accion.alTocar);
+            caja.appendChild(boton);
+        }
+        aviso.appendChild(caja);
+        aviso.hidden = false;
+    }
+
+    function pintar() {
+        if (estado.cargando) {
+            grilla.hidden = false;
+            aviso.hidden = true;
+            grilla.setAttribute('aria-busy', 'true');
+            esqueletos(6);
+            cuenta.textContent = 'Buscando…';
+            return;
+        }
+        grilla.setAttribute('aria-busy', 'false');
+
+        if (estado.error) {
+            grilla.textContent = '';
+            grilla.hidden = true;
+            mostrarAviso('No pudimos cargar los salones', estado.error, {
+                etiqueta: 'Reintentar',
+                alTocar: cargar
+            });
+            cuenta.textContent = '';
+            return;
+        }
+
+        if (!estado.salones.length) {
+            grilla.textContent = '';
+            grilla.hidden = true;
+            mostrarAviso(
+                'Todavía no hay salones así',
+                'Probá con otro rubro o borrá la búsqueda.',
+                { etiqueta: 'Ver todos', alTocar: function () { reiniciar(); } }
+            );
+            cuenta.textContent = '0 salones';
+            return;
+        }
+
+        aviso.hidden = true;
+        grilla.hidden = false;
+        grilla.textContent = '';
+        estado.salones.forEach(function (fila) { grilla.appendChild(tarjeta(fila)); });
+        cuenta.textContent = estado.salones.length + (estado.salones.length === 1 ? ' salón' : ' salones');
+        titulo.textContent = estado.rubro ? 'Salones de ' + (NOMBRE_RUBRO[estado.rubro] || estado.rubro) : 'Salones';
+    }
+
+    // ── modal ────────────────────────────────────────────────────────────
+    function abrirModal(fila) {
+        focoPrevio = document.activeElement;
+        $('modal-nombre').textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
+        $('modal-rubro').textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
+        $('modal-bio').textContent = fila.bio ? String(fila.bio) : 'Este salón todavía no cargó su descripción.';
+
+        var estrellas = $('modal-estrellas');
+        estrellas.querySelector('.estrellas-iconos').textContent = estrellasDe(fila.promedio_estrellas);
+        estrellas.querySelector('.estrellas-texto').textContent = textoResenas(fila);
+
+        var portada = $('modal-portada');
+        Array.prototype.slice.call(portada.querySelectorAll('img, .tarjeta-inicial')).forEach(function (n) { n.remove(); });
+        var foto = urlSegura(fila.foto_portada_url) || urlSegura(fila.logo_url);
+        if (foto) {
+            var img = document.createElement('img');
+            img.src = foto;
+            img.alt = '';
+            portada.insertBefore(img, portada.firstChild);
+        } else {
+            portada.insertBefore(inicial(fila), portada.firstChild);
+        }
+
+        var acciones = $('modal-acciones');
+        acciones.textContent = '';
+        var ig = instagramUrl(fila.instagram);
+        if (ig) {
+            var enlace = document.createElement('a');
+            enlace.className = 'principal';
+            enlace.href = ig;
+            enlace.target = '_blank';
+            enlace.rel = 'noopener noreferrer';
+            enlace.textContent = 'Ver Instagram';
+            acciones.appendChild(enlace);
+        }
+        var cerrar = document.createElement('button');
+        cerrar.type = 'button';
+        cerrar.textContent = 'Cerrar';
+        cerrar.addEventListener('click', cerrarModal);
+        acciones.appendChild(cerrar);
+
+        modalFondo.hidden = false;
+        document.body.style.overflow = 'hidden';
+        $('modal-cerrar').focus();
+    }
+
+    function cerrarModal() {
+        modalFondo.hidden = true;
+        document.body.style.overflow = '';
+        if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
+    }
+
+    // ── estado y URL ─────────────────────────────────────────────────────
+    function actualizarUrl() {
+        try {
+            var url = new URL(window.location.href);
+            if (estado.rubro) url.searchParams.set('rubro', estado.rubro);
+            else url.searchParams.delete('rubro');
+            if (estado.busqueda) url.searchParams.set('q', estado.busqueda);
+            else url.searchParams.delete('q');
+            history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+        } catch (error) { /* noop */ }
+    }
+
+    function leerUrl() {
+        try {
+            var params = new URLSearchParams(window.location.search);
+            var rubro = String(params.get('rubro') || '').toLowerCase();
+            estado.rubro = NOMBRE_RUBRO[rubro] ? rubro : '';
+            estado.busqueda = String(params.get('q') || '').slice(0, 80);
+            if (estado.busqueda) entrada.value = estado.busqueda;
+        } catch (error) { /* noop */ }
+    }
+
+    function reiniciar() {
+        estado.rubro = '';
+        estado.busqueda = '';
+        entrada.value = '';
+        limpiar.hidden = true;
+        actualizarUrl();
+        pintarFiltros();
+        cargar();
+    }
+
+    // ── carga ────────────────────────────────────────────────────────────
+    var pedido = 0;
+
+    async function cargar() {
+        var mio = ++pedido;
+        estado.cargando = true;
+        estado.error = '';
+        pintar();
+        try {
+            var datos = await consultar(estado.rubro, estado.busqueda);
+            if (mio !== pedido) return;           // respuesta vieja: se descarta
+            estado.salones = datos;
+            estado.cargando = false;
+        } catch (error) {
+            if (mio !== pedido) return;
+            console.error('marketplace:', error);
+            estado.salones = [];
+            estado.cargando = false;
+            estado.error = 'Revisá tu conexión e intentá de nuevo en un momento.';
+        }
+        pintar();
+    }
+
+    var espera = null;
+    entrada.addEventListener('input', function () {
+        var valor = entrada.value.trim().slice(0, 80);
+        limpiar.hidden = !valor;
+        if (espera) clearTimeout(espera);
+        espera = setTimeout(function () {
+            if (valor === estado.busqueda) return;
+            estado.busqueda = valor;
+            actualizarUrl();
+            cargar();
+        }, 320);
+    });
+
+    limpiar.addEventListener('click', function () {
+        entrada.value = '';
+        limpiar.hidden = true;
+        estado.busqueda = '';
+        actualizarUrl();
+        cargar();
+        entrada.focus();
+    });
+
+    document.addEventListener('keydown', function (evento) {
+        if (evento.key !== 'Escape') return;
+        if (!modalFondo.hidden) { cerrarModal(); return; }
+        if (entrada.value) { limpiar.click(); }
+    });
+
+    $('modal-cerrar').addEventListener('click', cerrarModal);
+    modalFondo.addEventListener('click', function (evento) {
+        if (evento.target === modalFondo) cerrarModal();
+    });
+
+    // foco atrapado dentro del modal mientras está abierto
+    document.addEventListener('focusin', function (evento) {
+        if (modalFondo.hidden) return;
+        if ($('modal').contains(evento.target)) return;
+        $('modal-cerrar').focus();
+    });
+
+    // ── arranque ─────────────────────────────────────────────────────────
+    leerUrl();
+    pintarFiltros();
+    cargar();
+})();
+</script>
+</body>
+</html>
