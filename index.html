@@ -2427,6 +2427,14 @@
                         <span id="salon-estado" class="setting-note" role="status" aria-live="polite"></span>
                     </div>
 
+                    <button type="button" class="pro-item hidden" data-pro-bloqueo="reservas" title="Función exclusiva del Plan Pro" style="margin-top:16px">
+                        <span class="pro-candado" aria-hidden="true">🔒</span>
+                        <span class="pro-texto">
+                            <span class="pro-titulo">Link de reservas público</span>
+                            <span class="pro-nota">Tus clientas reservan solas desde un link.</span>
+                        </span>
+                        <span class="pro-pill">Pro</span>
+                    </button>
                 </div>
 
                 <div id="panel-servicios">
@@ -8210,22 +8218,41 @@
             }
 
             // Devuelve { tipo, texto } o null. `tipo` decide el color del aviso.
+            // El texto es explícito con el plan efectivo: un trial puede ser de
+            // Gratis (alta nueva) o de Pro (cortesía), así que no se nombra el
+            // plan en el mensaje; el chip de arriba ya dice cuál es.
             function avisoEstadoPlan() {
                 if (!planVigente.disponible || !planVigente.estado) return null;
-                const dias = diasEnPalabras(planVigente.dias);
+                const dias = planVigente.dias;
+                const sinDias = (dias === null || dias === undefined);
+                const ultimoDia = !sinDias && dias <= 0;
+                const cuantos = sinDias ? '' : dias + (dias === 1 ? ' día' : ' días');
                 switch (planVigente.estado) {
                     case 'trial':
-                        return { tipo: 'ok', texto: 'Estás en la prueba del Plan Pro: te quedan ' + dias + '.' };
-                    case 'gracia':
-                        return { tipo: 'warn', texto: 'Tu pago está vencido. Tenés ' + dias + ' de margen antes de pasar al plan Gratis.' };
+                        return {
+                            tipo: 'ok',
+                            texto: ultimoDia
+                                ? 'Tu prueba vence hoy.'
+                                : (sinDias ? 'Estás en período de prueba.' : 'Te quedan ' + cuantos + ' de prueba.')
+                        };
+                    case 'gracia': {
+                        const pendiente = planVigente.motivo === 'pago_pendiente';
+                        const arranque = pendiente ? 'Tu pago está pendiente.' : 'Tu pago está vencido.';
+                        return {
+                            tipo: 'warn',
+                            texto: arranque + (ultimoDia || sinDias
+                                ? ' Hoy es el último día de gracia.'
+                                : ' Te quedan ' + cuantos + ' de gracia.')
+                        };
+                    }
                     case 'vencido':
-                        return { tipo: 'warn', texto: 'Tu suscripción venció y pasaste al plan Gratis. Tus datos siguen guardados.' };
+                        return { tipo: 'warn', texto: 'Tu plan venció. Pasaste al Plan Gratis. Tus datos siguen guardados.' };
                     case 'trial_vencido':
-                        return { tipo: 'warn', texto: 'La prueba del Plan Pro terminó y pasaste al plan Gratis. Tus datos siguen guardados.' };
+                        return { tipo: 'warn', texto: 'La prueba terminó. Pasaste al Plan Gratis. Tus datos siguen guardados.' };
                     case 'suspendido':
                         return { tipo: 'warn', texto: 'Tu salón está suspendido. Escribinos para reactivarlo.' };
                     default:
-                        return null;    // 'active': no hace falta avisar nada
+                        return null;    // active: no hace falta avisar nada
                 }
             }
 
