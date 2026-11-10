@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F3">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Tus Elima Points: consultá tu saldo y tu historial de puntos.">
+<title>Mis Elima Points · Elima Belleza</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #FAF6F3;
+        --surface: #FFFFFF;
+        --surface-2: #F7EFEC;
+        --blush: #E9D3DC;
+        --blush-2: #F4E7EC;
+        --ink: #3B2F35;
+        --ink-soft: #776569;
+        --ink-faint: #9C8B90;
+        --line: #EADFDB;
+        --gold: #BE9E6F;
+        --gold-ink: #8C6B3A;
+        --gold-soft: rgba(190, 158, 111, .16);
+        --ok: #2E7A57;
+        --ok-soft: rgba(46, 122, 87, .10);
+        --danger: #B4453C;
+        --danger-soft: rgba(180, 69, 60, .10);
+        --shadow: 0 1px 2px rgba(59, 47, 53, .04), 0 8px 24px rgba(59, 47, 53, .06);
+        --shadow-lg: 0 24px 60px rgba(59, 47, 53, .16);
+        --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+        --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: var(--gold-ink); }
+    button, input { font-family: inherit; }
+    .envoltura { width: 100%; max-width: 560px; margin: 0 auto; padding: 0 20px; }
+    .sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ── header ── */
+    .cabecera { border-bottom: 1px solid var(--line); background: rgba(250, 246, 243, .92); }
+    .cabecera-fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+    .marca-logo { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); }
+    .marca-texto { display: grid; line-height: 1.05; }
+    .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; }
+    .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+    .enlace-suave { font-size: 13px; color: var(--ink-soft); text-decoration: none; }
+    .enlace-suave:hover { color: var(--ink); text-decoration: underline; }
+
+    /* ── main ── */
+    main { flex: 1; padding: 40px 0 64px; }
+    .vista { display: block; }
+    .vista[hidden] { display: none; }
+
+    /* ── tarjeta de acceso ── */
+    .acceso { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 30px 26px; }
+    .acceso h1 { font-family: var(--serif); font-size: 32px; font-weight: 600; margin: 0 0 8px; line-height: 1.15; }
+    .acceso p { margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; }
+    .campo { display: grid; gap: 7px; margin-bottom: 16px; }
+    .campo label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+    .campo input {
+        width: 100%; min-height: 50px; padding: 0 16px;
+        border-radius: 12px; border: 1px solid var(--line);
+        background: var(--paper); color: var(--ink); font-size: 15px;
+        outline: none;
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .campo input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; min-height: 50px; padding: 0 20px;
+        border-radius: 12px; border: 1px solid var(--gold);
+        background: var(--gold); color: #fff;
+        font-size: 15px; font-weight: 600;
+        cursor: pointer;
+        transition: filter .16s ease;
+    }
+    .btn:hover { filter: brightness(1.04); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn-secundario { background: var(--surface); border-color: var(--line); color: var(--ink); font-weight: 500; }
+    .btn-secundario:hover { border-color: var(--gold); }
+    .alerta {
+        margin: 0 0 16px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        background: var(--danger-soft);
+        color: var(--danger);
+    }
+    .alerta.ok { background: var(--ok-soft); color: var(--ok); }
+    .alerta[hidden] { display: none; }
+
+    /* ── tarjeta de puntos ── */
+    .puntos-card {
+        position: relative;
+        border-radius: 22px;
+        padding: 28px 26px;
+        background: linear-gradient(135deg, var(--blush-2), var(--surface));
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    .puntos-card::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 180px; height: 180px;
+        border-radius: 50%;
+        background: var(--gold-soft);
+    }
+    .puntos-etiqueta {
+        font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+        color: var(--gold-ink); font-weight: 700;
+    }
+    .puntos-titulo { font-family: var(--serif); font-size: 20px; margin: 6px 0 0; color: var(--ink); }
+    .puntos-saldo {
+        font-family: var(--serif);
+        font-size: clamp(52px, 14vw, 76px);
+        font-weight: 700;
+        line-height: 1;
+        color: var(--ink);
+        margin: 10px 0 2px;
+        font-variant-numeric: tabular-nums;
+    }
+    .puntos-unidad { font-size: 13px; color: var(--ink-soft); }
+    .puntos-pie { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ── historial ── */
+    .seccion-titulo {
+        font-family: var(--serif); font-size: 22px; font-weight: 600;
+        margin: 30px 0 12px;
+    }
+    .lista { display: flex; flex-direction: column; gap: 10px; }
+    .mov {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+    }
+    .mov-icono {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; flex: 0 0 auto;
+        background: var(--ok-soft); color: var(--ok);
+    }
+    .mov-icono.negativo { background: var(--danger-soft); color: var(--danger); }
+    .mov-icono.neutro { background: var(--surface-2); color: var(--ink-soft); }
+    .mov-texto { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .mov-titulo { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mov-sub { font-size: 12px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mov-monto { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14.5px; color: var(--ok); white-space: nowrap; }
+    .mov-monto.negativo { color: var(--danger); }
+
+    /* ── vacío ── */
+    .vacio {
+        text-align: center;
+        padding: 40px 24px;
+        border: 1px dashed var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+    }
+    .vacio h2 { font-family: var(--serif); font-size: 24px; margin: 0 0 8px; }
+    .vacio p { margin: 0 auto; max-width: 42ch; color: var(--ink-soft); font-size: 14px; }
+
+    .cuenta-linea {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap;
+        margin-top: 26px; padding-top: 18px;
+        border-top: 1px solid var(--line);
+        font-size: 13px; color: var(--ink-soft);
+    }
+    .cuenta-linea strong { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+    .boton-mini {
+        min-height: 40px; padding: 0 16px;
+        border-radius: 999px; border: 1px solid var(--line);
+        background: var(--surface); color: var(--ink);
+        font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .boton-mini:hover { border-color: var(--gold); }
+    .boton-mini.copiado { border-color: var(--ok); color: var(--ok); }
+
+    .pie { padding: 24px 0 36px; text-align: center; color: var(--ink-faint); font-size: 12.5px; }
+    .pie a { color: var(--ink-soft); }
+
+    @media (max-width: 420px) {
+        .acceso { padding: 24px 20px; }
+        .acceso h1 { font-size: 27px; }
+        .puntos-card { padding: 24px 20px; }
+    }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+    <div class="envoltura cabecera-fila">
+        <a class="marca" href="marketplace.html" aria-label="Elima Belleza, ir al marketplace">
+            <img class="marca-logo" src="icon-192.png" alt="" width="34" height="34">
+            <span class="marca-texto">
+                <span class="marca-nombre">Elima Belleza</span>
+                <span class="marca-sub">Mis puntos</span>
+            </span>
+        </a>
+        <a class="enlace-suave" href="marketplace.html">Ver salones</a>
+    </div>
+</header>
+
+<main>
+    <div class="envoltura">
+
+        <!-- 1 · acceso -->
+        <section class="vista" id="vista-login">
+            <div class="acceso">
+                <h1>Entrá a tus Elima Points</h1>
+                <p>Te mandamos un enlace mágico al email que le diste a tu salón. Sin contraseñas.</p>
+
+                <div class="alerta" id="login-alerta" role="alert" hidden></div>
+
+                <form id="login-form" novalidate>
+                    <div class="campo">
+                        <label for="email">Tu email</label>
+                        <input type="email" id="email" autocomplete="email" inputmode="email"
+                               placeholder="tunombre@email.com" maxlength="160" required>
+                    </div>
+                    <button type="submit" class="btn" id="login-btn">Enviarme el enlace</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 2 · enlace enviado -->
+        <section class="vista" id="vista-enviado" hidden>
+            <div class="acceso">
+                <h1>Revisá tu email</h1>
+                <p id="enviado-texto">Te enviamos un enlace para entrar. Puede tardar un minuto; revisá spam si no llega.</p>
+                <div class="alerta ok" id="enviado-alerta" role="status" hidden></div>
+                <button type="button" class="btn btn-secundario" id="reenviar-btn">Usar otro email</button>
+            </div>
+        </section>
+
+        <!-- 3 · panel -->
+        <section class="vista" id="vista-panel" hidden>
+            <div class="puntos-card">
+                <span class="puntos-etiqueta" id="saludo">Tus Elima Points</span>
+                <p class="puntos-titulo">Tu saldo disponible</p>
+                <div class="puntos-saldo" id="saldo">0</div>
+                <div class="puntos-unidad" id="saldo-unidad">Elima Points · 1 punto = $1</div>
+                <div class="puntos-pie">
+                    <button type="button" class="boton-mini" id="copiar-btn">Copiar mi email</button>
+                    <button type="button" class="boton-mini" id="salir-btn">Cerrar sesión</button>
+                </div>
+            </div>
+
+            <div class="alerta" id="panel-alerta" role="alert" hidden></div>
+
+            <h2 class="seccion-titulo">Movimientos</h2>
+            <div class="lista" id="historial" aria-live="polite"></div>
+            <div id="historial-vacio" hidden>
+                <div class="vacio">
+                    <h2>Todavía no tenés puntos</h2>
+                    <p>Cuando tu salón marque un turno como realizado, vas a ver acá los puntos que ganaste. Si ya tuviste turnos, pedile a tu salón que cargue tu email en tu ficha.</p>
+                </div>
+            </div>
+
+            <div class="cuenta-linea">
+                <span>Tu cuenta: <strong id="mi-email">—</strong></span>
+                <button type="button" class="boton-mini" id="copiar-btn-2">Copiar email</button>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<footer class="pie">
+    <div class="envoltura">
+        1 Elima Point = $1 · se acreditan al marcar el turno como realizado.
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
+
+    // Clave de sesión PROPIA: si se usara la de index.html, la clienta
+    // cerraría la sesión de la dueña en el mismo navegador.
+    var CLAVE_PORTAL = 'eli-portal-auth';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var cliente = null;
+    var cargando = false;
+
+    function mostrar(vista) {
+        ['vista-login', 'vista-enviado', 'vista-panel'].forEach(function (id) {
+            var el = $(id);
+            if (el) el.hidden = (id !== vista);
+        });
+    }
+
+    function aviso(id, texto, tipo) {
+        var el = $(id);
+        if (!el) return;
+        el.textContent = texto || '';
+        el.className = 'alerta' + (tipo === 'ok' ? ' ok' : '');
+        el.hidden = !texto;
+    }
+
+    function formatearPuntos(valor) {
+        var n = Number(valor) || 0;
+        return n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    }
+
+    function fechaCorta(valor) {
+        if (!valor) return '';
+        var d = new Date(valor);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function crear(tag, clase, texto) {
+        var el = document.createElement(tag);
+        if (clase) el.className = clase;
+        if (texto !== undefined && texto !== null) el.textContent = String(texto);
+        return el;
+    }
+
+    // ── historial ────────────────────────────────────────────────────────
+    function pintarHistorial(movimientos) {
+        var caja = $('historial');
+        var vacio = $('historial-vacio');
+        caja.textContent = '';
+        var lista = Array.isArray(movimientos) ? movimientos : [];
+
+        if (!lista.length) {
+            vacio.hidden = false;
+            return;
+        }
+        vacio.hidden = true;
+
+        lista.forEach(function (m) {
+            var monto = Number(m.monto) || 0;
+            var fila = crear('div', 'mov');
+
+            var icono = crear('span', 'mov-icono');
+            if (monto < 0) icono.className = 'mov-icono negativo';
+            else if (m.tipo === 'ajuste' || m.tipo === 'reverso') icono.className = 'mov-icono neutro';
+            icono.textContent = monto < 0 ? '−' : '+';
+            fila.appendChild(icono);
+
+            var texto = crear('div', 'mov-texto');
+            var titulo = m.tipo === 'ganado'
+                ? 'Ganaste ' + formatearPuntos(Math.abs(monto)) + ' pts en ' + (m.salon || 'tu salón')
+                : (m.tipo === 'canjeado'
+                    ? 'Canjeaste ' + formatearPuntos(Math.abs(monto)) + ' pts'
+                    : (m.motivo || 'Ajuste de puntos'));
+            texto.appendChild(crear('span', 'mov-titulo', titulo));
+            texto.appendChild(crear('span', 'mov-sub', (m.motivo || '') + (m.fecha ? ' · ' + fechaCorta(m.fecha) : '')));
+            fila.appendChild(texto);
+
+            var montoEl = crear('span', 'mov-monto' + (monto < 0 ? ' negativo' : ''), (monto > 0 ? '+' : '') + formatearPuntos(monto));
+            fila.appendChild(montoEl);
+
+            caja.appendChild(fila);
+        });
+    }
+
+    function pintarPanel(datos) {
+        var saldo = Number(datos && datos.saldo) || 0;
+        var clienta = (datos && datos.clienta) || '';
+
+        $('saludo').textContent = clienta ? 'Hola, ' + clienta : 'Tus Elima Points';
+        $('saldo').textContent = formatearPuntos(saldo);
+        $('saldo-unidad').textContent = saldo === 1
+            ? 'Elima Point · 1 punto = $1'
+            : 'Elima Points · 1 punto = $1';
+
+        pintarHistorial(datos && datos.movimientos);
+        mostrar('vista-panel');
+    }
+
+    // ── datos ────────────────────────────────────────────────────────────
+    async function cargarPuntos() {
+        if (cargando) return;
+        cargando = true;
+        aviso('panel-alerta', '', 'ok');
+        try {
+            var sesion = await cliente.auth.getSession();
+            var usuario = sesion && sesion.data && sesion.data.session ? sesion.data.session.user : null;
+            if (!usuario) { mostrar('vista-login'); return; }
+
+            var correo = $('mi-email');
+            if (correo) correo.textContent = usuario.email || '';
+
+            // vincula las fichas que tengan este email (una vez, silencioso)
+            try {
+                await cliente.rpc('vincular_mi_cuenta');
+            } catch (error) {
+                console.warn('portal: no se pudo vincular la cuenta', error);
+            }
+
+            var res = await cliente.rpc('obtener_mis_puntos');
+            if (res.error) throw res.error;
+
+            var datos = res.data;
+            if (typeof datos === 'string') {
+                try { datos = JSON.parse(datos); } catch (error) { datos = null; }
+            }
+            pintarPanel(datos || { saldo: 0, clienta: '', movimientos: [] });
+        } catch (error) {
+            console.error('portal:', error);
+            mostrar('vista-panel');
+            pintarHistorial([]);
+            aviso('panel-alerta', 'No pudimos cargar tus puntos ahora. Recargá la página en un momento.', '');
+        } finally {
+            cargando = false;
+        }
+    }
+
+    // ── copiar email ─────────────────────────────────────────────────────
+    function copiar(texto) {
+        if (!texto) return Promise.resolve(false);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(texto).then(function () { return true; }).catch(function () { return false; });
+        }
+        try {
+            var area = document.createElement('textarea');
+            area.value = texto;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(area);
+            return Promise.resolve(ok);
+        } catch (error) {
+            return Promise.resolve(false);
+        }
+    }
+
+    function conectarCopiar(id) {
+        var boton = $(id);
+        if (!boton) return;
+        boton.addEventListener('click', function () {
+            var texto = ($('mi-email') || {}).textContent || '';
+            copiar(texto).then(function (ok) {
+                var original = 'Copiar mi email';
+                boton.textContent = ok ? '¡Copiado!' : 'No se pudo copiar';
+                boton.classList.toggle('copiado', ok);
+                setTimeout(function () {
+                    boton.textContent = original;
+                    boton.classList.remove('copiado');
+                }, 2200);
+            });
+        });
+    }
+
+    // ── arranque ─────────────────────────────────────────────────────────
+    function iniciar() {
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            mostrar('vista-login');
+            aviso('login-alerta', 'No se pudo cargar el sistema de acceso. Revisá tu conexión y recargá.');
+            return;
+        }
+
+        cliente = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+                storageKey: CLAVE_PORTAL,
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                flowType: 'pkce'
+            }
+        });
+
+        mostrar('vista-login');
+
+        $('login-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            var email = String($('email').value || '').trim();
+            if (!email || email.indexOf('@') < 1 || email.length < 5) {
+                aviso('login-alerta', 'Escribí un email válido.', '');
+                return;
+            }
+            var boton = $('login-btn');
+            boton.disabled = true;
+            boton.textContent = 'Enviando…';
+            aviso('login-alerta', '', 'ok');
+            try {
+                var destino = window.location.origin + window.location.pathname;
+                var res = await cliente.auth.signInWithOtp({
+                    email: email,
+                    options: { emailRedirectTo: destino }
+                });
+                if (res.error) throw res.error;
+                $('enviado-texto').textContent = 'Te enviamos un enlace a ' + email + '. Abrilo desde este mismo dispositivo.';
+                mostrar('vista-enviado');
+            } catch (error) {
+                console.error(error);
+                aviso('login-alerta', 'No pudimos enviar el enlace: ' + ((error && error.message) || 'error de conexión'), '');
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Enviarme el enlace';
+            }
+        });
+
+        $('reenviar-btn').addEventListener('click', function () {
+            mostrar('vista-login');
+            aviso('login-alerta', '', 'ok');
+        });
+
+        $('salir-btn').addEventListener('click', async function () {
+            try { await cliente.auth.signOut(); } catch (error) { console.warn(error); }
+            mostrar('vista-login');
+            aviso('login-alerta', 'Cerraste sesión.', 'ok');
+        });
+
+        conectarCopiar('copiar-btn');
+        conectarCopiar('copiar-btn-2');
+
+        cliente.auth.onAuthStateChange(function (evento, sesion) {
+            if (evento === 'SIGNED_IN' && sesion) {
+                setTimeout(cargarPuntos, 0);
+            } else if (evento === 'SIGNED_OUT') {
+                mostrar('vista-login');
+            }
+        });
+
+        cliente.auth.getSession().then(function (res) {
+            if (res && res.data && res.data.session) cargarPuntos();
+            else mostrar('vista-login');
+        }).catch(function () { mostrar('vista-login'); });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciar);
+    } else {
+        iniciar();
+    }
+})();
+</script>
+</body>
+</html>

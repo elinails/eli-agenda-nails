@@ -2705,6 +2705,11 @@
                         <p class="text-sm text-ink-soft">Método de pago</p>
                         <p class="font-medium" id="modal-metodo">Efectivo</p>
                     </div>
+
+                    <div id="modal-puntos" class="hidden">
+                        <p class="text-sm text-ink-soft">Elima Points</p>
+                        <p class="font-medium" id="modal-puntos-texto"></p>
+                    </div>
                 </div>
                 
                 <div class="modal-actions">
@@ -9310,6 +9315,39 @@
                 );
             }
 
+            // I67 · puntos del turno: el otorgamiento lo hace el trigger de I66,
+            // acá solo se lee el ledger para mostrarlo en el detalle.
+            async function pintarPuntosTurno(turno) {
+                const bloque = document.getElementById('modal-puntos');
+                const texto = document.getElementById('modal-puntos-texto');
+                if (!bloque || !texto) return;
+                bloque.classList.add('hidden');
+                texto.textContent = '';
+                if (normalizarEstado(turno.status) !== 'completed') return;
+
+                bloque.classList.remove('hidden');
+                texto.textContent = 'Consultando…';
+                try {
+                    const { data, error } = await supabase
+                        .from('movimientos_puntos')
+                        .select('monto, tipo')
+                        .eq('turno_id', turno.id)
+                        .eq('tipo', 'ganado')
+                        .limit(1);
+                    if (error) throw error;
+                    const fila = data && data[0];
+                    if (fila && Number(fila.monto) > 0) {
+                        texto.textContent = '⭐ Se otorgaron ' +
+                            Number(fila.monto).toLocaleString('es-AR') + ' Elima Points';
+                    } else {
+                        texto.textContent = 'Puntos no aplicados (plan Gratis).';
+                    }
+                } catch (error) {
+                    console.warn('I67 · no se pudieron leer los puntos del turno:', error && error.message);
+                    bloque.classList.add('hidden');
+                }
+            }
+
             function showAppointmentDetails(appointment) {
                 document.getElementById('modal-title').textContent = `Turno #${appointment.id}`;
                 document.getElementById('modal-client').textContent = appointment.clientName;
@@ -9335,6 +9373,8 @@
                 document.getElementById('modal-notes').textContent = appointment.notes || '--';
                 const metodoEl = document.getElementById('modal-metodo');
                 if (metodoEl) metodoEl.textContent = etiquetaMetodo(appointment.metodoPago || appointment.metodo_pago);
+
+                pintarPuntosTurno(appointment);
                 
                 // Set status color
                 const statusElement = document.getElementById('modal-status');
@@ -10053,6 +10093,87 @@
                     });
                 })();
             }
+            // ─────────────────────────────────────────────────────────────
+            // I66 · purga de caché global (modelo pull)
+            // El admin sube un "epoch" en la base y cada cliente lo compara al
+            // abrir la app o al volver a la pestaña: si cambió, borra las cachés,
+            // fuerza la actualización del service worker y recarga una vez.
+            // No se puede empujar un mensaje a los navegadores de otros usuarios.
+            // ─────────────────────────────────────────────────────────────
+            const CLAVE_EPOCH = 'eli_cache_epoch';
+
+            function leerEpochLocal() {
+                try {
+                    const valor = localStorage.getItem(CLAVE_EPOCH);
+                    return valor === null ? null : Number(valor);
+                } catch (error) { return null; }
+            }
+
+            function guardarEpochLocal(valor) {
+                try { localStorage.setItem(CLAVE_EPOCH, String(valor)); } catch (error) { /* noop */ }
+            }
+
+            async function purgarCachesYRecargar() {
+                // Una sola recarga por pestaña: evita bucles si el epoch cambia dos veces.
+                try {
+                    if (sessionStorage.getItem('eli_epoch_recargado') === '1') return;
+                    sessionStorage.setItem('eli_epoch_recargado', '1');
+                } catch (error) { /* sin storage: igual purgamos */ }
+                try {
+                    if (window.caches && caches.keys) {
+                        const claves = await caches.keys();
+                        await Promise.all(claves.map(function (clave) { return caches.delete(clave); }));
+                    }
+                } catch (error) { /* noop */ }
+                try {
+                    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+                        const registros = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(registros.map(function (registro) {
+                            if (registro.update) return registro.update().catch(function () {});
+                        }));
+                    }
+                } catch (error) { /* noop */ }
+                location.reload();
+            }
+
+            async function verificarCacheEpoch() {
+                if (!supabase || !contexto.salonId) return;   // solo con sesión activa
+                try {
+                    const { data, error } = await supabase.rpc('cache_epoch_actual');
+                    if (error) throw error;
+                    const servidor = Number(data);
+                    if (!isFinite(servidor)) return;
+                    const local = leerEpochLocal();
+                    if (local === null) {
+                        guardarEpochLocal(servidor);   // primera vez: solo se registra
+                        return;
+                    }
+                    if (servidor !== local) {
+                        guardarEpochLocal(servidor);
+                        console.info('I66 · el admin pidió purgar la caché (epoch ' + local + ' → ' + servidor + ')');
+                        await purgarCachesYRecargar();
+                    }
+                } catch (error) {
+                    // Si la RPC no existe (migración sin correr) no rompemos nada.
+                    console.warn('I66 · cache epoch no disponible:', error && error.message);
+                }
+            }
+
+            (function vigilarCacheEpoch() {
+                let ultimoChequeo = 0;
+                function chequear() {
+                    const ahora = Date.now();
+                    if (ahora - ultimoChequeo < 60000) return;   // máximo 1 consulta por minuto
+                    ultimoChequeo = ahora;
+                    verificarCacheEpoch();
+                }
+                document.addEventListener('visibilitychange', function () {
+                    if (!document.hidden) chequear();
+                });
+                window.addEventListener('focus', chequear);
+                setTimeout(chequear, 4000);   // tras el arranque, sin frenar el login
+            })();
+
             iniciarAuth();
             
             // Sin min en los inputs: los turnos pasados son validos (registro de
