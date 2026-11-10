@@ -1540,6 +1540,18 @@
             background: var(--surface);
         }
         .salon-slug-preview { font-size: 12px; color: var(--ink-soft); word-break: break-all; }
+
+        /* I65 · portada con subida directa + enlace de Instagram */
+        .salon-portada-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .salon-instagram-linea { margin: 10px 0 0; display: flex; align-items: center; gap: 6px; }
+        .salon-instagram-link {
+            color: var(--gold-ink);
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .salon-instagram-link:hover { color: var(--ink); }
+        .salon-instagram-linea .hidden { display: none; }
         .salon-publicado-badge {
             display: inline-flex;
             align-items: center;
@@ -2467,6 +2479,11 @@
                         <h3 class="mi-salon-subtitulo">Mi Perfil Público</h3>
                         <p class="setting-note">Así te van a ver en Elima Belleza. La publicación la aprueba el equipo.</p>
                         <span id="salon-publicado-estado" class="salon-publicado-badge">Pendiente de aprobación</span>
+                        <p class="mi-salon-ayuda salon-instagram-linea">
+                            <i class="fab fa-instagram" aria-hidden="true"></i>
+                            <a id="salon-instagram-link" class="salon-instagram-link hidden" href="#" target="_blank" rel="noopener noreferrer">@usuario</a>
+                            <span id="salon-instagram-vacio">Todavía no cargaste tu Instagram.</span>
+                        </p>
 
                         <div class="mi-salon-campos">
                             <label class="mi-salon-campo">
@@ -2485,9 +2502,17 @@
                                 <small class="mi-salon-contador"><span id="salon-bio-contador">0</span>/500</small>
                             </label>
                             <label class="mi-salon-campo">
-                                <span>Foto de portada (URL)</span>
-                                <input type="url" id="salon-foto-portada" maxlength="500" aria-label="Foto de portada (URL)" placeholder="https://…" autocomplete="off">
-                                <small class="mi-salon-ayuda">Pegá el link de una imagen horizontal. Si no tenés, dejalo vacío.</small>
+                                <span>Foto de portada</span>
+                                <!-- I65: se mantiene el mismo id (oculto) para no tocar guardarBranding -->
+                                <input type="hidden" id="salon-foto-portada">
+                                <div class="salon-portada-acciones">
+                                    <button type="button" id="portada-btn" class="btn-secondary px-4 py-2.5 rounded-lg font-medium text-sm">
+                                        <i class="fas fa-arrow-up-from-bracket mr-2" aria-hidden="true"></i> Subir foto
+                                    </button>
+                                    <button type="button" id="portada-quitar-btn" class="logo-quitar hidden">Quitar foto</button>
+                                </div>
+                                <input type="file" id="portada-input" accept="image/png,image/jpeg" class="hidden">
+                                <small class="mi-salon-ayuda">JPG o PNG · máximo 2 MB. Horizontal (16:9) se ve mejor.</small>
                                 <img id="salon-portada-preview" class="salon-portada-preview hidden" alt="Vista previa de la portada">
                             </label>
                             <label class="mi-salon-campo">
@@ -7340,6 +7365,33 @@
                 const logoQuitarBtn = document.getElementById('logo-quitar-btn');
                 if (logoQuitarBtn) logoQuitarBtn.addEventListener('click', quitarLogo);
 
+                // I65 · portada: mismo patrón que el logo.
+                const portadaBtn = document.getElementById('portada-btn');
+                const portadaInput = document.getElementById('portada-input');
+                if (portadaBtn && portadaInput) {
+                    portadaBtn.addEventListener('click', function () { portadaInput.click(); });
+                    portadaInput.addEventListener('change', function () {
+                        const archivo = this.files && this.files[0];
+                        this.value = '';
+                        if (archivo) subirPortada(archivo);
+                    });
+                }
+                const portadaQuitarBtn = document.getElementById('portada-quitar-btn');
+                if (portadaQuitarBtn) portadaQuitarBtn.addEventListener('click', quitarPortada);
+
+                // I65 · el enlace de Instagram se actualiza mientras se escribe.
+                const instagramCampo = document.getElementById('salon-instagram');
+                if (instagramCampo) {
+                    instagramCampo.addEventListener('input', function () {
+                        pintarEnlaceInstagram(this.value);
+                    });
+                    instagramCampo.addEventListener('blur', function () {
+                        const limpio = normalizarInstagram(this.value);
+                        if (limpio !== this.value) this.value = limpio;
+                        pintarEnlaceInstagram(limpio);
+                    });
+                }
+
                 const salonGuardar = document.getElementById('salon-guardar');
                 if (salonGuardar) salonGuardar.addEventListener('click', guardarBranding);
 
@@ -8232,6 +8284,131 @@
                 }
             }
 
+            // ── I65 · foto de portada: subida directa al bucket logos ──────
+            // Misma carpeta y política que el logo (logos/{salonId}/…), así no
+            // hace falta bucket ni políticas nuevas.
+            let subiendoPortada = false;
+
+            function actualizarBotonQuitarPortada() {
+                const quitar = document.getElementById('portada-quitar-btn');
+                if (!quitar) return;
+                const campo = document.getElementById('salon-foto-portada');
+                const hay = !!(campo && String(campo.value || '').trim());
+                quitar.classList.toggle('hidden', !hay);
+            }
+
+            async function subirPortada(archivo) {
+                if (subiendoPortada || !archivo) return;
+                if (!esOwner()) {
+                    mostrarBanner('Solo la dueña puede cambiar la foto de portada.', 'error');
+                    return;
+                }
+                if (!contexto.salonId) {
+                    mostrarBanner('No pudimos identificar tu salón.', 'error');
+                    return;
+                }
+                if (['image/png', 'image/jpeg'].indexOf(archivo.type) === -1) {
+                    mostrarBanner('Elegí una imagen PNG o JPG.', 'error');
+                    return;
+                }
+                if (archivo.size > 2 * 1024 * 1024) {
+                    mostrarBanner('La imagen supera los 2 MB. Achicála y probá de nuevo.', 'error');
+                    return;
+                }
+
+                const preview = document.getElementById('salon-portada-preview');
+                let objetoUrl = null;
+                // Preview inmediato: la dueña ve la foto antes de que termine la subida.
+                try {
+                    objetoUrl = URL.createObjectURL(archivo);
+                    if (preview) {
+                        preview.src = objetoUrl;
+                        preview.classList.remove('hidden');
+                    }
+                } catch (error) { objetoUrl = null; }
+
+                let probada = null;
+                try { probada = await cargarImagen(objetoUrl || ''); } catch (error) { probada = null; }
+                if (!probada || !(probada.naturalWidth || probada.width)) {
+                    if (preview) { preview.classList.add('hidden'); preview.removeAttribute('src'); }
+                    if (objetoUrl) { try { URL.revokeObjectURL(objetoUrl); } catch (error) { /* noop */ } }
+                    mostrarBanner('No pudimos leer esa imagen.', 'error');
+                    return;
+                }
+
+                const boton = document.getElementById('portada-btn');
+                const textoBoton = boton ? boton.textContent : '';
+                subiendoPortada = true;
+                if (boton) { boton.disabled = true; boton.textContent = 'Subiendo…'; }
+                try {
+                    const extension = archivo.type === 'image/png' ? 'png' : 'jpg';
+                    const ruta = contexto.salonId + '/portada.' + extension;
+                    const subida = await supabase.storage.from('logos').upload(ruta, archivo, {
+                        upsert: true,
+                        contentType: archivo.type,
+                        cacheControl: '3600'
+                    });
+                    if (subida.error) throw subida.error;
+                    const publica = supabase.storage.from('logos').getPublicUrl(ruta);
+                    const url = ((publica && publica.data && publica.data.publicUrl) || '') + '?v=' + Date.now();
+                    const guardado = await supabase.from('salones')
+                        .update({ foto_portada_url: url })
+                        .eq('id', contexto.salonId);
+                    if (guardado.error) throw guardado.error;
+
+                    contexto.fotoPortadaUrl = normalizarUrlPortada(url) || url;
+                    const campo = document.getElementById('salon-foto-portada');
+                    if (campo) campo.value = contexto.fotoPortadaUrl;
+                    actualizarPreviewPortada();
+                    actualizarBotonQuitarPortada();
+                    mostrarBanner('Foto de portada actualizada.', 'ok');
+                } catch (error) {
+                    // Si falló, no dejamos un preview que no existe en la base.
+                    if (preview) { preview.classList.add('hidden'); preview.removeAttribute('src'); }
+                    console.error('No se pudo subir la portada:', error);
+                    mostrarBanner(mensajeError(error), 'error');
+                } finally {
+                    if (objetoUrl) { try { URL.revokeObjectURL(objetoUrl); } catch (error) { /* noop */ } }
+                    subiendoPortada = false;
+                    if (boton) { boton.disabled = false; boton.textContent = textoBoton; }
+                }
+            }
+
+            async function quitarPortada() {
+                if (subiendoPortada || !contexto.fotoPortadaUrl) return;
+                if (!esOwner()) {
+                    mostrarBanner('Solo la dueña puede cambiar la foto de portada.', 'error');
+                    return;
+                }
+                const boton = document.getElementById('portada-btn');
+                subiendoPortada = true;
+                if (boton) boton.disabled = true;
+                try {
+                    try {
+                        await supabase.storage.from('logos').remove([
+                            contexto.salonId + '/portada.png',
+                            contexto.salonId + '/portada.jpg'
+                        ]);
+                    } catch (error) { /* si no estaba, da igual */ }
+                    const guardado = await supabase.from('salones')
+                        .update({ foto_portada_url: null })
+                        .eq('id', contexto.salonId);
+                    if (guardado.error) throw guardado.error;
+                    contexto.fotoPortadaUrl = '';
+                    const campo = document.getElementById('salon-foto-portada');
+                    if (campo) campo.value = '';
+                    actualizarPreviewPortada();
+                    actualizarBotonQuitarPortada();
+                    mostrarBanner('Foto de portada quitada.', 'ok');
+                } catch (error) {
+                    console.error('No se pudo quitar la portada:', error);
+                    mostrarBanner(mensajeError(error), 'error');
+                } finally {
+                    subiendoPortada = false;
+                    if (boton) boton.disabled = false;
+                }
+            }
+
             // ─────────────────────────────────────────────────────────────
             // I55 · planes y patrocinio (modelo freemium)
             // Los precios y límites salen de la tabla `planes`; si la consulta
@@ -8633,6 +8810,47 @@
                 if (campo && contador) contador.textContent = String(campo.value.length);
             }
 
+            // I65 · Instagram: la base guarda el HANDLE canónico (el trigger
+            // trg_normalizar_branding de I54 ya convierte URLs a usuario). Acá
+            // limpiamos lo que pegue la dueña y armamos el enlace para la UI.
+            function normalizarInstagram(valor) {
+                let texto = String(valor == null ? '' : valor).trim();
+                if (!texto) return '';
+                texto = texto.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');     // https://
+                texto = texto.replace(/^(www\.)?instagram\.com\/?/i, '');   // instagram.com/
+                texto = texto.replace(/[?#].*$/, '');                       // ?hl=es
+                texto = texto.replace(/^\/+|\/+$/g, '');
+                texto = texto.replace(/^@+/, '');
+                // Si quedó una barra es una URL de otro sitio, no un usuario.
+                if (texto.indexOf('/') !== -1) return '';
+                texto = texto.replace(/[^A-Za-z0-9._]/g, '');               // sin espacios ni símbolos
+                texto = texto.replace(/^\.+|\.+$/g, '');                    // sin puntos en los extremos
+                if (!texto) return '';
+                return texto.slice(0, 30);                                  // límite de Instagram
+            }
+
+            function urlInstagram(handle) {
+                const limpio = normalizarInstagram(handle);
+                return limpio ? 'https://instagram.com/' + encodeURIComponent(limpio) : '';
+            }
+
+            function pintarEnlaceInstagram(valor) {
+                const enlace = document.getElementById('salon-instagram-link');
+                const vacio = document.getElementById('salon-instagram-vacio');
+                if (!enlace) return;
+                const handle = normalizarInstagram(valor);
+                if (handle) {
+                    enlace.href = urlInstagram(handle);
+                    enlace.textContent = '@' + handle;
+                    enlace.classList.remove('hidden');
+                    if (vacio) vacio.classList.add('hidden');
+                } else {
+                    enlace.classList.add('hidden');
+                    enlace.removeAttribute('href');
+                    if (vacio) vacio.classList.remove('hidden');
+                }
+            }
+
             function actualizarPreviewPortada() {
                 const campo = document.getElementById('salon-foto-portada');
                 const preview = document.getElementById('salon-portada-preview');
@@ -8686,6 +8904,8 @@
                 actualizarPreviewPortada();
                 actualizarSlugPreview();
                 pintarEstadoPublicacion();
+                actualizarBotonQuitarPortada();
+                pintarEnlaceInstagram(contexto.instagram);
                 const estado = document.getElementById('salon-estado');
                 if (estado) estado.textContent = '';
             }
@@ -8722,7 +8942,9 @@
 
                 const nombre = valorCampo('salon-nombre').slice(0, 60);
                 const telefono = valorCampo('salon-telefono').slice(0, 32);
-                const instagram = valorCampo('salon-instagram').slice(0, 60);
+                // I65: se guarda el handle limpio (el trigger de la base hace lo mismo).
+                const instagramCrudo = valorCampo('salon-instagram').slice(0, 120);
+                const instagram = normalizarInstagram(instagramCrudo);
                 const descripcion = valorCampo('salon-descripcion').slice(0, 60);
                 const rubro = valorCampo('salon-rubro');
                 const bio = valorCampo('salon-bio').slice(0, 500);
@@ -8732,6 +8954,12 @@
 
                 if (!nombre) {
                     mostrarBanner('El nombre del negocio no puede quedar vacío.', 'error');
+                    return;
+                }
+                if (instagramCrudo && !instagram) {
+                    mostrarBanner('El Instagram no es válido. Escribí solo el usuario, por ejemplo @elinails.', 'error');
+                    const campoInstagram = document.getElementById('salon-instagram');
+                    if (campoInstagram) campoInstagram.focus();
                     return;
                 }
                 if (foto === null) {
@@ -8819,7 +9047,7 @@
                     contexto.nombreSalon = nombre;
                     if (nivel === 'i62') {
                         contexto.telefono = telefono;
-                        contexto.instagram = instagram.replace(/^@+/, '');
+                        contexto.instagram = instagram;   // I65: ya viene normalizado a handle
                         contexto.descripcion = descripcion;
                         contexto.rubro = rubro;
                         contexto.bio = bio;
@@ -8827,7 +9055,7 @@
                         contexto.slug = slug;
                     } else if (nivel === 'i54') {
                         contexto.telefono = telefono;
-                        contexto.instagram = instagram.replace(/^@+/, '');
+                        contexto.instagram = instagram;   // I65: ya viene normalizado a handle
                         contexto.descripcion = descripcion;
                     }
 
