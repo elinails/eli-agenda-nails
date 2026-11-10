@@ -9,6 +9,12 @@
             try { guardado = localStorage.getItem("eli_admin_tema"); } catch (error) { /* modo privado */ }
             var tema = (guardado === "light" || guardado === "dark") ? guardado : "dark";
             document.documentElement.setAttribute("data-theme", tema);
+
+            var PALETAS = ["blush", "salvia", "mauve", "rose-gold", "nude-gold", "mono"];
+            var paleta = null;
+            try { paleta = localStorage.getItem("eli_admin_paleta"); } catch (error) { /* modo privado */ }
+            if (!paleta || PALETAS.indexOf(paleta) < 0) paleta = "blush";
+            document.documentElement.setAttribute("data-tema", paleta);
         })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,6 +94,114 @@
 
         /* I57 · el botón dorado lleva texto claro en modo día */
         [data-theme="light"] .btn-primario { color: #FFFFFF; }
+
+        /* ══ I58 · paletas de color ══
+           El acento y el tinte de fondo cambian; los textos siguen viniendo
+           del modo día/noche para no perder contraste. */
+        [data-tema="blush"] {
+            --gold: #C9A96A; --gold-2: #E0C48F; --gold-soft: rgba(201, 169, 106, .12); --gold-ink: #E0C48F;
+        }
+        [data-tema="blush"][data-theme="light"] {
+            --gold: #A47C2B; --gold-2: #8C6822; --gold-soft: rgba(164, 124, 43, .12); --gold-ink: #8C6822;
+        }
+
+        [data-tema="salvia"] {
+            --canvas: #0A0D0A; --surface-1: #121612; --surface-2: #171C17; --surface-3: #1E241E;
+            --hairline: #26302A; --hairline-2: #334034;
+            --gold: #A98F5E; --gold-2: #C6AE7C; --gold-soft: rgba(169, 143, 94, .14); --gold-ink: #C6AE7C;
+        }
+        [data-tema="salvia"][data-theme="light"] {
+            --canvas: #F4F6F1; --surface-1: #FFFFFF; --surface-2: #F8FAF5; --surface-3: #EFF3EA;
+            --hairline: #E2E8DC; --hairline-2: #CFD8C7;
+            --gold: #7E6534; --gold-2: #6B5529; --gold-soft: rgba(126, 101, 52, .12); --gold-ink: #6B5529;
+        }
+
+        [data-tema="mauve"] {
+            --canvas: #0C0A0D; --surface-1: #151219; --surface-2: #1B1720; --surface-3: #221D28;
+            --hairline: #2C2733; --hairline-2: #3B3544;
+            --gold: #C6A97C; --gold-2: #DEC49C; --gold-soft: rgba(198, 169, 124, .14); --gold-ink: #DEC49C;
+        }
+        [data-tema="mauve"][data-theme="light"] {
+            --canvas: #F7F3F7; --surface-1: #FFFFFF; --surface-2: #FBF7FB; --surface-3: #F3EDF4;
+            --hairline: #E8DFE9; --hairline-2: #D8CBD9;
+            --gold: #8A6A3E; --gold-2: #725530; --gold-soft: rgba(138, 106, 62, .12); --gold-ink: #725530;
+        }
+
+        [data-tema="rose-gold"] {
+            --canvas: #0D0909; --surface-1: #171010; --surface-2: #1E1515; --surface-3: #261B1B;
+            --hairline: #332525; --hairline-2: #432F2F;
+            --gold: #E3C46A; --gold-2: #F0D894; --gold-soft: rgba(227, 196, 106, .14); --gold-ink: #F0D894;
+        }
+        [data-tema="rose-gold"][data-theme="light"] {
+            --canvas: #FDF6F4; --surface-1: #FFFFFF; --surface-2: #FBF0ED; --surface-3: #F7E6E2;
+            --hairline: #EFDDD8; --hairline-2: #E2C9C2;
+            --gold: #A9822F; --gold-2: #8C6822; --gold-soft: rgba(169, 130, 47, .12); --gold-ink: #8C6822;
+        }
+
+        [data-tema="nude-gold"] {
+            --canvas: #0C0A08; --surface-1: #161210; --surface-2: #1D1714; --surface-3: #241D19;
+            --hairline: #332A24; --hairline-2: #453A31;
+            --gold: #DDC08A; --gold-2: #EFD9AE; --gold-soft: rgba(221, 192, 138, .14); --gold-ink: #EFD9AE;
+        }
+        [data-tema="nude-gold"][data-theme="light"] {
+            --canvas: #F8F2EA; --surface-1: #FFFFFF; --surface-2: #FCF7F0; --surface-3: #F4ECE1;
+            --hairline: #E9DFD1; --hairline-2: #D9CBB8;
+            --gold: #8A6A34; --gold-2: #71552A; --gold-soft: rgba(138, 106, 52, .12); --gold-ink: #71552A;
+        }
+
+        [data-tema="mono"] {
+            --canvas: #09090A; --surface-1: #111112; --surface-2: #171718; --surface-3: #1E1E20;
+            --hairline: #29292B; --hairline-2: #38383B;
+            --gold: #C5C1CB; --gold-2: #E2DFE7; --gold-soft: rgba(197, 193, 203, .12); --gold-ink: #E2DFE7;
+        }
+        [data-tema="mono"][data-theme="light"] {
+            --canvas: #F6F6F7; --surface-1: #FFFFFF; --surface-2: #FAFAFB; --surface-3: #F1F1F3;
+            --hairline: #E4E4E7; --hairline-2: #D2D2D7;
+            --gold: #5A5560; --gold-2: #49444F; --gold-soft: rgba(90, 85, 96, .12); --gold-ink: #49444F;
+        }
+
+        /* selector de paletas */
+        .paleta-caja { position: relative; }
+        .paleta-pop {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            z-index: 60;
+            width: 252px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--hairline);
+            background: var(--surface-1);
+            box-shadow: var(--sombra);
+        }
+        .paleta-pop-titulo {
+            margin: 0 0 10px;
+            font-size: 10.5px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--ink-subtle);
+            font-weight: 700;
+        }
+        .paleta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .paleta-opcion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 9px;
+            border: 1px solid var(--hairline);
+            background: var(--surface-2);
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 12px;
+            text-align: left;
+            transition: border-color .14s ease, background-color .14s ease;
+        }
+        .paleta-opcion:hover { border-color: var(--hairline-2); background: var(--surface-3); }
+        .paleta-opcion.activa { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+        .paleta-muestras { display: flex; gap: 3px; flex: 0 0 auto; }
+        .paleta-muestras i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+        .paleta-opcion span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* I57 · icono del toggle: sol en modo noche, luna en modo día */
         [data-theme="light"] .icono-luna { display: none; }
@@ -694,6 +808,19 @@
                     <div class="buscador-global">
                         <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acción…" aria-label="Buscar en la plataforma">
                         <div id="busqueda-resultados" class="buscar-resultados glass oculto"></div>
+                    </div>
+                    <div class="paleta-caja">
+                        <button type="button" id="paleta-btn" class="btn btn-icono" title="Paleta de colores"
+                                aria-label="Elegir paleta de colores" aria-haspopup="true" aria-expanded="false">
+                            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3a9 9 0 1 0 0 18h1.6a2.4 2.4 0 0 0 0-4.8H13a2.2 2.2 0 0 1 0-4.4h4.6A3.4 3.4 0 0 0 21 8.5C21 5.4 17 3 12 3Z"/>
+                                <circle cx="8.2" cy="9" r="1.1"/><circle cx="11.6" cy="6.6" r="1.1"/><circle cx="15.2" cy="8" r="1.1"/>
+                            </svg>
+                        </button>
+                        <div id="paleta-pop" class="paleta-pop oculto" role="dialog" aria-label="Paletas de color">
+                            <p class="paleta-pop-titulo">Paleta de colores</p>
+                            <div class="paleta-grid" id="paleta-grid"></div>
+                        </div>
                     </div>
                     <button type="button" id="tema-btn" class="btn btn-icono" title="Modo día"
                             aria-label="Cambiar a modo claro" aria-pressed="false">
@@ -1322,6 +1449,104 @@
             if (!boton) return;
             boton.addEventListener('click', function () {
                 aplicarTema(temaActual() === 'dark' ? 'light' : 'dark', true);
+            });
+        })();
+
+        // ── I58 · paletas de color ──
+        // Independientes del modo día/noche: la paleta cambia el acento y el
+        // tinte de fondo, el modo decide los contrastes de texto.
+        var CLAVE_PALETA = 'eli_admin_paleta';
+        var PALETAS_UI = [
+            { id: 'blush',     nombre: 'Blush',     muestras: ['#FBF7F5', '#E9D3DC', '#C9A96A'] },
+            { id: 'salvia',    nombre: 'Salvia',    muestras: ['#F4F6F1', '#CBD8C6', '#A98F5E'] },
+            { id: 'mauve',     nombre: 'Mauve',     muestras: ['#F7F3F7', '#DCCBD9', '#C6A97C'] },
+            { id: 'rose-gold', nombre: 'Rose gold', muestras: ['#FDF6F4', '#F3D9D2', '#C9A227'] },
+            { id: 'nude-gold', nombre: 'Nude',      muestras: ['#F8F2EA', '#E4CFB4', '#C9A96A'] },
+            { id: 'mono',      nombre: 'Monocromo', muestras: ['#F6F6F7', '#D2D2D7', '#8A8590'] }
+        ];
+
+        function paletaActual() {
+            var actual = document.documentElement.getAttribute('data-tema');
+            return PALETAS_UI.some(function (p) { return p.id === actual; }) ? actual : 'blush';
+        }
+
+        function pintarOpcionesPaleta() {
+            var caja = $('paleta-grid');
+            if (!caja) return;
+            caja.textContent = '';
+            PALETAS_UI.forEach(function (p) {
+                var boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'paleta-opcion' + (p.id === paletaActual() ? ' activa' : '');
+                boton.setAttribute('role', 'menuitemradio');
+                boton.setAttribute('aria-checked', p.id === paletaActual() ? 'true' : 'false');
+                boton.title = p.nombre;
+
+                var muestras = document.createElement('span');
+                muestras.className = 'paleta-muestras';
+                p.muestras.forEach(function (color) {
+                    var punto = document.createElement('i');
+                    punto.style.background = color;
+                    muestras.appendChild(punto);
+                });
+                boton.appendChild(muestras);
+
+                var texto = document.createElement('span');
+                texto.textContent = p.nombre;
+                boton.appendChild(texto);
+
+                boton.addEventListener('click', function () {
+                    aplicarPaleta(p.id, true);
+                    cerrarPaletas();
+                });
+                caja.appendChild(boton);
+            });
+        }
+
+        function aplicarPaleta(nombre, guardar) {
+            var elegida = PALETAS_UI.some(function (p) { return p.id === nombre; }) ? nombre : 'blush';
+            document.documentElement.setAttribute('data-tema', elegida);
+            if (guardar) { try { localStorage.setItem(CLAVE_PALETA, elegida); } catch (error) { /* sin storage */ } }
+            pintarOpcionesPaleta();
+        }
+
+        function abrirPaletas() {
+            var pop = $('paleta-pop');
+            var boton = $('paleta-btn');
+            if (!pop) return;
+            pop.classList.remove('oculto');
+            if (boton) boton.setAttribute('aria-expanded', 'true');
+        }
+
+        function cerrarPaletas() {
+            var pop = $('paleta-pop');
+            var boton = $('paleta-btn');
+            if (!pop) return;
+            pop.classList.add('oculto');
+            if (boton) boton.setAttribute('aria-expanded', 'false');
+        }
+
+        function alternarPaletas() {
+            var pop = $('paleta-pop');
+            if (!pop) return;
+            if (pop.classList.contains('oculto')) abrirPaletas();
+            else cerrarPaletas();
+        }
+
+        aplicarPaleta(paletaActual(), false);
+        (function () {
+            var boton = $('paleta-btn');
+            if (!boton) return;
+            boton.addEventListener('click', alternarPaletas);
+            document.addEventListener('click', function (evento) {
+                if (!evento.target.closest('.paleta-caja')) cerrarPaletas();
+            });
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key !== 'Escape') return;
+                var pop = $('paleta-pop');
+                if (!pop || pop.classList.contains('oculto')) return;
+                cerrarPaletas();
+                if (boton) boton.focus();
             });
         })();
 
