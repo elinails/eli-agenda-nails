@@ -246,7 +246,7 @@
         <section class="vista" id="vista-login">
             <div class="acceso">
                 <h1>Entrá a tus Elima Points</h1>
-                <p>Te mandamos un enlace mágico al email que le diste a tu salón. Sin contraseñas.</p>
+                <p>Te mandamos un código de 6 dígitos al email que le diste a tu salón. Sin contraseñas.</p>
 
                 <div class="alerta" id="login-alerta" role="alert" hidden></div>
 
@@ -256,18 +256,38 @@
                         <input type="email" id="email" autocomplete="email" inputmode="email"
                                placeholder="tunombre@email.com" maxlength="160" required>
                     </div>
-                    <button type="submit" class="btn" id="login-btn">Enviarme el enlace</button>
+                    <button type="submit" class="btn" id="login-btn">Enviarme el código</button>
                 </form>
             </div>
         </section>
 
-        <!-- 2 · enlace enviado -->
+        <!-- 2 · código OTP -->
         <section class="vista" id="vista-enviado" hidden>
             <div class="acceso">
-                <h1>Revisá tu email</h1>
-                <p id="enviado-texto">Te enviamos un enlace para entrar. Puede tardar un minuto; revisá spam si no llega.</p>
-                <div class="alerta ok" id="enviado-alerta" role="status" hidden></div>
-                <button type="button" class="btn btn-secundario" id="reenviar-btn">Usar otro email</button>
+                <h1>Ingresá tu código</h1>
+                <p id="enviado-texto">Te enviamos un código de 6 dígitos. Revisá spam si no llega.</p>
+
+                <div class="alerta" id="enviado-alerta" role="alert" hidden></div>
+
+                <form id="otp-form" novalidate>
+                    <div class="campo">
+                        <label for="otp">Código de 6 dígitos</label>
+                        <input type="text" id="otp" inputmode="numeric"
+                               autocomplete="one-time-code" pattern="[0-9]{6}"
+                               maxlength="6" placeholder="123456" required
+                               style="text-align:center; letter-spacing:.35em; font-size:20px">
+                    </div>
+                    <button type="submit" class="btn" id="otp-btn">Ingresar</button>
+                </form>
+
+                <div class="puntos-pie">
+                    <button type="button" class="btn btn-secundario" id="reenviar-btn" disabled>
+                        Reenviar código en 60 s
+                    </button>
+                    <button type="button" class="btn btn-secundario" id="cambiar-email-btn">
+                        Usar otro email
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -325,8 +345,12 @@
     var $ = function (id) { return document.getElementById(id); };
     var cliente = null;
     var cargando = false;
+    var emailOtp = '';
+    var reenvioTimer = null;
 
     function mostrar(vista) {
+        if (vista !== 'vista-enviado') detenerReenvio();
+
         ['vista-login', 'vista-enviado', 'vista-panel'].forEach(function (id) {
             var el = $(id);
             if (el) el.hidden = (id !== vista);
@@ -339,6 +363,53 @@
         el.textContent = texto || '';
         el.className = 'alerta' + (tipo === 'ok' ? ' ok' : '');
         el.hidden = !texto;
+    }
+
+    function detenerReenvio() {
+        if (reenvioTimer) {
+            clearInterval(reenvioTimer);
+            reenvioTimer = null;
+        }
+    }
+
+    function iniciarReenvio() {
+        detenerReenvio();
+
+        var boton = $('reenviar-btn');
+        if (!boton) return;
+
+        var segundos = 60;
+        boton.disabled = true;
+        boton.textContent = 'Reenviar código en ' + segundos + ' s';
+
+        reenvioTimer = setInterval(function () {
+            segundos -= 1;
+
+            if (segundos <= 0) {
+                clearInterval(reenvioTimer);
+                reenvioTimer = null;
+                boton.disabled = false;
+                boton.textContent = 'Reenviar código';
+                return;
+            }
+
+            boton.textContent = 'Reenviar código en ' + segundos + ' s';
+        }, 1000);
+    }
+
+    function volverALogin() {
+        detenerReenvio();
+        emailOtp = '';
+
+        var otp = $('otp');
+        if (otp) otp.value = '';
+
+        aviso('enviado-alerta', '', 'ok');
+        aviso('login-alerta', '', 'ok');
+        mostrar('vista-login');
+
+        var email = $('email');
+        if (email) email.focus();
     }
 
     function formatearPuntos(valor) {
@@ -517,41 +588,135 @@
 
         $('login-form').addEventListener('submit', async function (evento) {
             evento.preventDefault();
+
             var email = String($('email').value || '').trim();
             if (!email || email.indexOf('@') < 1 || email.length < 5) {
                 aviso('login-alerta', 'Escribí un email válido.', '');
                 return;
             }
+
             var boton = $('login-btn');
             boton.disabled = true;
             boton.textContent = 'Enviando…';
             aviso('login-alerta', '', 'ok');
+
             try {
-                var destino = window.location.origin + window.location.pathname;
-                var res = await cliente.auth.signInWithOtp({
-                    email: email,
-                    options: { emailRedirectTo: destino }
-                });
+                var res = await cliente.auth.signInWithOtp({ email: email });
                 if (res.error) throw res.error;
-                $('enviado-texto').textContent = 'Te enviamos un enlace a ' + email + '. Abrilo desde este mismo dispositivo.';
+
+                emailOtp = email;
+                $('enviado-texto').textContent =
+                    'Te enviamos un código de 6 dígitos a ' + email + '. Revisá spam si no llega.';
+
+                var otp = $('otp');
+                if (otp) otp.value = '';
+
+                aviso('enviado-alerta', '', 'ok');
                 mostrar('vista-enviado');
+                iniciarReenvio();
+
+                if (otp) otp.focus();
             } catch (error) {
                 console.error(error);
-                aviso('login-alerta', 'No pudimos enviar el enlace: ' + ((error && error.message) || 'error de conexión'), '');
+
+                var mensaje = (error && error.message) || 'error de conexión';
+                if (/rate limit|too many/i.test(mensaje)) {
+                    mensaje = 'Demasiados intentos. Esperá un minuto y volvé a probar.';
+                }
+
+                aviso('login-alerta', 'No pudimos enviar el código: ' + mensaje, '');
             } finally {
                 boton.disabled = false;
-                boton.textContent = 'Enviarme el enlace';
+                boton.textContent = 'Enviarme el código';
             }
         });
 
-        $('reenviar-btn').addEventListener('click', function () {
-            mostrar('vista-login');
-            aviso('login-alerta', '', 'ok');
+        $('otp-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+
+            var codigo = String($('otp').value || '').replace(/\D/g, '').slice(0, 6);
+            var boton = $('otp-btn');
+
+            if (codigo.length !== 6) {
+                aviso('enviado-alerta', 'Ingresá el código de 6 dígitos.', '');
+                $('otp').focus();
+                return;
+            }
+
+            if (!emailOtp) {
+                volverALogin();
+                aviso('login-alerta', 'Volvé a pedir un código.', '');
+                return;
+            }
+
+            boton.disabled = true;
+            boton.textContent = 'Verificando…';
+            aviso('enviado-alerta', '', 'ok');
+
+            try {
+                var res = await cliente.auth.verifyOtp({
+                    email: emailOtp,
+                    token: codigo,
+                    type: 'email'
+                });
+
+                if (res.error) throw res.error;
+
+                detenerReenvio();
+                await cargarPuntos();
+            } catch (error) {
+                console.error(error);
+                aviso('enviado-alerta', 'Código inválido o expirado', '');
+
+                var otp = $('otp');
+                if (otp) {
+                    otp.value = '';
+                    otp.focus();
+                }
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Ingresar';
+            }
         });
+
+        $('reenviar-btn').addEventListener('click', async function () {
+            if (!emailOtp) {
+                volverALogin();
+                return;
+            }
+
+            var boton = $('reenviar-btn');
+            if (boton.disabled) return;
+
+            boton.disabled = true;
+            boton.textContent = 'Enviando…';
+            aviso('enviado-alerta', '', 'ok');
+
+            try {
+                var res = await cliente.auth.signInWithOtp({ email: emailOtp });
+                if (res.error) throw res.error;
+
+                aviso('enviado-alerta', 'Te enviamos un nuevo código.', 'ok');
+                iniciarReenvio();
+            } catch (error) {
+                console.error(error);
+
+                var mensaje = (error && error.message) || 'error de conexión';
+                if (/rate limit|too many/i.test(mensaje)) {
+                    mensaje = 'Demasiados intentos. Esperá un minuto y volvé a probar.';
+                }
+
+                aviso('enviado-alerta', 'No pudimos reenviar el código: ' + mensaje, '');
+                boton.disabled = false;
+                boton.textContent = 'Reenviar código';
+            }
+        });
+
+        $('cambiar-email-btn').addEventListener('click', volverALogin);
 
         $('salir-btn').addEventListener('click', async function () {
             try { await cliente.auth.signOut(); } catch (error) { console.warn(error); }
-            mostrar('vista-login');
+            volverALogin();
             aviso('login-alerta', 'Cerraste sesión.', 'ok');
         });
 
@@ -560,8 +725,11 @@
 
         cliente.auth.onAuthStateChange(function (evento, sesion) {
             if (evento === 'SIGNED_IN' && sesion) {
+                detenerReenvio();
                 setTimeout(cargarPuntos, 0);
             } else if (evento === 'SIGNED_OUT') {
+                emailOtp = '';
+                detenerReenvio();
                 mostrar('vista-login');
             }
         });
