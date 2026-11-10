@@ -27,11 +27,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <style>
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        /* ══════════════════════════════════════════════════════════════════
            I63 · sistema de diseño compartido con index.html
            Estos son los MISMOS tokens y las MISMAS 8 paletas de la app.
            El panel no define colores propios: los hereda.
-           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+           ══════════════════════════════════════════════════════════════════ */
 
         :root {
             --paper: #FAF6F3;
@@ -3263,9 +3263,9 @@
                 }
             });
         })();
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ══════════════════════════════════════════════════════════════════
         // I66 · God Mode V3 â€” métricas SaaS, soporte y operaciones
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ══════════════════════════════════════════════════════════════════
 
         var ticketsCache = [];
         var ticketsCargando = false;
@@ -5770,7 +5770,7 @@
                 await cargarListaBilleteras();
             } catch (error) {
                 console.error('Reserva Federal:', error);
-                alerta('rf-alerta', 'No se pudo cargar la Reserva Federal: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                alerta('rf-alerta', 'No se pudo cargar la Reserva Federal: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
@@ -5807,7 +5807,7 @@
                 pintarPaginacion();
             } catch (error) {
                 console.error('Lista billeteras:', error);
-                alerta('rf-alerta', 'No se pudo cargar la lista: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                alerta('rf-alerta', 'No se pudo cargar la lista: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
@@ -5885,7 +5885,7 @@
 
         function pintarPaginacion() {
             var totalPaginas = Math.ceil(rfTotalRegistros / rfLIMITE_PAGINA);
-            $('rf-pagina-info').textContent = 'PÃƒÂ¡gina ' + rfPaginaActual + ' de ' + (totalPaginas || 1);
+            $('rf-pagina-info').textContent = 'Página ' + rfPaginaActual + ' de ' + (totalPaginas || 1);
             $('rf-prev').disabled = rfPaginaActual <= 1;
             $('rf-next').disabled = rfPaginaActual >= totalPaginas;
         }
@@ -5925,7 +5925,7 @@
             modal.innerHTML = '\
                 <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-ajustar-titulo">\
                     <h2 id="rf-ajustar-titulo">Ajustar puntos</h2>\
-                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> Ã‚· SalÃƒÂ³n: ' + escapeHtml(f.salon_nombre) + '</p>\
+                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> Ã‚· Salón: ' + escapeHtml(f.salon_nombre) + '</p>\
                     <div class="modal-cuerpo">\
                         <div class="campo">\
                             <label for="rf-monto">Monto (positivo suma, negativo resta)</label>\
@@ -6006,7 +6006,7 @@
                     await cargarReservaFederal();
                 } catch (error) {
                     console.error('Ajuste:', error);
-                    alerta('rf-alerta', 'No se pudo aplicar el ajuste: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                    alerta('rf-alerta', 'No se pudo aplicar el ajuste: ' + (error.message || 'error de conexión'), 'error');
                 } finally {
                     btn.disabled = false; btn.textContent = 'Aplicar ajuste';
                 }
@@ -6022,7 +6022,7 @@
                     <div class="drawer-cabecera" style="padding:0 24px 16px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center">\
                         <div>\
                             <h2 id="rf-mov-titulo">Movimientos de ' + escapeHtml(f.cliente_nombre) + '</strong></h2>\
-                            <p class="sub" style="margin:0">SalÃƒÂ³n: ' + escapeHtml(f.salon_nombre) + ' Ã‚· Saldo: ' + formatearPuntos(Number(f.saldo_actual) || 0) + '</p>\
+                            <p class="sub" style="margin:0">Salón: ' + escapeHtml(f.salon_nombre) + ' Ã‚· Saldo: ' + formatearPuntos(Number(f.saldo_actual) || 0) + '</p>\
                         </div>\
                         <button type="button" id="rf-mov-cerrar" class="btn btn-icono" aria-label="Cerrar">Ãƒâ€”</button>\
                     </div>\
