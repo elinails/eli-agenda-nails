@@ -28,7 +28,7 @@
     <style>
 
         /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-           I63 Â· sistema de diseÃ±o compartido con index.html
+           I63 Â· sistema de diseño compartido con index.html
            Estos son los MISMOS tokens y las MISMAS 8 paletas de la app.
            El panel no define colores propios: los hereda.
            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -243,7 +243,7 @@
 
         /* â”€â”€ capa de alias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            El CSS del panel usa nombres propios (--canvas, --surface-1...).
-           AcÃ¡ se traducen a los tokens de la app: cero cambios en las
+           Acá se traducen a los tokens de la app: cero cambios en las
            ~200 reglas de layout. */
         :root {
             --canvas: var(--paper);
@@ -253,7 +253,7 @@
             --hairline-2: var(--blush);
             --ink-muted: var(--ink-soft);
 
-            /* 3 niveles de texto: el mÃ¡s tenue se mezcla con el fondo */
+            /* 3 niveles de texto: el más tenue se mezcla con el fondo */
             --ink-subtle: var(--ink-soft);
             --ink-subtle: color-mix(in srgb, var(--ink-soft) 72%, var(--paper));
 
@@ -268,7 +268,7 @@
             --info: #8FB2D9;
             --info-soft: rgba(143, 178, 217, .14);
 
-            /* el hover del botÃ³n dorado aclara en oscuro y oscurece en claro */
+            /* el hover del botón dorado aclara en oscuro y oscurece en claro */
             --gold-2: var(--gold);
             --gold-2: color-mix(in srgb, var(--gold) 82%, var(--ink));
             --gold-soft: rgba(190, 158, 111, .14);
@@ -287,14 +287,14 @@
             --btn-ink: #FFFFFF;
             --sombra: 0 18px 40px rgba(59, 47, 53, .12);
         }
-        /* mono-dark fuerza chrome oscuro aun en modo dÃ­a */
+        /* mono-dark fuerza chrome oscuro aun en modo día */
         :root[data-tema="mono-dark"][data-theme="light"] {
             --info: #8FB2D9;
             --info-soft: rgba(143, 178, 217, .14);
             --btn-ink: #221A20;
         }
 
-        /* I57 Â· el botÃ³n dorado lleva texto claro en modo dÃ­a */
+        /* I57 Â· el botón dorado lleva texto claro en modo día */
 
         /* selector de paletas */
         .paleta-caja { position: relative; }
@@ -339,7 +339,7 @@
         .paleta-muestras i { width: 11px; height: 11px; border-radius: 50%; display: block; }
         .paleta-opcion span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* I57 Â· icono del toggle: sol en modo noche, luna en modo dÃ­a */
+        /* I57 Â· icono del toggle: sol en modo noche, luna en modo día */
         [data-theme="light"] .icono-luna { display: none; }
         [data-theme="dark"] .icono-sol { display: none; }
         [data-theme="light"] .alerta.error { border-color: rgba(180, 69, 60, .35); }
@@ -531,7 +531,7 @@
         .menu-btn { display: none; }
         .buscar-btn { display: none; }
 
-        /* I63 Â· Ã¡reas tÃ¡ctiles de 44px */
+        /* I63 Â· áreas táctiles de 44px */
         .btn-icono { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; }
         .contenido { width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 28px 70px; }
 
@@ -591,7 +591,7 @@
             font-size: 10.5px; font-weight: 700; line-height: 1;
         }
 
-        /* I49 Â· grÃ¡ficos, switches, usuarios */
+        /* I49 Â· gráficos, switches, usuarios */
         .graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
         .grafico { padding: 16px; }
         .grafico-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
@@ -1029,7 +1029,7 @@
         .checklist-ok { color: #2D6D3D; }
         .checklist-pendiente { color: #8C6B3A; }
 
-        /* â”€â”€ I66 Â· operaciones, adopciÃ³n y soporte â”€â”€ */
+        /* â”€â”€ I66 Â· operaciones, adopción y soporte â”€â”€ */
         .operaciones-fila {
             display: flex; align-items: center; justify-content: space-between;
             gap: 16px; padding: 12px 0; border-top: 1px solid var(--hairline);
@@ -1069,7 +1069,7 @@
                 <span class="marca-sub">God Mode</span>
             </div>
             <h1>Ingresar</h1>
-            <p class="sub">Acceso exclusivo del equipo de administraciÃ³n.</p>
+            <p class="sub">Acceso exclusivo del equipo de administración.</p>
             <div id="login-alerta" class="alerta error oculto" role="alert"></div>
             <form id="login-form" novalidate>
                 <div class="campo">
@@ -1077,7 +1077,7 @@
                     <input type="email" id="email" autocomplete="email" required>
                 </div>
                 <div class="campo">
-                    <label for="password">ContraseÃ±a</label>
+                    <label for="password">Contraseña</label>
                     <input type="password" id="password" autocomplete="current-password" required>
                 </div>
                 <button type="submit" id="login-btn" class="btn btn-primario btn-bloque" style="width:100%">Entrar</button>
@@ -1092,24 +1092,24 @@
                 <span class="marca">Eli M. Nails</span>
                 <span class="marca-sub">God Mode</span>
             </div>
-            <h1 id="dosfa-titulo">VerificaciÃ³n en dos pasos</h1>
+            <h1 id="dosfa-titulo">Verificación en dos pasos</h1>
             <p class="sub" id="dosfa-sub"></p>
             <div id="dosfa-alerta" class="alerta error oculto" role="alert"></div>
             <div id="dosfa-qr-caja" class="qr-caja oculto">
-                <img id="dosfa-qr" alt="CÃ³digo QR para configurar la verificaciÃ³n en dos pasos">
+                <img id="dosfa-qr" alt="Código QR para configurar la verificación en dos pasos">
                 <p class="secreto" id="dosfa-secreto"></p>
-                <p class="nota" style="margin:0">EscaneÃ¡ el QR con Google Authenticator (o similar). Si no podÃ©s, cargÃ¡ el cÃ³digo de arriba a mano.</p>
+                <p class="nota" style="margin:0">Escaneá el QR con Google Authenticator (o similar). Si no podÃ©s, cargá el código de arriba a mano.</p>
             </div>
             <form id="dosfa-form" novalidate>
                 <div class="campo">
-                    <label for="dosfa-codigo">CÃ³digo de 6 dÃ­gitos</label>
+                    <label for="dosfa-codigo">Código de 6 dígitos</label>
                     <input type="text" id="dosfa-codigo" inputmode="numeric" autocomplete="one-time-code"
                            maxlength="6" pattern="[0-9]{6}" class="codigo" required>
                 </div>
                 <button type="submit" id="dosfa-btn" class="btn btn-primario" style="width:100%">Verificar</button>
             </form>
             <p style="margin-top:14px">
-                <button type="button" id="dosfa-salir" class="btn btn-peligro" style="width:100%">Cerrar sesiÃ³n</button>
+                <button type="button" id="dosfa-salir" class="btn btn-peligro" style="width:100%">Cerrar sesión</button>
             </p>
         </div>
     </section>
@@ -1157,7 +1157,7 @@
                 </button>
                 <button type="button" class="nav-item" data-vista="auditoria">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M3.5 5h.01M3.5 12h.01M3.5 19h.01"/></svg>
-                    AuditorÃ­a
+                    Auditoría
                     <span id="auditoria-badge" class="badge-alerta oculto">0</span>
                 </button>
                 <button type="button" class="nav-item" data-vista="soporte">
@@ -1178,7 +1178,7 @@
                 </a>
                 <button type="button" id="salir-btn" class="nav-item" style="color:var(--danger)">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4M16 17l5-5-5-5M21 12H9"/></svg>
-                    Cerrar sesiÃ³n
+                    Cerrar sesión
                 </button>
             </div>
         </aside>
@@ -1201,7 +1201,7 @@
                         </svg>
                     </button>
                     <div class="buscador-global">
-                        <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salÃ³n, usuario o acciÃ³nâ€¦" aria-label="Buscar en la plataforma">
+                        <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acciónâ€¦" aria-label="Buscar en la plataforma">
                         <div id="busqueda-resultados" class="buscar-resultados glass oculto"></div>
                     </div>
                     <div class="paleta-caja">
@@ -1217,7 +1217,7 @@
                             <div class="paleta-grid" id="paleta-grid"></div>
                         </div>
                     </div>
-                    <button type="button" id="tema-btn" class="btn btn-icono" title="Modo dÃ­a"
+                    <button type="button" id="tema-btn" class="btn btn-icono" title="Modo día"
                             aria-label="Cambiar a modo claro" aria-pressed="false">
                         <svg class="icono-sol" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
                             <circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>
@@ -1242,10 +1242,10 @@
                     <div class="graficos">
                         <div class="panel grafico">
                             <div class="grafico-cabecera">
-                                <h2>EvoluciÃ³n del MRR</h2>
+                                <h2>Evolución del MRR</h2>
                                 <span class="grafico-nota">Ãºltimos 12 meses</span>
                             </div>
-                            <div class="barras" id="grafico-mrr" aria-label="EvoluciÃ³n del MRR"></div>
+                            <div class="barras" id="grafico-mrr" aria-label="Evolución del MRR"></div>
                         </div>
                         <div class="panel grafico">
                             <div class="grafico-cabecera">
@@ -1293,10 +1293,10 @@
                         <div class="kpi">
                             <span class="kpi-label">ARR</span>
                             <strong class="kpi-valor" id="met-arr">â€”</strong>
-                            <span class="kpi-pie">proyecciÃ³n anual</span>
+                            <span class="kpi-pie">proyección anual</span>
                         </div>
                         <div class="kpi">
-                            <span class="kpi-label">Churn 30 dÃ­as</span>
+                            <span class="kpi-label">Churn 30 días</span>
                             <strong class="kpi-valor" id="met-churn">â€”</strong>
                             <span class="kpi-pie" id="met-churn-pie">cancelaciones</span>
                         </div>
@@ -1327,7 +1327,7 @@
                         <div class="kpi">
                             <span class="kpi-label">LTV estimado</span>
                             <strong class="kpi-valor" id="saas-ltv">â€”</strong>
-                            <span class="kpi-pie" id="saas-ltv-pie">por salÃ³n</span>
+                            <span class="kpi-pie" id="saas-ltv-pie">por salón</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Salud de salones</span>
@@ -1339,15 +1339,15 @@
                     <div class="panel panel-top" id="panel-riesgo">
                         <div class="grafico-cabecera">
                             <h2>Salones en riesgo</h2>
-                            <span class="grafico-nota">pagan y no tienen turnos hace 15 dÃ­as</span>
+                            <span class="grafico-nota">pagan y no tienen turnos hace 15 días</span>
                         </div>
                         <div id="lista-riesgo" class="top-lista"></div>
                     </div>
 
                     <div class="panel panel-top" id="panel-adopcion">
                         <div class="grafico-cabecera">
-                            <h2>AdopciÃ³n de funciones</h2>
-                            <span class="grafico-nota">salones que usan cada funciÃ³n</span>
+                            <h2>Adopción de funciones</h2>
+                            <span class="grafico-nota">salones que usan cada función</span>
                         </div>
                         <div id="grafico-adopcion" class="adopcion-lista"></div>
                     </div>
@@ -1361,14 +1361,14 @@
                     </div>
 
                     <div class="toolbar">
-                        <input type="search" id="buscar-salones" placeholder="Buscar salÃ³n, dueÃ±a, rubro o slug" aria-label="Buscar salÃ³n, dueÃ±a, rubro o slug">
+                        <input type="search" id="buscar-salones" placeholder="Buscar salón, dueña, rubro o slug" aria-label="Buscar salón, dueña, rubro o slug">
                         <select id="filtro-estado" aria-label="Filtrar por estado">
                             <option value="todos">Todos</option>
                             <option value="activos">Activos</option>
                             <option value="suspendidos">Suspendidos</option>
-                            <option value="inactivos">Inactivos (15 dÃ­as)</option>
+                            <option value="inactivos">Inactivos (15 días)</option>
                         </select>
-                        <select id="filtro-publicacion" aria-label="Filtrar por estado de publicaciÃ³n">
+                        <select id="filtro-publicacion" aria-label="Filtrar por estado de publicación">
                             <option value="todos">Todos los perfiles</option>
                             <option value="publicados">Publicados</option>
                             <option value="pendientes">Pendientes</option>
@@ -1376,9 +1376,9 @@
                         <select id="filtro-rubro" aria-label="Filtrar por rubro">
                             <option value="">Todos los rubros</option>
                             <option value="nails">Nails</option>
-                            <option value="peluqueria">PeluquerÃ­a</option>
+                            <option value="peluqueria">Peluquería</option>
                             <option value="maquillaje">Maquillaje</option>
-                            <option value="barberia">BarberÃ­a</option>
+                            <option value="barberia">Barbería</option>
                             <option value="sin-rubro">Sin rubro</option>
                         </select>
                         <button type="button" id="csv-salones" class="btn">â†“ CSV</button>
@@ -1401,10 +1401,10 @@
                         <table class="tabla">
                             <thead>
                                 <tr>
-                                    <th>SalÃ³n</th>
-                                    <th>DueÃ±a</th>
+                                    <th>Salón</th>
+                                    <th>Dueña</th>
                                     <th>Plan</th>
-                                    <th>SuscripciÃ³n</th>
+                                    <th>Suscripción</th>
                                     <th>Miembros</th>
                                     <th>Turnos</th>
                                     <th>Creado</th>
@@ -1417,7 +1417,7 @@
                             </thead>
                             <tbody id="tabla-salones"></tbody>
                         </table>
-                        <p id="salones-vacio" class="vacio oculto">No hay salones todavÃ­a.</p>
+                        <p id="salones-vacio" class="vacio oculto">No hay salones todavía.</p>
                     </div>
                 </section>
 
@@ -1437,7 +1437,7 @@
                         <div class="kpi">
                             <span class="kpi-label">Activos</span>
                             <strong class="kpi-valor" id="kpi-activos">â€”</strong>
-                            <span class="kpi-pie">suscripciÃ³n al dÃ­a</span>
+                            <span class="kpi-pie">suscripción al día</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Past due</span>
@@ -1457,7 +1457,7 @@
                         <table class="tabla">
                             <thead>
                                 <tr>
-                                    <th>SalÃ³n</th>
+                                    <th>Salón</th>
                                     <th>Plan</th>
                                     <th>Estado</th>
                                     <th>Trial hasta</th>
@@ -1466,7 +1466,7 @@
                             </thead>
                             <tbody id="tabla-suscripciones"></tbody>
                         </table>
-                        <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavÃ­a.</p>
+                        <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavía.</p>
                     </div>
                 </section>
 
@@ -1566,14 +1566,14 @@
                             <h3>Publicar anuncio</h3>
                             <p class="sub">Aparece en la app de todos los salones, incluso en el login.</p>
                             <label for="anuncio-mensaje">Mensaje</label>
-                            <textarea id="anuncio-mensaje" maxlength="500" rows="4" placeholder="Ej: El sÃ¡bado 15 hacemos mantenimiento entre las 8 y las 10."></textarea>
+                            <textarea id="anuncio-mensaje" maxlength="500" rows="4" placeholder="Ej: El sábado 15 hacemos mantenimiento entre las 8 y las 10."></textarea>
                             <div class="contador-caracteres"><span id="anuncio-contador">0 / 500</span></div>
 
-                            <label for="anuncio-dias">DuraciÃ³n en dÃ­as (0 = sin vencimiento)</label>
+                            <label for="anuncio-dias">Duración en días (0 = sin vencimiento)</label>
                             <input type="number" id="anuncio-dias" min="0" max="365" value="0" inputmode="numeric">
 
                             <div class="preview-label" style="margin-top:14px">Vista previa</div>
-                            <div id="anuncio-preview" class="anuncio-preview">El anuncio se va a ver asÃ­.</div>
+                            <div id="anuncio-preview" class="anuncio-preview">El anuncio se va a ver así.</div>
 
                             <button type="button" id="anuncio-publicar" class="btn btn-primario btn-bloque">Publicar anuncio</button>
                             <div id="anuncio-alerta" class="alerta oculto" role="alert"></div>
@@ -1581,9 +1581,9 @@
 
                         <div class="panel">
                             <h3>Publicados</h3>
-                            <p class="sub">Solo el mÃ¡s reciente activo se muestra en la app.</p>
+                            <p class="sub">Solo el más reciente activo se muestra en la app.</p>
                             <div id="lista-anuncios" class="lista-anuncios"></div>
-                            <p id="anuncios-vacio" class="vacio oculto">TodavÃ­a no hay anuncios.</p>
+                            <p id="anuncios-vacio" class="vacio oculto">Todavía no hay anuncios.</p>
                         </div>
                     </div>
                 </section>
@@ -1611,7 +1611,7 @@
                             <input type="number" id="pat-orden" min="0" max="999" value="0" inputmode="numeric" aria-label="Orden">
 
                             <div class="preview-label" style="margin-top:14px">Vista previa</div>
-                            <div id="pat-preview" class="anuncio-preview">AsÃ­ se va a ver en el Inicio.</div>
+                            <div id="pat-preview" class="anuncio-preview">Así se va a ver en el Inicio.</div>
 
                             <button type="button" id="pat-guardar" class="btn btn-primario btn-bloque">Agregar patrocinador</button>
                             <div id="pat-alerta" class="alerta oculto" role="alert"></div>
@@ -1621,7 +1621,7 @@
                             <h3>Patrocinadores</h3>
                             <p class="sub">Solo el primero activo se muestra en la app.</p>
                             <div id="lista-patrocinadores" class="lista-anuncios"></div>
-                            <p id="patrocinadores-vacio" class="vacio oculto">TodavÃ­a no hay patrocinadores.</p>
+                            <p id="patrocinadores-vacio" class="vacio oculto">Todavía no hay patrocinadores.</p>
                         </div>
                     </div>
                 </section>
@@ -1629,8 +1629,8 @@
                 <!-- AUDITORÃA -->
                 <section id="seccion-auditoria" class="seccion oculto">
                     <div class="toolbar">
-                        <input type="search" id="buscar-auditoria" placeholder="Buscar admin, salÃ³n o acciÃ³n" aria-label="Buscar en auditorÃ­a">
-                        <select id="filtro-accion" aria-label="Filtrar por acciÃ³n">
+                        <input type="search" id="buscar-auditoria" placeholder="Buscar admin, salón o acción" aria-label="Buscar en auditoría">
+                        <select id="filtro-accion" aria-label="Filtrar por acción">
                             <option value="">Todas las acciones</option>
                             <option value="impersonar">Impersonaciones</option>
                             <option value="impersonar_fallido">Intentos fallidos</option>
@@ -1643,8 +1643,8 @@
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Admin</th>
-                                    <th>SalÃ³n</th>
-                                    <th>AcciÃ³n</th>
+                                    <th>Salón</th>
+                                    <th>Acción</th>
                                     <th>Detalle</th>
                                 </tr>
                             </thead>
@@ -1671,7 +1671,7 @@
                             <thead>
                                 <tr>
                                     <th>Asunto</th>
-                                    <th>SalÃ³n</th>
+                                    <th>Salón</th>
                                     <th>Prioridad</th>
                                     <th>Estado</th>
                                     <th>Creado</th>
@@ -1688,7 +1688,7 @@
                     <div class="cabecera-seccion">
                         <div>
                             <h2>Cobros</h2>
-                            <p class="sub">QuiÃ©n vence, quiÃ©n estÃ¡ en gracia y quiÃ©n se pasÃ³ a Gratis.</p>
+                            <p class="sub">QuiÃ©n vence, quiÃ©n está en gracia y quiÃ©n se pasó a Gratis.</p>
                         </div>
                         <div class="cobros-botones">
                             <button type="button" id="cobros-refrescar" class="btn btn-sm">Actualizar</button>
@@ -1701,7 +1701,7 @@
                     <div class="grid-cobros">
                         <div class="panel">
                             <div class="cobros-titulo"><h3>Por vencer</h3><span id="cobros-n-porvencer" class="pill pill-info">0</span></div>
-                            <p class="sub">PrÃ³ximos 7 dÃ­as.</p>
+                            <p class="sub">Próximos 7 días.</p>
                             <div id="lista-porvencer" class="lista-cobros"></div>
                         </div>
                         <div class="panel">
@@ -1725,8 +1725,8 @@
                                 <tr>
                                     <th>Plan</th>
                                     <th>Precio</th>
-                                    <th>LÃ­mite empleadas</th>
-                                    <th>DescripciÃ³n</th>
+                                    <th>Límite empleadas</th>
+                                    <th>Descripción</th>
                                     <th>Funciones</th>
                                     <th>Activo</th>
                                     <th></th>
@@ -1742,7 +1742,7 @@
                             <input type="text" id="plan-id" placeholder="id (ej: anual)" maxlength="20" aria-label="Id del plan">
                             <input type="text" id="plan-nombre" placeholder="Nombre" maxlength="40" aria-label="Nombre del plan">
                             <input type="number" id="plan-precio" placeholder="Precio" min="0" step="100" aria-label="Precio">
-                            <input type="number" id="plan-limite" placeholder="LÃ­mite empleadas" min="1" aria-label="LÃ­mite de empleadas">
+                            <input type="number" id="plan-limite" placeholder="Límite empleadas" min="1" aria-label="Límite de empleadas">
                             <button type="button" id="plan-crear" class="btn btn-primario">Agregar</button>
                         </div>
                         <div class="toolbar" style="margin-top:8px;gap:6px;flex-wrap:wrap" aria-label="Funciones incluidas en el plan">
@@ -1757,7 +1757,7 @@
                 <!-- USUARIOS -->
                 <section id="seccion-usuarios" class="seccion oculto">
                     <div class="toolbar">
-                        <input type="search" id="buscar-usuarios" placeholder="Buscar por email o salÃ³n" aria-label="Buscar usuarios">
+                        <input type="search" id="buscar-usuarios" placeholder="Buscar por email o salón" aria-label="Buscar usuarios">
                         <span class="contador" id="usuarios-contador"></span>
                     </div>
                     <div class="panel tabla-panel">
@@ -1765,7 +1765,7 @@
                             <thead>
                                 <tr>
                                     <th>Email</th>
-                                    <th>SalÃ³n</th>
+                                    <th>Salón</th>
                                     <th>Rol</th>
                                     <th>Alta</th>
                                     <th>Ãšltimo acceso</th>
@@ -1782,7 +1782,7 @@
                 <section id="seccion-ajustes" class="seccion oculto">
                     <div class="panel" style="padding:18px">
                         <h2 style="margin:0 0 4px">Interruptores de emergencia</h2>
-                        <p class="muted" style="margin:0 0 14px">Se aplican la prÃ³xima vez que cada salÃ³n abra la app.</p>
+                        <p class="muted" style="margin:0 0 14px">Se aplican la próxima vez que cada salón abra la app.</p>
                         <div id="lista-flags"></div>
                         <p id="flags-vacio" class="vacio oculto">No hay ajustes cargados.</p>
                     </div>
@@ -1790,7 +1790,7 @@
                     <!-- I66 Â· operaciones -->
                     <div class="panel" style="padding:18px;margin-top:16px" id="panel-operaciones">
                         <h2 style="margin:0 0 4px">Operaciones</h2>
-                        <p class="muted" style="margin:0 0 14px">Acciones manuales sobre la plataforma. Quedan registradas en AuditorÃ­a.</p>
+                        <p class="muted" style="margin:0 0 14px">Acciones manuales sobre la plataforma. Quedan registradas en Auditoría.</p>
                         <div class="operaciones-fila">
                             <div>
                                 <p class="operaciones-titulo">Forzar backup</p>
@@ -1801,7 +1801,7 @@
                         <div class="operaciones-fila">
                             <div>
                                 <p class="operaciones-titulo">Limpiar cachÃ© global</p>
-                                <p class="muted" style="margin:0">Los clientes purgan su cachÃ© y actualizan el service worker la prÃ³xima vez que abran la app.</p>
+                                <p class="muted" style="margin:0">Los clientes purgan su cachÃ© y actualizan el service worker la próxima vez que abran la app.</p>
                             </div>
                             <button type="button" id="cache-btn" class="btn">Limpiar cachÃ©</button>
                         </div>
@@ -1817,7 +1817,7 @@
         <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo">
             <div class="drawer-cabecera">
                 <div style="min-width:0">
-                    <h2 id="drawer-titulo">SalÃ³n</h2>
+                    <h2 id="drawer-titulo">Salón</h2>
                     <p class="sub" id="drawer-estado" style="margin:0"></p>
                 </div>
                 <button type="button" id="drawer-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">âœ•</button>
@@ -1853,8 +1853,8 @@
                 <input type="text" id="ticket-asunto" maxlength="120" placeholder="Ej: no puede subir la foto de portada">
             </div>
             <div class="campo">
-                <label for="ticket-salon">SalÃ³n (opcional)</label>
-                <select id="ticket-salon"><option value="">Sin salÃ³n</option></select>
+                <label for="ticket-salon">Salón (opcional)</label>
+                <select id="ticket-salon"><option value="">Sin salón</option></select>
             </div>
             <div class="campo">
                 <label for="ticket-prioridad">Prioridad</label>
@@ -1880,11 +1880,11 @@
     <div id="perfil-overlay" class="overlay oculto">
         <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="perfil-titulo">
             <h2 id="perfil-titulo">Completar perfil pÃºblico</h2>
-            <p id="perfil-texto" class="nota">Para aparecer en Elima Belleza el salÃ³n necesita rubro y slug.</p>
+            <p id="perfil-texto" class="nota">Para aparecer en Elima Belleza el salón necesita rubro y slug.</p>
             <div class="campo">
                 <label for="perfil-rubro">Rubro</label>
                 <select id="perfil-rubro">
-                    <option value="">ElegÃ­ un rubroâ€¦</option>
+                    <option value="">Elegí un rubroâ€¦</option>
                 </select>
             </div>
             <div class="campo">
@@ -1920,20 +1920,20 @@
         };
         const RUBROS = {
             nails: 'Nails',
-            peluqueria: 'PeluquerÃ­a',
+            peluqueria: 'Peluquería',
             maquillaje: 'Maquillaje',
-            barberia: 'BarberÃ­a'
+            barberia: 'Barbería'
         };
         const TITULOS = {
             salones: { t: 'Inicio', s: 'Estado general de la plataforma.' },
             suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
             cobros: { t: 'Cobros', s: 'Vencimientos, gracias y pagos de las suscripciones.' },
             'reserva-federal': { t: 'Reserva Federal', s: 'Saldos globales y ajustes manuales de Elima Points.' },
-            planes: { t: 'Planes', s: 'Precios y lÃ­mites de cada plan.' },
+            planes: { t: 'Planes', s: 'Precios y límites de cada plan.' },
             usuarios: { t: 'Usuarios', s: 'Todas las cuentas registradas.' },
-            anuncios: { t: 'Anuncios', s: 'El megÃ¡fono global de la plataforma.' },
+            anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
             patrocinadores: { t: 'Patrocinadores', s: 'Marcas que financian el plan Gratis.' },
-            auditoria: { t: 'AuditorÃ­a', s: 'QuiÃ©n hizo quÃ©, cuÃ¡ndo y sobre quÃ© salÃ³n.' },
+            auditoria: { t: 'Auditoría', s: 'QuiÃ©n hizo quÃ©, cuándo y sobre quÃ© salón.' },
             soporte: { t: 'Soporte', s: 'Tickets y pedidos de las clientas.' },
             ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' }
         };
@@ -1962,13 +1962,13 @@
         var supabase = null;
         try {
             if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-                throw new Error('No se pudo cargar el cliente de datos. RecargÃ¡ la pÃ¡gina.');
+                throw new Error('No se pudo cargar el cliente de datos. Recargá la página.');
             }
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
                 auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
             });
         } catch (error) {
-            mostrarErrorInicio((error && error.message) || 'No se pudo cargar el cliente de datos. RecargÃ¡ la pÃ¡gina.');
+            mostrarErrorInicio((error && error.message) || 'No se pudo cargar el cliente de datos. Recargá la página.');
         }
 
         var factorPendiente = null;
@@ -2101,7 +2101,7 @@
             return pill(info.nombre, info.clase);
         }
 
-        // â”€â”€ confirmaciÃ³n reutilizable â”€â”€
+        // â”€â”€ confirmación reutilizable â”€â”€
         function confirmar(titulo, texto, etiqueta, peligro) {
             return new Promise(function (resolve) {
                 confirmarResolver = resolve;
@@ -2154,9 +2154,9 @@
             });
         })();
 
-        // â”€â”€ I57 Â· tema dÃ­a / noche â”€â”€
+        // â”€â”€ I57 Â· tema día / noche â”€â”€
         // La preferencia vive en localStorage y se aplica temprano en el <head>.
-        // AcÃ¡ solo se mantiene el botÃ³n sincronizado con el tema vigente.
+        // Acá solo se mantiene el botón sincronizado con el tema vigente.
         var CLAVE_TEMA = 'eli_admin_tema';
 
         function temaActual() {
@@ -2171,7 +2171,7 @@
                 var aClaro = elegido === 'dark';
                 boton.setAttribute('aria-pressed', elegido === 'light' ? 'true' : 'false');
                 boton.setAttribute('aria-label', aClaro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-                boton.title = aClaro ? 'Cambiar a modo dÃ­a' : 'Cambiar a modo noche';
+                boton.title = aClaro ? 'Cambiar a modo día' : 'Cambiar a modo noche';
             }
             if (guardar) { try { localStorage.setItem(CLAVE_TEMA, elegido); } catch (error) { /* sin storage */ } }
         }
@@ -2186,7 +2186,7 @@
         })();
 
         // â”€â”€ I58 Â· paletas de color â”€â”€
-        // Independientes del modo dÃ­a/noche: la paleta cambia el acento y el
+        // Independientes del modo día/noche: la paleta cambia el acento y el
         // tinte de fondo, el modo decide los contrastes de texto.
         var CLAVE_PALETA = 'eli_admin_paleta';
         var PALETAS_UI = [
@@ -2285,9 +2285,9 @@
             });
         })();
 
-        // â”€â”€ sesiÃ³n â”€â”€
+        // â”€â”€ sesión â”€â”€
         async function arrancar() {
-            if (!supabase) { mostrarErrorInicio('No se pudo cargar el cliente de datos. RecargÃ¡ la pÃ¡gina.'); return; }
+            if (!supabase) { mostrarErrorInicio('No se pudo cargar el cliente de datos. Recargá la página.'); return; }
             try {
                 var sesion = await supabase.auth.getSession();
                 if (!sesion.data || !sesion.data.session) { mostrar('vista-login'); return; }
@@ -2295,7 +2295,7 @@
                 await continuar();
             } catch (error) {
                 console.error(error);
-                alerta('login-alerta', 'No se pudo comprobar la sesiÃ³n. RecargÃ¡ la pÃ¡gina.');
+                alerta('login-alerta', 'No se pudo comprobar la sesión. Recargá la página.');
                 mostrar('vista-login');
             }
         }
@@ -2361,8 +2361,8 @@
             if (nivel === 'aal2') return true;
 
             factorPendiente = { id: verificado.id, modo: 'verificar' };
-            $('dosfa-titulo').textContent = 'VerificaciÃ³n en dos pasos';
-            $('dosfa-sub').textContent = 'IngresÃ¡ el cÃ³digo de 6 dÃ­gitos de tu aplicaciÃ³n de autenticaciÃ³n.';
+            $('dosfa-titulo').textContent = 'Verificación en dos pasos';
+            $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
             $('dosfa-qr-caja').classList.add('oculto');
             $('dosfa-codigo').value = '';
             alerta('dosfa-alerta', '', 'error');
@@ -2381,14 +2381,14 @@
                 $('dosfa-qr').src = enrol.data.totp.qr_code;
                 $('dosfa-secreto').textContent = enrol.data.totp.secret;
                 $('dosfa-qr-caja').classList.remove('oculto');
-                $('dosfa-titulo').textContent = 'ConfigurÃ¡ el 2FA';
-                $('dosfa-sub').textContent = 'EscaneÃ¡ el cÃ³digo con tu aplicaciÃ³n de autenticaciÃ³n y confirmÃ¡ con un cÃ³digo de 6 dÃ­gitos.';
+                $('dosfa-titulo').textContent = 'Configurá el 2FA';
+                $('dosfa-sub').textContent = 'Escaneá el código con tu aplicación de autenticación y confirmá con un código de 6 dígitos.';
                 $('dosfa-codigo').value = '';
                 alerta('dosfa-alerta', '', 'error');
                 mostrar('vista-2fa');
                 setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
             } catch (error) {
-                alerta('login-alerta', 'No se pudo iniciar el 2FA: ' + (error.message || 'error de conexiÃ³n'));
+                alerta('login-alerta', 'No se pudo iniciar el 2FA: ' + (error.message || 'error de conexión'));
                 mostrar('vista-login');
             } finally {
                 ocupado(boton, '');
@@ -2410,8 +2410,8 @@
             evento.preventDefault();
             var boton = $('dosfa-btn');
             var codigo = String($('dosfa-codigo').value || '').replace(/\D/g, '');
-            if (!factorPendiente) { alerta('dosfa-alerta', 'VolvÃ© a iniciar sesiÃ³n.'); return; }
-            if (codigo.length !== 6) { alerta('dosfa-alerta', 'El cÃ³digo tiene que tener 6 dÃ­gitos.'); return; }
+            if (!factorPendiente) { alerta('dosfa-alerta', 'VolvÃ© a iniciar sesión.'); return; }
+            if (codigo.length !== 6) { alerta('dosfa-alerta', 'El código tiene que tener 6 dígitos.'); return; }
             alerta('dosfa-alerta', '');
             ocupado(boton, 'Verificandoâ€¦');
             try {
@@ -2421,9 +2421,9 @@
             } catch (error) {
                 var mensaje = String((error && error.message) || '');
                 if (/invalid|incorrect|mismatch/i.test(mensaje)) {
-                    alerta('dosfa-alerta', 'CÃ³digo incorrecto. ProbÃ¡ de nuevo.');
+                    alerta('dosfa-alerta', 'Código incorrecto. Probá de nuevo.');
                 } else {
-                    alerta('dosfa-alerta', 'No se pudo verificar: ' + (mensaje || 'probÃ¡ de nuevo'));
+                    alerta('dosfa-alerta', 'No se pudo verificar: ' + (mensaje || 'probá de nuevo'));
                 }
                 $('dosfa-codigo').value = '';
                 $('dosfa-codigo').focus();
@@ -2444,9 +2444,9 @@
             var boton = $('login-btn');
             var email = String($('email').value || '').trim();
             var password = String($('password').value || '');
-            if (!supabase) { alerta('login-alerta', 'No se pudo cargar el cliente de datos. RecargÃ¡ la pÃ¡gina.'); return; }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'IngresÃ¡ un email vÃ¡lido.'); return; }
-            if (password.length < 6) { alerta('login-alerta', 'La contraseÃ±a debe tener al menos 6 caracteres.'); return; }
+            if (!supabase) { alerta('login-alerta', 'No se pudo cargar el cliente de datos. Recargá la página.'); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
+            if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
             alerta('login-alerta', '');
             ocupado(boton, 'Entrandoâ€¦');
             try {
@@ -2459,11 +2459,11 @@
                 var codigo = String((error && error.code) || '');
                 var texto = String((error && error.message) || '');
                 if (/invalid_credentials|invalid login credentials/i.test(codigo + ' ' + texto)) {
-                    alerta('login-alerta', 'Email o contraseÃ±a incorrectos.');
+                    alerta('login-alerta', 'Email o contraseña incorrectos.');
                 } else if (/email_not_confirmed/i.test(codigo + texto)) {
                     alerta('login-alerta', 'TenÃ©s que confirmar tu email antes de entrar.');
                 } else {
-                    alerta('login-alerta', 'No se pudo iniciar sesiÃ³n: ' + (texto || 'error de conexiÃ³n'));
+                    alerta('login-alerta', 'No se pudo iniciar sesión: ' + (texto || 'error de conexión'));
                 }
             } finally {
                 ocupado(boton, '');
@@ -2492,7 +2492,7 @@
             return d.toLocaleDateString('es-AR', { month: 'short' });
         }
 
-        // I51 Â· grÃ¡fico SVG propio (sin dependencias)
+        // I51 Â· gráfico SVG propio (sin dependencias)
         function pintarSerie(id, serie, campoValor, esDinero) {
             var cont = $(id);
             if (!cont) return;
@@ -2600,7 +2600,7 @@
                 var caja = crear('div', 'barra-caja');
                 var barra = crear('div', 'barra');
                 barra.style.height = (maximo ? Math.max(3, Math.round(valor / maximo * 100)) : 3) + '%';
-                barra.title = (esDinero ? dinero(valor) : valor + ' salÃ³n(es)') + ' Â· ' + mesCorto(f.mes);
+                barra.title = (esDinero ? dinero(valor) : valor + ' salón(es)') + ' Â· ' + mesCorto(f.mes);
                 caja.appendChild(barra);
                 caja.appendChild(crear('span', 'barra-mes', mesCorto(f.mes)));
                 cont.appendChild(caja);
@@ -2667,17 +2667,17 @@
                 fila.appendChild(tdPrecio);
 
                 var tdLimite = document.createElement('td');
-                tdLimite.setAttribute('data-label', 'LÃ­mite empleadas');
+                tdLimite.setAttribute('data-label', 'Límite empleadas');
                 var limite = document.createElement('input');
                 limite.type = 'number'; limite.min = '1';
                 limite.className = 'btn'; limite.style.width = '90px';
-                limite.placeholder = 'sin lÃ­mite';
+                limite.placeholder = 'sin límite';
                 if (p.limite_empleadas != null) limite.value = String(p.limite_empleadas);
                 tdLimite.appendChild(limite);
                 fila.appendChild(tdLimite);
 
                 var tdDesc = document.createElement('td');
-                tdDesc.setAttribute('data-label', 'DescripciÃ³n');
+                tdDesc.setAttribute('data-label', 'Descripción');
                 var desc = document.createElement('input');
                 desc.type = 'text'; desc.maxLength = 120;
                 desc.className = 'btn'; desc.style.width = '100%'; desc.style.minWidth = '160px';
@@ -2755,7 +2755,7 @@
         async function crearPlanNuevo() {
             var id = String($('plan-id').value || '').trim().toLowerCase();
             var nombre = String($('plan-nombre').value || '').trim();
-            if (!id || !nombre) { toast('CompletÃ¡ id y nombre del plan.', 'error'); return; }
+            if (!id || !nombre) { toast('Completá id y nombre del plan.', 'error'); return; }
             var boton = $('plan-crear');
             ocupado(boton, 'â€¦');
             try {
@@ -2819,8 +2819,8 @@
             lista.forEach(function (u) {
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Email', u.email || 'â€”'));
-                fila.appendChild(celda('SalÃ³n', u.salon_nombre || 'â€”'));
-                fila.appendChild(celda('Rol', pill(u.rol || 'sin salÃ³n', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral'))));
+                fila.appendChild(celda('Salón', u.salon_nombre || 'â€”'));
+                fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral'))));
                 fila.appendChild(celda('Alta', fechaCorta(u.creado_en)));
                 var tdUltimo = document.createElement('td');
                 tdUltimo.setAttribute('data-label', 'Ãšltimo acceso');
@@ -2837,7 +2837,7 @@
                     boton.type = 'button';
                     if (bloqueoImpersonacion()) {
                         boton.disabled = true;
-                        boton.title = 'Bloqueado por intentos fallidos de impersonaciÃ³n';
+                        boton.title = 'Bloqueado por intentos fallidos de impersonación';
                     }
                     boton.addEventListener('click', function () { impersonarUsuario(u, boton); });
                     td.appendChild(boton);
@@ -2857,7 +2857,7 @@
             if (!u || !u.salon_id || !u.id) return;
             var ok = await confirmar(
                 'Entrar como ' + (u.email || 'usuario'),
-                'Se va a abrir la app como esta persona en una pestaÃ±a nueva. Tu sesiÃ³n de administrador NO se modifica.',
+                'Se va a abrir la app como esta persona en una pestaña nueva. Tu sesión de administrador NO se modifica.',
                 'Abrir modo soporte',
                 false
             );
@@ -2868,7 +2868,7 @@
             ocupado(boton, 'â€¦');
             try {
                 var destino = new URL('index.html?soporte=1', window.location.href).href;
-                if (bloqueoImpersonacion()) { toast('ImpersonaciÃ³n bloqueada por intentos fallidos. RevisÃ¡ AuditorÃ­a.', 'error'); return; }
+                if (bloqueoImpersonacion()) { toast('Impersonación bloqueada por intentos fallidos. Revisá Auditoría.', 'error'); return; }
                 var res = await supabase.functions.invoke('impersonate', {
                     body: { salon_id: u.salon_id, user_id: u.id, redirect_to: destino }
                 });
@@ -2876,7 +2876,7 @@
                 if (!res.data || !res.data.url) throw new Error((res.data && res.data.error) || 'Sin enlace');
                 if (ventana) ventana.location.replace(res.data.url);
                 else window.open(res.data.url, '_blank', 'noopener,noreferrer');
-                toast('Modo soporte abierto para ' + (u.email || u.id) + '. Tu sesiÃ³n de admin sigue activa.', 'ok');
+                toast('Modo soporte abierto para ' + (u.email || u.id) + '. Tu sesión de admin sigue activa.', 'ok');
             } catch (error) {
                 if (ventana) { try { ventana.close(); } catch (e) { /* noop */ } }
                 var codigo = await codigoErrorFuncion(error);
@@ -2925,8 +2925,8 @@
                 } else {
                     banner.classList.remove("oculto");
                     banner.textContent = "âš  " + n + " intento" + (n === 1 ? "" : "s") +
-                        " de impersonaciÃ³n fallido" + (n === 1 ? "" : "s") + " en la Ãºltima hora" +
-                        (bloqueoImpersonacion() ? ". La impersonaciÃ³n estÃ¡ bloqueada hasta revisarlo." : ".");
+                        " de impersonación fallido" + (n === 1 ? "" : "s") + " en la Ãºltima hora" +
+                        (bloqueoImpersonacion() ? ". La impersonación está bloqueada hasta revisarlo." : ".");
                 }
             }
             pintarUsuarios();
@@ -2950,15 +2950,15 @@
 
         function etiquetaAcceso(iso) {
             var dias = diasDesde(iso);
-            if (dias === null) return 'Nunca entrÃ³';
+            if (dias === null) return 'Nunca entró';
             if (dias <= 0) return 'Activo hoy';
-            return 'Inactivo hace ' + dias + ' dÃ­as';
+            return 'Inactivo hace ' + dias + ' días';
         }
 
         async function forzarLogout(u, boton) {
             if (!u || !u.id) return;
             var ok = await confirmar(
-                'Forzar cierre de sesiÃ³n',
+                'Forzar cierre de sesión',
                 'Se van a revocar todas las sesiones de ' + (u.email || 'este usuario') + '.',
                 'Revocar',
                 true
@@ -2991,37 +2991,37 @@
             if (d.salon) salon = d.salon;
             switch (f.accion) {
                 case 'impersonar':
-                    return admin + ' entrÃ³ como ' + (d.objetivo || 'la dueÃ±a') + (salon ? ' en ' + salon : '');
+                    return admin + ' entró como ' + (d.objetivo || 'la dueña') + (salon ? ' en ' + salon : '');
                 case 'impersonar_fallido':
-                    return 'Sistema bloqueÃ³ un intento de impersonaciÃ³n' + (d.error ? ' (' + d.error + ')' : '');
+                    return 'Sistema bloqueó un intento de impersonación' + (d.error ? ' (' + d.error + ')' : '');
                 case 'logout_forzado':
-                    return admin + ' cerrÃ³ las sesiones de ' + (d.objetivo || 'un usuario');
+                    return admin + ' cerró las sesiones de ' + (d.objetivo || 'un usuario');
                 case 'salon_suspendido':
-                    return admin + ' suspendiÃ³ ' + (salon || 'un salÃ³n');
+                    return admin + ' suspendió ' + (salon || 'un salón');
                 case 'salon_activado':
-                    return admin + ' reactivÃ³ ' + (salon || 'un salÃ³n');
+                    return admin + ' reactivó ' + (salon || 'un salón');
                 case 'salon_publicado':
-                    return admin + ' publicÃ³ el perfil de ' + (salon || 'un salÃ³n') + ' en Elima Belleza';
+                    return admin + ' publicó el perfil de ' + (salon || 'un salón') + ' en Elima Belleza';
                 case 'salon_despublicado':
-                    return admin + ' despublicÃ³ el perfil de ' + (salon || 'un salÃ³n');
+                    return admin + ' despublicó el perfil de ' + (salon || 'un salón');
                 case 'salon_cancelado':
-                    return admin + ' marcÃ³ como cancelada la suscripciÃ³n de ' + (salon || 'un salÃ³n');
+                    return admin + ' marcó como cancelada la suscripción de ' + (salon || 'un salón');
                 case 'plan_cambio':
-                    return admin + ' cambiÃ³ el plan de ' + (salon || 'un salÃ³n') + ' de ' + (d.plan_anterior || 'â€”') + ' a ' + (d.plan_nuevo || 'â€”');
+                    return admin + ' cambió el plan de ' + (salon || 'un salón') + ' de ' + (d.plan_anterior || 'â€”') + ' a ' + (d.plan_nuevo || 'â€”');
                 case 'plan_estado':
-                    return admin + ' cambiÃ³ el estado de ' + (salon || 'un salÃ³n') + ': ' + (d.estado_anterior || 'â€”') + ' â†’ ' + (d.estado_nuevo || 'â€”');
+                    return admin + ' cambió el estado de ' + (salon || 'un salón') + ': ' + (d.estado_anterior || 'â€”') + ' â†’ ' + (d.estado_nuevo || 'â€”');
                 case 'plan_alta':
-                    return admin + ' creÃ³ el plan ' + (d.nombre || d.plan || '');
+                    return admin + ' creó el plan ' + (d.nombre || d.plan || '');
                 case 'plan_editado':
-                    return admin + ' editÃ³ el plan ' + (d.nombre || d.plan || '');
+                    return admin + ' editó el plan ' + (d.nombre || d.plan || '');
                 case 'patrocinadores_cambio':
-                    return admin + ' actualizÃ³ un patrocinador';
+                    return admin + ' actualizó un patrocinador';
                 case 'flag_cambiado':
-                    return admin + (String(d.valor_nuevo) === 'true' ? ' activÃ³ ' : ' desactivÃ³ ') + (d.clave || 'un ajuste');
+                    return admin + (String(d.valor_nuevo) === 'true' ? ' activó ' : ' desactivó ') + (d.clave || 'un ajuste');
                 case 'anuncio_publicado':
-                    return admin + ' publicÃ³ un anuncio' + (d.mensaje ? ': "' + d.mensaje + '"' : '');
+                    return admin + ' publicó un anuncio' + (d.mensaje ? ': "' + d.mensaje + '"' : '');
                 case 'anuncio_borrado':
-                    return admin + ' borrÃ³ un anuncio';
+                    return admin + ' borró un anuncio';
                 default:
                     return admin + ' Â· ' + f.accion;
             }
@@ -3058,7 +3058,7 @@
                 if (res.error) throw res.error;
                 var lista = res.data || [];
                 if (!lista.length) {
-                    cont.appendChild(crear("p", "vacio", "TodavÃ­a no hay turnos este mes."));
+                    cont.appendChild(crear("p", "vacio", "Todavía no hay turnos este mes."));
                     return;
                 }
                 var maximo = 0;
@@ -3066,7 +3066,7 @@
                 lista.forEach(function (t, i) {
                     var fila = crear("div", "top-fila");
                     fila.appendChild(crear("span", "top-puesto", String(i + 1)));
-                    fila.appendChild(crear("span", "top-nombre", t.nombre || "SalÃ³n"));
+                    fila.appendChild(crear("span", "top-nombre", t.nombre || "Salón"));
                     fila.appendChild(crear("span", "top-turnos", (Number(t.turnos_mes) || 0) + " turnos"));
                     fila.appendChild(planPill(t.estado === "cancelada" ? "premium" : (t.estado || "trial")));
                     var barra = crear("div", "top-barra");
@@ -3092,7 +3092,7 @@
                     var fila = (pub.data && pub.data[0]) || {};
                     flagsCache = [
                         { clave: 'registro_abierto', valor_boolean: fila.registro_abierto !== false, descripcion: 'Registro abierto', detalle: 'Permitir el alta de nuevos salones.' },
-                        { clave: 'whatsapp_habilitado', valor_boolean: fila.whatsapp_habilitado !== false, descripcion: 'WhatsApp habilitado', detalle: 'Habilitar el envÃ­o de tarjetas por WhatsApp.' }
+                        { clave: 'whatsapp_habilitado', valor_boolean: fila.whatsapp_habilitado !== false, descripcion: 'WhatsApp habilitado', detalle: 'Habilitar el envío de tarjetas por WhatsApp.' }
                     ];
                 } else {
                     flagsCache = res.data || [];
@@ -3144,7 +3144,7 @@
             } finally { input.disabled = false; }
         }
 
-        // â”€â”€ I51 Â· buscador global (salones + usuarios + auditorÃ­a) â”€â”€
+        // â”€â”€ I51 Â· buscador global (salones + usuarios + auditoría) â”€â”€
         var resultadosGlobal = [];
         var indiceGlobal = -1;
 
@@ -3217,7 +3217,7 @@
 
             usuariosCache.forEach(function (u) {
                 if (normalizar(u.email || '').indexOf(busqueda) >= 0 || normalizar(u.salon_nombre || '').indexOf(busqueda) >= 0) {
-                    out.push({ tipo: 'usuario', etiqueta: (u.email || '') + ' Â· ' + (u.salon_nombre || 'sin salÃ³n'), texto: u.email || '', id: u.id });
+                    out.push({ tipo: 'usuario', etiqueta: (u.email || '') + ' Â· ' + (u.salon_nombre || 'sin salón'), texto: u.email || '', id: u.id });
                 }
             });
 
@@ -3273,7 +3273,7 @@
         var ETIQUETAS_ADOPCION = [
             ['agenda',      'Agenda'],
             ['finanzas',    'Finanzas'],
-            ['resenas',     'ReseÃ±as'],
+            ['resenas',     'Reseñas'],
             ['marketplace', 'Marketplace'],
             ['perfil',      'Perfil pÃºblico'],
             ['equipo',      'Equipo (2+)'],
@@ -3339,16 +3339,16 @@
             if (!cont) return;
             cont.textContent = '';
             if (!lista.length) {
-                cont.appendChild(crear('p', 'vacio', 'NingÃºn salÃ³n pago lleva 15 dÃ­as sin turnos.'));
+                cont.appendChild(crear('p', 'vacio', 'NingÃºn salón pago lleva 15 días sin turnos.'));
                 return;
             }
             lista.forEach(function (s) {
                 var fila = crear('div', 'top-fila');
                 fila.appendChild(crear('span', 'top-puesto', '!'));
-                fila.appendChild(crear('span', 'top-nombre', s.nombre || 'SalÃ³n'));
+                fila.appendChild(crear('span', 'top-nombre', s.nombre || 'Salón'));
                 var detalle = s.dias_sin_turnos === null || s.dias_sin_turnos === undefined
-                    ? 'nunca cargÃ³ turnos'
-                    : s.dias_sin_turnos + ' dÃ­as sin turnos';
+                    ? 'nunca cargó turnos'
+                    : s.dias_sin_turnos + ' días sin turnos';
                 fila.appendChild(crear('span', 'top-turnos', detalle));
                 fila.appendChild(planPill(s.plan || 'pro'));
                 cont.appendChild(fila);
@@ -3361,7 +3361,7 @@
             cont.textContent = '';
             var activos = Number(datos.activos) || 0;
             if (!activos) {
-                cont.appendChild(crear('p', 'vacio', 'TodavÃ­a no hay salones activos.'));
+                cont.appendChild(crear('p', 'vacio', 'Todavía no hay salones activos.'));
                 return;
             }
             ETIQUETAS_ADOPCION.forEach(function (par) {
@@ -3381,7 +3381,7 @@
 
                 fila.appendChild(crear('span', 'adopcion-pct', n === null ? 'n/d' : pct + '%'));
                 fila.title = n === null
-                    ? par[1] + ': funciÃ³n todavÃ­a no disponible en la base'
+                    ? par[1] + ': función todavía no disponible en la base'
                     : par[1] + ': ' + n + ' de ' + activos + ' salones';
                 cont.appendChild(fila);
             });
@@ -3506,7 +3506,7 @@
             select.textContent = '';
             var sin = document.createElement('option');
             sin.value = '';
-            sin.textContent = 'Sin salÃ³n';
+            sin.textContent = 'Sin salón';
             select.appendChild(sin);
             try {
                 var res = await supabase.from('salones').select('id, nombre').order('nombre');
@@ -3514,10 +3514,10 @@
                 (res.data || []).forEach(function (s) {
                     var option = document.createElement('option');
                     option.value = s.id;
-                    option.textContent = s.nombre || 'SalÃ³n';
+                    option.textContent = s.nombre || 'Salón';
                     select.appendChild(option);
                 });
-            } catch (error) { /* queda solo "Sin salÃ³n" */ }
+            } catch (error) { /* queda solo "Sin salón" */ }
         }
 
         function abrirTicketModal() {
@@ -3546,7 +3546,7 @@
             function fallo(texto) {
                 if (error) { error.textContent = texto; error.className = 'alerta error'; }
             }
-            if (asunto.length < 3) { fallo('EscribÃ­ un asunto de al menos 3 caracteres.'); $('ticket-asunto').focus(); return; }
+            if (asunto.length < 3) { fallo('Escribí un asunto de al menos 3 caracteres.'); $('ticket-asunto').focus(); return; }
             if (error) error.className = 'alerta error oculto';
 
             var boton = $('ticket-guardar');
@@ -3565,7 +3565,7 @@
                 await cargarTicketsAbiertos();
             } catch (err) {
                 console.warn('crear ticket:', err);
-                fallo('No se pudo crear el ticket: ' + (err.message || 'error de conexiÃ³n'));
+                fallo('No se pudo crear el ticket: ' + (err.message || 'error de conexión'));
             } finally {
                 ocupado(boton, null);
             }
@@ -3627,7 +3627,7 @@
             try {
                 var sesion = await supabase.auth.getSession();
                 var jwt = sesion && sesion.data && sesion.data.session ? sesion.data.session.access_token : '';
-                if (!jwt) throw new Error('Tu sesiÃ³n no tiene token. VolvÃ© a iniciar sesiÃ³n.');
+                if (!jwt) throw new Error('Tu sesión no tiene token. VolvÃ© a iniciar sesión.');
 
                 var res = await fetch(SUPABASE_URL + '/functions/v1/admin-backup-trigger', {
                     method: 'POST',
@@ -3638,10 +3638,10 @@
                 try { datos = await res.json(); } catch (e) { datos = {}; }
 
                 if (!res.ok || !datos.ok) {
-                    throw new Error(datos.detalle || datos.error || ('el servicio respondiÃ³ ' + res.status));
+                    throw new Error(datos.detalle || datos.error || ('el servicio respondió ' + res.status));
                 }
                 toast('Backup disparado.', 'ok');
-                estadoOperacion('Listo: el workflow ' + (datos.workflow || 'backup') + ' se estÃ¡ ejecutando.');
+                estadoOperacion('Listo: el workflow ' + (datos.workflow || 'backup') + ' se está ejecutando.');
                 if (datos.url) {
                     var enlace = document.createElement('a');
                     enlace.href = datos.url;
@@ -3663,7 +3663,7 @@
         async function limpiarCacheGlobal() {
             var ok = await confirmar(
                 'Limpiar cachÃ© global',
-                'Los clientes van a purgar su cachÃ© y a actualizar el service worker la prÃ³xima vez que abran la app. Â¿Seguimos?',
+                'Los clientes van a purgar su cachÃ© y a actualizar el service worker la próxima vez que abran la app. Â¿Seguimos?',
                 'Limpiar',
                 false
             );
@@ -3686,7 +3686,7 @@
             }
         }
 
-        // Cableado de la secciÃ³n de soporte y operaciones.
+        // Cableado de la sección de soporte y operaciones.
         (function conectarI66() {
             var nuevo = $('nuevo-ticket-btn');
             if (nuevo) nuevo.addEventListener('click', abrirTicketModal);
@@ -3721,7 +3721,7 @@
             });
         })();
 
-        // â”€â”€ navegaciÃ³n â”€â”€
+        // â”€â”€ navegación â”€â”€
         function mostrarSeccion(nombre) {
             if (!TITULOS[nombre]) nombre = 'salones';
             document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
@@ -3738,7 +3738,7 @@
             $('vista-sub').textContent = TITULOS[nombre].s;
             try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
             cerrarMenu();
-            // I78 Â· carga diferida de la Reserva Federal al entrar a la secciÃ³n.
+            // I78 Â· carga diferida de la Reserva Federal al entrar a la sección.
             if (nombre === 'reserva-federal' && typeof cargarReservaFederal === 'function') {
                 cargarSalonesReserva();
                 cargarReservaFederal();
@@ -3763,8 +3763,8 @@
             if (b) b.setAttribute('aria-expanded', 'false');
         }
 
-        // I63 Â· buscador colapsable (solo mÃ³vil): la lupa lo abre, Escape y el
-        // clic afuera lo cierran. En desktop el input siempre estÃ¡ visible.
+        // I63 Â· buscador colapsable (solo móvil): la lupa lo abre, Escape y el
+        // clic afuera lo cierran. En desktop el input siempre está visible.
         (function () {
             var boton = $('buscar-btn');
             var input = $('busqueda-global');
@@ -3798,7 +3798,7 @@
                 await cargarSalones();
             } catch (error) {
                 console.error(error);
-                alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexiÃ³n'));
+                alerta('panel-alerta', 'No se pudo cargar la lista de salones: ' + (error.message || 'error de conexión'));
             }
             await cargarKpis();
             await cargarSeries();
@@ -3842,7 +3842,7 @@
                     .from('salones')
                     .select(CAMPOS_PERFIL);
                 if (planes.error && errorFaltaColumna(planes.error)) {
-                    // I62 todavÃ­a no estÃ¡ aplicado: el admin sigue funcionando.
+                    // I62 todavía no está aplicado: el admin sigue funcionando.
                     perfilDisponible = false;
                     planes = await supabase
                         .from('salones')
@@ -3862,7 +3862,7 @@
                 var p = mapa[id] || {};
                 return {
                     id: id,
-                    nombre: campo(s, ['nombre', 'salon', 'nombre_salon'], 'SalÃ³n'),
+                    nombre: campo(s, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
                     dueno: campo(s, ['dueno', 'dueno_email', 'email_dueno', 'owner_email'], 'â€”'),
                     miembros: Number(campo(s, ['miembros', 'cantidad_miembros', 'total_miembros'], 0)) || 0,
                     turnos: Number(campo(s, ['turnos', 'turnos_total', 'turnos_totales', 'total_turnos'], 0)) || 0,
@@ -3969,7 +3969,7 @@
             });
         }
 
-        // I49 Â· churn: sin turnos en 15 dÃ­as (o nunca)
+        // I49 Â· churn: sin turnos en 15 días (o nunca)
         const DIAS_CHURN = 15;
         function diasSinTurno(s) {
             if (!s.ultimoTurno) return null;
@@ -3987,9 +3987,9 @@
         function mailtoReenganche(s) {
             var destino = String(s.dueno || '').trim();
             if (!destino || destino === 'â€”') return null;
-            var asunto = 'Â¿Volvemos a agendar en ' + (s.nombre || 'tu salÃ³n') + '?';
-            var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salÃ³n') + '.\n\n' +
-                'Si querÃ©s, te cuento las novedades y te ayudo a poner la agenda al dÃ­a.\n\nEquipo Eli M. Nails';
+            var asunto = 'Â¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
+            var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salón') + '.\n\n' +
+                'Si querÃ©s, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo Eli M. Nails';
             return 'mailto:' + encodeURIComponent(destino) + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
         }
 
@@ -4006,12 +4006,12 @@
             var lista = salonesFiltrados();
             tbody.textContent = '';
             $('salones-contador').textContent = lista.length === salones.length
-                ? (salones.length === 1 ? '1 salÃ³n' : salones.length + ' salones')
+                ? (salones.length === 1 ? '1 salón' : salones.length + ' salones')
                 : lista.length + ' de ' + salones.length + ' salones';
 
             var vacio = $('salones-vacio');
             if (!lista.length) {
-                vacio.textContent = salones.length ? 'NingÃºn salÃ³n coincide con el filtro.' : 'No hay salones todavÃ­a.';
+                vacio.textContent = salones.length ? 'NingÃºn salón coincide con el filtro.' : 'No hay salones todavía.';
                 vacio.classList.remove('oculto');
                 return;
             }
@@ -4032,14 +4032,14 @@
                 });
 
                 var tdNombre = document.createElement('td');
-                tdNombre.setAttribute('data-label', 'SalÃ³n');
+                tdNombre.setAttribute('data-label', 'Salón');
                 tdNombre.appendChild(crear('div', 'salon-nombre', s.nombre));
                 if (s.id) tdNombre.appendChild(crear('div', 'salon-id', String(s.id).slice(0, 8)));
 
                 fila.appendChild(tdNombre);
-                fila.appendChild(celda('DueÃ±a', s.dueno));
+                fila.appendChild(celda('Dueña', s.dueno));
                 fila.appendChild(celda('Plan', planPill(s.plan_id)));
-                fila.appendChild(celda('SuscripciÃ³n', estadoPill(s.estado)));
+                fila.appendChild(celda('Suscripción', estadoPill(s.estado)));
                 fila.appendChild(celda('Miembros', s.miembros));
                 fila.appendChild(celda('Turnos', s.turnos));
                 fila.appendChild(celda('Creado', fechaCorta(s.creado)));
@@ -4086,7 +4086,7 @@
                 if (enlace && salonInactivo(s)) {
                     var correo = crear('a', 'btn btn-sm', 'âœ‰');
                     correo.href = enlace;
-                    correo.title = 'Escribir a la dueÃ±a';
+                    correo.title = 'Escribir a la dueña';
                     correo.setAttribute('aria-label', 'Escribir a ' + s.dueno);
                     correo.addEventListener('click', function (evento) { evento.stopPropagation(); });
                     cajaAcciones.appendChild(correo);
@@ -4120,9 +4120,9 @@
                 tdAccion.appendChild(cajaAcciones);
 
                 fila.appendChild(tdNombre);
-                fila.appendChild(celda('DueÃ±a', s.dueno));
+                fila.appendChild(celda('Dueña', s.dueno));
                 fila.appendChild(celda('Plan', planPill(s.plan_id)));
-                fila.appendChild(celda('SuscripciÃ³n', estadoPill(s.estado)));
+                fila.appendChild(celda('Suscripción', estadoPill(s.estado)));
                 fila.appendChild(celda('Miembros', s.miembros));
                 fila.appendChild(celda('Turnos', s.turnos));
                 fila.appendChild(celda('Creado', fechaCorta(s.creado)));
@@ -4145,10 +4145,10 @@
         async function pedirCambioEstado(s, boton) {
             var suspender = s.activo;
             var ok = await confirmar(
-                suspender ? 'Suspender salÃ³n' : 'Activar salÃ³n',
+                suspender ? 'Suspender salón' : 'Activar salón',
                 suspender
-                    ? 'El salÃ³n y su equipo no van a poder entrar a la agenda hasta que lo reactives.'
-                    : 'El salÃ³n va a poder volver a entrar a la agenda.',
+                    ? 'El salón y su equipo no van a poder entrar a la agenda hasta que lo reactives.'
+                    : 'El salón va a poder volver a entrar a la agenda.',
                 suspender ? 'Suspender' : 'Activar',
                 suspender
             );
@@ -4164,15 +4164,15 @@
                 pintarSalones();
                 calcularSaas();
                 if (detalleActual && detalleActual.id === s.id) pintarDetalle(detalleActual);
-                toast(s.activo ? 'SalÃ³n activado.' : 'SalÃ³n suspendido.', 'ok');
+                toast(s.activo ? 'Salón activado.' : 'Salón suspendido.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
 
-        // â”€â”€ I72 Â· perfil pÃºblico: rubro + slug editables y aprobaciÃ³n asistida â”€â”€
+        // â”€â”€ I72 Â· perfil pÃºblico: rubro + slug editables y aprobación asistida â”€â”€
         var perfilCtx = null;
 
         function llenarSelectRubros(select) {
@@ -4203,19 +4203,19 @@
             var texto = String((error && (error.message || error.details || error.hint)) || '');
             var codigo = String((error && error.code) || '');
             if (codigo === '23505' || /un_salones_slug|duplicate key/i.test(texto)) {
-                return 'Ese slug ya lo usa otro salÃ³n. ProbÃ¡ con otro.';
+                return 'Ese slug ya lo usa otro salón. Probá con otro.';
             }
             if (/salones_slug_check/i.test(texto)) {
                 return 'El slug necesita entre 3 y 60 caracteres: minÃºsculas, nÃºmeros y guiones simples.';
             }
             if (/salones_rubro_check/i.test(texto)) {
-                return 'Rubro invÃ¡lido. ElegÃ­ Nails, PeluquerÃ­a, Maquillaje o BarberÃ­a.';
+                return 'Rubro inválido. Elegí Nails, Peluquería, Maquillaje o Barbería.';
             }
             if (/solo_admin_publica/.test(texto)) {
-                return 'Tu sesiÃ³n no es de SuperAdmin: no podÃ©s aprobar perfiles.';
+                return 'Tu sesión no es de SuperAdmin: no podÃ©s aprobar perfiles.';
             }
             if (/row-level security|permission denied/i.test(texto)) {
-                return 'La base rechazÃ³ el cambio por permisos (RLS).';
+                return 'La base rechazó el cambio por permisos (RLS).';
             }
             return texto || 'No se pudo guardar el perfil.';
         }
@@ -4294,7 +4294,7 @@
         async function guardarPerfil(s, rubro, slug, publicar, boton) {
             var limpio = normalizarSlugAdmin(slug);
             if (!RUBROS[rubro]) {
-                reportarErrorPerfil('ElegÃ­ un rubro antes de guardar.');
+                reportarErrorPerfil('Elegí un rubro antes de guardar.');
                 return false;
             }
             if (limpio.length < 3) {
@@ -4314,7 +4314,7 @@
                     .select('id, rubro, slug, publicado')
                     .single();
                 if (res.error) throw res.error;
-                if (!res.data) throw new Error('La base no actualizÃ³ el perfil (permisos RLS).');
+                if (!res.data) throw new Error('La base no actualizó el perfil (permisos RLS).');
 
                 s.rubro = res.data.rubro || rubro;
                 s.slug = res.data.slug || limpio;
@@ -4349,7 +4349,7 @@
         async function pedirCambioPublicacion(s, boton) {
             var publicar = s.publicado !== true;
             if (publicar && !perfilDisponible) {
-                toast('No se pudieron leer las columnas del perfil pÃºblico. RevisÃ¡ la migraciÃ³n I62.', 'error');
+                toast('No se pudieron leer las columnas del perfil pÃºblico. Revisá la migración I62.', 'error');
                 return;
             }
             // I72 Â· si faltan rubro/slug no bloqueamos: abrimos el modal para completarlos y aprobar.
@@ -4361,8 +4361,8 @@
             var ok = await confirmar(
                 publicar ? 'Aprobar perfil pÃºblico' : 'Despublicar perfil pÃºblico',
                 publicar
-                    ? 'El salÃ³n va a aparecer en Elima Belleza. VerificÃ¡ que rubro, bio, portada y slug estÃ©n completos.'
-                    : 'El salÃ³n va a dejar de aparecer en Elima Belleza. Su perfil y sus datos se conservan.',
+                    ? 'El salón va a aparecer en Elima Belleza. Verificá que rubro, bio, portada y slug estÃ©n completos.'
+                    : 'El salón va a dejar de aparecer en Elima Belleza. Su perfil y sus datos se conservan.',
                 publicar ? 'Aprobar' : 'Despublicar',
                 !publicar
             );
@@ -4377,7 +4377,7 @@
                     .select('id, publicado')
                     .single();
                 if (res.error) throw res.error;
-                if (!res.data) throw new Error('La base no actualizÃ³ el perfil (permisos RLS).');
+                if (!res.data) throw new Error('La base no actualizó el perfil (permisos RLS).');
 
                 var valor = res.data.publicado === true;
                 s.publicado = valor;
@@ -4389,7 +4389,7 @@
                 toast(valor ? 'Perfil publicado en Elima Belleza.' : 'Perfil despublicado.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo cambiar la publicaciÃ³n: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo cambiar la publicación: ' + (error.message || 'error de conexión'), 'error');
             } finally {
                 ocupado(boton, '');
             }
@@ -4420,8 +4420,8 @@
             if (limite != null && usados > limite) {
                 var seguir = await confirmar(
                     'Bajar a ' + nombrePlan(planId),
-                    'Este salÃ³n tiene ' + usados + ' miembros (dueÃ±a incluida) y el plan ' +
-                    nombrePlan(planId) + ' permite ' + limite + '. Se permite la gracia, pero no va a poder invitar a nadie nuevo hasta estar por debajo del lÃ­mite.',
+                    'Este salón tiene ' + usados + ' miembros (dueña incluida) y el plan ' +
+                    nombrePlan(planId) + ' permite ' + limite + '. Se permite la gracia, pero no va a poder invitar a nadie nuevo hasta estar por debajo del límite.',
                     'Bajar igual',
                     true
                 );
@@ -4436,7 +4436,7 @@
                     .eq('id', s.id)
                     .select('id');
                 if (res.error) throw res.error;
-                if (!res.data || !res.data.length) throw new Error('La base no actualizÃ³ el plan (permisos RLS).');
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el plan (permisos RLS).');
                 var enLista = salonPorId(s.id);
                 if (enLista) { enLista.plan_id = planId; enLista.estado = 'active'; enLista.suscripcion_desde = ahora; }
                 s.plan_id = planId;
@@ -4453,7 +4453,7 @@
                 toast('Plan cambiado a ' + nombrePlan(planId) + '.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo cambiar el plan: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo cambiar el plan: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
@@ -4466,7 +4466,7 @@
                     .eq('id', s.id)
                     .select('id');
                 if (res.error) throw res.error;
-                if (!res.data || !res.data.length) throw new Error('La base no actualizÃ³ el estado (permisos RLS).');
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el estado (permisos RLS).');
                 var enLista = salonPorId(s.id);
                 if (enLista) enLista.estado = estado;
                 s.estado = estado;
@@ -4477,10 +4477,10 @@
                     detalleActual.estado = estado;
                     pintarDetalle(detalleActual);
                 }
-                toast('SuscripciÃ³n marcada como ' + (ESTADOS[estado] || ESTADOS.trial).nombre + '.', 'ok');
+                toast('Suscripción marcada como ' + (ESTADOS[estado] || ESTADOS.trial).nombre + '.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo cambiar el estado: ' + (error.message || 'error de conexión'), 'error');
                 if (select) select.value = s.estado;
             }
         }
@@ -4499,7 +4499,7 @@
                     .eq('id', s.id)
                     .select('id');
                 if (res.error) throw res.error;
-                if (!res.data || !res.data.length) throw new Error('La base no actualizÃ³ el trial (permisos RLS).');
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el trial (permisos RLS).');
                 var enLista = salonPorId(s.id);
                 if (enLista) { enLista.estado = 'trial'; enLista.trial_hasta = iso; }
                 s.estado = 'trial';
@@ -4512,10 +4512,10 @@
                     detalleActual.trial_hasta = iso;
                     pintarDetalle(detalleActual);
                 }
-                toast('Trial extendido ' + dias + ' dÃ­as (hasta ' + fechaCorta(iso) + ').', 'ok');
+                toast('Trial extendido ' + dias + ' días (hasta ' + fechaCorta(iso) + ').', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo extender el trial: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo extender el trial: ' + (error.message || 'error de conexión'), 'error');
             } finally {
                 ocupado(boton, '');
             }
@@ -4526,7 +4526,7 @@
             tbody.textContent = '';
             var vacio = $('suscripciones-vacio');
             var nota = $('suscripciones-nota');
-            nota.textContent = planesDisponibles ? '' : 'No se pudo leer la tabla salones. RevisÃ¡ las polÃ­ticas RLS.';
+            nota.textContent = planesDisponibles ? '' : 'No se pudo leer la tabla salones. Revisá las políticas RLS.';
 
             if (!salones.length) {
                 vacio.classList.remove('oculto');
@@ -4538,7 +4538,7 @@
                 var fila = document.createElement('tr');
 
                 var tdNombre = document.createElement('td');
-                tdNombre.setAttribute('data-label', 'SalÃ³n');
+                tdNombre.setAttribute('data-label', 'Salón');
                 tdNombre.appendChild(crear('div', 'salon-nombre', s.nombre));
                 if (s.dueno && s.dueno !== 'â€”') tdNombre.appendChild(crear('div', 'salon-id', s.dueno));
                 fila.appendChild(tdNombre);
@@ -4579,7 +4579,7 @@
                 [14, 7].forEach(function (diasExtra) {
                     var boton = crear('button', 'btn btn-sm', '+' + diasExtra + ' d');
                     boton.type = 'button';
-                    boton.title = 'Extender el trial ' + diasExtra + ' dÃ­as';
+                    boton.title = 'Extender el trial ' + diasExtra + ' días';
                     boton.addEventListener('click', function () { extenderTrial(s, diasExtra, boton); });
                     caja.appendChild(boton);
                 });
@@ -4632,13 +4632,13 @@
                 var res = await supabase.rpc('admin_salon_detalle', { p_salon: s.id });
                 if (res.error) throw res.error;
                 var fila = (res.data && res.data[0]) || null;
-                if (!fila) throw new Error('No se encontrÃ³ el salÃ³n.');
+                if (!fila) throw new Error('No se encontró el salón.');
                 s.detalle = fila;
                 if (fila.activo !== undefined) s.activo = fila.activo !== false;
                 pintarDetalle(s);
             } catch (error) {
                 console.error(error);
-                $('drawer-datos').textContent = 'No se pudo cargar el detalle: ' + (error.message || 'error de conexiÃ³n');
+                $('drawer-datos').textContent = 'No se pudo cargar el detalle: ' + (error.message || 'error de conexión');
                 pintarPlanDrawer(s);
                 pintarAcciones(s);
             }
@@ -4674,7 +4674,7 @@
 
             caja.appendChild(crear('h3', '', 'Ãšltimas acciones'));
             if (!registros.length) {
-                caja.appendChild(crear('p', 'nota', 'Sin acciones registradas para este salÃ³n.'));
+                caja.appendChild(crear('p', 'nota', 'Sin acciones registradas para este salón.'));
                 return;
             }
             registros.forEach(function (f) {
@@ -4692,7 +4692,7 @@
 
             var titulo = crear('h3', '', 'Resumen');
             caja.appendChild(titulo);
-            caja.appendChild(filaDetalle('DueÃ±a', campo(d, ['dueno_email', 'dueno'], s.dueno)));
+            caja.appendChild(filaDetalle('Dueña', campo(d, ['dueno_email', 'dueno'], s.dueno)));
             caja.appendChild(filaDetalle('Registrado', fechaCorta(campo(d, ['creado_en'], null))));
             caja.appendChild(filaDetalle('Miembros', String(Number(campo(d, ['miembros'], 0)) || 0)));
             caja.appendChild(filaDetalle('Turnos', String(Number(campo(d, ['turnos_total'], 0)) || 0) + ' (' + (Number(campo(d, ['turnos_realizados'], 0)) || 0) + ' realizados)'));
@@ -4703,7 +4703,7 @@
             caja.appendChild(filaDetalle('Perfil pÃºblico', s.publicado === true ? 'Publicado' : 'Pendiente'));
 
             // I72 Â· rubro y slug editables en el drawer: antes eran solo lectura y
-            // bloqueaban la aprobaciÃ³n cuando el salÃ³n llegaba incompleto.
+            // bloqueaban la aprobación cuando el salón llegaba incompleto.
             var editor = crear('div', 'perfil-editor');
             editor.appendChild(crear('h3', '', 'Rubro y slug'));
 
@@ -4769,7 +4769,7 @@
         function pintarPlanDrawer(s, d) {
             var caja = $('drawer-plan');
             caja.textContent = '';
-            caja.appendChild(crear('h3', '', 'SuscripciÃ³n'));
+            caja.appendChild(crear('h3', '', 'Suscripción'));
 
             var cajaBotones = crear('div', '', '');
             cajaBotones.style.marginBottom = '10px';
@@ -4780,18 +4780,18 @@
             caja.appendChild(filaDetalle('Estado', (ESTADOS[s.estado] || ESTADOS.trial).nombre));
             var dias = diasTrial(s.trial_hasta);
             var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : 'â€”';
-            if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' dÃ­as)' : ' (vencido)';
+            if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' días)' : ' (vencido)';
             caja.appendChild(filaDetalle('Trial hasta', texto));
             caja.appendChild(filaDetalle('Activo desde', s.suscripcion_desde ? fechaCorta(s.suscripcion_desde) : 'â€”'));
 
-            // I51 Â· plan, lÃ­mite de empleadas y consumo
+            // I51 Â· plan, límite de empleadas y consumo
             var plan = planDe(s.plan_id);
             var miembrosStaff = Number(campo(d || {}, ["miembros", "cantidad_miembros"], 0)) || 0;
             var empleadas = Math.max(0, miembrosStaff - 1);
             var limite = plan && plan.limite_empleadas != null ? Number(plan.limite_empleadas) : null;
             caja.appendChild(filaDetalle('Plan', (plan && plan.nombre) || s.plan_id || 'â€”'));
-            caja.appendChild(filaDetalle('LÃ­mite de empleadas',
-                limite === null ? 'sin lÃ­mite' : String(limite) + ' Â· usando ' + empleadas));
+            caja.appendChild(filaDetalle('Límite de empleadas',
+                limite === null ? 'sin límite' : String(limite) + ' Â· usando ' + empleadas));
             var barraUso = crear('div', 'uso-plan');
             var rellenoUso = document.createElement('span');
             var pct = limite === null ? 10 : Math.min(100, Math.round((empleadas / Math.max(1, limite)) * 100));
@@ -4811,7 +4811,7 @@
         function pintarAcciones(s) {
             var caja = $('drawer-acciones');
             caja.textContent = '';
-            caja.appendChild(botonAccion('Entrar como este salÃ³n', 'btn btn-primario', function () { pedirImpersonacion(s); }));
+            caja.appendChild(botonAccion('Entrar como este salón', 'btn btn-primario', function () { pedirImpersonacion(s); }));
             var enlace = mailtoReenganche(s);
             if (enlace) {
                 var contacto = crear('a', 'btn', 'âœ‰ Contactar');
@@ -4819,7 +4819,7 @@
                 contacto.style.textDecoration = 'none';
                 caja.appendChild(contacto);
             }
-            caja.appendChild(botonAccion('âœ‰ RecuperaciÃ³n', 'btn', function () { enviarRecuperacion(s); }));
+            caja.appendChild(botonAccion('âœ‰ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
             caja.appendChild(botonAccion('â†“ CSV', 'btn', function () { descargarCsv([s]); }));
 
             var publicado = s.publicado === true;
@@ -4842,7 +4842,7 @@
         async function enviarRecuperacion(s) {
             var email = s.dueno;
             if (!email || email === 'â€”') {
-                $('drawer-nota').textContent = 'Este salÃ³n no tiene email de dueÃ±a registrado.';
+                $('drawer-nota').textContent = 'Este salón no tiene email de dueña registrado.';
                 return;
             }
             try {
@@ -4850,14 +4850,14 @@
                     redirectTo: location.origin + '/'
                 });
                 if (resultado.error) throw resultado.error;
-                $('drawer-nota').textContent = 'Le enviamos un mail de recuperaciÃ³n a ' + email + '.';
+                $('drawer-nota').textContent = 'Le enviamos un mail de recuperación a ' + email + '.';
             } catch (error) {
                 console.error(error);
-                $('drawer-nota').textContent = 'No se pudo enviar: ' + (error.message || 'error de conexiÃ³n');
+                $('drawer-nota').textContent = 'No se pudo enviar: ' + (error.message || 'error de conexión');
             }
         }
 
-        // â”€â”€ impersonaciÃ³n â”€â”€
+        // â”€â”€ impersonación â”€â”€
         async function codigoErrorFuncion(error) {
             try {
                 if (error && error.context && typeof error.context.json === 'function') {
@@ -4871,22 +4871,22 @@
         function mensajeImpersonacion(codigo) {
             var mapa = {
                 no_autorizado: 'Tu usuario no tiene permisos de SuperAdmin.',
-                se_requiere_2fa: 'NecesitÃ¡s completar la verificaciÃ³n en dos pasos.',
-                falta_token: 'La sesiÃ³n no tiene token. VolvÃ© a iniciar sesiÃ³n.',
-                token_invalido: 'Tu sesiÃ³n venciÃ³. VolvÃ© a iniciar sesiÃ³n.',
-                salon_no_encontrado: 'El salÃ³n no existe.',
-                sin_dueno: 'El salÃ³n no tiene una dueÃ±a registrada.',
-                dueno_inactivo: 'La dueÃ±a estÃ¡ desactivada.',
-                dueno_sin_email: 'La dueÃ±a no tiene email en Auth.',
+                se_requiere_2fa: 'Necesitás completar la verificación en dos pasos.',
+                falta_token: 'La sesión no tiene token. VolvÃ© a iniciar sesión.',
+                token_invalido: 'Tu sesión venció. VolvÃ© a iniciar sesión.',
+                salon_no_encontrado: 'El salón no existe.',
+                sin_dueno: 'El salón no tiene una dueña registrada.',
+                dueno_inactivo: 'La dueña está desactivada.',
+                dueno_sin_email: 'La dueña no tiene email en Auth.',
                 demasiadas_impersonaciones: 'Demasiadas impersonaciones en la Ãºltima hora.',
-                origen_no_permitido: 'El dominio del panel no estÃ¡ permitido en la Edge Function.',
+                origen_no_permitido: 'El dominio del panel no está permitido en la Edge Function.',
                 redirect_to_requerido: 'Falta el redirect_to.',
-                redirect_invalido: 'El redirect_to no es vÃ¡lido.',
-                redirect_origen_no_permitido: 'El origen del redirect no estÃ¡ permitido.',
-                redirect_no_permitido_en_auth: 'Falta la URL de redirecciÃ³n en Supabase Auth.',
+                redirect_invalido: 'El redirect_to no es válido.',
+                redirect_origen_no_permitido: 'El origen del redirect no está permitido.',
+                redirect_no_permitido_en_auth: 'Falta la URL de redirección en Supabase Auth.',
                 objetivo_superadmin: 'No se puede impersonar a otro SuperAdmin.',
-                config_faltante: 'La Edge Function no tiene configuraciÃ³n.',
-                generate_link_fallido: 'Supabase no pudo generar el link mÃ¡gico.'
+                config_faltante: 'La Edge Function no tiene configuración.',
+                generate_link_fallido: 'Supabase no pudo generar el link mágico.'
             };
             return mapa[codigo] || ('No se pudo abrir el modo soporte (' + codigo + ').');
         }
@@ -4895,7 +4895,7 @@
             if (!s || !s.id) return;
             var ok = await confirmar(
                 'Entrar como ' + s.nombre,
-                'Se va a abrir la app como la dueÃ±a en una pestaÃ±a nueva. Tu sesiÃ³n de administrador NO se modifica y vas a poder volver al panel cuando quieras.',
+                'Se va a abrir la app como la dueña en una pestaña nueva. Tu sesión de administrador NO se modifica y vas a poder volver al panel cuando quieras.',
                 'Abrir modo soporte',
                 false
             );
@@ -4906,18 +4906,18 @@
 
             try {
                 var destino = new URL('index.html?soporte=1', window.location.href).href;
-                if (bloqueoImpersonacion()) { toast('ImpersonaciÃ³n bloqueada por intentos fallidos. RevisÃ¡ AuditorÃ­a.', 'error'); return; }
+                if (bloqueoImpersonacion()) { toast('Impersonación bloqueada por intentos fallidos. Revisá Auditoría.', 'error'); return; }
                 var res = await supabase.functions.invoke('impersonate', {
                     body: { salon_id: s.id, redirect_to: destino }
                 });
                 if (res.error) throw res.error;
                 var url = res.data && res.data.url;
-                if (!url) throw new Error('La funciÃ³n no devolviÃ³ un enlace.');
+                if (!url) throw new Error('La función no devolvió un enlace.');
 
                 if (ventana) ventana.location.replace(url);
                 else window.open(url, '_blank', 'noopener,noreferrer');
-                toast('Modo soporte abierto. Tu sesiÃ³n de admin sigue activa.', 'ok');
-                $('drawer-nota').textContent = 'Modo soporte abierto en otra pestaÃ±a. Tu sesiÃ³n de admin sigue activa.';
+                toast('Modo soporte abierto. Tu sesión de admin sigue activa.', 'ok');
+                $('drawer-nota').textContent = 'Modo soporte abierto en otra pestaña. Tu sesión de admin sigue activa.';
             } catch (error) {
                 if (ventana) { try { ventana.close(); } catch (e) { /* noop */ } }
                 var codigo = await codigoErrorFuncion(error);
@@ -4988,7 +4988,7 @@
             var texto = $('anuncio-mensaje').value;
             $('anuncio-contador').textContent = texto.length + ' / 500';
             var preview = $('anuncio-preview');
-            preview.textContent = texto.trim() || 'El anuncio se va a ver asÃ­.';
+            preview.textContent = texto.trim() || 'El anuncio se va a ver así.';
         }
 
         async function publicarAnuncio() {
@@ -4997,7 +4997,7 @@
             var boton = $('anuncio-publicar');
 
             if (mensaje.length < 3) {
-                alerta('anuncio-alerta', 'EscribÃ­ un mensaje de al menos 3 caracteres.', 'error');
+                alerta('anuncio-alerta', 'Escribí un mensaje de al menos 3 caracteres.', 'error');
                 return;
             }
             alerta('anuncio-alerta', '');
@@ -5016,9 +5016,9 @@
                     .select('id')
                     .maybeSingle();
                 if (res.error) throw res.error;
-                if (!res.data) throw new Error('La base no confirmÃ³ la publicaciÃ³n (permisos RLS).');
+                if (!res.data) throw new Error('La base no confirmó la publicación (permisos RLS).');
 
-                // Solo el mÃ¡s reciente queda activo.
+                // Solo el más reciente queda activo.
                 try {
                     await supabase
                         .from('anuncios_globales')
@@ -5035,7 +5035,7 @@
                 alerta('anuncio-alerta', 'Anuncio publicado. Ya se ve en la app de todos los salones.', 'ok');
             } catch (error) {
                 console.error(error);
-                alerta('anuncio-alerta', 'No se pudo publicar: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                alerta('anuncio-alerta', 'No se pudo publicar: ' + (error.message || 'error de conexión'), 'error');
             } finally {
                 ocupado(boton, '');
             }
@@ -5050,13 +5050,13 @@
                     .eq('id', a.id)
                     .select('id');
                 if (res.error) throw res.error;
-                if (!res.data || !res.data.length) throw new Error('La base no actualizÃ³ el anuncio (permisos RLS).');
+                if (!res.data || !res.data.length) throw new Error('La base no actualizó el anuncio (permisos RLS).');
                 a.activo = !a.activo;
                 pintarAnuncios();
                 toast(a.activo ? 'Anuncio activado.' : 'Anuncio desactivado.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo actualizar: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo actualizar: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
@@ -5195,7 +5195,7 @@
             var boton = $('pat-guardar');
             var editando = !!patrocinadorEditando;
 
-            if (nombre.length < 2) { alerta('pat-alerta', 'EscribÃ­ el nombre de la marca.', 'error'); return; }
+            if (nombre.length < 2) { alerta('pat-alerta', 'Escribí el nombre de la marca.', 'error'); return; }
             if (logo && !/^https:\/\//i.test(logo)) { alerta('pat-alerta', 'El logo tiene que empezar con https://', 'error'); return; }
             if (url && !/^https:\/\//i.test(url)) { alerta('pat-alerta', 'El link tiene que empezar con https://', 'error'); return; }
 
@@ -5218,7 +5218,7 @@
                 toast(editando ? 'Patrocinador actualizado.' : 'Patrocinador agregado.', 'ok');
             } catch (error) {
                 console.error(error);
-                var detalle = error.message || 'error de conexiÃ³n';
+                var detalle = error.message || 'error de conexión';
                 if (/sin_permisos/.test(detalle)) detalle = 'Tu cuenta no es super admin.';
                 else if (/url_invalida|logo_invalido/.test(detalle)) detalle = 'La URL tiene que empezar con https://';
                 else if (/nombre_requerido/.test(detalle)) detalle = 'El nombre es obligatorio.';
@@ -5239,7 +5239,7 @@
                 toast(p.activo ? 'Patrocinador activado.' : 'Patrocinador pausado.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo actualizar: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo actualizar: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
@@ -5255,7 +5255,7 @@
                 toast('Patrocinador borrado.', 'ok');
             } catch (error) {
                 console.error(error);
-                toast('No se pudo borrar: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo borrar: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
@@ -5300,13 +5300,13 @@
 
         function tarjetaCobro(fila, acciones) {
             var item = crear('div', 'cobro-item');
-            item.appendChild(crear('div', 'cobro-nombre', fila.nombre || 'SalÃ³n'));
+            item.appendChild(crear('div', 'cobro-nombre', fila.nombre || 'Salón'));
 
             var meta = crear('div', 'cobro-meta');
             meta.appendChild(pill(nombrePlan(fila.plan_efectivo || fila.plan_guardado || 'gratis'),
                 (fila.plan_efectivo === 'pro' ? 'pill-info' : (fila.plan_efectivo === 'premium' ? 'pill-gold' : 'pill-neutral'))));
             if (fila.dias_restantes !== null && fila.dias_restantes !== undefined) {
-                meta.appendChild(crear('span', '', fila.dias_restantes <= 0 ? 'vence hoy' : 'en ' + fila.dias_restantes + (fila.dias_restantes === 1 ? ' dÃ­a' : ' dÃ­as')));
+                meta.appendChild(crear('span', '', fila.dias_restantes <= 0 ? 'vence hoy' : 'en ' + fila.dias_restantes + (fila.dias_restantes === 1 ? ' día' : ' días')));
             }
             if (fila.vence_en) meta.appendChild(crear('span', '', 'vence ' + fechaCorta(fila.vence_en)));
             else if (fila.trial_hasta) meta.appendChild(crear('span', '', 'trial ' + fechaCorta(fila.trial_hasta)));
@@ -5351,7 +5351,7 @@
                 if (!caja) return;
                 caja.textContent = '';
                 if (!lista.length) {
-                    caja.appendChild(crear('p', 'cobro-vacio', 'Nadie por acÃ¡.'));
+                    caja.appendChild(crear('p', 'cobro-vacio', 'Nadie por acá.'));
                     return;
                 }
                 lista.forEach(function (f) { caja.appendChild(tarjetaCobro(f, accionesDe(f))); });
@@ -5385,19 +5385,19 @@
                 pintarCobros();
             } catch (error) {
                 console.error('cobros:', error);
-                toast('No se pudieron cargar los cobros: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudieron cargar los cobros: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
         async function registrarPago(fila, boton) {
             var plan = fila.plan_efectivo || fila.plan_guardado || 'pro';
             if (plan === 'gratis') {
-                toast('Ese salÃ³n estÃ¡ en el plan Gratis: cambiale el plan antes de registrar un pago.', 'error');
+                toast('Ese salón está en el plan Gratis: cambiale el plan antes de registrar un pago.', 'error');
                 return;
             }
             var ok = await confirmar(
                 'Registrar pago',
-                'Se registra el pago de ' + (fila.nombre || 'el salÃ³n') + ' y se extiende 30 dÃ­as el plan ' + nombrePlan(plan) + '.',
+                'Se registra el pago de ' + (fila.nombre || 'el salón') + ' y se extiende 30 días el plan ' + nombrePlan(plan) + '.',
                 'Registrar pago'
             );
             if (!ok) return;
@@ -5426,7 +5426,7 @@
                 await refrescarCobros();
             } catch (error) {
                 console.error('registrarPago:', error);
-                toast('No se pudo registrar el pago: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo registrar el pago: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
@@ -5434,7 +5434,7 @@
         async function extenderTrial(fila, dias, boton) {
             var ok = await confirmar(
                 'Extender prueba',
-                'Se le suman ' + dias + ' dÃ­as de prueba a ' + (fila.nombre || 'el salÃ³n') + '.',
+                'Se le suman ' + dias + ' días de prueba a ' + (fila.nombre || 'el salón') + '.',
                 'Extender +' + dias + ' d'
             );
             if (!ok) return;
@@ -5458,7 +5458,7 @@
                 await refrescarCobros();
             } catch (error) {
                 console.error('extenderTrial:', error);
-                toast('No se pudo extender la prueba: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudo extender la prueba: ' + (error.message || 'error de conexión'), 'error');
                 ocupado(boton, '');
             }
         }
@@ -5470,7 +5470,7 @@
             }
             var ok = await confirmar(
                 'Aplicar degradaciones',
-                'Se pasan a plan Gratis ' + cobrosCache.vencidos.length + ' salÃ³n(es) vencidos. La acciÃ³n queda en auditorÃ­a.',
+                'Se pasan a plan Gratis ' + cobrosCache.vencidos.length + ' salón(es) vencidos. La acción queda en auditoría.',
                 'Aplicar',
                 true
             );
@@ -5484,13 +5484,13 @@
                 await refrescarCobros();
             } catch (error) {
                 console.error('degradaciones:', error);
-                toast('No se pudieron aplicar: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                toast('No se pudieron aplicar: ' + (error.message || 'error de conexión'), 'error');
             } finally {
                 ocupado(boton, '');
             }
         }
 
-        // â”€â”€ auditorÃ­a â”€â”€
+        // â”€â”€ auditoría â”€â”€
         function resumenDetalle(detalle) {
             if (detalle == null) return 'â€”';
             if (typeof detalle === 'string') return detalle;
@@ -5571,7 +5571,7 @@
 
             tbody.textContent = '';
             if (!lista.length) {
-                vacio.textContent = auditoria.length ? 'NingÃºn registro coincide con el filtro.' : 'No hay registros de auditorÃ­a.';
+                vacio.textContent = auditoria.length ? 'NingÃºn registro coincide con el filtro.' : 'No hay registros de auditoría.';
                 vacio.classList.remove('oculto');
                 return;
             }
@@ -5581,10 +5581,10 @@
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Fecha', fechaHora(f.creado_en)));
                 fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || f.admin_email || (f.admin_id ? String(f.admin_id).slice(0, 8) : 'â€”')));
-                fila.appendChild(celda('SalÃ³n', nombres[f.salon_id] || f.salon_nombre || (f.salon_id ? String(f.salon_id).slice(0, 8) : 'â€”')));
+                fila.appendChild(celda('Salón', nombres[f.salon_id] || f.salon_nombre || (f.salon_id ? String(f.salon_id).slice(0, 8) : 'â€”')));
 
                 var tdAccion = document.createElement('td');
-                tdAccion.setAttribute('data-label', 'AcciÃ³n');
+                tdAccion.setAttribute('data-label', 'Acción');
                 var esFallo = /fallido|error/i.test(f.accion);
                 var esImpersonar = /^impersonar$/.test(f.accion);
                 tdAccion.appendChild(pill(f.accion, esFallo ? 'pill-danger' : (esImpersonar ? 'pill-gold' : 'pill-info')));
@@ -5653,7 +5653,7 @@
             link.click();
             link.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
-            toast('CSV descargado con ' + lista.length + ' salÃ³n(es).', 'ok');
+            toast('CSV descargado con ' + lista.length + ' salón(es).', 'ok');
         }
 
         function cerrarDetalle() {
@@ -6052,7 +6052,7 @@
                     var caja = document.createElement('div');
                     caja.className = 'alerta error';
                     caja.style.padding = '16px';
-                    caja.textContent = 'No se pudieron cargar los movimientos: ' + (error.message || 'error de conexiÃ³n');
+                    caja.textContent = 'No se pudieron cargar los movimientos: ' + (error.message || 'error de conexión');
                     cont.appendChild(caja);
                 }
             }
@@ -6100,7 +6100,7 @@
                     detalle.className = 'movimiento-detalle';
 
                     var spanSalon = document.createElement('span');
-                    spanSalon.textContent = 'SalÃ³n: ' + (m.salon_nombre || 'â€”');
+                    spanSalon.textContent = 'Salón: ' + (m.salon_nombre || 'â€”');
                     detalle.appendChild(spanSalon);
 
                     var spanClienta = document.createElement('span');
@@ -6204,7 +6204,7 @@
 
                             if (res.error) {
                                 console.error(res.error);
-                                alerta('error', 'Error al aprobar salones: ' + (res.error.message || 'error de conexiÃ³n'));
+                                alerta('error', 'Error al aprobar salones: ' + (res.error.message || 'error de conexión'));
                                 return;
                             }
 
@@ -6218,7 +6218,7 @@
                             btnAprobar.disabled = false;
                             btnAprobar.textContent = 'Aprobar seleccionados';
                             console.error(error);
-                            alerta('error', 'Error al aprobar: ' + (error.message || 'error de conexiÃ³n'));
+                            alerta('error', 'Error al aprobar: ' + (error.message || 'error de conexión'));
                         });
                 });
             }
