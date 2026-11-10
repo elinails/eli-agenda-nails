@@ -344,8 +344,16 @@
         [data-theme="dark"] .icono-sol { display: none; }
         [data-theme="light"] .alerta.error { border-color: rgba(180, 69, 60, .35); }
         [data-theme="light"] .alerta.ok { border-color: rgba(46, 122, 87, .35); }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; }
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: var(--canvas);
             color: var(--ink);
@@ -458,10 +466,13 @@
         .secreto { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--ink-subtle); word-break: break-all; text-align: center; margin: 0; }
 
         /* â”€â”€ Shell â”€â”€ */
-        .app { display: flex; height: 100vh; overflow: hidden; }
+        .app { display: flex; min-height: 100dvh; height: 100vh; overflow: hidden; }
         .sidebar {
             width: 248px;
             flex: 0 0 248px;
+            flex-shrink: 0;
+            min-width: 248px;
+            max-width: 248px;
             background: var(--surface-1);
             border-right: 1px solid var(--hairline);
             padding: 22px 14px;
@@ -495,7 +506,7 @@
         .sidebar-pie { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hairline); }
         .admin-email { font-size: 11.5px; color: var(--ink-subtle); word-break: break-all; padding: 0 10px; }
 
-        .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; }
+        .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
         .topbar {
             position: sticky;
             top: 0;
@@ -533,7 +544,7 @@
 
         /* I63 · áreas táctiles de 44px */
         .btn-icono { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; }
-        .contenido { width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 28px 70px; }
+        .contenido { width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 28px 70px; min-width: 0; flex: 1; overflow-x: hidden; }
 
         .cabecera-seccion { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
         .cabecera-seccion h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
