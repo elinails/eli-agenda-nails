@@ -502,6 +502,7 @@
                 <div class="modal-servicios" id="modal-servicios">
                     <p class="modal-nota">Cargando servicios…</p>
                 </div>
+                <p class="modal-nota" id="modal-reservas-gate" hidden>Las reservas online están disponibles con el Plan Pro. Escribile al salón por Instagram.</p>
             </section>
 
             <section class="modal-seccion" id="modal-reserva-seccion" hidden>
@@ -885,6 +886,9 @@
         var seccion = $('modal-reserva-seccion');
         if (seccion) seccion.hidden = true;
 
+        var gate = $('modal-reservas-gate');
+        if (gate) gate.hidden = true;
+
         var formulario = $('reserva-form');
         if (formulario) formulario.reset();
 
@@ -1016,6 +1020,14 @@
             pintarDireccion(datos.direccion);
             pintarServicios(datos.servicios);
 
+            var habilitadas = datos.reservas_habilitadas !== false;
+            var gate = $('modal-reservas-gate');
+            if (gate) gate.hidden = habilitadas;
+            if (!habilitadas) {
+                var seccionReserva = $('modal-reserva-seccion');
+                if (seccionReserva) seccionReserva.hidden = true;
+            }
+
             // Gate Pro: el perfil se ve, pero el formulario solo si reservas_link.
             var reservaSeccion = $('modal-reserva-seccion');
             if (reservaSeccion && datos.reservas_habilitadas !== true) {
@@ -1041,6 +1053,9 @@
         }
         if (/servicio_invalido/.test(texto)) {
             return 'El servicio elegido ya no está disponible. Elegí otro.';
+        }
+        if (/reservas_no_habilitadas/.test(texto)) {
+            return 'Las reservas online de este salón están disponibles con el Plan Pro. Escribile por Instagram.';
         }
         if (/nombre_invalido/.test(texto)) {
             return 'Revisá tu nombre.';

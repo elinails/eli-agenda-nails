@@ -1536,6 +1536,7 @@
             border-radius: 12px;
             background: var(--surface);
         }
+        .solicitudes-panel.hidden { display: none; }
         .solicitudes-panel-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .solicitudes-panel-info > i { color: var(--gold-ink); font-size: 18px; }
         .solicitudes-panel-info strong { display: block; font-size: 14px; }
@@ -3020,7 +3021,7 @@
     <!-- I69 · Solicitudes de reserva -->
     <div id="solicitudes-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="bg-surface rounded-2xl shadow-xl w-full mx-4 max-h-[90dvh] overflow-y-auto p-6"
-             style="max-width:640px"
+             style="max-width:640px;max-height:90dvh"
              role="dialog" aria-modal="true" aria-labelledby="solicitudes-modal-titulo">
             <div class="flex items-start justify-between gap-4 mb-2">
                 <div>
@@ -3701,7 +3702,7 @@
                 try {
                     const res = await supabase
                         .from('solicitudes_reserva')
-                        .select('id, cliente_nombre, cliente_telefono, fecha, hora, servicio_id, estado, creado_en, servicio:servicios(nombre,precio_base,duracion_minutos)')
+                        .select('id, cliente_nombre, cliente_telefono, fecha, hora, servicio_id, servicio_nombre, servicio_precio, servicio_duracion, estado, creado_en, servicio:servicios(nombre,precio_base,duracion_minutos)')
                         .eq('salon_id', contexto.salonId)
                         .eq('estado', 'pendiente')
                         .order('creado_en', { ascending: true })
@@ -3758,8 +3759,9 @@
                     superior.appendChild(info);
 
                     const servicioTexto = crearNodoSolicitud('div', 'solicitud-servicio',
-                        (servicio.nombre || 'Servicio') + ' · ' + money(servicio.precio_base) +
-                        (servicio.duracion_minutos ? ' · ' + servicio.duracion_minutos + ' min' : ''));
+                        (servicio.nombre || sol.servicio_nombre || 'Servicio') + ' · ' +
+                        money(servicio.precio_base != null ? servicio.precio_base : sol.servicio_precio) +
+                        ((servicio.duracion_minutos || sol.servicio_duracion) ? ' · ' + (servicio.duracion_minutos || sol.servicio_duracion) + ' min' : ''));
                     superior.appendChild(servicioTexto);
                     tarjeta.appendChild(superior);
 
@@ -3801,7 +3803,7 @@
                 if (/horario_ocupado/.test(texto)) {
                     return 'Ese horario ya está ocupado. Rechazá la solicitud o coordiná otro horario.';
                 }
-                if (/solicitud_ya_revisada/.test(texto)) {
+                if (/solicitud_ya_revisada|solicitud_no_pendiente/.test(texto)) {
                     return 'Esa solicitud ya fue revisada.';
                 }
                 if (/solicitud_vencida/.test(texto)) {

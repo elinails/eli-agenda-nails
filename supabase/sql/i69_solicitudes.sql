@@ -4,11 +4,11 @@
 -- Contenido:
 --   1) salones.direccion (perfil público)
 --   2) planes.caracteristicas (gate reservas_link) — idempotente
---   3) solicitudes_reserva + RLS (solo la dueña; insert solo por RPC)
+--   3) solicitudes_reserva + RLS (miembros leen; insert solo por RPC)
 --   4) public_salon_detalle(p_slug)          — anon, solo datos públicos
 --   5) public_crear_solicitud(...)           — anon, valida + anti-spam 3/día
---   6) solicitud_aprobar(p_id)               — dueña: crea cliente + turno
---   7) solicitud_rechazar(p_id, p_motivo)    — dueña
+--   6) solicitud_aprobar(p_id)               — miembro: cliente + turno confirmed
+--   7) solicitud_rechazar(p_id, p_motivo)    — miembro
 --
 -- Idempotente. No toca datos privados ni tablas existentes más allá de
 -- agregar la columna pública `direccion`.
@@ -98,13 +98,13 @@ create index if not exists solicitudes_salon_estado_idx
 create index if not exists solicitudes_telefono_dia_idx
     on public.solicitudes_reserva (cliente_telefono, salon_id, creado_en desc);
 
--- RLS: solo la dueña lee/edita/borra. El insert entra SOLO por la RPC definer.
+-- RLS: los miembros leen; update/delete directo solo dueña. El insert entra SOLO por la RPC definer.
 alter table public.solicitudes_reserva enable row level security;
 
 drop policy if exists solicitudes_owner_lectura on public.solicitudes_reserva;
 create policy solicitudes_owner_lectura on public.solicitudes_reserva
 for select to authenticated
-using (public.es_owner(salon_id));
+using (public.es_miembro(salon_id));
 
 drop policy if exists solicitudes_owner_edicion on public.solicitudes_reserva;
 create policy solicitudes_owner_edicion on public.solicitudes_reserva
@@ -121,6 +121,8 @@ using (public.es_owner(salon_id));
 -- ============================================================================
 -- 4 · DETALLE PÚBLICO (anon)
 -- ============================================================================
+
+drop function if exists public.public_salon_detalle(text);
 
 create or replace function public.public_salon_detalle(p_slug text)
 returns jsonb
@@ -170,6 +172,8 @@ grant execute on function public.public_salon_detalle(text) to anon, authenticat
 -- ============================================================================
 -- 5 · CREAR SOLICITUD (anon, gate Pro + anti-spam 3/día)
 -- ============================================================================
+
+drop function if exists public.public_crear_solicitud(uuid, text, text, date, time, bigint);
 
 create or replace function public.public_crear_solicitud(
     p_salon_id          uuid,
@@ -248,13 +252,14 @@ begin
         raise exception 'solicitud_duplicada';
     end if;
 
-    -- Anti-spam: 3 solicitudes por teléfono + salón + día (AR).
+    -- Anti-spam: 3 solicitudes PENDIENTES por teléfono + salón en 24 h.
     select count(*)
       into v_cantidad
       from public.solicitudes_reserva sr
      where sr.salon_id = p_salon_id
        and sr.cliente_telefono = v_tel
-       and (sr.creado_en at time zone 'America/Argentina/Buenos_Aires')::date = v_hoy;
+       and sr.estado = 'pendiente'
+       and sr.creado_en > now() - interval '24 hours';
 
     if v_cantidad >= 3 then
         raise exception 'demasiadas_solicitudes';
@@ -279,8 +284,12 @@ grant execute on function public.public_crear_solicitud(uuid, text, text, date, 
 
 
 -- ============================================================================
--- 6 · APROBAR (dueña): crea/reutiliza cliente + turno real
+-- 6 · APROBAR (miembro del salón: dueña o empleada)
 -- ============================================================================
+
+drop function if exists public.aprobar_solicitud(uuid);
+drop function if exists public.aprobar_solicitud(bigint);
+drop function if exists public.solicitud_aprobar(bigint);
 
 create or replace function public.solicitud_aprobar(p_id bigint)
 returns bigint
@@ -292,6 +301,7 @@ declare
     s         record;
     v_cliente bigint;
     v_turno   bigint;
+    v_staff   uuid;
 begin
     select * into s
       from public.solicitudes_reserva
@@ -301,11 +311,26 @@ begin
     if not found then
         raise exception 'solicitud_no_existe';
     end if;
-    if not public.es_owner(s.salon_id) then
+    if not public.es_miembro(s.salon_id) then
         raise exception 'sin_permisos';
     end if;
     if s.estado <> 'pendiente' then
         raise exception 'solicitud_no_pendiente';
+    end if;
+    if s.fecha < current_date
+       or (s.fecha = current_date and s.hora < localtime) then
+        raise exception 'solicitud_vencida';
+    end if;
+
+    if exists (
+        select 1
+          from public.turnos t
+         where t.salon_id = s.salon_id
+           and t.appointment_date = s.fecha
+           and t.appointment_time = s.hora
+           and t.status not in ('cancelled', 'cancelado')
+    ) then
+        raise exception 'horario_ocupado';
     end if;
 
     -- CRM: buscar por teléfono normalizado dentro del salón.
@@ -315,20 +340,25 @@ begin
        and regexp_replace(coalesce(c.telefono, ''), '\D', '', 'g') = s.cliente_telefono
      limit 1;
 
+    v_staff := case
+        when public.es_owner(s.salon_id) then null
+        else auth.uid()
+    end;
+
     if v_cliente is null then
-        insert into public.clientes (salon_id, user_id, nombre, telefono)
-        values (s.salon_id, auth.uid(), s.cliente_nombre, s.cliente_telefono)
+        insert into public.clientes (salon_id, user_id, nombre, telefono, staff_user_id)
+        values (s.salon_id, auth.uid(), s.cliente_nombre, s.cliente_telefono, v_staff)
         returning id into v_cliente;
     end if;
 
     insert into public.turnos
         (salon_id, user_id, cliente_id, servicio_id, client_name, service_type,
-         appointment_date, appointment_time, price, notes, status)
+         appointment_date, appointment_time, price, notes, status, staff_user_id)
     values
         (s.salon_id, auth.uid(), v_cliente, s.servicio_id, s.cliente_nombre,
          coalesce(s.servicio_nombre, ''), s.fecha, s.hora,
          coalesce(s.servicio_precio, 0),
-         'Solicitud online · ' || s.cliente_telefono, 'pendiente')
+         'Solicitud online · ' || s.cliente_telefono, 'confirmed', v_staff)
     returning id into v_turno;
 
     update public.solicitudes_reserva
@@ -341,15 +371,19 @@ begin
 end $$;
 
 comment on function public.solicitud_aprobar(bigint) is
-    'Dueña aprueba: crea/reutiliza cliente por teléfono y crea el turno real, todo transaccional.';
+    'Miembro del salón aprueba: crea/reutiliza cliente por teléfono y crea el turno confirmado, todo transaccional.';
 
 revoke all on function public.solicitud_aprobar(bigint) from public;
 grant execute on function public.solicitud_aprobar(bigint) to authenticated;
 
 
 -- ============================================================================
--- 7 · RECHAZAR (dueña)
+-- 7 · RECHAZAR (miembro del salón)
 -- ============================================================================
+
+drop function if exists public.rechazar_solicitud(uuid, text);
+drop function if exists public.rechazar_solicitud(bigint, text);
+drop function if exists public.solicitud_rechazar(bigint, text);
 
 create or replace function public.solicitud_rechazar(p_id bigint, p_motivo text default null)
 returns void
@@ -369,7 +403,7 @@ begin
     if not found then
         raise exception 'solicitud_no_existe';
     end if;
-    if not public.es_owner(s.salon_id) then
+    if not public.es_miembro(s.salon_id) then
         raise exception 'sin_permisos';
     end if;
     if s.estado <> 'pendiente' then
@@ -384,7 +418,7 @@ begin
 end $$;
 
 comment on function public.solicitud_rechazar(bigint, text) is
-    'Dueña rechaza una solicitud pendiente, con motivo opcional.';
+    'Miembro del salón rechaza una solicitud pendiente, con motivo opcional.';
 
 revoke all on function public.solicitud_rechazar(bigint, text) from public;
 grant execute on function public.solicitud_rechazar(bigint, text) to authenticated;
@@ -430,12 +464,11 @@ notify pgrst, 'reload schema';
 --
 -- 3) una solicitud válida (3 veces) y la 4ª debe fallar con demasiadas_solicitudes.
 --
--- 4) dueña:
+-- 4) dueña o empleada:
 --    select public.solicitud_aprobar(ID-SOLICITUD);
 --    select * from public.turnos where id = <turno>;
 --    select * from public.clientes where salon_id = '<salon>';
 --
--- 5) staff no puede:
---    select public.solicitud_aprobar(ID-SOLICITUD);  -- sin_permisos
+-- 5) una empleada puede aprobar; el turno queda asignado a ella.
 --
--- 6) RLS: con el token de staff, select * from solicitudes_reserva → 0 filas.
+-- 6) RLS: con el token de staff, select * from solicitudes_reserva → filas del salón.
