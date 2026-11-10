@@ -1674,6 +1674,58 @@
                     </div>
                 </section>
 
+                <!-- LIBRO CONTABLE GLOBAL -->
+                <section id="seccion-libro-contable" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <h2>Libro Contable Global <span class="rf-badge-superadmin">God Mode</span></h2>
+                        <p class="sub">Registro inmutable de todas las transacciones de Elima Points</p>
+                    </div>
+
+                    <div class="barra-filtros" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
+                        <div class="campo" style="flex:1;min-width:220px">
+                            <label for="lc-buscar">Buscar cliente, email, motivo...</label>
+                            <input type="search" id="lc-buscar" placeholder="Buscar&#8230;" aria-label="Buscar en el libro contable">
+                        </div>
+                        <div class="campo" style="min-width:160px">
+                            <label for="lc-tipo">Tipo de movimiento</label>
+                            <select id="lc-tipo">
+                                <option value="">Todos</option>
+                                <option value="ganado">Ganado</option>
+                                <option value="canjeado">Canjeado</option>
+                                <option value="ajuste">Ajuste</option>
+                            </select>
+                        </div>
+                        <div class="campo" style="min-width:160px">
+                            <label for="lc-salon-lc">Salón</label>
+                            <select id="lc-salon-lc" aria-label="Filtrar por salón"></select>
+                        </div>
+                        <button type="button" class="btn btn-primario" id="lc-exportar">Exportar CSV</button>
+                    </div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla rf-tabla-financiera">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Clienta</th>
+                                    <th>Salón</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                    <th style="min-width:200px">Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lc-tabla"></tbody>
+                        </table>
+                        <p id="lc-vacio" class="vacio oculto">No hay movimientos que coincidan.</p>
+                    </div>
+
+                    <div class="paginacion" id="lc-paginacion" style="display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+                        <button type="button" class="btn btn-secundario btn-sm" id="lc-prev" disabled aria-label="P&#225;gina anterior">&#171; Anterior</button>
+                        <span id="lc-pagina-info" class="kpi-pie" style="display:flex;align-items:center">P&#225;gina 1 de 1</span>
+                        <button type="button" class="btn btn-secundario btn-sm" id="lc-next" disabled aria-label="P&#225;gina siguiente">Siguiente &#187;</button>
+                    </div>
+                </section>
+
                 <!-- ANUNCIOS -->
                 <section id="seccion-anuncios" class="seccion oculto">
                     <div class="grid-anuncios">
@@ -6500,7 +6552,305 @@
             });
         }
 
-actualizarContadorAnuncio();
+        // I84 · LIBRO CONTABLE GLOBAL
+        var lcPaginaActual = 1;
+        var lcLimite = 50;
+        var lcTotalRegistros = 0;
+        var lcSalonesCache = [];
+
+        async function cargarSalonesLibro() {
+            try {
+                var res = await supabase.from('salones').select('id, nombre').eq('activo', true).order('nombre');
+                if (res.error) throw res.error;
+                lcSalonesCache = res.data || [];
+                var select = document.createElement('option');
+                select.value = '';
+                select.textContent = 'Todos los salones';
+                $('lc-salon-lc').appendChild(select);
+                lcSalonesCache.forEach(function (s) {
+                    var option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = s.nombre || 'Salón';
+                    $('lc-salon-lc').appendChild(option);
+                });
+            } catch (e) { console.error('Error cargando salones:', e); }
+        }
+
+        async function cargarLibroContable() {
+            var buscar = $('lc-buscar').value.trim();
+            var tipo = $('lc-tipo').value;
+            var salonId = $('lc-salon-lc').value || null;
+            var offset = (lcPaginaActual - 1) * lcLimite;
+
+            try {
+                var res = await supabase.rpc('admin_libro_contable_global', {
+                    p_busqueda: buscar,
+                    p_tipo: tipo,
+                    p_salon_id: salonId,
+                    p_limite: lcLimite,
+                    p_offset: offset
+                });
+                if (res.error) throw res.error;
+
+                var filas = res.data || [];
+                lcTotalRegistros = filas.length > 0 ? Number(filas[0].total_registros) : 0;
+                pintarLibroContable(filas);
+                pintarPaginacionLibro();
+            } catch (error) {
+                console.error('Libro contable:', error);
+                alerta('rf-alerta', 'No se pudo cargar el libro contable: ' + (error.message || 'error de conexión'), 'error');
+            }
+        }
+
+        function pintarLibroContable(filas) {
+            var tbody = $('lc-tabla');
+            tbody.textContent = '';
+
+            if (!filas.length) {
+                $('lc-vacio').hidden = false;
+                return;
+            }
+            $('lc-vacio').hidden = true;
+
+            filas.forEach(function (f) {
+                var tr = document.createElement('tr');
+
+                var tdFecha = document.createElement('td');
+                tdFecha.style.fontSize = '13px';
+                tdFecha.textContent = f.fecha ? new Date(f.fecha).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+
+                var tdCliente = document.createElement('td');
+                var strong = document.createElement('strong');
+                strong.textContent = f.cliente_nombre || '—';
+                tdCliente.appendChild(strong);
+                var small = document.createElement('div');
+                small.style.fontSize = '11px';
+                small.style.color = 'var(--ink-subtle)';
+                small.textContent = f.cliente_email || '';
+                tdCliente.appendChild(small);
+
+                var tdSalon = document.createElement('td');
+                tdSalon.textContent = f.salon_nombre || '—';
+
+                var tdTipo = document.createElement('td');
+                var tipoBadge = document.createElement('span');
+                tipoBadge.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;';
+                if (f.tipo_movimiento === 'ganado') {
+                    tipoBadge.style.background = 'var(--blush)';
+                    tipoBadge.style.color = 'var(--ink)';
+                } else if (f.tipo_movimiento === 'canjeado') {
+                    tipoBadge.style.background = 'var(--surface-2)';
+                    tipoBadge.style.color = 'var(--danger)';
+                } else {
+                    tipoBadge.style.background = 'var(--gold-soft)';
+                    tipoBadge.style.color = 'var(--gold-ink)';
+                }
+                tipoBadge.textContent = f.tipo_movimiento || '—';
+                tdTipo.appendChild(tipoBadge);
+
+                var tdMonto = document.createElement('td');
+                var spanMonto = document.createElement('span');
+                spanMonto.style.fontWeight = '600';
+                spanMonto.style.fontVariantNumeric = 'tabular-nums';
+                if (f.monto > 0) {
+                    spanMonto.style.color = 'var(--ok)';
+                    spanMonto.textContent = '+' + formatearPuntos(f.monto);
+                } else {
+                    spanMonto.style.color = 'var(--danger)';
+                    spanMonto.textContent = formatearPuntos(f.monto);
+                }
+                tdMonto.appendChild(spanMonto);
+
+                var tdMotivo = document.createElement('td');
+                tdMotivo.textContent = f.motivo || '—';
+
+                tr.appendChild(tdFecha);
+                tr.appendChild(tdCliente);
+                tr.appendChild(tdSalon);
+                tr.appendChild(tdTipo);
+                tr.appendChild(tdMonto);
+                tr.appendChild(tdMotivo);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function pintarPaginacionLibro() {
+            var totalPaginas = Math.ceil(lcTotalRegistros / lcLimite);
+            $('lc-pagina-info').textContent = 'Página ' + lcPaginaActual + ' de ' + (totalPaginas || 1);
+            $('lc-prev').disabled = lcPaginaActual <= 1;
+            $('lc-next').disabled = lcPaginaActual >= totalPaginas;
+        }
+
+        // Event listeners para el libro contable
+        $('lc-prev').addEventListener('click', function () {
+            if (lcPaginaActual > 1) {
+                lcPaginaActual--;
+                cargarLibroContable();
+            }
+        });
+        $('lc-next').addEventListener('click', function () {
+            var totalPaginas = Math.ceil(lcTotalRegistros / lcLimite);
+            if (lcPaginaActual < totalPaginas) {
+                lcPaginaActual++;
+                cargarLibroContable();
+            }
+        });
+        $('lc-buscar').addEventListener('input', function () {
+            lcPaginaActual = 1;
+            setTimeout(function () { cargarLibroContable(); }, 300);
+        });
+        $('lc-tipo').addEventListener('change', function () {
+            lcPaginaActual = 1;
+            cargarLibroContable();
+        });
+        $('lc-salon-lc').addEventListener('change', function () {
+            lcPaginaActual = 1;
+            cargarLibroContable();
+        });
+
+        // Exportar CSV
+        $('lc-exportar').addEventListener('click', function () {
+            var tabla = document.createElement('table');
+            var cabecera = tabla.insertRow();
+            ['Fecha', 'Clienta', 'Salón', 'Tipo', 'Monto', 'Motivo'].forEach(function (texto) {
+                var th = document.createElement('th');
+                th.textContent = texto;
+                th.style.background = 'var(--surface-1)';
+                th.style.fontWeight = '600';
+                th.style.padding = '8px';
+                cabecera.appendChild(th);
+            });
+            var filas = $(lc-tabla).querySelectorAll('tr');
+            filas.forEach(function (tr) {
+                var fila = tabla.insertRow();
+                var celdas = tr.querySelectorAll('td');
+                celdas.forEach(function (td) {
+                    var celda = fila.insertCell();
+                    celda.textContent = td.textContent;
+                    celda.style.borderBottom = '1px solid var(--line)';
+                    celda.style.padding = '8px';
+                });
+            });
+            var csv = tabla.innerText;
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'libro-contable-' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Inicializar libro contable cuando se abra la sección
+        document.addEventListener('click', function (e) {
+            if (e.target.matches('[data-vista="libro-contable"], [data-vista="libro-contable"] *')) {
+                if (lcSalonesCache.length === 0) cargarSalonesLibro();
+                if (!$('#lc-tabla').querySelector('tr')) cargarLibroContable();
+            }
+        });
+
+        actualizarContadorAnuncio();
+
+        // I84 · Gráfico de flujo (se cargará cuando se abra la sección de Reserva Federal)
+        var graficoFlujoCanvas = null;
+
+        function cargarGraficoFlujo() {
+            if ($('rf-grafico-flujo')) {
+                // El canvas ya existe, podemos inicializar aquí
+                return;
+            }
+
+            // Si no existe, lo creamos dinámicamente
+            var contenedor = document.querySelector('#rf-kpis .kpis');
+            if (contenedor) {
+                var canvasDiv = document.createElement('div');
+                canvasDiv.id = 'rf-grafico-flujo';
+                canvasDiv.style.cssText = 'margin-top:24px;padding:16px;background:var(--surface-1);border-radius:10px;border:1px solid var(--hairline);';
+                canvasDiv.innerHTML = '<canvas id="grafico-flujo-canvas" style="width:100%;height:120px;"></canvas>';
+                contenedor.appendChild(canvasDiv);
+            }
+        }
+
+        async function cargarGraficoFlujoDatos() {
+            try {
+                var res = await supabase.rpc('admin_resumen_mensual_puntos', { p_meses: 6 });
+                if (res.error || !res.data) return;
+
+                var canvas = document.getElementById('grafico-flujo-canvas');
+                if (!canvas) return;
+
+                var ctx = canvas.getContext('2d');
+                var ancho = canvas.offsetWidth;
+                var alto = canvas.offsetHeight;
+
+                // Limpiar
+                ctx.clearRect(0, 0, ancho, alto);
+
+                var datos = res.data;
+                if (!datos.length) return;
+
+                // Dibujar gráfico simple de barras
+                var margen = 30;
+                var anchoBarra = Math.max(20, (ancho - margen * 2) / datos.length - 10);
+                var alturaMax = Math.max.apply(null, datos.map(function (d) { return Math.max(d.puntos_ganados || 0, d.puntos_canjeados || 0); }));
+                alturaMax = alturaMax > 0 ? alturaMax : 1;
+
+                datos.forEach(function (d, i) {
+                    var x = margen + i * (anchoBarra + 10);
+                    var alturaGanado = (d.puntos_ganados || 0) / alturaMax * (alto - margen);
+                    var alturaCanjeado = (d.puntos_canjeados || 0) / alturaMax * (alto - margen);
+
+                    // Barra de ganados (verde)
+                    ctx.fillStyle = 'var(--ok)';
+                    ctx.beginPath();
+                    ctx.moveTo(x, alto);
+                    ctx.lineTo(x + anchoBarra / 2, alto);
+                    ctx.lineTo(x + anchoBarra / 2, alto - alturaGanado);
+                    ctx.lineTo(x, alto);
+                    ctx.fill();
+
+                    // Barra de canjeados (rojo)
+                    if (alturaCanjeado > 0) {
+                        ctx.fillStyle = 'var(--danger)';
+                        ctx.beginPath();
+                        ctx.moveTo(x + anchoBarra / 2, alto);
+                        ctx.lineTo(x + anchoBarra, alto);
+                        ctx.lineTo(x + anchoBarra, alto - alturaCanjeado);
+                        ctx.lineTo(x + anchoBarra / 2, alto);
+                        ctx.fill();
+                    }
+                });
+
+                // Ejes
+                ctx.strokeStyle = 'var(--line)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(margen, alto - margen);
+                ctx.lineTo(ancho - margen, alto - margen);
+                ctx.stroke();
+
+                // Etiquetas
+                ctx.fillStyle = 'var(--ink-soft)';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                datos.forEach(function (d, i) {
+                    ctx.fillText(d.mes.split('-')[1], margen + i * (anchoBarra + 10) + anchoBarra / 2, alto - 5);
+                });
+            } catch (e) { console.error('Error gráfico flujo:', e); }
+        }
+
+        // Cargar gráfico cuando se abra Reserva Federal
+        document.addEventListener('click', function (e) {
+            if (e.target.matches('[data-vista="reserva-federal"]') || e.target.closest('[data-vista="reserva-federal"]')) {
+                setTimeout(function () {
+                    if (typeof graficoFlujoCanvas === 'function') graficoFlujoCanvas();
+                    cargarGraficoFlujo();
+                    cargarGraficoFlujoDatos();
+                }, 100);
+            }
+        });
+
+        actualizarContadorAnuncio();
     })();
     </script>
 </body>
