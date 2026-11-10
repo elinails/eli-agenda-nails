@@ -1517,6 +1517,93 @@
         .mi-salon-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
         .mi-salon-barra .setting-note { margin: 0; }
 
+        /* I55 · candados del Plan Pro */
+        .pro-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px dashed var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            opacity: .78;
+            transition: opacity .16s ease, border-color .16s ease;
+        }
+        .pro-item:hover,
+        .pro-item:focus-visible { opacity: 1; border-color: var(--gold); outline: none; }
+        .pro-item + .pro-item { margin-top: 8px; }
+        .pro-candado { font-size: 16px; line-height: 1; flex: 0 0 auto; }
+        .pro-texto { flex: 1; min-width: 0; display: grid; gap: 2px; }
+        .pro-titulo { font-size: 14px; font-weight: 600; }
+        .pro-nota { font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; }
+        .pro-pill {
+            flex: 0 0 auto;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(190, 158, 111, .18);
+            color: var(--gold-ink);
+        }
+
+        /* I55 · Mi Plan */
+        .mi-plan-actual {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+        .mi-plan-actual .setting-note { margin: 2px 0 0; }
+        .mi-plan-barra { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 8px 0 0; }
+        .mi-plan-barra span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold-ink)); }
+        .mi-plan-tabla { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13.5px; }
+        .mi-plan-tabla th, .mi-plan-tabla td { padding: 9px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+        .mi-plan-tabla thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 700; }
+        .mi-plan-tabla td:not(:first-child), .mi-plan-tabla th:not(:first-child) { text-align: center; width: 72px; }
+        .mi-plan-tabla .col-pro { background: rgba(190, 158, 111, .10); }
+        .mi-plan-tabla tr:last-child td { border-bottom: 0; }
+        .mi-plan-sino { font-size: 14px; }
+        .mi-plan-cta { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .mi-plan-cta button[disabled] { opacity: .62; cursor: not-allowed; }
+
+        /* I55 · patrocinador (solo plan Gratis, solo Inicio) */
+        .patrocinio-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+        .patrocinio-card.hidden { display: none; }
+        .patrocinio-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex: 0 0 auto;
+            background: var(--surface-2);
+        }
+        .patrocinio-texto { flex: 1; min-width: 0; display: grid; gap: 1px; }
+        .patrocinio-etiqueta { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+        .patrocinio-nombre { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .patrocinio-nombre a { color: inherit; text-decoration: none; }
+        .patrocinio-nombre a:hover { text-decoration: underline; }
+        .patrocinio-cerrar { border: 0; background: none; color: var(--ink-soft); font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; }
+
         /* I39 · navegacion por rol */
         .nav-item.hidden { display: none; }
 
@@ -2053,6 +2140,15 @@
                         <ul class="dona-leyenda" id="dash-leyenda-gastos"></ul>
                     </div>
                 </div>
+
+                <aside id="patrocinio-card" class="patrocinio-card hidden" data-patrocinio="" aria-label="Patrocinador">
+                    <img id="patrocinio-logo" class="patrocinio-logo hidden" alt="" width="34" height="34" loading="lazy">
+                    <div class="patrocinio-texto">
+                        <span class="patrocinio-etiqueta" id="patrocinio-mensaje">Patrocinado por</span>
+                        <span class="patrocinio-nombre" id="patrocinio-nombre"></span>
+                    </div>
+                    <button type="button" id="patrocinio-cerrar" class="patrocinio-cerrar" aria-label="Ocultar patrocinador">×</button>
+                </aside>
             </div>
         </section>
 
@@ -2124,6 +2220,19 @@
                 <div class="dash-panel">
                     <h3 class="dash-title">Gastos del período</h3>
                     <div id="gastos-list" class="space-y-3" aria-busy="true"></div>
+                </div>
+
+                <div class="dash-panel">
+                    <h3 class="dash-title">Reportes</h3>
+                    <p class="dona-nota">Exportá el período que quieras en PDF o Excel.</p>
+                    <button type="button" class="pro-item hidden" data-pro-bloqueo="reportes" title="Función exclusiva del Plan Pro">
+                        <span class="pro-candado" aria-hidden="true">🔒</span>
+                        <span class="pro-texto">
+                            <span class="pro-titulo">Exportación avanzada</span>
+                            <span class="pro-nota">Reportes en PDF y Excel de cualquier período.</span>
+                        </span>
+                        <span class="pro-pill">Pro</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -2218,6 +2327,40 @@
                     </button>
                 </div>
 
+                <div id="panel-mi-plan" class="hidden">
+                    <h2 class="panel-title">Mi Plan</h2>
+                    <p class="setting-note">Lo que tenés hoy y lo que suma el Plan Pro.</p>
+
+                    <div class="mi-plan-actual">
+                        <div style="flex:1;min-width:0">
+                            <p class="setting-label">Plan actual</p>
+                            <p class="setting-note" id="mi-plan-uso">—</p>
+                            <div class="mi-plan-barra"><span id="mi-plan-barra" style="width:0%"></span></div>
+                        </div>
+                        <span class="pro-pill" id="mi-plan-chip">Gratis</span>
+                    </div>
+
+                    <p class="setting-note" id="mi-plan-precio-pro" style="margin-top:14px"></p>
+                    <table class="mi-plan-tabla">
+                        <caption style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Comparación entre el plan Gratis y el Plan Pro</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Función</th>
+                                <th scope="col">Gratis</th>
+                                <th scope="col" class="col-pro">Pro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mi-plan-filas"></tbody>
+                    </table>
+
+                    <div class="mi-plan-cta">
+                        <button type="button" id="mi-plan-upgrade" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm" disabled>
+                            <i class="fas fa-crown mr-2" aria-hidden="true"></i> Actualizar a Pro
+                        </button>
+                        <p class="setting-note" id="mi-plan-aviso">Pagos con MercadoPago: disponible en la próxima versión.</p>
+                    </div>
+                </div>
+
                 <div id="panel-mi-salon" class="hidden">
                     <h2 class="panel-title">Mi Salón</h2>
                     <p class="setting-note">Este logo aparece en la app y en las tarjetas de WhatsApp.</p>
@@ -2257,6 +2400,15 @@
                         </button>
                         <span id="salon-estado" class="setting-note" role="status" aria-live="polite"></span>
                     </div>
+
+                    <button type="button" class="pro-item hidden" data-pro-bloqueo="reservas" title="Función exclusiva del Plan Pro" style="margin-top:16px">
+                        <span class="pro-candado" aria-hidden="true">🔒</span>
+                        <span class="pro-texto">
+                            <span class="pro-titulo">Link de reservas público</span>
+                            <span class="pro-nota">Tus clientas reservan solas desde un link.</span>
+                        </span>
+                        <span class="pro-pill">Pro</span>
+                    </button>
                 </div>
 
                 <div id="panel-servicios">
@@ -2278,6 +2430,15 @@
                             <i class="fas fa-users mr-2" aria-hidden="true"></i> Ver miembros
                         </button>
                     </div>
+
+                    <button type="button" class="pro-item hidden" data-pro-bloqueo="automatizaciones" title="Función exclusiva del Plan Pro" style="margin-top:16px">
+                        <span class="pro-candado" aria-hidden="true">🔒</span>
+                        <span class="pro-texto">
+                            <span class="pro-titulo">Automatización de WhatsApp</span>
+                            <span class="pro-nota">Recordatorios y confirmaciones automáticas.</span>
+                        </span>
+                        <span class="pro-pill">Pro</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -3172,6 +3333,10 @@
                 const panelMiSalon = document.getElementById('panel-mi-salon');
                 if (panelMiSalon) panelMiSalon.classList.toggle('hidden', staff);
                 if (panelMiSalon && !staff) pintarBranding();
+                const panelMiPlan = document.getElementById('panel-mi-plan');
+                if (panelMiPlan) panelMiPlan.classList.toggle('hidden', staff);
+                actualizarBloqueosPro();
+                if (!staff) pintarMiPlan();
                 const panelDatos = document.getElementById('panel-datos');
                 if (panelDatos) panelDatos.classList.toggle('hidden', staff);
             }
@@ -4896,6 +5061,8 @@
                     cargarFlagsApp();
                     await arrancar();
                     mostrarSeccion("agenda");
+                    cargarPatrocinio();
+                    pintarMiPlan();   // ahora sí hay miembros cargados para el contador
                 } catch (error) {
                     console.error(error);
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
@@ -7025,6 +7192,20 @@
 
                 const salonGuardar = document.getElementById('salon-guardar');
                 if (salonGuardar) salonGuardar.addEventListener('click', guardarBranding);
+
+                // I55: los candados no ejecutan nada: llevan a Mi Plan.
+                document.querySelectorAll('[data-pro-bloqueo]').forEach(function (item) {
+                    item.addEventListener('click', abrirMiPlan);
+                });
+
+                const cerrarPatrocinio = document.getElementById('patrocinio-cerrar');
+                if (cerrarPatrocinio) cerrarPatrocinio.addEventListener('click', function () {
+                    const tarjeta = document.getElementById('patrocinio-card');
+                    if (!tarjeta) return;
+                    tarjeta.classList.add('hidden');
+                    const id = tarjeta.dataset.patrocinio;
+                    if (id) localStorage.setItem('eli_patrocinio_oculto_' + id, '1');
+                });
                 ['salon-nombre', 'salon-telefono', 'salon-instagram', 'salon-descripcion'].forEach(function (id) {
                     const campo = document.getElementById(id);
                     if (!campo) return;
@@ -7869,6 +8050,229 @@
                     subiendoLogo = false;
                     if (boton) boton.disabled = false;
                 }
+            }
+
+            // ─────────────────────────────────────────────────────────────
+            // I55 · planes y patrocinio (modelo freemium)
+            // Los precios y límites salen de la tabla `planes`; si la consulta
+            // falla se usan estos valores, que son los que hoy tiene la base.
+            // ─────────────────────────────────────────────────────────────
+            const PLANES_POR_DEFECTO = {
+                gratis:  { nombre: 'Gratis',  precio: 0,     limite: 1 },
+                pro:     { nombre: 'Pro',     precio: 9900,  limite: 3 },
+                premium: { nombre: 'Premium', precio: 19900, limite: null }
+            };
+
+            let planesCache = null;
+
+            async function cargarPlanes() {
+                if (planesCache) return planesCache;
+                const base = Object.keys(PLANES_POR_DEFECTO).map(function (id) {
+                    const p = PLANES_POR_DEFECTO[id];
+                    return { id: id, nombre: p.nombre, precio: p.precio, limite_empleadas: p.limite };
+                });
+                try {
+                    const { data, error } = await supabase
+                        .from('planes')
+                        .select('id, nombre, precio, limite_empleadas, activo')
+                        .eq('activo', true);
+                    if (!error && data && data.length) {
+                        planesCache = data.map(function (p) {
+                            return {
+                                id: p.id,
+                                nombre: p.nombre || p.id,
+                                precio: Number(p.precio) || 0,
+                                limite_empleadas: p.limite_empleadas === undefined ? null : p.limite_empleadas
+                            };
+                        });
+                        return planesCache;
+                    }
+                } catch (error) { /* se usa el fallback */ }
+                planesCache = base;
+                return planesCache;
+            }
+
+            function datosPlan(id) {
+                const buscado = String(id || 'gratis');
+                const encontrado = (planesCache || []).filter(function (p) { return p.id === buscado; })[0];
+                if (encontrado) return encontrado;
+                const def = PLANES_POR_DEFECTO[buscado];
+                return {
+                    id: buscado,
+                    nombre: def ? def.nombre : buscado,
+                    precio: def ? def.precio : 0,
+                    limite_empleadas: def ? def.limite : null
+                };
+            }
+
+            function esPlanGratis() { return (contexto.planId || 'gratis') === 'gratis'; }
+
+            function dineroPlan(valor) {
+                return '$ ' + (Number(valor) || 0).toLocaleString('es-AR');
+            }
+
+            function nombrePersonas(limite) {
+                if (limite === null || limite === undefined) return 'Sin límite';
+                return String(limite) + (Number(limite) === 1 ? ' persona' : ' personas');
+            }
+
+            async function pintarMiPlan() {
+                const panel = document.getElementById('panel-mi-plan');
+                if (!panel) return;
+                await cargarPlanes();
+                const actualId = contexto.planId || 'gratis';
+                const actual = datosPlan(actualId);
+                const pro = datosPlan('pro');
+
+                const chip = document.getElementById('mi-plan-chip');
+                if (chip) chip.textContent = actual.nombre;
+
+                const activos = (store.miembros || []).filter(function (m) { return m.activo !== false; }).length;
+                const limite = actual.limite_empleadas;
+                const uso = document.getElementById('mi-plan-uso');
+                if (uso) {
+                    uso.textContent = (limite === null || limite === undefined)
+                        ? activos + ' personas activas · sin límite'
+                        : activos + ' de ' + limite + ' personas activas';
+                }
+                const barra = document.getElementById('mi-plan-barra');
+                if (barra) {
+                    const pct = (limite === null || limite === undefined || !limite)
+                        ? 0
+                        : Math.min(100, Math.round((activos / limite) * 100));
+                    barra.style.width = pct + '%';
+                    if (barra.parentElement) barra.parentElement.classList.toggle('hidden', limite === null || limite === undefined);
+                }
+
+                const filas = [
+                    ['Agenda y turnos', 'Ilimitados', 'Ilimitados'],
+                    ['Clientas', 'Ilimitadas', 'Ilimitadas'],
+                    ['Tarjetas de WhatsApp', 'Sí', 'Sí'],
+                    ['Finanzas', 'Básicas', 'Completas'],
+                    ['Personas activas', nombrePersonas(actual.limite_empleadas), nombrePersonas(pro.limite_empleadas)],
+                    ['Publicidad en el inicio', 'Sí, sutil', 'Sin publicidad'],
+                    ['Link de reservas', 'pro', 'Sí'],
+                    ['Automatizaciones WhatsApp', 'pro', 'Sí'],
+                    ['Reportes avanzados', 'pro', 'Sí']
+                ];
+                const cuerpo = document.getElementById('mi-plan-filas');
+                if (cuerpo) {
+                    cuerpo.textContent = '';
+                    filas.forEach(function (fila) {
+                        const tr = document.createElement('tr');
+                        const celdaFuncion = document.createElement('td');
+                        celdaFuncion.textContent = fila[0];
+                        tr.appendChild(celdaFuncion);
+                        [fila[1], fila[2]].forEach(function (valor, indice) {
+                            const td = document.createElement('td');
+                            if (indice === 1) td.className = 'col-pro';
+                            if (valor === 'pro') {
+                                td.className = (indice === 1 ? 'col-pro ' : '') + 'mi-plan-sino';
+                                td.textContent = '🔒';
+                                td.title = 'Función exclusiva del Plan Pro';
+                            } else {
+                                td.textContent = valor;
+                            }
+                            tr.appendChild(td);
+                        });
+                        cuerpo.appendChild(tr);
+                    });
+                }
+
+                const precioPro = document.getElementById('mi-plan-precio-pro');
+                if (precioPro) precioPro.textContent = 'Plan Pro · ' + dineroPlan(pro.precio) + ' por mes';
+
+                const cta = document.getElementById('mi-plan-upgrade');
+                const aviso = document.getElementById('mi-plan-aviso');
+                if (cta) {
+                    const yaEsPro = actualId !== 'gratis';
+                    cta.disabled = true;
+                    cta.textContent = yaEsPro ? 'Ya tenés el Plan ' + actual.nombre : 'Actualizar a Pro';
+                    if (aviso) aviso.textContent = 'Pagos con MercadoPago: disponible en la próxima versión.';
+                }
+            }
+
+            function actualizarBloqueosPro() {
+                const gratis = esPlanGratis();
+                document.querySelectorAll('[data-pro-bloqueo]').forEach(function (item) {
+                    item.classList.toggle('hidden', !gratis);
+                });
+            }
+
+            function abrirMiPlan() {
+                mostrarSeccion('ajustes');
+                const panel = document.getElementById('panel-mi-plan');
+                if (!panel) return;
+                try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (error) { panel.scrollIntoView(); }
+            }
+
+            // Solo https:// y URL parseable: nada de javascript: ni data:
+            function urlDestinoSegura(valor) {
+                const texto = String(valor || '').trim();
+                if (!/^https:\/\//i.test(texto)) return '';
+                try {
+                    const url = new URL(texto);
+                    return url.protocol === 'https:' ? url.href : '';
+                } catch (error) { return ''; }
+            }
+
+            async function cargarPatrocinio() {
+                const tarjeta = document.getElementById('patrocinio-card');
+                if (!tarjeta) return;
+                tarjeta.classList.add('hidden');
+                if (!contexto.salonId) return;
+                if (!esPlanGratis()) return;                                  // Pro/Premium sin publicidad
+                if (document.body.classList.contains('modo-soporte')) return;  // soporte limpio
+
+                let fila = null;
+                try {
+                    const { data, error } = await supabase.rpc('patrocinador_publico');
+                    if (error) throw error;
+                    fila = Array.isArray(data) ? data[0] : data;
+                } catch (error) {
+                    console.warn('patrocinio:', error);
+                    return;
+                }
+                if (!fila || !fila.nombre) return;
+                if (localStorage.getItem('eli_patrocinio_oculto_' + fila.id) === '1') return;
+
+                const nombre = document.getElementById('patrocinio-nombre');
+                const etiqueta = document.getElementById('patrocinio-mensaje');
+                const logo = document.getElementById('patrocinio-logo');
+
+                if (nombre) {
+                    nombre.textContent = '';
+                    const url = urlDestinoSegura(fila.url_destino);
+                    const texto = String(fila.nombre).slice(0, 60);
+                    if (url) {
+                        const enlace = document.createElement('a');
+                        enlace.href = url;
+                        enlace.target = '_blank';
+                        enlace.rel = 'noopener noreferrer sponsored';
+                        enlace.textContent = texto;
+                        nombre.appendChild(enlace);
+                    } else {
+                        nombre.textContent = texto;
+                    }
+                }
+                if (etiqueta) {
+                    const mensaje = String(fila.mensaje || '').trim();
+                    etiqueta.textContent = mensaje ? mensaje.slice(0, 90) : 'Patrocinado por';
+                }
+                if (logo) {
+                    const logoUrl = urlDestinoSegura(fila.logo_url);
+                    if (logoUrl) {
+                        logo.onerror = function () { logo.classList.add('hidden'); logo.removeAttribute('src'); };
+                        logo.src = logoUrl;
+                        logo.alt = String(fila.nombre).slice(0, 60);
+                        logo.classList.remove('hidden');
+                    } else {
+                        logo.removeAttribute('src');
+                        logo.classList.add('hidden');
+                    }
+                }
+                tarjeta.dataset.patrocinio = fila.id;
+                tarjeta.classList.remove('hidden');
             }
 
             // I54 · perfil del salón: nombre, teléfono, Instagram y frase corta.
