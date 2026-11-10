@@ -1579,6 +1579,7 @@
                             <span style="font-size:13px;color:var(--ink-subtle)">Solo con saldo</span>
                         </label>
                         <button type="button" class="btn" id="rf-actualizar">Actualizar</button>
+                        <button type="button" class="btn btn-primario" id="rf-emitir-btn">Emitir puntos</button>
                     </div>
 
                     <div class="panel tabla-panel">
@@ -1590,7 +1591,7 @@
                                     <th>Saldo</th>
                                     <th>Movimientos</th>
                                     <th>&#218;ltimo movimiento</th>
-                                    <th></th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="rf-tabla"></tbody>
@@ -2034,6 +2035,9 @@
         var rfTotalRegistros = 0;
         var rfLIMITE_PAGINA = 25;
         var rfModalBilletera = null;
+        var rfSeleccion = null; // Billetera seleccionada para emitir ajustes
+        var rfModalEmitir = null;
+        var rfSaldoPreview = null;
 
         // â”€â”€ utilidades â”€â”€
         function mostrar(nombre) {
@@ -5932,6 +5936,13 @@
                 btnMovimientos.addEventListener('click', function () { abrirModalMovimientos(f); });
                 divAcciones.appendChild(btnMovimientos);
 
+                var btnEmitir = document.createElement('button');
+                btnEmitir.type = 'button';
+                btnEmitir.className = 'btn btn-primario btn-sm';
+                btnEmitir.textContent = 'Emitir';
+                btnEmitir.addEventListener('click', function () { abrirModalEmitir(f); });
+                divAcciones.appendChild(btnEmitir);
+
                 tdAcciones.appendChild(divAcciones);
 
                 tr.appendChild(tdClienta);
@@ -5940,6 +5951,12 @@
                 tr.appendChild(tdMovimientos);
                 tr.appendChild(tdUltimo);
                 tr.appendChild(tdAcciones);
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', function (e) {
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('.acciones')) return;
+                    rfSeleccion = f;
+                    pintarFilaSeleccionada(tr);
+                });
                 tbody.appendChild(tr);
             });
         }
@@ -5967,6 +5984,13 @@
         $('rf-actualizar').addEventListener('click', function () {
             rfPaginaActual = 1;
             cargarListaBilleteras();
+        });
+        $('rf-emitir-btn').addEventListener('click', function () {
+            if (!rfSeleccion) {
+                alerta('rf-alerta', 'Selecciona una clienta de la tabla primero.', 'error');
+                return;
+            }
+            abrirModalEmitir(rfSeleccion);
         });
         ['rf-buscar', 'rf-salon', 'rf-solo-saldo'].forEach(function (id) {
             var el = $(id);
@@ -6284,6 +6308,228 @@
                 });
             }
         })();
+
+        // I79 · EMITIR PUNTOS - Modal y funciones
+        function abrirModalEmitir(f) {
+            rfModalEmitir = f;
+            var modal = document.createElement('div');
+            modal.id = 'rf-modal-emitir';
+            modal.className = 'overlay overlay-confirmar oculto';
+            modal.innerHTML = '\
+                <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-emitir-titulo">\
+                    <h2 id="rf-emitir-titulo">Emitir puntos</h2>\
+                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> · Salón: ' + escapeHtml(f.salon_nombre) + '</p>\
+                    <div class="modal-cuerpo">\
+                        <div class="campo">\
+                            <label for="rf-cantidad">Cantidad de puntos (positivo)</label>\
+                            <input type="number" id="rf-cantidad" step="1" min="1" placeholder="Ej: 500" required>\
+                        </div>\
+                        <div class="campo">\
+                            <label for="rf-motivo-emitir">Motivo (3-180 caracteres)</label>\
+                            <textarea id="rf-motivo-emitir" rows="3" maxlength="180" placeholder="Ej: Premio por cumpleaños" required></textarea>\
+                            <div class="contador-caracteres"><span id="rf-motivo-emitir-contador">0 / 180</span></div>\
+                        </div>\
+                        <div class="vista-previa">\
+                            <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(rfModalEmitir.saldo_actual) || 0) + '</span></div>\
+                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">—</span></div>\
+                        </div>\
+                    </div>\
+                    <div class="acciones">\
+                        <button type="button" class="btn" id="rf-emitir-cancelar">Cancelar</button>\
+                        <button type="button" class="btn btn-primario" id="rf-emitir-confirmar">Emitir puntos</button>\
+                    </div>\
+                </div>';
+            document.body.appendChild(modal);
+            modal.classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+
+            var cantidadEl = $('rf-cantidad');
+            var motivoEl = $('rf-motivo-emitir');
+            var contadorEl = $('rf-motivo-emitir-contador');
+            rfSaldoPreview = $('rf-saldo-preview');
+            var saldoActual = Number(rfModalEmitir.saldo_actual) || 0;
+
+            function actualizarPreview() {
+                var cantidad = Number(cantidadEl.value) || 0;
+                var nuevo = saldoActual + cantidad;
+                var nuevoFmt = formatearPuntos(nuevo);
+                rfSaldoPreview.textContent = nuevoFmt;
+                rfSaldoPreview.className = 'saldo-nuevo ' + (nuevo > saldoActual ? 'positivo' : nuevo < saldoActual ? 'negativo' : '');
+            }
+
+            cantidadEl.addEventListener('input', actualizarPreview);
+            motivoEl.addEventListener('input', function () {
+                var len = motivoEl.value.length;
+                contadorEl.textContent = len + ' / 180';
+                contadorEl.style.color = len > 180 ? 'var(--danger)' : 'var(--ink-subtle)';
+            });
+
+            function cerrar() {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+                rfModalEmitir = null;
+                rfSaldoPreview = null;
+            }
+
+            $('rf-emitir-cancelar').addEventListener('click', cerrar);
+            modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+            document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrar(); document.removeEventListener('keydown', esc); } });
+
+            $('rf-emitir-confirmar').addEventListener('click', async function () {
+                var cantidad = Number(cantidadEl.value) || 0;
+                var motivo = motivoEl.value.trim();
+
+                if (cantidad <= 0) { alerta('rf-alerta', 'La cantidad debe ser un número positivo.', 'error'); return; }
+                if (!motivo || motivo.length < 3 || motivo.length > 180) { alerta('rf-alerta', 'El motivo debe tener entre 3 y 180 caracteres.', 'error'); return; }
+
+                var btn = $('rf-emitir-confirmar');
+                btn.disabled = true; btn.textContent = 'Emitiendo…';
+
+                try {
+                    var res = await supabase.rpc('admin_emitir_puntos', {
+                        p_cliente_id: rfModalEmitir.cliente_id,
+                        p_salon_id: rfModalEmitir.salon_id,
+                        p_cantidad: cantidad,
+                        p_motivo: motivo
+                    });
+                    if (res.error) throw res.error;
+
+                    var d = res.data[0];
+                    alerta('rf-alerta', 'Puntos emitidos. Saldo nuevo: ' + formatearPuntos(d.saldo_nuevo), 'ok');
+                    cerrar();
+                    await cargarReservaFederal();
+                } catch (error) {
+                    console.error('Emitir puntos:', error);
+                    alerta('rf-alerta', 'No se pudo emitir los puntos: ' + (error.message || 'error de conexión'), 'error');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Emitir puntos';
+                }
+            });
+        }
+
+        actualizarContadorAnuncio();
+
+        // I83 · Reserva Federal: emisión de puntos
+        function pintarFilaSeleccionada(tr) {
+            document.querySelectorAll('#rf-tabla tr').forEach(function (r) {
+                r.classList.remove('seleccionado');
+            });
+            tr.classList.add('seleccionado');
+        }
+
+        function abrirModalEmitir(f) {
+            rfModalEmitir = f;
+            var modal = document.createElement('div');
+            modal.id = 'rf-modal-emitir';
+            modal.className = 'overlay overlay-confirmar oculto';
+            modal.innerHTML = '\
+                <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-emitir-titulo" style="max-width:500px">\
+                    <h2 id="rf-emitir-titulo">Emitir Elima Points</h2>\
+                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> · Salón: ' + escapeHtml(f.salon_nombre) + '</p>\
+                    <div class="modal-cuerpo">\
+                        <div class="campo">\
+                            <label for="rf-cantidad">Cantidad de puntos a emitir</label>\
+                            <input type="number" id="rf-cantidad" step="1" min="1" max="1000000" placeholder="Ej: 500" required>\
+                        </div>\
+                        <div class="campo">\
+                            <label for="rf-motivo-emitir">Motivo (3-180 caracteres)</label>\
+                            <textarea id="rf-motivo-emitir" rows="2" maxlength="180" placeholder="Ej: Bono de bienvenida, recompensa por turno" required></textarea>\
+                            <div class="contador-caracteres"><span id="rf-motivo-contador">0 / 180</span></div>\
+                        </div>\
+                        <div class="vista-previa">\
+                            <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(f.saldo_actual) || 0) + '</span></div>\
+                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-emitir">—</span></div>\
+                        </div>\
+                    </div>\
+                    <div class="acciones">\
+                        <button type="button" class="btn" id="rf-emitir-cancelar">Cancelar</button>\
+                        <button type="button" class="btn btn-primario" id="rf-emitir-confirmar">Emitir puntos</button>\
+                    </div>\
+                </div>';
+            document.body.appendChild(modal);
+            modal.classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+
+            // Contador de caracteres
+            var motivoInput = $('rf-motivo-emitir');
+            var contadorInput = $('rf-motivo-contador');
+            if (motivoInput) {
+                motivoInput.addEventListener('input', function () {
+                    contadorInput.textContent = motivoInput.value.length + ' / 180';
+                });
+            }
+
+            // Vista previa del saldo
+            var cantidadInput = $('rf-cantidad');
+            var previewEl = $('rf-saldo-emitir');
+            if (cantidadInput && previewEl) {
+                cantidadInput.addEventListener('input', function () {
+                    var cantidad = Number(this.value) || 0;
+                    var saldoActual = Number(f.saldo_actual) || 0;
+                    previewEl.textContent = formatearPuntos(saldoActual + cantidad);
+                });
+            }
+
+            // Cerrar modal
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) cerrarModalEmitir();
+            });
+            document.addEventListener('keydown', function esc(e) {
+                if (e.key === 'Escape') { cerrarModalEmitir(); document.removeEventListener('keydown', esc); }
+            });
+        }
+
+        function cerrarModalEmitir() {
+            var modal = document.getElementById('rf-modal-emitir');
+            if (modal) modal.classList.add('oculto');
+            document.body.style.overflow = '';
+            if (rfModalEmitir) rfModalEmitir = null;
+        }
+
+        function confirmarEmitir() {
+            if (!rfModalEmitir) return;
+
+            var monto = Number($('rf-cantidad').value);
+            var motivo = $('rf-motivo-emitir').value.trim();
+
+            if (!monto || monto <= 0) {
+                alerta('rf-alerta', 'Introduce una cantidad válida de puntos.', 'error');
+                return;
+            }
+            if (!motivo || motivo.length < 3) {
+                alerta('rf-alerta', 'El motivo debe tener al menos 3 caracteres.', 'error');
+                return;
+            }
+
+            var btn = $('rf-emitir-confirmar');
+            btn.disabled = true; btn.textContent = 'Emitiendo…';
+
+            supabase.rpc('admin_emitir_puntos', {
+                p_cliente_id: rfModalEmitir.cliente_id,
+                p_salon_id: rfModalEmitir.salon_id,
+                p_monto: monto,
+                p_motivo: motivo
+            }).then(function (res) {
+                if (res.error) { throw res.error; }
+                var d = res.data && res.data[0];
+                alerta('rf-alerta', 'Se emitieron ' + monto + ' puntos. Saldo nuevo: ' + formatearPuntos(d.saldo_nuevo), 'ok');
+                cerrarModalEmitir();
+                rfSeleccion = null;
+                cargarReservaFederal();
+            }).catch(function (error) {
+                console.error('Emitir:', error);
+                alerta('rf-alerta', 'No se pudieron emitir los puntos: ' + (error.message || 'error de conexión'), 'error');
+            }).finally(function () {
+                btn.disabled = false; btn.textContent = 'Emitir puntos';
+            });
+        }
+
+        $('rf-emitir-cancelar').addEventListener('click', function () {
+            cerrarModalEmitir();
+        });
+        $('rf-emitir-confirmar').addEventListener('click', function () {
+            confirmarEmitir();
+        });
 
         actualizarContadorAnuncio();
     })();
