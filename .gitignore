@@ -19,3 +19,4 @@ supabase/.temp/
 
 # I48 · capturas de QA visual (locales, no se publican)
 _qa_*
+*.exe
