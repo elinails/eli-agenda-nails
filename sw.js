@@ -2,7 +2,9 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-const CACHE = 'eli-nails-v4';
+// I54: v6. El cambio de version es lo que dispara la purga de la cache vieja
+// en 'activate'. Subir esta constante siempre que cambie el shell.
+const CACHE = 'eli-nails-v6';
 const SHELL = [
     './',
     'index.html',
@@ -19,6 +21,9 @@ self.addEventListener('message', function (evento) {
 });
 
 self.addEventListener('install', function(evento) {
+    // I53: activar la version nueva de inmediato. Antes habia que tocar el
+    // banner "Recargar"; si la usuaria lo ignoraba, seguia con el HTML viejo.
+    self.skipWaiting();
     evento.waitUntil(
         caches.open(CACHE).then(function(cache) {
             return Promise.all(SHELL.map(function(ruta) {
