@@ -1279,6 +1279,10 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
                     Ajustes
                 </button>
+                <button type="button" class="nav-item" data-vista="libro-contable">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6zm0 2h12v14H6V4z"/><path d="M10 12H6v2h4v4h2v-4h4v-2H12V6h2v4h4v2H12v4H10v-4H6v-2h4v4h4v2H10v4H6v-2h4z"/></svg>
+                    Libro Contable
+                </button>
             </nav>
             <div class="sidebar-pie">
                 <span class="admin-email" id="admin-email"></span>
@@ -1629,6 +1633,11 @@
                             <strong class="kpi-valor" id="rf-movimientos-30d">&#8212;</strong>
                             <span class="kpi-pie">total de movimientos</span>
                         </div>
+                    </div>
+
+                    <div class="grafico-flujo-container" style="margin-top:24px;padding:16px;background:var(--surface-1);border:1px solid var(--hairline);border-radius:10px;">
+                        <h3 style="margin:0 0 12px;font-size:16px;font-weight:600;color:var(--ink)">Puntos Ganados vs Canjeados (últimos 6 meses)</h3>
+                        <canvas id="grafico-flujo-canvas" style="width:100%;height:120px;"></canvas>
                     </div>
 
                     <div class="barra-filtros" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
@@ -6843,9 +6852,15 @@
         document.addEventListener('click', function (e) {
             if (e.target.matches('[data-vista="reserva-federal"]') || e.target.closest('[data-vista="reserva-federal"]')) {
                 setTimeout(function () {
-                    if (typeof graficoFlujoCanvas === 'function') graficoFlujoCanvas();
                     cargarGraficoFlujo();
                     cargarGraficoFlujoDatos();
+                }, 100);
+            }
+            // Cargar Libro Contable cuando se abre esa sección
+            if (e.target.matches('[data-vista="libro-contable"]') || e.target.closest('[data-vista="libro-contable"]')) {
+                setTimeout(function () {
+                    if (lcSalonesCache.length === 0) cargarSalonesLibro();
+                    if (!$('#lc-tabla').querySelector('tr')) cargarLibroContable();
                 }, 100);
             }
         });
