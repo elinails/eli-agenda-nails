@@ -2087,6 +2087,16 @@
                                    class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none">
                             <p id="sena-ayuda" class="hidden text-xs text-ink-soft mt-1"></p>
                         </div>
+
+                        <div class="mt-4 hidden" id="puntos-bloque">
+                            <div class="flex items-center justify-between gap-3">
+                                <label for="puntos-canjear" class="block text-sm font-medium text-ink-soft">Usar Elima Points</label>
+                                <span id="puntos-saldo" class="text-xs text-gold-ink font-medium"></span>
+                            </div>
+                            <input type="number" id="puntos-canjear" min="0" step="1" inputmode="numeric" placeholder="0"
+                                   class="input-field w-full px-4 py-2 rounded-lg border border-line focus:outline-none mt-1">
+                            <p id="puntos-ayuda" class="text-xs text-ink-soft mt-1 leading-snug"></p>
+                        </div>
                     </div>
                 </section>
 
@@ -2709,6 +2719,11 @@
                     <div id="modal-puntos" class="hidden">
                         <p class="text-sm text-ink-soft">Elima Points</p>
                         <p class="font-medium" id="modal-puntos-texto"></p>
+                    </div>
+
+                    <div id="modal-puntos-usados" class="hidden">
+                        <p class="text-sm text-ink-soft">Descuento con puntos</p>
+                        <p class="font-medium" id="modal-puntos-usados-texto"></p>
                     </div>
                 </div>
                 
@@ -3658,6 +3673,117 @@
                 return Math.max(0, (Number(precio) || 0) - (Number(sena) || 0));
             }
 
+            // ── I68 · canje de Elima Points en el turno ──────────────────
+            // El saldo de la clienta se pide con saldo_puntos_cliente():
+            // obtener_mis_puntos() devuelve los puntos de quien llama, no los de ella.
+            const TOPE_PUNTOS = 0.30;
+            let saldoPuntosClienta = 0;
+            let saldoPuntosPedido = 0;
+
+            function vinculoPuntos() {
+                return {
+                    bloque: document.getElementById('puntos-bloque'),
+                    saldo: document.getElementById('puntos-saldo'),
+                    input: document.getElementById('puntos-canjear'),
+                    ayuda: document.getElementById('puntos-ayuda')
+                };
+            }
+
+            function precioDelFormulario() {
+                return Math.max(0, parseInt(appointmentPriceInput && appointmentPriceInput.value, 10) || 0);
+            }
+
+            function topeEnPuntos() {
+                return Math.floor(precioDelFormulario() * TOPE_PUNTOS);
+            }
+
+            function puntosDisponibles() {
+                return Math.min(Math.max(0, Math.floor(saldoPuntosClienta)), topeEnPuntos());
+            }
+
+            function puntosElegidos() {
+                const { input } = vinculoPuntos();
+                const crudo = Math.floor(Number(input && input.value) || 0);
+                return Math.max(0, Math.min(crudo, puntosDisponibles()));
+            }
+
+            function pintarAyudaPuntos() {
+                const { input, ayuda, saldo } = vinculoPuntos();
+                if (!ayuda) return;
+                const precio = precioDelFormulario();
+                const usados = puntosElegidos();
+                const neto = Math.max(0, precio - usados);
+                if (input) input.max = String(puntosDisponibles());
+                if (saldo) saldo.textContent = 'Saldo: ' + saldoPuntosClienta.toLocaleString('es-AR') + ' pts';
+                if (usados > 0) {
+                    ayuda.textContent = 'Descuento: ' + money(usados) +
+                        ' · Total a cobrar: ' + money(neto) +
+                        ' (máximo 30%: ' + money(topeEnPuntos()) + ')';
+                } else {
+                    ayuda.textContent = 'Podés usar hasta ' + money(topeEnPuntos()) +
+                        ' (30% del precio) de los ' + Math.floor(saldoPuntosClienta) + ' puntos disponibles.';
+                }
+            }
+
+            function actualizarBloquePuntos() {
+                const { bloque, input } = vinculoPuntos();
+                if (!bloque) return;
+                const clienteId = tomarId('appointment-cliente-id');
+                const hayPuntos = saldoPuntosClienta > 0 && topeEnPuntos() > 0;
+                bloque.classList.toggle('hidden', !(clienteId && hayPuntos));
+                if (!clienteId || !hayPuntos) {
+                    if (input) input.value = '';
+                    return;
+                }
+                if (input && Number(input.value) > puntosDisponibles()) {
+                    input.value = puntosDisponibles() > 0 ? String(puntosDisponibles()) : '';
+                }
+                pintarAyudaPuntos();
+            }
+
+            async function consultarSaldoPuntos() {
+                const clienteId = tomarId('appointment-cliente-id');
+                saldoPuntosClienta = 0;
+                const { input } = vinculoPuntos();
+                if (input) input.value = '';
+                actualizarBloquePuntos();
+                if (!clienteId) return;
+                const pedido = ++saldoPuntosPedido;
+                try {
+                    const { data, error } = await supabase.rpc('saldo_puntos_cliente', {
+                        p_cliente_id: Number(clienteId)
+                    });
+                    if (error) throw error;
+                    if (pedido !== saldoPuntosPedido) return;   // respuesta vieja
+                    saldoPuntosClienta = Number(data) || 0;
+                } catch (error) {
+                    console.warn('I68 · no se pudo leer el saldo de puntos:', error && error.message);
+                    saldoPuntosClienta = 0;
+                }
+                actualizarBloquePuntos();
+            }
+
+            function motivoCanje(codigo, conPrefijo) {
+                const detalle = String(codigo || '');
+                let texto = 'No se pudieron aplicar los puntos.';
+                if (detalle.indexOf('saldo_insuficiente') >= 0) texto = 'No se pudieron aplicar los puntos (saldo insuficiente).';
+                else if (detalle.indexOf('supera_tope') >= 0) texto = 'No se pudieron aplicar los puntos (más del 30% del turno).';
+                else if (detalle.indexOf('ya_canjeado') >= 0) texto = 'No se pudieron aplicar los puntos (ese turno ya tenía un canje).';
+                else if (detalle.indexOf('turno_cerrado') >= 0) texto = 'No se pudieron aplicar los puntos (el turno ya estaba cerrado).';
+                else if (detalle.indexOf('sin_billetera') >= 0) texto = 'No se pudieron aplicar los puntos (la clienta no tiene billetera en este salón).';
+                else if (detalle && detalle.indexOf(' ') >= 0) texto = 'No se pudieron aplicar los puntos: ' + detalle;
+                if (!conPrefijo) return texto;
+                return texto + ' El turno se guardó por el valor total.';
+            }
+
+            function aplicarDescuentoPuntosEnvio(precio) {
+                const usados = puntosElegidos();
+                return {
+                    usados: usados,
+                    neto: Math.max(0, (Number(precio) || 0) - usados)
+                };
+            }
+
             function actualizarAyudaSena() {
                 if (!senaAyuda) return;
                 const sena = Number(appointmentSenaInput && appointmentSenaInput.value) || 0;
@@ -3676,6 +3802,17 @@
                 appointmentForm.addEventListener('change', actualizarAyudaSena);
             }
 
+            (function conectarPuntos() {
+                const { input } = vinculoPuntos();
+                if (!input) return;
+                input.addEventListener('input', function () {
+                    const tope = puntosDisponibles();
+                    if (Number(input.value) > tope) input.value = tope > 0 ? String(tope) : '';
+                    pintarAyudaPuntos();
+                });
+                input.addEventListener('change', pintarAyudaPuntos);
+            })();
+
             function resetForm() {
                 appointmentForm.reset();
                 appointmentIdInput.value = '';
@@ -3689,6 +3826,10 @@
                 if (staffReset) staffReset.value = contexto.userId || '';
                 if (appointmentSenaInput) appointmentSenaInput.value = '';
                 actualizarAyudaSena();
+                saldoPuntosClienta = 0;
+                const { input: inputPuntos } = vinculoPuntos();
+                if (inputPuntos) inputPuntos.value = '';
+                actualizarBloquePuntos();
                 saveBtn.classList.remove('hidden');
                 updateBtn.classList.add('hidden');
                 deleteBtn.classList.add('hidden');
@@ -3794,6 +3935,11 @@
                         ? contexto.userId
                         : ((selectStaffTurno && selectStaffTurno.value) || contexto.userId);
 
+                    // I68 · descuento con puntos (solo al crear)
+                    const descuento = editando ? { usados: 0, neto: appointment.price }
+                                              : aplicarDescuentoPuntosEnvio(appointment.price);
+                    let turnoConPuntos = null;
+
                     if (editando) {
                         const filaEdicion = toDb(appointment);
                         if (staffElegido) filaEdicion.staff_user_id = staffElegido;
@@ -3804,9 +3950,40 @@
                         if (error) throw error;
                     } else {
                         const filaNueva = toDb(appointment);
+                        filaNueva.price = descuento.neto;
+                        filaNueva.descuento_puntos = descuento.usados;
                         if (staffElegido) filaNueva.staff_user_id = staffElegido;
-                        const { error } = await supabase.from('turnos').insert(filaNueva);
-                        if (error) throw error;
+                        const creado = await supabase.from('turnos')
+                            .insert(filaNueva)
+                            .select('id')
+                            .single();
+                        if (creado.error) throw creado.error;
+                        turnoConPuntos = creado.data && creado.data.id ? creado.data.id : null;
+                    }
+
+                    // si se usaron puntos, canjearlos ahora; si falla, el turno
+                    // se guarda SIN descuento (el plan de I68: no cobrar mal)
+                    let avisoPuntos = '';
+                    if (!editando && descuento.usados > 0 && turnoConPuntos) {
+                        try {
+                            const canje = await supabase.rpc('canjear_puntos_turno', {
+                                p_turno_id: turnoConPuntos,
+                                p_puntos: descuento.usados,
+                                p_salon_id: contexto.salonId
+                            });
+                            if (canje.error) throw canje.error;
+                            const resultado = Array.isArray(canje.data) ? canje.data[0] : canje.data;
+                            if (!resultado || resultado.ok !== true) {
+                                throw new Error((resultado && resultado.motivo) || 'canje_fallido');
+                            }
+                        } catch (error) {
+                            console.error('I68 · no se pudo canjear los puntos:', error);
+                            await supabase.from('turnos')
+                                .update({ price: appointment.price, descuento_puntos: 0 })
+                                .eq('id', turnoConPuntos)
+                                .eq('salon_id', contexto.salonId);
+                            avisoPuntos = motivoCanje(error && error.message, true);
+                        }
                     }
                     await loadAppointments();
                     await recargar('turnos');
@@ -3817,6 +3994,10 @@
                     }) || appointment;
                     resetForm();
                     showView('appointments');
+                    if (avisoPuntos) {
+                        mostrarBanner(avisoPuntos, 'error', { duracion: 9000 });
+                        return;
+                    }
                     mostrarBanner(
                         'Turno guardado: ' + appointment.clientName + ' · ' +
                         etiquetaDia(appointment.date) + ' a las ' + String(appointment.time || '').slice(0, 5) + '.',
@@ -4899,6 +5080,7 @@
                     servicioId: r.servicio_id != null ? r.servicio_id : null,
                     date: fecha,
                     time: hora,                    price: r.price || 0,
+                    descuentoPuntos: Number(r.descuento_puntos) || 0,
                     sena: Number(r.sena) || 0,
                     metodoPago: normalizarMetodo(r.metodo_pago),
                     staffUserId: r.staff_user_id || null,
@@ -4915,6 +5097,7 @@
                     cliente_id: a.clienteId != null ? a.clienteId : null,
                     servicio_id: a.servicioId != null ? a.servicioId : null,
                     price: a.price,
+                    descuento_puntos: Number(a.descuentoPuntos) > 0 ? Number(a.descuentoPuntos) : 0,
                     sena: a.sena != null ? Number(a.sena) : 0,
                     metodo_pago: normalizarMetodo(a.metodoPago),
                     notes: a.notes,
@@ -7871,6 +8054,10 @@
 
             const selectClienteTurno = document.getElementById('client-name');
             if (selectClienteTurno) {
+                selectClienteTurno.addEventListener('change', function () {
+                    // el handler original setea appointment-cliente-id: se espera un tick
+                    setTimeout(consultarSaldoPuntos, 0);
+                });
                 selectClienteTurno.addEventListener('change', function() {
                     const idOculto = document.getElementById('appointment-cliente-id');
                     if (selectClienteTurno.value === '__nuevo__') {
@@ -7895,6 +8082,9 @@
 
             const selectServicioTurno = document.getElementById('service-type');
             if (selectServicioTurno) {
+                selectServicioTurno.addEventListener('change', function () {
+                    setTimeout(actualizarBloquePuntos, 0);
+                });
                 selectServicioTurno.addEventListener('change', function() {
                     if (selectServicioTurno.value === '__editar_servicios__') {
                         selectServicioTurno.value = '';
@@ -9320,9 +9510,21 @@
             async function pintarPuntosTurno(turno) {
                 const bloque = document.getElementById('modal-puntos');
                 const texto = document.getElementById('modal-puntos-texto');
+                const bloqueUsados = document.getElementById('modal-puntos-usados');
+                const textoUsados = document.getElementById('modal-puntos-usados-texto');
                 if (!bloque || !texto) return;
                 bloque.classList.add('hidden');
                 texto.textContent = '';
+
+                // I68 · puntos gastados en este turno (no depende del estado)
+                const usados = Number(turno.descuentoPuntos) || 0;
+                if (bloqueUsados && textoUsados) {
+                    bloqueUsados.classList.toggle('hidden', usados <= 0);
+                    textoUsados.textContent = usados > 0
+                        ? '⭐ Se usaron ' + usados.toLocaleString('es-AR') + ' Elima Points'
+                        : '';
+                }
+
                 if (normalizarEstado(turno.status) !== 'completed') return;
 
                 bloque.classList.remove('hidden');
