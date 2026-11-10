@@ -6880,6 +6880,9 @@
                     ctx.fillText('Comprobante del ' + formatDate(todayISO()), ANCHO / 2, yPie + 70);
                 }
 
+                // I54: firma discreta, anclada al fondo real del comprobante.
+                firmarTarjeta(ctx, ANCHO, ALTO, COLOR.soft, sans);
+
                 return await new Promise(function (resolve) {
                     try {
                         canvas.toBlob(function (blob) {
@@ -9228,6 +9231,9 @@
                 ctx.font = '16px ' + sans;
                 ctx.fillText(contacto || 'Gracias por elegirme', ANCHO / 2, yPie + 70);
 
+                // I54: firma discreta, anclada al fondo real de la tarjeta.
+                firmarTarjeta(ctx, ANCHO, ALTO, COLOR.soft, sans);
+
                 return await new Promise(function(resolve) {
                     try {
                         canvas.toBlob(function(blob) {
@@ -9245,6 +9251,22 @@
                         resolve(null);
                     }
                 });
+            }
+
+            // I54 · marca de agua de autoría en las tarjetas exportadas.
+            // Anclada abajo a la derecha y siempre relativa al alto real del
+            // canvas: si la tarjeta crece (comprobantes con más filas), sigue
+            // quedando en la esquina inferior.
+            // 40px de margen derecho · baseline a 36px del borde inferior para
+            // que los descendentes no toquen el marco interior (que está a 26px).
+            function firmarTarjeta(ctx, ancho, alto, color, familia) {
+                ctx.save();
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = color;
+                ctx.font = '14px ' + familia;
+                ctx.fillText('Creado por @jacinto.cards', ancho - 40, alto - 36);
+                ctx.restore();
             }
 
             function descargarArchivo(archivo) {
