@@ -2,6 +2,15 @@
 <html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // I57 · el tema se aplica antes de pintar para que no haya flash.
+        (function () {
+            var guardado = null;
+            try { guardado = localStorage.getItem("eli_admin_tema"); } catch (error) { /* modo privado */ }
+            var tema = (guardado === "light" || guardado === "dark") ? guardado : "dark";
+            document.documentElement.setAttribute("data-theme", tema);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
@@ -34,7 +43,57 @@
             --info-soft: rgba(143, 178, 217, .12);
             --radio: 12px;
             --sombra: 0 20px 50px rgba(0, 0, 0, .45);
+
+            /* I57 · alias que el CSS ya usaba pero nadie definía */
+            --line: var(--hairline);
+            --surface: var(--surface-1);
+            --ink-soft: var(--ink-muted);
+            --gold-ink: var(--gold);
+            --topbar: rgba(8, 7, 10, .88);
+            color-scheme: dark;
         }
+
+        /* I57 · modo día. Mismos nombres, otros valores: todo el panel cambia
+           sin tocar una regla de layout. */
+        [data-theme="light"] {
+            color-scheme: light;
+            --canvas: #F7F3EF;
+            --surface-1: #FFFFFF;
+            --surface-2: #FBF7F3;
+            --surface-3: #F2EBE5;
+            --hairline: #E8DFD7;
+            --hairline-2: #D6C9BF;
+            --ink: #241E1B;
+            --ink-muted: #5E5350;
+            --ink-subtle: #8A7F79;
+            --gold: #A47C2B;
+            --gold-2: #8C6822;
+            --gold-soft: rgba(164, 124, 43, .12);
+            --ok: #2E7A57;
+            --ok-soft: rgba(46, 122, 87, .10);
+            --warn: #8A6512;
+            --warn-soft: rgba(138, 101, 18, .12);
+            --danger: #B4453C;
+            --danger-soft: rgba(180, 69, 60, .10);
+            --info: #2F5E8F;
+            --info-soft: rgba(47, 94, 143, .10);
+            --sombra: 0 18px 40px rgba(59, 47, 53, .12);
+
+            --line: var(--hairline);
+            --surface: var(--surface-1);
+            --ink-soft: var(--ink-muted);
+            --gold-ink: var(--gold);
+            --topbar: rgba(247, 243, 239, .90);
+        }
+
+        /* I57 · el botón dorado lleva texto claro en modo día */
+        [data-theme="light"] .btn-primario { color: #FFFFFF; }
+
+        /* I57 · icono del toggle: sol en modo noche, luna en modo día */
+        [data-theme="light"] .icono-luna { display: none; }
+        [data-theme="dark"] .icono-sol { display: none; }
+        [data-theme="light"] .alerta.error { border-color: rgba(180, 69, 60, .35); }
+        [data-theme="light"] .alerta.ok { border-color: rgba(46, 122, 87, .35); }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
@@ -196,7 +255,7 @@
             justify-content: space-between;
             gap: 16px;
             padding: 13px 28px;
-            background: rgba(8, 7, 10, .88);
+            background: var(--topbar);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--hairline);
         }
@@ -636,6 +695,15 @@
                         <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acción…" aria-label="Buscar en la plataforma">
                         <div id="busqueda-resultados" class="buscar-resultados glass oculto"></div>
                     </div>
+                    <button type="button" id="tema-btn" class="btn btn-icono" title="Modo día"
+                            aria-label="Cambiar a modo claro" aria-pressed="false">
+                        <svg class="icono-sol" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>
+                        </svg>
+                        <svg class="icono-luna" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.4 8.4 0 1 0 20 14.5Z"/>
+                        </svg>
+                    </button>
                     <button type="button" id="refrescar-btn" class="btn btn-sm" title="Actualizar datos">
                         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>
                         Actualizar
@@ -1226,8 +1294,36 @@
             if (evento.target === $('confirm-overlay')) cerrarConfirmar(false);
         });
 
-        // ── tema único (dark SaaS) ──
-        document.documentElement.setAttribute('data-theme', 'dark');
+        // ── I57 · tema día / noche ──
+        // La preferencia vive en localStorage y se aplica temprano en el <head>.
+        // Acá solo se mantiene el botón sincronizado con el tema vigente.
+        var CLAVE_TEMA = 'eli_admin_tema';
+
+        function temaActual() {
+            return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        }
+
+        function aplicarTema(tema, guardar) {
+            var elegido = tema === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', elegido);
+            var boton = $('tema-btn');
+            if (boton) {
+                var aClaro = elegido === 'dark';
+                boton.setAttribute('aria-pressed', elegido === 'light' ? 'true' : 'false');
+                boton.setAttribute('aria-label', aClaro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+                boton.title = aClaro ? 'Cambiar a modo día' : 'Cambiar a modo noche';
+            }
+            if (guardar) { try { localStorage.setItem(CLAVE_TEMA, elegido); } catch (error) { /* sin storage */ } }
+        }
+
+        aplicarTema(temaActual(), false);
+        (function () {
+            var boton = $('tema-btn');
+            if (!boton) return;
+            boton.addEventListener('click', function () {
+                aplicarTema(temaActual() === 'dark' ? 'light' : 'dark', true);
+            });
+        })();
 
         // ── sesión ──
         async function arrancar() {
