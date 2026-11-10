@@ -631,6 +631,64 @@
         .kpi-destacado { border-color: rgba(201, 169, 106, .35); }
         .kpi-destacado .kpi-valor { color: var(--gold-2); }
 
+        /* Reserva Federal */
+        .rf-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+        .rf-kpi { background:var(--surface-1); border:1px solid var(--hairline); border-radius:12px; padding:16px; }
+        .rf-kpi-label { font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-subtle); margin-bottom:4px; }
+        .rf-kpi-valor { font-size:28px; font-weight:600; letter-spacing:-.02em; line-height:1.2; font-variant-numeric:tabular-nums; color:var(--ink); }
+        .rf-kpi-pie { font-size:11.5px; color:var(--ink-subtle); margin-top:4px; }
+
+        .barra-filtros label.campo { flex-direction:row; margin-bottom:0; gap:8px; }
+        .barra-filtros .campo input[type="checkbox"] { width:18px; height:18px; accent-color:var(--gold); }
+
+        .tabla-panel { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .tabla { width:100%; border-collapse:collapse; }
+        .tabla th, .tabla td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+        .tabla th { background:var(--surface-1); font-weight:600; font-size:12px; color:var(--ink-subtle); text-transform:uppercase; letter-spacing:.08em; }
+        .tabla td { font-size:14px; color:var(--ink); }
+        .tabla tr:last-child td { border-bottom:none; }
+        .tabla tr:hover td { background:var(--surface-1); }
+        .tabla .saldo { font-variant-numeric:tabular-nums; font-weight:600; font-family:var(--mono); }
+        .tabla .saldo.positivo { color:var(--ok); }
+        .tabla .saldo.cero { color:var(--ink-subtle); }
+        .tabla .acciones { display:flex; gap:8px; }
+        .tabla .btn-sm { min-height:32px; padding:5px 10px; font-size:12px; border-radius:7px; }
+
+        .paginacion { display:flex; justify-content:center; gap:8px; margin-top:16px; flex-wrap:wrap; }
+        .paginacion .btn-sm { min-height:36px; padding:0 16px; }
+        #rf-pagina-info { display:flex; align-items:center; min-width:120px; text-align:center; }
+
+        /* Modal Reserva Federal */
+        .rf-modal { max-width:560px; }
+        .rf-modal .modal-cuerpo { padding:24px; display:grid; gap:16px; }
+        .rf-modal .campo { margin-bottom:0; }
+        .rf-modal .campo label { font-size:12px; font-weight:600; color:var(--ink-subtle); margin-bottom:6px; display:block; }
+        .rf-modal .campo input, .rf-modal .campo textarea, .rf-modal .campo select { width:100%; min-height:44px; padding:10px 14px; border-radius:10px; border:1px solid var(--hairline); background:var(--paper); color:var(--ink); font-size:15px; font-family:inherit; }
+        .rf-modal .campo input:focus, .rf-modal .campo textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft); }
+        .rf-modal .vista-previa { padding:12px; background:var(--surface-1); border:1px solid var(--hairline); border-radius:10px; font-size:14px; }
+        .rf-modal .vista-previa .saldo-actual { font-variant-numeric:tabular-nums; font-weight:600; color:var(--gold-2); }
+        .rf-modal .vista-previa .saldo-nuevo { font-variant-numeric:tabular-nums; font-weight:700; font-size:18px; color:var(--ok); }
+        .rf-modal .vista-previa .saldo-nuevo.negativo { color:var(--danger); }
+        .rf-modal .contador-caracteres { text-align:right; font-size:11.5px; color:var(--ink-subtle); margin-top:4px; }
+        .rf-modal .acciones { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+        .rf-modal .acciones .btn { min-width:120px; }
+
+        /* Movimientos modal */
+        .movimientos-lista { max-height:400px; overflow-y:auto; display:grid; gap:8px; }
+        .movimiento-item { padding:12px 14px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface-1); display:grid; gap:4px; }
+        .movimiento-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+        .movimiento-tipo { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; padding:2px 8px; border-radius:999px; }
+        .movimiento-tipo.ganado { background:var(--ok-soft); color:var(--ok); }
+        .movimiento-tipo.canjeado { background:var(--danger-soft); color:var(--danger); }
+        .movimiento-tipo.ajuste { background:var(--gold-soft); color:var(--gold-ink); }
+        .movimiento-tipo.reverso { background:var(--info-soft); color:var(--info); }
+        .movimiento-fecha { font-size:12px; color:var(--ink-subtle); }
+        .movimiento-monto { font-variant-numeric:tabular-nums; font-weight:700; font-size:16px; font-family:var(--mono); }
+        .movimiento-monto.positivo { color:var(--ok); }
+        .movimiento-monto.negativo { color:var(--danger); }
+        .movimiento-motivo { font-size:13px; color:var(--ink); line-height:1.4; }
+        .movimiento-detalle { font-size:12px; color:var(--ink-subtle); display:flex; gap:16px; flex-wrap:wrap; }
+
         /* I63 · cobros */
         .cobros-botones { display: flex; gap: 8px; flex-wrap: wrap; }
         .cobros-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -1003,6 +1061,10 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z"/><path d="M3 9.5h18M7 14.5h4"/></svg>
                     Cobros
                 </button>
+                <button type="button" class="nav-item" data-vista="reserva-federal">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                    Reserva Federal
+                </button>
                 <button type="button" class="nav-item" data-vista="planes">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
                     Planes
@@ -1127,6 +1189,11 @@
                             <span class="kpi-pie" id="kpi-salones-pie">cargando…</span>
                         </div>
                         <div class="kpi">
+                            <span class="kpi-label">Billeteras con saldo</span>
+                            <strong class="kpi-valor" id="kpi-billeteras-saldo">—</strong>
+                            <span class="kpi-pie">que tienen puntos</span>
+                        </div>
+                        <div class="kpi">
                             <span class="kpi-label">Turnos</span>
                             <strong class="kpi-valor" id="kpi-turnos">—</strong>
                             <span class="kpi-pie">en toda la plataforma</span>
@@ -1244,6 +1311,18 @@
                         <span class="contador" id="salones-contador"></span>
                     </div>
 
+                    <!-- Bulk Actions: Aprobar seleccionados -->
+                    <div class="filtro-masivo oculto" id="bulk-actions-caja">
+                        <label class="checkbox-todo">
+                            <input type="checkbox" id="checkbox-todo">
+                            <span>Seleccionar todo</span>
+                        </label>
+                        <button type="button" id="aprobar-seleccionados" class="btn btn-sm btn-ok">
+                            Aprobar seleccionados
+                        </button>
+                    </div>
+                    </div>
+
                     <div class="panel tabla-panel">
                         <table class="tabla">
                             <thead>
@@ -1258,6 +1337,7 @@
                                     <th>Último turno</th>
                                     <th>Estado</th>
                                     <th>Perfil</th>
+                                    <th><input type="checkbox" id="checkbox-todo-header"></th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -1313,6 +1393,95 @@
                             <tbody id="tabla-suscripciones"></tbody>
                         </table>
                         <p id="suscripciones-vacio" class="vacio oculto">No hay salones todavía.</p>
+                    </div>
+                </section>
+
+                <!-- RESERVA FEDERAL -->
+                <section id="seccion-reserva-federal" class="seccion oculto">
+                    <div class="alerta" id="rf-alerta" role="alert" hidden></div>
+
+                    <div class="kpis" id="rf-kpis">
+                        <div class="kpi">
+                            <span class="kpi-label">Saldo total en circulaci&#243;n</span>
+                            <strong class="kpi-valor" id="rf-saldo-total">&#8212;</strong>
+                            <span class="kpi-pie">Elima Points en circulaci&#243;n</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Billeteras totales</span>
+                            <strong class="kpi-valor" id="rf-billeteras-total">&#8212;</strong>
+                            <span class="kpi-pie">billeteras registradas</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Billeteras con saldo</span>
+                            <strong class="kpi-valor" id="rf-billeteras-saldo">&#8212;</strong>
+                            <span class="kpi-pie">que tienen puntos</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Clientas con saldo</span>
+                            <strong class="kpi-valor" id="rf-clientas-saldo">&#8212;</strong>
+                            <span class="kpi-pie">clientas &#250;nicas con puntos</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Ganados 30d</span>
+                            <strong class="kpi-valor" id="rf-ganados-30d">&#8212;</strong>
+                            <span class="kpi-pie">puntos ganados (30 d&#237;as)</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Canjeados 30d</span>
+                            <strong class="kpi-valor" id="rf-canjeados-30d">&#8212;</strong>
+                            <span class="kpi-pie">puntos canjeados (30 d&#237;as)</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Ajustes netos 30d</span>
+                            <strong class="kpi-valor" id="rf-ajustes-30d">&#8212;</strong>
+                            <span class="kpi-pie">ajustes netos (30 d&#237;as)</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Movimientos 30d</span>
+                            <strong class="kpi-valor" id="rf-movimientos-30d">&#8212;</strong>
+                            <span class="kpi-pie">total de movimientos</span>
+                        </div>
+                    </div>
+
+                    <div class="barra-filtros" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end">
+                        <div class="campo" style="flex:1;min-width:200px">
+                            <label for="rf-buscar">Buscar clienta, email, tel&#233;fono o sal&#243;n</label>
+                            <input type="search" id="rf-buscar" placeholder="Buscar&#8230;" aria-label="Buscar billeteras">
+                        </div>
+                        <div class="campo" style="min-width:180px">
+                            <label for="rf-salon">Sal&#243;n</label>
+                            <select id="rf-salon" aria-label="Filtrar por sal&#243;n">
+                                <option value="">Todos los salones</option>
+                            </select>
+                        </div>
+                        <label class="campo" style="display:flex;align-items:center;gap:8px;margin-bottom:0;flex-direction:row">
+                            <input type="checkbox" id="rf-solo-saldo">
+                            <span style="font-size:13px;color:var(--ink-subtle)">Solo con saldo</span>
+                        </label>
+                        <button type="button" class="btn" id="rf-actualizar">Actualizar</button>
+                    </div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Clienta</th>
+                                    <th>Sal&#243;n</th>
+                                    <th>Saldo</th>
+                                    <th>Movimientos</th>
+                                    <th>&#218;ltimo movimiento</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="rf-tabla"></tbody>
+                        </table>
+                        <p id="rf-vacio" class="vacio oculto">No hay billeteras que coincidan.</p>
+                    </div>
+
+                    <div class="paginacion" id="rf-paginacion" style="display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+                        <button type="button" class="btn btn-secundario btn-sm" id="rf-prev" disabled aria-label="P&#225;gina anterior">&#171; Anterior</button>
+                        <span id="rf-pagina-info" class="kpi-pie" style="display:flex;align-items:center">P&#225;gina 1 de 1</span>
+                        <button type="button" class="btn btn-secundario btn-sm" id="rf-next" disabled aria-label="P&#225;gina siguiente">Siguiente &#187;</button>
                     </div>
                 </section>
 
@@ -1570,6 +1739,72 @@
         </div>
     </div>
 
+    <!-- I79 · ESTILOS BULK ACTIONS -->
+    <style>
+        .filtro-masivo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .checkbox-todo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        #checkbox-todo {
+            width: 16px;
+            height: 16px;
+        }
+        #aprobar-seleccionados {
+            min-width: 140px;
+        }
+        .checkbox-salon-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checklist-aprobacion {
+            margin: 20px 0;
+            padding: 16px;
+            background: #F7EFEC;
+            border-radius: 12px;
+            border-left: 4px solid #BE9E6F;
+        }
+        .checklist-aprobacion h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3B2F35;
+            margin-bottom: 12px;
+        }
+        .checklist-item {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .checklist-item li {
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .checklist-ok { color: #2D6D3D; }
+        .checklist-pendiente { color: #8C6B3A; }
+
+        /* Badge estados */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        .badge-ok { background: #E8F5E9; color: #2D6D3D; }
+        .badge-fondo { background: #F0F0F0; color: #666666; }
+        .badge-amarillo { background: #FFF8E1; color: #BF8F00; }
+    </style>
+
     <!-- 4 · DRAWER DETALLE -->
     <div id="drawer-overlay" class="overlay oculto">
         <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo">
@@ -1686,6 +1921,7 @@
             salones: { t: 'Inicio', s: 'Estado general de la plataforma.' },
             suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
             cobros: { t: 'Cobros', s: 'Vencimientos, gracias y pagos de las suscripciones.' },
+            'reserva-federal': { t: 'Reserva Federal', s: 'Saldos globales y ajustes manuales de Elima Points.' },
             planes: { t: 'Planes', s: 'Precios y límites de cada plan.' },
             usuarios: { t: 'Usuarios', s: 'Todas las cuentas registradas.' },
             anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
@@ -1741,6 +1977,10 @@
         var emailsAdmins = {};
         var adminEmailsCargados = false;
         var confirmarResolver = null;
+        var rfPaginaActual = 1;
+        var rfTotalRegistros = 0;
+        var rfLIMITE_PAGINA = 25;
+        var rfModalBilletera = null;
 
         // ── utilidades ──
         function mostrar(nombre) {
@@ -3483,7 +3723,7 @@
                 if (activo) boton.setAttribute('aria-current', 'page');
                 else boton.removeAttribute('aria-current');
             });
-            ['salones', 'suscripciones', 'cobros', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'soporte', 'ajustes'].forEach(function (v) {
+            ['salones', 'suscripciones', 'cobros', 'reserva-federal', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'soporte', 'ajustes'].forEach(function (v) {
                 var seccion = $('seccion-' + v);
                 if (seccion) seccion.classList.toggle('oculto', v !== nombre);
             });
@@ -3491,6 +3731,11 @@
             $('vista-sub').textContent = TITULOS[nombre].s;
             try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
             cerrarMenu();
+            // I78 · carga diferida de la Reserva Federal al entrar a la sección.
+            if (nombre === 'reserva-federal' && typeof cargarReservaFederal === 'function') {
+                cargarSalonesReserva();
+                cargarReservaFederal();
+            }
         }
 
         document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
@@ -3624,6 +3869,7 @@
                     dueno_user_id: p.dueno_user_id || null,
                     rubro: campo(s, ['rubro'], p.rubro || ''),
                     publicado: campo(s, ['publicado'], p.publicado) === true,
+                    readyForReview: !p.publicado && p.rubro && p.slug && p.activo !== false,
                     slug: campo(s, ['slug'], p.slug || '')
                 };
             });
@@ -3795,15 +4041,35 @@
                 fila.appendChild(celdaUltimo);
                 fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
 
-                var tdPerfil = document.createElement('td');
-                tdPerfil.setAttribute('data-label', 'Perfil');
-                var cajaPerfil = crear('div', 'perfil-celda');
                 var publicado = s.publicado === true;
-                cajaPerfil.appendChild(pill(publicado ? 'Publicado' : 'Pendiente', publicado ? 'pill-ok' : 'pill-neutral'));
+                var cajaPerfil = crear('div', 'perfil-celda');
+
+                // Badge visual: "Listo para revisar" si tiene rubro y slug pero no publicado
+                var badgeEstado = crear('span', 'badge ' + (
+                    publicado
+                        ? 'badge-ok'
+                        : (s.readyForReview ? 'badge-amarillo' : 'badge-fondo')
+                ));
+                badgeEstado.textContent = publicado
+                    ? 'Publicado'
+                    : (s.readyForReview ? 'Listo para revisar' : 'Pendiente');
+                cajaPerfil.appendChild(badgeEstado);
                 cajaPerfil.appendChild(crear('span', 'perfil-rubro', RUBROS[s.rubro] || 'Sin rubro'));
                 if (!s.slug) cajaPerfil.appendChild(crear('span', 'perfil-falta', 'sin slug'));
+
+                var tdPerfil = document.createElement('td');
+                tdPerfil.setAttribute('data-label', 'Perfil');
                 tdPerfil.appendChild(cajaPerfil);
-                fila.appendChild(tdPerfil);
+
+                // Checkbox para bulk actions (columna extra)
+                var tdCheckbox = document.createElement('td');
+                var checkboxWrapper = crear('div', 'checkbox-salon-wrapper');
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'checkbox-salon';
+                cb.value = s.id;
+                checkboxWrapper.appendChild(cb);
+                tdCheckbox.appendChild(checkboxWrapper);
 
                 var tdAccion = document.createElement('td');
                 tdAccion.className = 'celda-accion';
@@ -3845,6 +4111,20 @@
                 });
                 cajaAcciones.appendChild(boton);
                 tdAccion.appendChild(cajaAcciones);
+
+                fila.appendChild(tdNombre);
+                fila.appendChild(celda('Dueña', s.dueno));
+                fila.appendChild(celda('Plan', planPill(s.plan_id)));
+                fila.appendChild(celda('Suscripción', estadoPill(s.estado)));
+                fila.appendChild(celda('Miembros', s.miembros));
+                fila.appendChild(celda('Turnos', s.turnos));
+                fila.appendChild(celda('Creado', fechaCorta(s.creado)));
+                var celdaUltimo = celda('Último turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
+                if (salonInactivo(s)) celdaUltimo.appendChild(pill('Inactivo', 'pill-danger'));
+                fila.appendChild(celdaUltimo);
+                fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
+                fila.appendChild(tdPerfil);
+                fila.appendChild(tdCheckbox);
                 fila.appendChild(tdAccion);
 
                 tbody.appendChild(fila);
@@ -3952,6 +4232,41 @@
             $('perfil-slug').value = s.slug || '';
             $('perfil-slug-preview').textContent = normalizarSlugAdmin(s.slug) || '—';
             $('perfil-guardar').textContent = perfilCtx.publicar ? 'Guardar y aprobar' : 'Guardar';
+
+            // I79: Checklist visual de requisitos
+            if (perfilCtx.publicar) {
+                var checklistTitulo = document.createElement('h4');
+                checklistTitulo.textContent = 'Requisitos para publicar';
+                var checklistLista = document.createElement('ul');
+                checklistLista.className = 'checklist-item';
+
+                var estadoCaja = document.createElement('div');
+                estadoCaja.className = 'checklist-aprobacion';
+                estadoCaja.appendChild(checklistTitulo);
+                estadoCaja.appendChild(checklistLista);
+
+                // Insertar checklist antes del p error
+                var errorCaja = $('perfil-error');
+                if (errorCaja.parentNode) {
+                    errorCaja.parentNode.insertBefore(estadoCaja, errorCaja.nextSibling);
+                }
+
+                // Generar items
+                var requisitos = [
+                    { campo: s.rubro ? 'rubro' : null, texto: 'Rubro: ' + (s.rubro || 'No asignado'), ok: !!s.rubro },
+                    { campo: s.slug ? 'slug' : null, texto: 'Slug: ' + (s.slug || 'Sin slug'), ok: !!s.slug },
+                    { campo: s.bio ? 'bio' : null, texto: 'Bio: ' + (s.bio ? s.bio.substring(0, 30) + '…' : 'Sin bio'), ok: !!s.bio },
+                    { campo: s.foto_portada_url ? 'foto' : null, texto: 'Foto: ' + (s.foto_portada_url ? 'Cargada' : 'Sin foto'), ok: !!s.foto_portada_url }
+                ];
+
+                requisitos.forEach(function(r) {
+                    var li = document.createElement('li');
+                    li.className = r.ok ? 'checklist-ok' : 'checklist-pendiente';
+                    li.innerHTML = (r.ok ? '✅' : '❌') + ' ' + r.texto;
+                    checklistLista.appendChild(li);
+                });
+            }
+
             mostrarErrorPerfil('');
             $('perfil-overlay').classList.remove('oculto');
             document.body.style.overflow = 'hidden';
@@ -5436,7 +5751,434 @@
         }
 
         actualizarContadorAnuncio();
-        arrancar();
+
+        // ── Reserva Federal ──
+        async function cargarReservaFederal() {
+            alerta('rf-alerta', '', 'error');
+            try {
+                var resResumen = await supabase.rpc('admin_resumen_puntos');
+                if (resResumen.error) throw resResumen.error;
+                pintarKPIsReserva(resResumen.data[0]);
+
+                await cargarListaBilleteras();
+            } catch (error) {
+                console.error('Reserva Federal:', error);
+                alerta('rf-alerta', 'No se pudo cargar la Reserva Federal: ' + (error.message || 'error de conexiÃ³n'), 'error');
+            }
+        }
+
+        function pintarKPIsReserva(d) {
+            $('rf-saldo-total').textContent = formatearPuntos(d.saldo_total);
+            $('rf-billeteras-total').textContent = String(d.billeteras_total || 0);
+            $('rf-billeteras-saldo').textContent = String(d.billeteras_con_saldo || 0);
+            $('rf-clientas-saldo').textContent = String(d.clientas_con_saldo || 0);
+            $('rf-ganados-30d').textContent = formatearPuntos(d.puntos_ganados_30d);
+            $('rf-canjeados-30d').textContent = formatearPuntos(d.puntos_canjeados_30d);
+            $('rf-ajustes-30d').textContent = formatearPuntos(d.ajustes_netos_30d);
+            $('rf-movimientos-30d').textContent = String(d.movimientos_30d || 0);
+        }
+
+        async function cargarListaBilleteras() {
+            var buscar = $('rf-buscar').value.trim();
+            var salonId = $('rf-salon').value || null;
+            var soloSaldo = $('rf-solo-saldo').checked;
+            var offset = (rfPaginaActual - 1) * rfLIMITE_PAGINA;
+
+            try {
+                var res = await supabase.rpc('admin_listar_wallets', {
+                    p_busqueda: buscar,
+                    p_salon_id: salonId,
+                    p_solo_con_saldo: soloSaldo,
+                    p_limite: rfLIMITE_PAGINA,
+                    p_offset: offset
+                });
+                if (res.error) throw res.error;
+
+                var filas = res.data || [];
+                rfTotalRegistros = filas.length > 0 ? Number(filas[0].total_registros) : 0;
+                pintarTablaBilleteras(filas);
+                pintarPaginacion();
+            } catch (error) {
+                console.error('Lista billeteras:', error);
+                alerta('rf-alerta', 'No se pudo cargar la lista: ' + (error.message || 'error de conexiÃ³n'), 'error');
+            }
+        }
+
+        function pintarTablaBilleteras(filas) {
+            var tbody = $('rf-tabla');
+            tbody.textContent = '';
+
+            if (!filas.length) {
+                $('rf-vacio').hidden = false;
+                return;
+            }
+            $('rf-vacio').hidden = true;
+
+            filas.forEach(function (f) {
+                var tr = document.createElement('tr');
+
+                var tdClienta = document.createElement('td');
+                var strong = document.createElement('strong');
+                strong.textContent = f.cliente_nombre || 'â€”';
+                var small = document.createElement('div');
+                small.style.fontSize = '12px';
+                small.style.color = 'var(--ink-subtle)';
+                var contact = [];
+                if (f.cliente_email) contact.push(f.cliente_email);
+                if (f.cliente_telefono) contact.push(f.cliente_telefono);
+                small.textContent = contact.join(' Â· ');
+                tdClienta.appendChild(strong);
+                tdClienta.appendChild(small);
+
+                var tdSalon = document.createElement('td');
+                tdSalon.textContent = f.salon_nombre || 'â€”';
+
+                var tdSaldo = document.createElement('td');
+                var saldo = Number(f.saldo_actual) || 0;
+                var spanSaldo = document.createElement('span');
+                spanSaldo.className = 'saldo ' + (saldo > 0 ? 'positivo' : saldo === 0 ? 'cero' : 'negativo');
+                spanSaldo.textContent = formatearPuntos(saldo);
+                tdSaldo.appendChild(spanSaldo);
+
+                var tdMovimientos = document.createElement('td');
+                tdMovimientos.textContent = String(f.movimientos || 0);
+
+                var tdUltimo = document.createElement('td');
+                tdUltimo.textContent = f.ultimo_movimiento ? fechaCorta(f.ultimo_movimiento) : 'â€”';
+
+                var tdAcciones = document.createElement('td');
+                var divAcciones = document.createElement('div');
+                divAcciones.className = 'acciones';
+
+                var btnAjustar = document.createElement('button');
+                btnAjustar.type = 'button';
+                btnAjustar.className = 'btn btn-secundario btn-sm';
+                btnAjustar.textContent = 'Ajustar';
+                btnAjustar.addEventListener('click', function () { abrirModalAjustar(f); });
+                divAcciones.appendChild(btnAjustar);
+
+                var btnMovimientos = document.createElement('button');
+                btnMovimientos.type = 'button';
+                btnMovimientos.className = 'btn btn-secundario btn-sm';
+                btnMovimientos.textContent = 'Ver mov.';
+                btnMovimientos.addEventListener('click', function () { abrirModalMovimientos(f); });
+                divAcciones.appendChild(btnMovimientos);
+
+                tdAcciones.appendChild(divAcciones);
+
+                tr.appendChild(tdClienta);
+                tr.appendChild(tdSalon);
+                tr.appendChild(tdSaldo);
+                tr.appendChild(tdMovimientos);
+                tr.appendChild(tdUltimo);
+                tr.appendChild(tdAcciones);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function pintarPaginacion() {
+            var totalPaginas = Math.ceil(rfTotalRegistros / rfLIMITE_PAGINA);
+            $('rf-pagina-info').textContent = 'PÃ¡gina ' + rfPaginaActual + ' de ' + (totalPaginas || 1);
+            $('rf-prev').disabled = rfPaginaActual <= 1;
+            $('rf-next').disabled = rfPaginaActual >= totalPaginas;
+        }
+
+        $('rf-prev').addEventListener('click', function () {
+            if (rfPaginaActual > 1) {
+                rfPaginaActual--;
+                cargarListaBilleteras();
+            }
+        });
+        $('rf-next').addEventListener('click', function () {
+            var totalPaginas = Math.ceil(rfTotalRegistros / rfLIMITE_PAGINA);
+            if (rfPaginaActual < totalPaginas) {
+                rfPaginaActual++;
+                cargarListaBilleteras();
+            }
+        });
+        $('rf-actualizar').addEventListener('click', function () {
+            rfPaginaActual = 1;
+            cargarListaBilleteras();
+        });
+        ['rf-buscar', 'rf-salon', 'rf-solo-saldo'].forEach(function (id) {
+            var el = $(id);
+            if (el) {
+                el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', function () {
+                    rfPaginaActual = 1;
+                    cargarListaBilleteras();
+                });
+            }
+        });
+
+        function abrirModalAjustar(f) {
+            rfModalBilletera = f;
+            var modal = document.createElement('div');
+            modal.id = 'rf-modal-ajustar';
+            modal.className = 'overlay overlay-confirmar oculto';
+            modal.innerHTML = '\
+                <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-ajustar-titulo">\
+                    <h2 id="rf-ajustar-titulo">Ajustar puntos</h2>\
+                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> Â· SalÃ³n: ' + escapeHtml(f.salon_nombre) + '</p>\
+                    <div class="modal-cuerpo">\
+                        <div class="campo">\
+                            <label for="rf-monto">Monto (positivo suma, negativo resta)</label>\
+                            <input type="number" id="rf-monto" step="0.01" min="-1000000" max="1000000" placeholder="Ej: 500 o -200" required>\
+                        </div>\
+                        <div class="campo">\
+                            <label for="rf-motivo">Motivo (3-180 caracteres)</label>\
+                            <textarea id="rf-motivo" rows="3" maxlength="180" placeholder="Ej: Ajuste por error de carga del turno #123" required></textarea>\
+                            <div class="contador-caracteres"><span id="rf-motivo-contador">0 / 180</span></div>\
+                        </div>\
+                        <div class="vista-previa">\
+                            <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(rfModalBilletera.saldo_actual) || 0) + '</span></div>\
+                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">â€”</span></div>\
+                        </div>\
+                    </div>\
+                    <div class="acciones">\
+                        <button type="button" class="btn" id="rf-ajustar-cancelar">Cancelar</button>\
+                        <button type="button" class="btn btn-primario" id="rf-ajustar-confirmar">Aplicar ajuste</button>\
+                    </div>\
+                </div>';
+            document.body.appendChild(modal);
+            modal.classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+
+            var montoEl = $('rf-monto');
+            var motivoEl = $('rf-motivo');
+            var contadorEl = $('rf-motivo-contador');
+            var previewEl = $('rf-saldo-preview');
+            var saldoActual = Number(rfModalBilletera.saldo_actual) || 0;
+
+            function actualizarPreview() {
+                var monto = Number(montoEl.value) || 0;
+                var nuevo = saldoActual + monto;
+                var nuevoFmt = formatearPuntos(nuevo);
+                previewEl.textContent = nuevoFmt;
+                previewEl.className = 'saldo-nuevo ' + (nuevo < saldoActual ? 'negativo' : nuevo > saldoActual ? 'positivo' : '');
+            }
+
+            montoEl.addEventListener('input', actualizarPreview);
+            motivoEl.addEventListener('input', function () {
+                var len = motivoEl.value.length;
+                contadorEl.textContent = len + ' / 180';
+                contadorEl.style.color = len > 180 ? 'var(--danger)' : 'var(--ink-subtle)';
+            });
+
+            function cerrar() {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+                rfModalBilletera = null;
+            }
+
+            $('rf-ajustar-cancelar').addEventListener('click', cerrar);
+            modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+            document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrar(); document.removeEventListener('keydown', esc); } });
+
+            $('rf-ajustar-confirmar').addEventListener('click', async function () {
+                var monto = Number(montoEl.value) || 0;
+                var motivo = motivoEl.value.trim();
+
+                if (monto === 0) { alerta('rf-alerta', 'El monto no puede ser 0.', 'error'); return; }
+                if (!motivo || motivo.length < 3 || motivo.length > 180) { alerta('rf-alerta', 'El motivo debe tener entre 3 y 180 caracteres.', 'error'); return; }
+
+                var btn = $('rf-ajustar-confirmar');
+                btn.disabled = true; btn.textContent = 'Aplicandoâ€¦';
+
+                try {
+                    var res = await supabase.rpc('admin_ajustar_puntos_cliente', {
+                        p_cliente_id: rfModalBilletera.cliente_id,
+                        p_salon_id: rfModalBilletera.salon_id,
+                        p_monto: monto,
+                        p_motivo: motivo
+                    });
+                    if (res.error) throw res.error;
+
+                    var d = res.data[0];
+                    alerta('rf-alerta', 'Ajuste aplicado. Saldo nuevo: ' + formatearPuntos(d.saldo_nuevo), 'ok');
+                    cerrar();
+                    await cargarReservaFederal();
+                } catch (error) {
+                    console.error('Ajuste:', error);
+                    alerta('rf-alerta', 'No se pudo aplicar el ajuste: ' + (error.message || 'error de conexiÃ³n'), 'error');
+                } finally {
+                    btn.disabled = false; btn.textContent = 'Aplicar ajuste';
+                }
+            });
+        }
+
+        async function abrirModalMovimientos(f) {
+            var modal = document.createElement('div');
+            modal.id = 'rf-modal-movimientos';
+            modal.className = 'overlay overlay-confirmar oculto';
+            modal.innerHTML = '\
+                <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-mov-titulo" style="max-width:720px">\
+                    <div class="drawer-cabecera" style="padding:0 24px 16px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center">\
+                        <div>\
+                            <h2 id="rf-mov-titulo">Movimientos de ' + escapeHtml(f.cliente_nombre) + '</strong></h2>\
+                            <p class="sub" style="margin:0">SalÃ³n: ' + escapeHtml(f.salon_nombre) + ' Â· Saldo: ' + formatearPuntos(Number(f.saldo_actual) || 0) + '</p>\
+                        </div>\
+                        <button type="button" id="rf-mov-cerrar" class="btn btn-icono" aria-label="Cerrar">Ã—</button>\
+                    </div>\
+                    <div class="modal-cuerpo" style="padding:0 24px 24px;max-height:60vh;overflow-y:auto">\
+                        <div class="movimientos-lista" id="rf-mov-lista">\
+                            <div class="cargando" style="text-align:center;padding:24px;color:var(--ink-subtle)">Cargandoâ€¦</div>\
+                        </div>\
+                    </div>\
+                </div>';
+            document.body.appendChild(modal);
+            modal.classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+
+            async function cargarMovimientos() {
+                try {
+                    var res = await supabase.rpc('admin_movimientos_wallet', {
+                        p_billetera_id: f.billetera_id,
+                        p_limite: 100,
+                        p_offset: 0
+                    });
+                    if (res.error) throw res.error;
+                    pintarMovimientos(res.data || []);
+                } catch (error) {
+                    console.error('Movimientos:', error);
+                    $('rf-mov-lista').innerHTML = '<div class="alerta error" style="padding:16px">No se pudieron cargar los movimientos: ' + (error.message || 'error de conexiÃ³n') + '</div>';
+                }
+            }
+
+            function pintarMovimientos(movs) {
+                var cont = $('rf-mov-lista');
+                cont.textContent = '';
+                if (!movs.length) {
+                    cont.innerHTML = '<div class="vacio" style="padding:24px;text-align:center"><h3>Sin movimientos</h3><p>Esta billetera no tiene movimientos registrados.</p></div>';
+                    return;
+                }
+                movs.forEach(function (m) {
+                    var div = document.createElement('div');
+                    div.className = 'movimiento-item';
+                    var monto = Number(m.monto) || 0;
+                    var tipoClase = m.tipo;
+                    div.innerHTML = '\
+                        <div class="movimiento-header">\
+                            <span class="movimiento-tipo ' + tipoClase + '">' + m.tipo + '</span>\
+                            <span class="movimiento-fecha">' + fechaCorta(m.creado_en) + '</span>\
+                        </div>\
+                        <div class="movimiento-monto ' + (monto >= 0 ? 'positivo' : 'negativo') + '">' + (monto >= 0 ? '+' : '') + formatearPuntos(monto) + '</div>\
+                        <div class="movimiento-motivo">' + escapeHtml(m.motivo || 'â€”') + '</div>\
+                        <div class="movimiento-detalle">\
+                            <span>SalÃ³n: ' + escapeHtml(m.salon_nombre) + '</span>\
+                            <span>Clienta: ' + escapeHtml(m.cliente_nombre) + '</span>\
+                            ' + (m.turno_id ? '<span>Turno #' + m.turno_id + '</span>' : '') + '\
+                        </div>';
+                    cont.appendChild(div);
+                });
+            }
+
+            await cargarMovimientos();
+
+            function cerrar() {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+            }
+            $('rf-mov-cerrar').addEventListener('click', cerrar);
+            modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
+            document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrar(); document.removeEventListener('keydown', esc); } });
+        }
+
+        function escapeHtml(t) {
+            var el = document.createElement('div');
+            el.textContent = t == null ? '' : String(t);
+            return el.innerHTML;
+        }
+
+        function formatearPuntos(v) {
+            var n = Number(v) || 0;
+            return n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+        }
+
+        async function cargarSalonesReserva() {
+            try {
+                var res = await supabase.from('salones').select('id,nombre').eq('activo', true).order('nombre');
+                if (res.error) throw res.error;
+                var sel = $('rf-salon');
+                res.data.forEach(function (s) {
+                    var opt = document.createElement('option');
+                    opt.value = s.id; opt.textContent = s.nombre;
+                    sel.appendChild(opt);
+                });
+            } catch (e) { console.warn('Salones para RF:', e); }
+        }
+
+        // I79 · BULK ACTIONS: Aprobar salones seleccionados
+        ;(function() {
+            var checkboxTodoHeader = document.getElementById('checkbox-todo-header');
+            var bulkActionsCaja = document.getElementById('bulk-actions-caja');
+
+            if (!checkboxTodoHeader) return;
+
+            function actualizarBotonAprobar() {
+                var alMenosUno = !!document.querySelector('.checkbox-salon:checked');
+                var btn = document.getElementById('aprobar-seleccionados');
+                if (btn) btn.classList.toggle('oculto', !alMenosUno);
+                var caja = document.getElementById('bulk-actions-caja');
+                if (caja) caja.classList.toggle('oculto', !document.querySelectorAll('.checkbox-salon').length);
+            }
+
+            // Toggle "Seleccionar todo"
+            checkboxTodoHeader.addEventListener('change', function() {
+                document.querySelectorAll('.checkbox-salon').forEach(function(cb) {
+                    cb.checked = this.checked;
+                });
+                actualizarBotonAprobar();
+            });
+
+            // Toggle individual
+            document.querySelectorAll('.checkbox-salon').forEach(function(cb) {
+                cb.addEventListener('change', actualizarBotonAprobar);
+            });
+
+            // Aprobar seleccionados
+            var btnAprobar = document.getElementById('aprobar-seleccionados');
+            if (btnAprobar) {
+                btnAprobar.addEventListener('click', function() {
+                    var ids = Array.from(document.querySelectorAll('.checkbox-salon:checked')).map(function(cb) {
+                        return cb.value;
+                    });
+
+                    if (ids.length === 0) return;
+
+                    btnAprobar.disabled = true;
+                    btnAprobar.textContent = 'Aprobando...';
+
+                    supabase.from('salones')
+                        .update({ publicado: true })
+                        .in('id', ids)
+                        .select('id, nombre, slug, rubro, publicado')
+                        .then(function(res) {
+                            btnAprobar.disabled = false;
+                            btnAprobar.textContent = 'Aprobar seleccionados';
+
+                            if (res.error) {
+                                console.error(res.error);
+                                alerta('error', 'Error al aprobar salones: ' + (res.error.message || 'error de conexión'));
+                                return;
+                            }
+
+                            if (res.data && res.data.length) {
+                                toast('Se aprobaron ' + res.data.length + ' salones.', 'ok');
+                                // Recargar tabla
+                                cargarSalones().then(pintarSalones);
+                            }
+                        })
+                        .catch(function(error) {
+                            btnAprobar.disabled = false;
+                            btnAprobar.textContent = 'Aprobar seleccionados';
+                            console.error(error);
+                            alerta('error', 'Error al aprobar: ' + (error.message || 'error de conexión'));
+                        });
+                });
+            }
+        })();
+
+        actualizarContadorAnuncio();
     })();
     </script>
 </body>
