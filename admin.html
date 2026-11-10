@@ -3771,35 +3771,51 @@
 
         // â”€â”€ navegación â”€â”€
         function mostrarSeccion(nombre) {
-            // 1. Ocultar TODAS las secciones forzando el estilo en línea
-            document.querySelectorAll('.seccion').forEach(function(sec) {
-                sec.style.display = 'none';
-            });
+       // 1. Ocultar TODAS las secciones buscando por clase
+       document.querySelectorAll('.seccion').forEach(function(sec) {
+           sec.style.display = 'none';
+           sec.classList.add('oculto'); // Por si acaso
+       });
 
-            // 2. Mostrar solo la sección seleccionada forzando el estilo en línea
-            var seccionActiva = document.getElementById('seccion-' + nombre);
-            if (seccionActiva) {
-                seccionActiva.style.display = 'block';
-            }
+       // 2. Mostrar la sección seleccionada
+       var seccionActiva = document.getElementById('seccion-' + nombre);
+       
+       // Si no encuentra el ID exacto, buscamos el elemento por el nombre suelto
+       if (!seccionActiva) {
+           seccionActiva = document.getElementById(nombre);
+       }
+       
+       if (seccionActiva) {
+           seccionActiva.style.display = 'block';
+           seccionActiva.classList.remove('oculto');
+       } else {
+           console.error('No se encontró la sección para:', nombre);
+       }
 
-            // 3. Actualizar el estado visual de los botones del menú
-            document.querySelectorAll('.nav-item[data-vista]').forEach(function(boton) {
-                var activo = boton.dataset.vista === nombre;
-                boton.classList.toggle('activo', activo);
-                if (activo) boton.setAttribute('aria-current', 'page');
-                else boton.removeAttribute('aria-current');
-            });
-
-            $('vista-titulo').textContent = TITULOS[nombre] ? TITULOS[nombre].t : 'Salones';
-            $('vista-sub').textContent = TITULOS[nombre] ? TITULOS[nombre].s : 'Estado general de la plataforma.';
-            try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
-            cerrarMenu();
-            // I78 · carga diferida de la Reserva Federal al entrar a la sección.
-            if (nombre === 'reserva-federal' && typeof cargarReservaFederal === 'function') {
-                cargarSalonesReserva();
-                cargarReservaFederal();
-            }
-        }
+       // 3. Actualizar botones del menú
+       document.querySelectorAll('.nav-item[data-vista]').forEach(function(boton) {
+           var activo = boton.dataset.vista === nombre;
+           boton.classList.toggle('activo', activo);
+           if (activo) boton.setAttribute('aria-current', 'page');
+           else boton.removeAttribute('aria-current');
+       });
+       
+       // 4. Actualizar Título y Subtítulo (si existen)
+       if (typeof TITULOS !== 'undefined' && TITULOS[nombre]) {
+           var tituloEl = document.getElementById('vista-titulo');
+           var subEl = document.getElementById('vista-sub');
+           if (tituloEl) tituloEl.textContent = TITULOS[nombre].t;
+           if (subEl) subEl.textContent = TITULOS[nombre].s;
+       }
+       
+       try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
+       cerrarMenu();
+       // I78 · carga diferida de la Reserva Federal al entrar a la sección.
+       if (nombre === 'reserva-federal' && typeof cargarReservaFederal === 'function') {
+           cargarSalonesReserva();
+           cargarReservaFederal();
+       }
+    }
 
         document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
             boton.addEventListener('click', function () { mostrarSeccion(boton.dataset.vista); });
