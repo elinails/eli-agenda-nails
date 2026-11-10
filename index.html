@@ -8406,6 +8406,10 @@
 
             async function subirLogo(archivo) {
                 if (subiendoLogo || !archivo) return;
+                if (!esOwner()) {
+                    mostrarBanner('Solo la dueña puede cambiar el logo.', 'error');
+                    return;
+                }
                 const boton = document.getElementById('logo-btn');
                 if (['image/png', 'image/jpeg'].indexOf(archivo.type) === -1) {
                     mostrarBanner('Elegí una imagen PNG o JPG.', 'error');
