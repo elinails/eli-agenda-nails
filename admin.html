@@ -3778,10 +3778,13 @@
                 if (activo) boton.setAttribute('aria-current', 'page');
                 else boton.removeAttribute('aria-current');
             });
-            ['salones', 'suscripciones', 'cobros', 'reserva-federal', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'soporte', 'ajustes'].forEach(function (v) {
-                var seccion = $('seccion-' + v);
-                if (seccion) seccion.classList.toggle('oculto', v !== nombre);
+            // Ocultar TODAS las secciones primero
+            document.querySelectorAll('.seccion').forEach(function (seccion) {
+                seccion.classList.add('oculto');
             });
+            // Mostrar solo la sección seleccionada
+            var seccionActiva = document.getElementById('seccion-' + nombre);
+            if (seccionActiva) seccionActiva.classList.remove('oculto');
             $('vista-titulo').textContent = TITULOS[nombre].t;
             $('vista-sub').textContent = TITULOS[nombre].s;
             try { history.replaceState(null, '', '#' + nombre); } catch (error) { /* noop */ }
