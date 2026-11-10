@@ -1522,6 +1522,39 @@
         .mi-salon-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
         .mi-salon-barra .setting-note { margin: 0; }
 
+        /* I69 · solicitudes de reserva */
+        .solicitudes-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--gold-ink);
+            border-radius: 12px;
+            background: var(--surface);
+        }
+        .solicitudes-panel-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .solicitudes-panel-info > i { color: var(--gold-ink); font-size: 18px; }
+        .solicitudes-panel-info strong { display: block; font-size: 14px; }
+        .solicitudes-panel-info p { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); }
+        .solicitud-card {
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface);
+        }
+        .solicitud-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .solicitud-nombre { font-weight: 600; font-size: 14px; }
+        .solicitud-meta { margin-top: 2px; font-size: 12px; color: var(--ink-soft); }
+        .solicitud-servicio { margin-top: 8px; font-size: 13px; }
+        .solicitud-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .solicitud-acciones .btn-primary,
+        .solicitud-acciones .btn-danger { width: auto; }
+        .solicitud-telefono { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 2px; }
+
         /* I62 · perfil público (Elima Belleza) */
         .mi-salon-perfil {
             margin-top: 24px;
@@ -1944,6 +1977,20 @@
                 </button>
                 <button type="button" id="appointments-tab" class="nav-tab" data-view="appointments" role="tab">
                     <i class="fas fa-list mr-2"></i> Listado
+                </button>
+            </div>
+
+            <!-- I69 · solicitudes de reserva del marketplace -->
+            <div id="solicitudes-panel" class="solicitudes-panel hidden" aria-live="polite">
+                <div class="solicitudes-panel-info">
+                    <i class="fas fa-inbox" aria-hidden="true"></i>
+                    <div>
+                        <strong>Solicitudes pendientes</strong>
+                        <p id="solicitudes-panel-texto">Hay clientas esperando respuesta.</p>
+                    </div>
+                </div>
+                <button type="button" id="solicitudes-ver" class="btn-secondary px-4 py-2.5 rounded-lg font-medium text-sm">
+                    Ver solicitudes (<span id="solicitudes-count">0</span>)
                 </button>
             </div>
 
@@ -2531,6 +2578,11 @@
                                 <small class="mi-salon-ayuda">Solo minúsculas, números y guiones. Se usa en tu link público.</small>
                                 <small id="salon-slug-preview" class="salon-slug-preview"></small>
                             </label>
+                            <label class="mi-salon-campo">
+                                <span>Dirección</span>
+                                <input type="text" id="salon-direccion" maxlength="200" aria-label="Dirección" placeholder="Ej: Av. Santa Fe 1234, Palermo">
+                                <small class="mi-salon-ayuda">Se muestra en tu perfil público para que sepan cómo llegar.</small>
+                            </label>
                         </div>
                     </div>
 
@@ -2965,6 +3017,22 @@
         </div>
     </div>
 
+    <!-- I69 · Solicitudes de reserva -->
+    <div id="solicitudes-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
+        <div class="bg-surface rounded-2xl shadow-xl w-full mx-4 max-h-[90dvh] overflow-y-auto p-6"
+             style="max-width:640px"
+             role="dialog" aria-modal="true" aria-labelledby="solicitudes-modal-titulo">
+            <div class="flex items-start justify-between gap-4 mb-2">
+                <div>
+                    <h3 id="solicitudes-modal-titulo" class="text-xl font-bold text-eli-dark">Solicitudes pendientes</h3>
+                    <p class="setting-note mt-1">Aprobá para crear el turno o rechazá la solicitud.</p>
+                </div>
+                <button type="button" id="solicitudes-cerrar" class="btn" style="width:38px;height:38px;padding:0" aria-label="Cerrar solicitudes">×</button>
+            </div>
+            <div id="solicitudes-lista" class="space-y-3 mt-4"></div>
+        </div>
+    </div>
+
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
@@ -3324,7 +3392,7 @@
             const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas', 'miembros'];
 
             // I39 · contexto multi-tenant. Vive SOLO en memoria (nunca en localStorage).
-            const contexto = { salonId: null, rol: null, userId: null, email: null, nombreSalon: '', logoUrl: '', telefono: '', instagram: '', descripcion: '', rubro: '', bio: '', fotoPortadaUrl: '', slug: '', publicado: false };
+            const contexto = { salonId: null, rol: null, userId: null, email: null, nombreSalon: '', logoUrl: '', telefono: '', instagram: '', descripcion: '', rubro: '', bio: '', fotoPortadaUrl: '', slug: '', publicado: false, direccion: '' };
 
             // I41: aplica el logo del salon (o el de por defecto) en toda la UI
             function aplicarLogo() {
@@ -3371,6 +3439,7 @@
                 contexto.fotoPortadaUrl = '';
                 contexto.slug = '';
                 contexto.publicado = false;
+                contexto.direccion = '';
                 if (!supabase || !contexto.userId) return { estado: 'ninguna' };
                 const { data, error } = await supabase
                     .from('miembros_salon')
@@ -3407,11 +3476,19 @@
                     const CAMPOS_BASE = 'nombre, logo_url, activo, plan_id';
                     const CAMPOS_I54 = CAMPOS_BASE + ', telefono_contacto, instagram, descripcion';
                     const CAMPOS_I62 = CAMPOS_I54 + ', rubro, bio, foto_portada_url, slug, publicado';
+                    const CAMPOS_I69 = CAMPOS_I62 + ', direccion';
                     let consultaSalon = await supabase
                         .from('salones')
-                        .select(CAMPOS_I62)
+                        .select(CAMPOS_I69)
                         .eq('id', contexto.salonId)
                         .limit(1);
+                    if (consultaSalon.error) {
+                        consultaSalon = await supabase
+                            .from('salones')
+                            .select(CAMPOS_I62)
+                            .eq('id', contexto.salonId)
+                            .limit(1);
+                    }
                     if (consultaSalon.error) {
                         consultaSalon = await supabase
                             .from('salones')
@@ -3445,6 +3522,7 @@
                         contexto.fotoPortadaUrl = salon.foto_portada_url || '';
                         contexto.slug = salon.slug || '';
                         contexto.publicado = salon.publicado === true;
+                        contexto.direccion = salon.direccion || '';
                     }
                 } catch (error) { /* sin salon visible: queda el logo por defecto */ }
                 return { estado: 'activa', salonId: contexto.salonId, rol: contexto.rol };
@@ -3595,6 +3673,205 @@
                 poblarSelectsTurno();
             }
 
+            // ── I69 · solicitudes de reserva ───────────────────────────────
+            function crearNodoSolicitud(tag, clase, texto) {
+                const nodo = document.createElement(tag);
+                if (clase) nodo.className = clase;
+                if (texto != null) nodo.textContent = String(texto);
+                return nodo;
+            }
+
+            function pintarPanelSolicitudes() {
+                const panel = document.getElementById('solicitudes-panel');
+                const contador = document.getElementById('solicitudes-count');
+                const texto = document.getElementById('solicitudes-panel-texto');
+                const total = solicitudesPendientes.length;
+                if (contador) contador.textContent = String(total);
+                if (texto) {
+                    texto.textContent = total === 1
+                        ? '1 clienta esperando respuesta.'
+                        : total + ' clientas esperando respuesta.';
+                }
+                if (panel) panel.classList.toggle('hidden', total === 0);
+            }
+
+            async function cargarSolicitudes() {
+                if (!supabase || !contexto.salonId || cargandoSolicitudes) return;
+                cargandoSolicitudes = true;
+                try {
+                    const res = await supabase
+                        .from('solicitudes_reserva')
+                        .select('id, cliente_nombre, cliente_telefono, fecha, hora, servicio_id, estado, creado_en, servicio:servicios(nombre,precio_base,duracion_minutos)')
+                        .eq('salon_id', contexto.salonId)
+                        .eq('estado', 'pendiente')
+                        .order('creado_en', { ascending: true })
+                        .limit(50);
+                    if (res.error) throw res.error;
+                    solicitudesPendientes = res.data || [];
+                } catch (error) {
+                    console.warn('I69 · no se pudieron cargar las solicitudes:', error);
+                    solicitudesPendientes = [];
+                } finally {
+                    cargandoSolicitudes = false;
+                    pintarPanelSolicitudes();
+                    const modal = document.getElementById('solicitudes-modal');
+                    if (modal && !modal.classList.contains('hidden')) renderSolicitudesModal();
+                }
+            }
+
+            function renderSolicitudesModal() {
+                const lista = document.getElementById('solicitudes-lista');
+                if (!lista) return;
+                lista.textContent = '';
+
+                if (!solicitudesPendientes.length) {
+                    lista.appendChild(crearNodoSolicitud('p', 'setting-note', 'No hay solicitudes pendientes.'));
+                    return;
+                }
+
+                solicitudesPendientes.forEach(function(sol) {
+                    const servicio = Array.isArray(sol.servicio) ? (sol.servicio[0] || {}) : (sol.servicio || {});
+                    const tarjeta = crearNodoSolicitud('div', 'solicitud-card');
+
+                    const superior = crearNodoSolicitud('div', 'solicitud-top');
+                    const info = crearNodoSolicitud('div', '');
+                    info.appendChild(crearNodoSolicitud('div', 'solicitud-nombre', sol.cliente_nombre || 'Clienta'));
+
+                    const telefono = String(sol.cliente_telefono || '').trim();
+                    const meta = crearNodoSolicitud('div', 'solicitud-meta');
+                    if (telefono) {
+                        const digitos = telefono.replace(/[^0-9+]/g, '');
+                        if (digitos.replace(/[^0-9]/g, '').length >= 6) {
+                            const enlace = document.createElement('a');
+                            enlace.href = 'tel:' + digitos;
+                            enlace.className = 'solicitud-telefono';
+                            enlace.textContent = telefono;
+                            meta.appendChild(enlace);
+                        } else {
+                            meta.appendChild(document.createTextNode(telefono));
+                        }
+                    } else {
+                        meta.appendChild(document.createTextNode('Sin teléfono'));
+                    }
+                    meta.appendChild(document.createTextNode(' · ' + formatDate(sol.fecha) + ' · ' + String(sol.hora || '').slice(0, 5)));
+                    info.appendChild(meta);
+                    superior.appendChild(info);
+
+                    const servicioTexto = crearNodoSolicitud('div', 'solicitud-servicio',
+                        (servicio.nombre || 'Servicio') + ' · ' + money(servicio.precio_base) +
+                        (servicio.duracion_minutos ? ' · ' + servicio.duracion_minutos + ' min' : ''));
+                    superior.appendChild(servicioTexto);
+                    tarjeta.appendChild(superior);
+
+                    const acciones = crearNodoSolicitud('div', 'solicitud-acciones');
+                    const aprobar = crearNodoSolicitud('button', 'btn-primary px-4 py-2 rounded-lg font-medium text-sm', 'Aprobar');
+                    aprobar.type = 'button';
+                    aprobar.addEventListener('click', function() { aprobarSolicitudApp(sol, aprobar); });
+                    const rechazar = crearNodoSolicitud('button', 'btn-secondary px-4 py-2 rounded-lg font-medium text-sm', 'Rechazar');
+                    rechazar.type = 'button';
+                    rechazar.addEventListener('click', function() { rechazarSolicitudApp(sol, rechazar); });
+                    acciones.appendChild(aprobar);
+                    acciones.appendChild(rechazar);
+                    tarjeta.appendChild(acciones);
+
+                    lista.appendChild(tarjeta);
+                });
+            }
+
+            async function abrirSolicitudesModal() {
+                await cargarSolicitudes();
+                renderSolicitudesModal();
+                const modal = document.getElementById('solicitudes-modal');
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                const cerrar = document.getElementById('solicitudes-cerrar');
+                if (cerrar) cerrar.focus();
+            }
+
+            function cerrarSolicitudesModal() {
+                const modal = document.getElementById('solicitudes-modal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            function mensajeErrorSolicitud(error) {
+                const texto = String((error && (error.message || error.details || error.code)) || '');
+                if (/horario_ocupado/.test(texto)) {
+                    return 'Ese horario ya está ocupado. Rechazá la solicitud o coordiná otro horario.';
+                }
+                if (/solicitud_ya_revisada/.test(texto)) {
+                    return 'Esa solicitud ya fue revisada.';
+                }
+                if (/solicitud_vencida/.test(texto)) {
+                    return 'La fecha u hora de la solicitud ya pasó.';
+                }
+                if (/sin_permisos/.test(texto)) {
+                    return 'No tenés permisos para revisar esta solicitud.';
+                }
+                if (/servicio_invalido/.test(texto)) {
+                    return 'El servicio de la solicitud ya no existe. Rechazala y pedile a la clienta otro horario.';
+                }
+                return 'No se pudo actualizar la solicitud: ' + (error && error.message ? error.message : 'error de conexión');
+            }
+
+            function aprobarSolicitudApp(sol, boton) {
+                pedirConfirmacion(
+                    'Aprobar solicitud',
+                    'Se va a crear un turno confirmado para ' + (sol.cliente_nombre || 'la clienta') +
+                        ' el ' + formatDate(sol.fecha) + ' a las ' + String(sol.hora || '').slice(0, 5) + '.',
+                    'Aprobar',
+                    async function() {
+                        const textoBoton = boton.textContent;
+                        boton.disabled = true;
+                        boton.textContent = 'Aprobando…';
+                        try {
+                            const res = await supabase.rpc('aprobar_solicitud', { p_solicitud: sol.id });
+                            if (res.error) throw res.error;
+                            mostrarBanner('Solicitud aprobada. Turno creado.', 'ok');
+                            await recargar('turnos');
+                            await loadAppointments();
+                            await cargarSolicitudes();
+                            renderSolicitudesModal();
+                        } catch (error) {
+                            console.error('I69 · aprobar solicitud:', error);
+                            mostrarBanner(mensajeErrorSolicitud(error), 'error');
+                        } finally {
+                            boton.disabled = false;
+                            boton.textContent = textoBoton;
+                        }
+                    }
+                );
+            }
+
+            function rechazarSolicitudApp(sol, boton) {
+                pedirConfirmacion(
+                    'Rechazar solicitud',
+                    'La solicitud de ' + (sol.cliente_nombre || 'la clienta') +
+                        ' para el ' + formatDate(sol.fecha) + ' a las ' + String(sol.hora || '').slice(0, 5) + ' va a quedar rechazada.',
+                    'Rechazar',
+                    async function() {
+                        const textoBoton = boton.textContent;
+                        boton.disabled = true;
+                        boton.textContent = 'Rechazando…';
+                        try {
+                            const res = await supabase.rpc('rechazar_solicitud', { p_solicitud: sol.id });
+                            if (res.error) throw res.error;
+                            mostrarBanner('Solicitud rechazada.', 'ok');
+                            await cargarSolicitudes();
+                            renderSolicitudesModal();
+                        } catch (error) {
+                            console.error('I69 · rechazar solicitud:', error);
+                            mostrarBanner(mensajeErrorSolicitud(error), 'error');
+                        } finally {
+                            boton.disabled = false;
+                            boton.textContent = textoBoton;
+                        }
+                    }
+                );
+            }
+
             // ── navegación entre secciones ──
             const SECCIONES = {
                 inicio: { titulo: 'Inicio', sub: 'Resumen del día a día' },
@@ -3625,6 +3902,8 @@
                 if (fabNuevo) fabNuevo.classList.toggle('hidden', destino !== 'agenda');
                 seccionActual = destino;
                 pintarSecciones();
+                // I69: al entrar a Agenda, refrescar solicitudes pendientes.
+                if (destino === 'agenda' && contexto.salonId) cargarSolicitudes();
                 window.scrollTo({ top: 0, behavior: 'auto' });
             }
 
@@ -3659,6 +3938,23 @@
                     if (boton) boton.click();
                 });
             }
+
+            // I69 · solicitudes de reserva
+            const solicitudesVerBtn = document.getElementById('solicitudes-ver');
+            if (solicitudesVerBtn) solicitudesVerBtn.addEventListener('click', abrirSolicitudesModal);
+            const solicitudesCerrarBtn = document.getElementById('solicitudes-cerrar');
+            if (solicitudesCerrarBtn) solicitudesCerrarBtn.addEventListener('click', cerrarSolicitudesModal);
+            const solicitudesModalEl = document.getElementById('solicitudes-modal');
+            if (solicitudesModalEl) {
+                solicitudesModalEl.addEventListener('click', function(evento) {
+                    if (evento.target === solicitudesModalEl) cerrarSolicitudesModal();
+                });
+            }
+            document.addEventListener('keydown', function(evento) {
+                if (evento.key !== 'Escape') return;
+                const modal = document.getElementById('solicitudes-modal');
+                if (modal && !modal.classList.contains('hidden')) cerrarSolicitudesModal();
+            });
             
             // Form Handling
             appointmentForm.addEventListener("submit", function(e) {
@@ -4016,6 +4312,9 @@
             
             // P2: lectura desde Supabase (tabla `turnos`) + cache en memoria.
             let cache = [];
+            // I69 · solicitudes de reserva del marketplace
+            let solicitudesPendientes = [];
+            let cargandoSolicitudes = false;
 
             async function fetchTurnos() {
                 let consulta = supabase.from('turnos').select('*');
@@ -7609,7 +7908,7 @@
                     const id = tarjeta.dataset.patrocinio;
                     if (id) localStorage.setItem('eli_patrocinio_oculto_' + id, '1');
                 });
-                ['salon-nombre', 'salon-telefono', 'salon-instagram', 'salon-descripcion', 'salon-foto-portada', 'salon-slug'].forEach(function (id) {
+                ['salon-nombre', 'salon-telefono', 'salon-instagram', 'salon-descripcion', 'salon-foto-portada', 'salon-slug', 'salon-direccion'].forEach(function (id) {
                     const campo = document.getElementById(id);
                     if (!campo) return;
                     campo.addEventListener('keydown', function (evento) {
@@ -9091,6 +9390,7 @@
                 const bio = document.getElementById('salon-bio');
                 const portada = document.getElementById('salon-foto-portada');
                 const slug = document.getElementById('salon-slug');
+                const direccion = document.getElementById('salon-direccion');
                 if (nombre) nombre.value = contexto.nombreSalon || '';
                 if (telefono) telefono.value = contexto.telefono || '';
                 if (instagram) instagram.value = contexto.instagram || '';
@@ -9099,6 +9399,7 @@
                 if (bio) bio.value = contexto.bio || '';
                 if (portada) portada.value = contexto.fotoPortadaUrl || '';
                 if (slug) slug.value = contexto.slug || '';
+                if (direccion) direccion.value = contexto.direccion || '';
                 actualizarContadorBio();
                 actualizarPreviewPortada();
                 actualizarSlugPreview();
@@ -9149,6 +9450,7 @@
                 const bio = valorCampo('salon-bio').slice(0, 500);
                 const foto = normalizarUrlPortada(valorCampo('salon-foto-portada'));
                 const slug = normalizarSlug(valorCampo('salon-slug'));
+                const direccion = valorCampo('salon-direccion').slice(0, 200);
                 const estado = document.getElementById('salon-estado');
 
                 if (!nombre) {
@@ -9200,6 +9502,9 @@
                     foto_portada_url: foto || null,
                     slug: slug || null
                 };
+                const datosI69 = Object.assign({}, datosI62, {
+                    direccion: direccion || null
+                });
                 const datosI54 = {
                     nombre: nombre,
                     telefono_contacto: telefono || null,
@@ -9214,9 +9519,21 @@
                 if (estado) estado.textContent = '';
 
                 try {
-                    let nivel = 'i62';
-                    let guardado = await supabase.from('salones').update(datosI62).eq('id', contexto.salonId);
+                    let nivel = 'i69';
+                    let guardado = await supabase.from('salones').update(datosI69).eq('id', contexto.salonId);
 
+                    if (guardado.error && esSlugDuplicado(guardado.error)) {
+                        mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
+                        return;
+                    }
+                    if (guardado.error && guardado.error.code === '23514') {
+                        mostrarBanner('Revisá el perfil: algún dato no cumple el formato (rubro, bio, slug, portada o dirección).', 'error');
+                        return;
+                    }
+                    if (guardado.error && esFaltaColumna(guardado.error)) {
+                        nivel = 'i62';
+                        guardado = await supabase.from('salones').update(datosI62).eq('id', contexto.salonId);
+                    }
                     if (guardado.error && esSlugDuplicado(guardado.error)) {
                         mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
                         return;
@@ -9229,10 +9546,6 @@
                         nivel = 'i54';
                         guardado = await supabase.from('salones').update(datosI54).eq('id', contexto.salonId);
                     }
-                    if (guardado.error && esSlugDuplicado(guardado.error)) {
-                        mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
-                        return;
-                    }
                     if (guardado.error && guardado.error.code === '23514') {
                         mostrarBanner('Revisá los datos del salón: teléfono, Instagram o frase corta no cumplen el formato.', 'error');
                         return;
@@ -9244,7 +9557,16 @@
                     if (guardado.error) throw guardado.error;
 
                     contexto.nombreSalon = nombre;
-                    if (nivel === 'i62') {
+                    if (nivel === 'i69') {
+                        contexto.telefono = telefono;
+                        contexto.instagram = instagram;   // I65: ya viene normalizado a handle
+                        contexto.descripcion = descripcion;
+                        contexto.rubro = rubro;
+                        contexto.bio = bio;
+                        contexto.fotoPortadaUrl = foto;
+                        contexto.slug = slug;
+                        contexto.direccion = direccion;
+                    } else if (nivel === 'i62') {
                         contexto.telefono = telefono;
                         contexto.instagram = instagram;   // I65: ya viene normalizado a handle
                         contexto.descripcion = descripcion;
@@ -9263,14 +9585,17 @@
                         img.setAttribute('alt', nombre);
                     });
                     pintarBranding();
-                    if (estado) estado.textContent = nivel === 'i62' ? 'Guardado ✓' : 'Guardado parcial';
+                    const completo = nivel === 'i69';
+                    if (estado) estado.textContent = completo ? 'Guardado ✓' : 'Guardado parcial';
                     mostrarBanner(
-                        nivel === 'i62'
+                        completo
                             ? 'Datos del salón y perfil público actualizados.'
-                            : nivel === 'i54'
-                                ? 'Se guardaron los datos del salón. Corré i62_elima_belleza.sql para el perfil público.'
-                                : 'Se guardó el nombre. Corré i54_branding.sql para teléfono e Instagram.',
-                        nivel === 'i62' ? 'ok' : 'error'
+                            : nivel === 'i62'
+                                ? 'Se guardaron los datos del perfil. Corré i69_solicitudes.sql para guardar la dirección.'
+                                : nivel === 'i54'
+                                    ? 'Se guardaron los datos del salón. Corré i62_elima_belleza.sql para el perfil público.'
+                                    : 'Se guardó el nombre. Corré i54_branding.sql para teléfono e Instagram.',
+                        completo ? 'ok' : 'error'
                     );
                 } catch (error) {
                     console.error('No se pudieron guardar los datos del salón:', error);

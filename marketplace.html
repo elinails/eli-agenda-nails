@@ -285,8 +285,8 @@
     }
     .modal-fondo[hidden] { display: none; }
     .modal {
-        width: min(560px, 100%);
-        max-height: min(86dvh, 720px);
+        width: min(620px, 100%);
+        max-height: min(90dvh, 780px);
         overflow-y: auto;
         background: var(--surface);
         border-radius: 20px;
@@ -306,6 +306,78 @@
     .modal-rubro { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-ink); font-weight: 600; }
     .modal-nombre { font-family: var(--serif); font-size: 28px; margin: 0; line-height: 1.15; }
     .modal-bio { margin: 0; color: var(--ink-soft); white-space: pre-line; }
+    .modal-direccion { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .modal-direccion[hidden] { display: none; }
+    .modal-seccion {
+        margin-top: 4px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+    }
+    .modal-seccion[hidden] { display: none; }
+    .modal-seccion-titulo {
+        margin: 0 0 10px;
+        font-family: var(--serif);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink);
+    }
+    .modal-nota { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
+    .modal-servicios { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .servicio-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+    }
+    .servicio-nombre { display: block; font-size: 13px; font-weight: 600; color: var(--ink); }
+    .servicio-meta { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-soft); }
+    .servicio-precio { font-size: 12.5px; font-weight: 600; color: var(--gold-ink); white-space: nowrap; }
+    .reserva-form { margin-top: 12px; }
+    .reserva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .reserva-campo { display: grid; gap: 4px; }
+    .reserva-campo-full { grid-column: 1 / -1; }
+    .reserva-campo > span {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+    }
+    .reserva-campo input,
+    .reserva-campo select {
+        width: 100%;
+        min-height: 42px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 14px;
+    }
+    .reserva-campo input:focus-visible,
+    .reserva-campo select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .reserva-btn {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: .03em;
+        cursor: pointer;
+    }
+    .reserva-btn:disabled { opacity: .55; cursor: wait; }
+    .reserva-aviso { min-height: 18px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+    .reserva-aviso.exito { color: var(--gold-ink); font-weight: 600; }
+    .reserva-aviso.error { color: #A33B32; }
     .modal-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
     .modal-acciones a, .modal-acciones button {
         display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -342,6 +414,8 @@
         .tarjeta-nombre { font-size: 17px; }
         .tarjeta-bio { display: none; }
         .tarjeta-cuerpo { padding: 12px 12px 14px; }
+        .modal-servicios { grid-template-columns: 1fr; }
+        .reserva-grid { grid-template-columns: 1fr; }
         .btn-app span { display: none; }
         .btn-app { padding: 0 12px; }
     }
@@ -421,6 +495,48 @@
                 <span class="estrellas-texto"></span>
             </div>
             <p class="modal-bio" id="modal-bio"></p>
+            <p class="modal-direccion" id="modal-direccion" hidden></p>
+
+            <section class="modal-seccion" id="modal-servicios-seccion">
+                <h3 class="modal-seccion-titulo">Servicios</h3>
+                <div class="modal-servicios" id="modal-servicios">
+                    <p class="modal-nota">Cargando servicios…</p>
+                </div>
+            </section>
+
+            <section class="modal-seccion" id="modal-reserva-seccion" hidden>
+                <h3 class="modal-seccion-titulo">Solicitar turno</h3>
+                <p class="modal-nota">Sin cuenta. El salón te va a contactar para confirmar.</p>
+                <form id="reserva-form" class="reserva-form" novalidate>
+                    <div class="reserva-grid">
+                        <label class="reserva-campo">
+                            <span>Nombre</span>
+                            <input id="reserva-nombre" name="nombre" type="text" maxlength="80" autocomplete="name" required placeholder="Tu nombre">
+                        </label>
+                        <label class="reserva-campo">
+                            <span>WhatsApp</span>
+                            <input id="reserva-telefono" name="telefono" type="tel" maxlength="30" autocomplete="tel" required placeholder="+54 9 11 …">
+                        </label>
+                        <label class="reserva-campo">
+                            <span>Fecha</span>
+                            <input id="reserva-fecha" name="fecha" type="date" required>
+                        </label>
+                        <label class="reserva-campo">
+                            <span>Hora</span>
+                            <input id="reserva-hora" name="hora" type="time" required>
+                        </label>
+                        <label class="reserva-campo reserva-campo-full">
+                            <span>Servicio</span>
+                            <select id="reserva-servicio" name="servicio" required>
+                                <option value="">Elegí un servicio</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p class="reserva-aviso" id="reserva-aviso" role="status" aria-live="polite"></p>
+                    <button type="submit" class="reserva-btn" id="reserva-btn">Enviar solicitud</button>
+                </form>
+            </section>
+
             <div class="modal-acciones" id="modal-acciones"></div>
         </div>
     </div>
@@ -435,6 +551,8 @@
     var SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
     var RPC = SUPABASE_URL + '/rest/v1/rpc/public_marketplace_salones';
+    var RPC_DETALLE = SUPABASE_URL + '/rest/v1/rpc/public_salon_detalle';
+    var RPC_SOLICITUD = SUPABASE_URL + '/rest/v1/rpc/public_crear_solicitud';
 
     var RUBROS = [
         { id: '',           nombre: 'Todos' },
@@ -450,7 +568,9 @@
         busqueda: '',
         salones: [],
         cargando: true,
-        error: ''
+        error: '',
+        detalleActual: null,
+        detallePedido: 0
     };
 
     var $ = function (id) { return document.getElementById(id); };
@@ -717,9 +837,334 @@
         titulo.textContent = estado.rubro ? 'Salones de ' + (NOMBRE_RUBRO[estado.rubro] || estado.rubro) : 'Salones';
     }
 
+    // ── detalle y reserva ────────────────────────────────────────────────
+    function fechaLocalISO() {
+        var d = new Date();
+        var mes = String(d.getMonth() + 1).padStart(2, '0');
+        var dia = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mes + '-' + dia;
+    }
+
+    function formatearPrecio(valor) {
+        var n = Number(valor) || 0;
+        try {
+            return '$ ' + Math.round(n).toLocaleString('es-AR');
+        } catch (error) {
+            return '$ ' + Math.round(n);
+        }
+    }
+
+    function postRpc(url, cuerpo) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY
+            },
+            body: JSON.stringify(cuerpo)
+        });
+    }
+
+    function limpiarDetalleModal() {
+        var direccion = $('modal-direccion');
+        if (direccion) {
+            direccion.hidden = true;
+            direccion.textContent = '';
+        }
+
+        var servicios = $('modal-servicios');
+        if (servicios) {
+            servicios.textContent = '';
+            var cargando = document.createElement('p');
+            cargando.className = 'modal-nota';
+            cargando.textContent = 'Cargando servicios…';
+            servicios.appendChild(cargando);
+        }
+
+        var seccion = $('modal-reserva-seccion');
+        if (seccion) seccion.hidden = true;
+
+        var formulario = $('reserva-form');
+        if (formulario) formulario.reset();
+
+        var select = $('reserva-servicio');
+        if (select) {
+            while (select.options.length > 1) select.remove(1);
+        }
+
+        var aviso = $('reserva-aviso');
+        if (aviso) {
+            aviso.textContent = '';
+            aviso.className = 'reserva-aviso';
+        }
+
+        var boton = $('reserva-btn');
+        if (boton) {
+            boton.disabled = false;
+            boton.textContent = 'Enviar solicitud';
+        }
+
+        var fecha = $('reserva-fecha');
+        if (fecha) {
+            fecha.min = fechaLocalISO();
+            fecha.value = '';
+        }
+    }
+
+    function mostrarNotaServicios(texto) {
+        var caja = $('modal-servicios');
+        if (caja) {
+            caja.textContent = '';
+            var nota = document.createElement('p');
+            nota.className = 'modal-nota';
+            nota.textContent = texto;
+            caja.appendChild(nota);
+        }
+        var seccion = $('modal-reserva-seccion');
+        if (seccion) seccion.hidden = true;
+    }
+
+    function pintarDireccion(direccion) {
+        var el = $('modal-direccion');
+        if (!el) return;
+        var texto = String(direccion == null ? '' : direccion).trim();
+        el.textContent = texto ? 'Dirección: ' + texto : '';
+        el.hidden = !texto;
+    }
+
+    function pintarServicios(servicios) {
+        var caja = $('modal-servicios');
+        var select = $('reserva-servicio');
+        if (!caja) return;
+
+        caja.textContent = '';
+        if (select) {
+            while (select.options.length > 1) select.remove(1);
+        }
+
+        var lista = Array.isArray(servicios) ? servicios : [];
+        if (!lista.length) {
+            mostrarNotaServicios('Este salón todavía no cargó servicios.');
+            return;
+        }
+
+        lista.forEach(function (servicio) {
+            var nombre = String(servicio.nombre == null ? 'Servicio' : servicio.nombre);
+            var duracion = Number(servicio.duracion) || 0;
+            var precio = formatearPrecio(servicio.precio);
+
+            var item = document.createElement('div');
+            item.className = 'servicio-item';
+
+            var info = document.createElement('div');
+            var nombreEl = document.createElement('span');
+            nombreEl.className = 'servicio-nombre';
+            nombreEl.textContent = nombre;
+            var meta = document.createElement('span');
+            meta.className = 'servicio-meta';
+            meta.textContent = duracion + ' min';
+            info.appendChild(nombreEl);
+            info.appendChild(meta);
+
+            var precioEl = document.createElement('span');
+            precioEl.className = 'servicio-precio';
+            precioEl.textContent = precio;
+
+            item.appendChild(info);
+            item.appendChild(precioEl);
+            caja.appendChild(item);
+
+            if (select) {
+                var option = document.createElement('option');
+                option.value = String(servicio.id);
+                option.textContent = nombre + ' · ' + precio + ' · ' + duracion + ' min';
+                select.appendChild(option);
+            }
+        });
+
+        var seccion = $('modal-reserva-seccion');
+        if (seccion) seccion.hidden = false;
+    }
+
+    async function cargarDetalle(fila) {
+        var pedido = ++estado.detallePedido;
+        estado.detalleActual = null;
+        limpiarDetalleModal();
+
+        if (!fila || !fila.slug) {
+            mostrarNotaServicios('No pudimos identificar el salón.');
+            return;
+        }
+
+        try {
+            var respuesta = await postRpc(RPC_DETALLE, { p_slug: String(fila.slug) });
+            if (pedido !== estado.detallePedido || modalFondo.hidden) return;
+            if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status);
+
+            var datos = await respuesta.json();
+            if (pedido !== estado.detallePedido || modalFondo.hidden) return;
+
+            if (!datos || !datos.salon_id) {
+                mostrarNotaServicios('No pudimos cargar el perfil del salón.');
+                return;
+            }
+
+            estado.detalleActual = datos;
+            if (datos.nombre) $('modal-nombre').textContent = String(datos.nombre);
+            if (datos.bio) $('modal-bio').textContent = String(datos.bio);
+            pintarDireccion(datos.direccion);
+            pintarServicios(datos.servicios);
+
+            // Gate Pro: el perfil se ve, pero el formulario solo si reservas_link.
+            var reservaSeccion = $('modal-reserva-seccion');
+            if (reservaSeccion && datos.reservas_habilitadas !== true) {
+                reservaSeccion.hidden = true;
+            }
+        } catch (error) {
+            if (pedido !== estado.detallePedido) return;
+            console.error('Detalle del salón:', error);
+            mostrarNotaServicios('No pudimos cargar los servicios. Probá de nuevo.');
+        }
+    }
+
+    function mensajeSolicitud(datos) {
+        var texto = String((datos && (datos.message || datos.details || datos.hint)) || '');
+        if (/solicitud_duplicada/.test(texto)) {
+            return 'Ya enviaste una solicitud para ese mismo horario.';
+        }
+        if (/demasiadas_solicitudes/.test(texto)) {
+            return 'Recibimos varias solicitudes tuyas. Esperá un rato antes de volver a intentar.';
+        }
+        if (/salon_no_disponible/.test(texto)) {
+            return 'Ese salón ya no está disponible. Probá con otro.';
+        }
+        if (/servicio_invalido/.test(texto)) {
+            return 'El servicio elegido ya no está disponible. Elegí otro.';
+        }
+        if (/nombre_invalido/.test(texto)) {
+            return 'Revisá tu nombre.';
+        }
+        if (/telefono_invalido/.test(texto)) {
+            return 'Revisá tu WhatsApp.';
+        }
+        if (/fecha_invalida/.test(texto)) {
+            return 'Elegí una fecha desde hoy en adelante.';
+        }
+        if (/hora_invalida/.test(texto)) {
+            return 'Elegí un horario.';
+        }
+        return 'No pudimos enviar la solicitud. Revisá los datos e intentá de nuevo.';
+    }
+
+    async function enviarSolicitud(evento) {
+        evento.preventDefault();
+
+        var aviso = $('reserva-aviso');
+        var boton = $('reserva-btn');
+        var nombreEl = $('reserva-nombre');
+        var telefonoEl = $('reserva-telefono');
+        var fechaEl = $('reserva-fecha');
+        var horaEl = $('reserva-hora');
+        var servicioEl = $('reserva-servicio');
+
+        function mostrarError(mensaje) {
+            if (!aviso) return;
+            aviso.className = 'reserva-aviso error';
+            aviso.textContent = mensaje;
+        }
+
+        var detalle = estado.detalleActual;
+        if (!detalle || !detalle.salon_id) {
+            mostrarError('No pudimos cargar el salón. Cerrá y volvé a intentar.');
+            return;
+        }
+
+        var nombre = String(nombreEl && nombreEl.value ? nombreEl.value : '').trim();
+        var telefono = String(telefonoEl && telefonoEl.value ? telefonoEl.value : '').trim();
+        var fecha = String(fechaEl && fechaEl.value ? fechaEl.value : '');
+        var hora = String(horaEl && horaEl.value ? horaEl.value : '');
+        var servicioId = Number(servicioEl && servicioEl.value ? servicioEl.value : 0);
+
+        if (nombre.length < 2) {
+            mostrarError('Ingresá tu nombre.');
+            if (nombreEl) nombreEl.focus();
+            return;
+        }
+        if (telefono.replace(/[^0-9]/g, '').length < 6) {
+            mostrarError('Ingresá un WhatsApp válido.');
+            if (telefonoEl) telefonoEl.focus();
+            return;
+        }
+        if (!fecha || fecha < fechaLocalISO()) {
+            mostrarError('Elegí una fecha desde hoy en adelante.');
+            if (fechaEl) fechaEl.focus();
+            return;
+        }
+        if (!hora) {
+            mostrarError('Elegí un horario.');
+            if (horaEl) horaEl.focus();
+            return;
+        }
+        if (!servicioId) {
+            mostrarError('Elegí un servicio.');
+            if (servicioEl) servicioEl.focus();
+            return;
+        }
+
+        if (boton) {
+            boton.disabled = true;
+            boton.textContent = 'Enviando…';
+        }
+        if (aviso) {
+            aviso.className = 'reserva-aviso';
+            aviso.textContent = '';
+        }
+
+        try {
+            var respuesta = await postRpc(RPC_SOLICITUD, {
+                p_salon_id: detalle.salon_id,
+                p_cliente_nombre: nombre,
+                p_cliente_telefono: telefono,
+                p_fecha: fecha,
+                p_hora: hora + ':00',
+                p_servicio_id: servicioId
+            });
+
+            if (!respuesta.ok) {
+                var datos = null;
+                try { datos = await respuesta.json(); } catch (error) { datos = null; }
+                throw new Error(mensajeSolicitud(datos));
+            }
+
+            if (aviso) {
+                aviso.className = 'reserva-aviso exito';
+                aviso.textContent = 'Solicitud enviada. El salón se contactará con vos';
+            }
+            var formulario = $('reserva-form');
+            if (formulario) formulario.reset();
+            if (fechaEl) fechaEl.min = fechaLocalISO();
+        } catch (error) {
+            console.error('Solicitud:', error);
+            var mensaje = error && error.message ? error.message : '';
+            if (!/^(Ya enviaste|Recibimos|Ese salón|El servicio|Revisá|Elegí|No pudimos enviar)/.test(mensaje)) {
+                mensaje = 'No pudimos enviar la solicitud. Revisá tu conexión e intentá de nuevo.';
+            }
+            mostrarError(mensaje);
+        } finally {
+            if (boton) {
+                boton.disabled = false;
+                boton.textContent = 'Enviar solicitud';
+            }
+        }
+    }
+
     // ── modal ────────────────────────────────────────────────────────────
     function abrirModal(fila) {
         focoPrevio = document.activeElement;
+        estado.detalleActual = null;
+        estado.detallePedido++;
+
         $('modal-nombre').textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
         $('modal-rubro').textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
         $('modal-bio').textContent = fila.bio ? String(fila.bio) : 'Este salón todavía no cargó su descripción.';
@@ -758,12 +1203,16 @@
         cerrar.addEventListener('click', cerrarModal);
         acciones.appendChild(cerrar);
 
+        limpiarDetalleModal();
         modalFondo.hidden = false;
         document.body.style.overflow = 'hidden';
         $('modal-cerrar').focus();
+        cargarDetalle(fila);
     }
 
     function cerrarModal() {
+        estado.detallePedido++;
+        estado.detalleActual = null;
         modalFondo.hidden = true;
         document.body.style.overflow = '';
         if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
@@ -863,6 +1312,9 @@
         if ($('modal').contains(evento.target)) return;
         $('modal-cerrar').focus();
     });
+
+    // ── arranque ─────────────────────────────────────────────────────────
+    $('reserva-form').addEventListener('submit', enviarSolicitud);
 
     // ── arranque ─────────────────────────────────────────────────────────
     leerUrl();
