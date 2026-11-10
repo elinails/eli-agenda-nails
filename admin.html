@@ -652,9 +652,15 @@
         .barra-filtros label.campo { flex-direction:row; margin-bottom:0; gap:8px; }
         .barra-filtros .campo input[type="checkbox"] { width:18px; height:18px; accent-color:var(--gold); }
 
-        .tabla-panel { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .tabla-panel {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        min-width: 0;
+    }
         .tabla { width:100%; border-collapse:collapse; }
-        .tabla th, .tabla td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+        .tabla th, .tabla td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--hairline); white-space:nowrap; min-width: 0; }
         .tabla th { background:var(--surface-1); font-weight:600; font-size:12px; color:var(--ink-subtle); text-transform:uppercase; letter-spacing:.08em; }
         .tabla td { font-size:14px; color:var(--ink); }
         .tabla tr:last-child td { border-bottom:none; }
@@ -718,8 +724,15 @@
             .grid-cobros { grid-template-columns: 1fr; }
         }
 
-        .panel { background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; }
-        .tabla-panel { padding: 8px 8px 4px; overflow: hidden; }
+        .panel {
+            background: var(--surface-1);
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            padding: 20px;
+            min-width: 0;
+            width: 100%;
+        }
+        .tabla-panel { padding: 8px 8px 4px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; min-width: 0; }
         .tabla { width: 100%; border-collapse: collapse; }
         .tabla thead th {
             text-align: left;
