@@ -2833,7 +2833,7 @@
                 var td = document.createElement('td');
                 td.className = 'celda-accion';
                 if (u.salon_id) {
-                    var boton = crear('button', 'btn btn-sm', 'â†’ Entrar');
+                    var boton = crear('button', 'btn btn-sm', '→ Entrar');
                     boton.type = 'button';
                     if (bloqueoImpersonacion()) {
                         boton.disabled = true;
@@ -3009,7 +3009,7 @@
                 case 'plan_cambio':
                     return admin + ' cambió el plan de ' + (salon || 'un salón') + ' de ' + (d.plan_anterior || 'â€”') + ' a ' + (d.plan_nuevo || 'â€”');
                 case 'plan_estado':
-                    return admin + ' cambió el estado de ' + (salon || 'un salón') + ': ' + (d.estado_anterior || 'â€”') + ' â†’ ' + (d.estado_nuevo || 'â€”');
+                    return admin + ' cambió el estado de ' + (salon || 'un salón') + ': ' + (d.estado_anterior || 'â€”') + ' → ' + (d.estado_nuevo || 'â€”');
                 case 'plan_alta':
                     return admin + ' creó el plan ' + (d.nombre || d.plan || '');
                 case 'plan_editado':
