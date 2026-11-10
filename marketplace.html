@@ -229,9 +229,25 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    .estrellas { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
+    .estrellas { display: flex; align-items: center; gap: 6px; margin-top: 4px; padding-top: 4px; }
     .estrellas-iconos { color: var(--gold); font-size: 14px; letter-spacing: .06em; }
     .estrellas-texto { font-size: 12.5px; color: var(--ink-soft); }
+    .tarjeta-ver {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 11px;
+        border-top: 1px solid var(--line);
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+    .tarjeta-ver span { font-size: 14px; transition: transform .2s; }
+    .tarjeta:hover .tarjeta-ver span { transform: translateX(3px); }
 
     /* ── esqueletos ── */
     .esqueleto { pointer-events: none; }
@@ -575,6 +591,16 @@
         }
 
         cuerpo.appendChild(bloqueEstrellas(fila));
+
+        var ver = document.createElement('span');
+        ver.className = 'tarjeta-ver';
+        ver.appendChild(document.createTextNode('Ver perfil'));
+        var flecha = document.createElement('span');
+        flecha.textContent = '→';
+        flecha.setAttribute('aria-hidden', 'true');
+        ver.appendChild(flecha);
+        cuerpo.appendChild(ver);
+
         boton.appendChild(cuerpo);
 
         boton.addEventListener('click', function () { abrirModal(fila); });
@@ -671,10 +697,13 @@
         if (!estado.salones.length) {
             grilla.textContent = '';
             grilla.hidden = true;
+            var hayFiltros = !!(estado.rubro || estado.busqueda);
             mostrarAviso(
-                'Todavía no hay salones así',
-                'Probá con otro rubro o borrá la búsqueda.',
-                { etiqueta: 'Ver todos', alTocar: function () { reiniciar(); } }
+                hayFiltros ? 'Todavía no hay salones así' : 'Todavía no hay salones publicados',
+                hayFiltros
+                    ? 'Probá con otro rubro o borrá la búsqueda.'
+                    : 'Cuando un perfil esté aprobado, va a aparecer acá con su portada, rubro y reseñas.',
+                hayFiltros ? { etiqueta: 'Ver todos', alTocar: function () { reiniciar(); } } : null
             );
             cuenta.textContent = '0 salones';
             return;
