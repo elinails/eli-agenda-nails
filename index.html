@@ -9390,8 +9390,9 @@
             function pintarBotonMarketplace(slug) {
                 const boton = document.getElementById('btn-ver-marketplace');
                 if (!boton) return;
-                if (slug) {
-                    boton.setAttribute('href', 'marketplace.html?slug=' + encodeURIComponent(slug));
+                const limpio = String(slug || '').trim();
+                if (limpio) {
+                    boton.setAttribute('href', 'marketplace.html?slug=' + encodeURIComponent(limpio));
                     boton.classList.remove('opacity-50', 'pointer-events-none');
                     boton.removeAttribute('aria-disabled');
                     boton.removeAttribute('tabindex');
@@ -9404,6 +9405,21 @@
                     boton.title = 'Definí tu slug y guardá los datos para tener link público';
                 }
             }
+
+            // Fallback explícito por si el SPA intercepta los <a>
+            document.getElementById('btn-ir-portal')?.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.assign('portal.html');
+            });
+            document.getElementById('btn-ver-marketplace')?.addEventListener('click', function (e) {
+                e.preventDefault();
+                const slug = String((window.contexto && window.contexto.slug) || '').trim();
+                window.open(
+                    slug ? 'marketplace.html?slug=' + encodeURIComponent(slug) : 'marketplace.html',
+                    '_blank',
+                    'noopener'
+                );
+            });
 
             function pintarEstadoPublicacion() {
                 const estado = document.getElementById('salon-publicado-estado');
