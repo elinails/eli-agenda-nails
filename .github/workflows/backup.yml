@@ -4,7 +4,7 @@ name: Backup diario (public + auth + storage)
 # Argentina no tiene horario de verano, así que el horario es estable todo el año.
 #
 # Secrets requeridos:
-#   DATABASE_URL          connection string de Supabase (postgres, SSL)
+#   DATABASE_URL          connection string de Supabase (postgres, SSL, puerto 5432)
 #   BACKUP_PASSPHRASE     frase para cifrar los dumps (repo público)
 # Secrets opcionales (Storage S3):
 #   S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_ENDPOINT, S3_BUCKET, S3_REGION
@@ -20,8 +20,17 @@ jobs:
   database:
     name: pg_dump public + auth
     runs-on: ubuntu-latest
+    # El contenedor garantiza pg_dump de la MISMA major que Supabase (17).
+    # Si algún día se quita, el paso "Asegurar cliente PostgreSQL" instala el
+    # cliente igual: el job no depende del contenedor.
     container:
       image: postgres:17
+    # IMPORTANTE: en jobs con `container`, GitHub usa `sh` (dash) por defecto.
+    # dash no entiende `set -o pipefail`, `shopt` ni arrays → de ahí venían los
+    # "command not found" / exit 127. Forzamos bash en todos los pasos.
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Comprobar secrets
@@ -41,16 +50,73 @@ jobs:
           # La URL lleva la contraseña: se enmascara para que nunca aparezca en el log.
           echo "::add-mask::$DATABASE_URL"
 
-      # ── I53/Fix backup · preflight ─────────────────────────────────────
-      # Valida puerto (Session Pooler 5432) y compatibilidad de versiones ANTES
-      # de intentar el dump, para que un fallo diga exactamente qué corregir en
-      # lugar de terminar en un "version mismatch" críptico.
+      # ── Cliente PostgreSQL: se asegura ANTES de cualquier uso ──────────
+      # Busca pg_dump/psql en el PATH y también en las rutas típicas de las
+      # imágenes postgres:*; si no están, los instala (con sudo si hace falta).
+      # Deja las rutas absolutas en PG_BIN y PSQL_BIN para los pasos siguientes.
+      - name: Asegurar cliente PostgreSQL (pg_dump y psql)
+        run: |
+          set -euo pipefail
+
+          como_root() {
+            if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
+          }
+
+          ubicar() {
+            local nombre="$1" candidato
+            if command -v "$nombre" >/dev/null 2>&1; then
+              command -v "$nombre"
+              return 0
+            fi
+            for candidato in /usr/lib/postgresql/*/bin/"$nombre" /usr/pgsql-*/bin/"$nombre"; do
+              if [ -x "$candidato" ]; then
+                echo "$candidato"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          if ubicar pg_dump >/dev/null 2>&1 && ubicar psql >/dev/null 2>&1; then
+            echo "Cliente PostgreSQL ya disponible en la imagen."
+          else
+            echo "Cliente PostgreSQL ausente: instalando postgresql-client..."
+            como_root apt-get update || true
+            # Sin `set -e` abortando acá: si apt falla, queremos llegar a la
+            # verificación de abajo y dar un mensaje entendible (no un 100 seco).
+            if ! como_root apt-get install -y --no-install-recommends postgresql-client; then
+              echo "::warning::postgresql-client falló; probando los nombres alternativos del paquete..."
+              como_root apt-get install -y --no-install-recommends \
+                postgresql-client-common postgresql-client || true
+            fi
+          fi
+
+          BIN_PGDUMP="$(ubicar pg_dump || true)"
+          BIN_PSQL="$(ubicar psql || true)"
+          if [ -z "$BIN_PGDUMP" ] || [ -z "$BIN_PSQL" ]; then
+            echo "::error::No se pudo instalar el cliente de PostgreSQL (pg_dump/psql). Revisá la imagen del job o instalá postgresql-client."
+            exit 1
+          fi
+
+          {
+            echo "PG_BIN=$BIN_PGDUMP"
+            echo "PSQL_BIN=$BIN_PSQL"
+          } >> "$GITHUB_ENV"
+
+          "$BIN_PGDUMP" --version
+          "$BIN_PSQL" --version
+
+      # ── Preflight: puerto (Session Pooler) y compatibilidad de versiones ──
+      # Valida antes de intentar el dump, para que un fallo diga exactamente qué
+      # corregir en lugar de terminar en un "version mismatch" críptico.
       - name: Validar conexión, puerto y versiones
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PGSSLMODE: require
         run: |
           set -euo pipefail
+          PGDUMP="${PG_BIN:-pg_dump}"
+          PSQL="${PSQL_BIN:-psql}"
 
           # ── Puerto: pg_dump NO funciona contra el Transaction Pooler (6543) ──
           resto="${DATABASE_URL##*@}"          # host:puerto/db  (##*@ = último @)
@@ -71,7 +137,7 @@ jobs:
           fi
 
           # ── Conexión: si esto falla, el resto del job no tiene sentido ──
-          if ! servidor_version="$(psql "$DATABASE_URL" -tAc 'show server_version' | tr -d '[:space:]')"; then
+          if ! servidor_version="$("$PSQL" "$DATABASE_URL" -tAc 'show server_version' | tr -d '[:space:]')"; then
             echo "::error::No se pudo conectar con DATABASE_URL (psql falló). Revisá la contraseña de backup_reader, el SSL y el host del Session Pooler."
             exit 1
           fi
@@ -81,12 +147,12 @@ jobs:
           fi
 
           # ── Permisos: el dump necesita leer todas las tablas ──
-          if ! psql "$DATABASE_URL" -tAc "select 1 from public.miembros_salon limit 1" >/dev/null 2>&1; then
+          if ! "$PSQL" "$DATABASE_URL" -tAc "select 1 from public.miembros_salon limit 1" >/dev/null 2>&1; then
             echo "::warning::No se pudo leer public.miembros_salon: verificá que backup_reader tenga pg_read_all_data."
           fi
 
           # ── Versiones: cliente (pg_dump) vs servidor ──
-          version_cliente="$(pg_dump --version 2>/dev/null || echo 'cliente no encontrado')"
+          version_cliente="$("$PGDUMP" --version 2>/dev/null || echo 'cliente no encontrado')"
           echo "Cliente: ${version_cliente}"
           echo "Servidor: ${servidor_version}"
 
@@ -104,21 +170,35 @@ jobs:
             echo "::warning::El cliente (${cliente_major}) es más viejo que el servidor (${servidor_major}); se instalará el cliente ${servidor_major}."
           fi
 
-      # ── I53/Fix backup · cliente con la versión correcta ───────────────
-      # Solo se ejecuta si hay mismatch real. Instalar postgresql-client-17 a
-      # ciegas en Debian/Ubuntu falla (no existe en los repos base): el paquete
-      # por major lo publica postgresql.org (PGDG), que es lo que usa la imagen.
-      - name: Instalar cliente PostgreSQL compatible
+      # ── Solo si hay mismatch real: instalar el major exacto ──────────────
+      # El paquete postgresql-client-<major> lo publica postgresql.org (PGDG);
+      # en Ubuntu/Debian base puede no existir, así que se agrega el repo.
+      - name: Ajustar cliente al major del servidor
         if: "env.PG_MAJOR_SERVIDOR != '' && env.PG_MAJOR_SERVIDOR != env.PG_CLIENTE_MAJOR"
         run: |
           set -euo pipefail
           major="$PG_MAJOR_SERVIDOR"
+
+          como_root() {
+            if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
+          }
+
           echo "Instalando postgresql-client-${major}..."
-          apt-get update
-          if ! apt-get install -y --no-install-recommends "postgresql-client-${major}"; then
-            echo "::error::No se pudo instalar postgresql-client-${major}. Ajustá la imagen del job (container: postgres:${major}) y volvé a correr."
-            exit 1
+          como_root apt-get update || true
+
+          if ! como_root apt-get install -y --no-install-recommends "postgresql-client-${major}"; then
+            echo "No está en los repos base: agregando el repositorio de postgresql.org (PGDG)..."
+            como_root apt-get install -y --no-install-recommends postgresql-common || true
+            if [ -x /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh ]; then
+              como_root /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y || true
+            fi
+            como_root apt-get update
+            if ! como_root apt-get install -y --no-install-recommends "postgresql-client-${major}"; then
+              echo "::error::No se pudo instalar postgresql-client-${major}. Ajustá la imagen del job (container: postgres:${major}) y volvé a correr."
+              exit 1
+            fi
           fi
+
           candidato="/usr/lib/postgresql/${major}/bin/pg_dump"
           if [ -x "$candidato" ]; then
             echo "PG_BIN=${candidato}" >> "$GITHUB_ENV"
@@ -128,15 +208,15 @@ jobs:
             exit 1
           fi
 
-      - name: Usar cliente por defecto
-        if: "env.PG_BIN == ''"
-        run: echo "PG_BIN=pg_dump" >> "$GITHUB_ENV"
-
-
       - name: Instalar gpg
         run: |
+          set -euo pipefail
           if ! command -v gpg >/dev/null 2>&1; then
-            apt-get update && apt-get install -y --no-install-recommends gnupg
+            if [ "$(id -u)" -eq 0 ]; then
+              apt-get update && apt-get install -y --no-install-recommends gnupg
+            else
+              sudo apt-get update && sudo apt-get install -y --no-install-recommends gnupg
+            fi
           fi
 
       - name: Generar respaldos
@@ -145,7 +225,7 @@ jobs:
           PGSSLMODE: require
         run: |
           set -euo pipefail
-          BIN="${PG_BIN:-pg_dump}"          # I53: cliente validado en el preflight
+          BIN="${PG_BIN:-pg_dump}"          # ruta absoluta resuelta en el bootstrap
           mkdir -p "$GITHUB_WORKSPACE/backup"
           FECHA="$(date -u +%Y-%m-%d)"
           "$BIN" "$DATABASE_URL" \
@@ -166,7 +246,7 @@ jobs:
             | gzip -9 > "$GITHUB_WORKSPACE/backup/auth_${FECHA}.sql.gz"
           echo "FECHA=${FECHA}" >> "$GITHUB_ENV"
 
-      # ── I53/Fix backup · validación del archivo ───────────────────────
+      # ── Validación del archivo ───────────────────────────────────────────
       # Un dump "exitoso" pero vacío es peor que un fallo: se subiría un
       # artifact inútil y nadie se enteraría hasta necesitarlo.
       - name: Validar que los dumps no estén vacíos
