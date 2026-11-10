@@ -1583,6 +1583,24 @@
         .mi-plan-cta { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
         .mi-plan-cta button[disabled] { opacity: .62; cursor: not-allowed; }
 
+        /* I56 · estado de vigencia del plan (trial / gracia / vencido) */
+        .mi-plan-estado {
+            margin: 12px 0 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.45;
+            background: var(--blush-2);
+            color: var(--ink);
+            border: 1px solid var(--line);
+        }
+        .mi-plan-estado.es-warn {
+            background: var(--danger-bg);
+            color: var(--danger-ink);
+            border-color: transparent;
+        }
+        .mi-plan-estado.hidden { display: none; }
+
         /* I55 · patrocinador (solo plan Gratis, solo Inicio) */
         .patrocinio-card {
             display: flex;
@@ -2345,6 +2363,8 @@
                         </div>
                         <span class="pro-pill" id="mi-plan-chip">Gratis</span>
                     </div>
+
+                    <p class="mi-plan-estado hidden" id="mi-plan-estado" role="status" aria-live="polite"></p>
 
                     <p class="setting-note" id="mi-plan-precio-pro" style="margin-top:14px"></p>
                     <table class="mi-plan-tabla">
@@ -5009,6 +5029,8 @@
             async function iniciarApp(session) {
                 if (appIniciada) return;
                 appIniciada = true;
+                // I56: plan fresco en cada sesión (no arrastrar el de una cuenta previa).
+                planVigente.cargado = false;
                 // I52: cada sesión que entra en la app deja el respaldo al día.
                 // Cubre login, recuperación desde el respaldo y getSession.
                 guardarRespaldo(session);
@@ -5062,6 +5084,9 @@
                         mostrarLogin('No pudimos confirmar tu rol en el salón. Volvé a iniciar sesión.');
                         return;
                     }
+                    // I56: el plan efectivo se resuelve antes de pintar la UI, para
+                    // que candados, patrocinador y límites arranquen correctos.
+                    await cargarPlanEfectivo();
                     // Recien aca hay rol confirmado: se puede mostrar la app.
                     ocultarLogin();
                     aplicarRol();
@@ -8132,7 +8157,83 @@
                 };
             }
 
-            function esPlanGratis() { return (contexto.planId || 'gratis') === 'gratis'; }
+            // ── I56 · plan efectivo (RPC mi_plan_efectivo) ──────────────────
+            // contexto.planId sale de salones.plan_id y NO sabe de trials
+            // vencidos ni de pagos caídos. La RPC (i55_saas.sql) devuelve el
+            // plan que corresponde HOY. Si todavía no está aplicada en Supabase
+            // o falla la red, la app sigue funcionando con salones.plan_id.
+            const planVigente = {
+                cargado: false,
+                disponible: true,
+                plan: null,
+                estado: null,
+                motivo: null,
+                dias: null,
+                trialHasta: null,
+                venceEn: null
+            };
+
+            async function cargarPlanEfectivo(forzar) {
+                if (planVigente.cargado && !forzar) return planVigente;
+                planVigente.cargado = true;
+                if (!supabase || !contexto.salonId) {
+                    planVigente.disponible = false;
+                    return planVigente;
+                }
+                try {
+                    const { data, error } = await supabase.rpc('mi_plan_efectivo');
+                    if (error) throw error;
+                    const fila = Array.isArray(data) ? data[0] : data;
+                    if (!fila) return planVigente;      // sin membresía: no se toca nada
+                    planVigente.disponible = true;
+                    planVigente.plan = fila.plan_efectivo || null;
+                    planVigente.estado = fila.estado || null;
+                    planVigente.motivo = fila.motivo || null;
+                    planVigente.dias = (fila.dias_restantes === null || fila.dias_restantes === undefined)
+                        ? null
+                        : Number(fila.dias_restantes);
+                    planVigente.trialHasta = fila.trial_hasta || null;
+                    planVigente.venceEn = fila.vence_en || null;
+                    // El plan efectivo manda: también para los límites de plan.
+                    if (planVigente.plan) contexto.planId = planVigente.plan;
+                } catch (error) {
+                    planVigente.disponible = false;
+                    console.warn('I56 · no se pudo leer mi_plan_efectivo:', error && error.message);
+                }
+                return planVigente;
+            }
+
+            function diasEnPalabras(cantidad) {
+                if (cantidad === null || cantidad === undefined) return '';
+                if (cantidad <= 0) return 'hoy';
+                return cantidad + (cantidad === 1 ? ' día' : ' días');
+            }
+
+            // Devuelve { tipo, texto } o null. `tipo` decide el color del aviso.
+            function avisoEstadoPlan() {
+                if (!planVigente.disponible || !planVigente.estado) return null;
+                const dias = diasEnPalabras(planVigente.dias);
+                switch (planVigente.estado) {
+                    case 'trial':
+                        return { tipo: 'ok', texto: 'Estás en la prueba del Plan Pro: te quedan ' + dias + '.' };
+                    case 'gracia':
+                        return { tipo: 'warn', texto: 'Tu pago está vencido. Tenés ' + dias + ' de margen antes de pasar al plan Gratis.' };
+                    case 'vencido':
+                        return { tipo: 'warn', texto: 'Tu suscripción venció y pasaste al plan Gratis. Tus datos siguen guardados.' };
+                    case 'trial_vencido':
+                        return { tipo: 'warn', texto: 'La prueba del Plan Pro terminó y pasaste al plan Gratis. Tus datos siguen guardados.' };
+                    case 'suspendido':
+                        return { tipo: 'warn', texto: 'Tu salón está suspendido. Escribinos para reactivarlo.' };
+                    default:
+                        return null;    // 'active': no hace falta avisar nada
+                }
+            }
+
+            function esPlanGratis() {
+                // I56: manda el plan efectivo; si la RPC no está, el guardado.
+                const plan = planVigente.plan || contexto.planId || 'gratis';
+                return plan === 'gratis';
+            }
 
             function dineroPlan(valor) {
                 return '$ ' + (Number(valor) || 0).toLocaleString('es-AR');
@@ -8157,6 +8258,8 @@
                 const panel = document.getElementById('panel-mi-plan');
                 if (!panel) return;
                 await cargarPlanes();
+                // I56: primero el plan efectivo, después se pinta todo.
+                await cargarPlanEfectivo();
                 const actualId = contexto.planId || 'gratis';
                 const actual = datosPlan(actualId);
                 const gratis = datosPlan('gratis');
@@ -8164,6 +8267,15 @@
 
                 const chip = document.getElementById('mi-plan-chip');
                 if (chip) chip.textContent = actual.nombre;
+
+                // I56: aviso de vigencia (trial, gracia, vencido, suspendido).
+                const bloqueEstado = document.getElementById('mi-plan-estado');
+                if (bloqueEstado) {
+                    const aviso = avisoEstadoPlan();
+                    bloqueEstado.textContent = aviso ? aviso.texto : '';
+                    bloqueEstado.classList.toggle('hidden', !aviso);
+                    bloqueEstado.classList.toggle('es-warn', !!aviso && aviso.tipo === 'warn');
+                }
 
                 const activos = (store.miembros || []).filter(function (m) { return m.activo !== false; }).length;
                 const limite = actual.limite_empleadas;
@@ -8243,6 +8355,11 @@
                     };
                     if (aviso) aviso.textContent = yaEsPro ? '' : 'Pagos con MercadoPago: muy pronto.';
                 }
+
+                // I56: con el plan efectivo ya resuelto, los candados del Pro y el
+                // banner del patrocinador quedan alineados (trial vencido = Gratis).
+                actualizarBloqueosPro();
+                cargarPatrocinio();
             }
 
             function actualizarBloqueosPro() {

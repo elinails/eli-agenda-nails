@@ -274,3 +274,74 @@ notify pgrst, 'reload schema';
 -- update public.configuracion_global set valor_boolean = false
 --  where clave = 'patrocinios_habilitados';
 -- select * from public.patrocinador_publico();   -- 0 filas
+
+-- ============================================================================
+-- 6 · PLANES · B1 (características por plan editables desde el admin)
+-- ============================================================================
+
+alter table public.planes
+    add column if not exists caracteristicas jsonb not null default '{}'::jsonb;
+
+update public.planes set
+    descripcion = '1 persona (la dueña) · agenda y comprobantes',
+    caracteristicas = '{"reservas_link": false, "automatizaciones": false, "reportes_avanzados": false, "sin_publicidad": false}'::jsonb
+where id = 'gratis';
+
+update public.planes set
+    descripcion = 'Hasta 3 personas (dueña + 2) · CRM y finanzas',
+    caracteristicas = '{"reservas_link": true, "automatizaciones": true, "reportes_avanzados": true, "sin_publicidad": true}'::jsonb
+where id = 'pro';
+
+update public.planes set
+    descripcion = 'Personas ilimitadas · soporte prioritario',
+    caracteristicas = '{"reservas_link": true, "automatizaciones": true, "reportes_avanzados": true, "sin_publicidad": true}'::jsonb
+where id = 'premium';
+
+drop function if exists public.admin_planes();
+create function public.admin_planes()
+returns table (
+    id text, nombre text, precio numeric, limite_empleadas integer,
+    descripcion text, activo boolean, caracteristicas jsonb
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if not public.es_super_admin() then raise exception 'sin_permisos'; end if;
+    return query
+        select p.id, p.nombre, p.precio, p.limite_empleadas,
+               p.descripcion, p.activo, p.caracteristicas
+          from public.planes p
+         order by p.precio;
+end $$;
+grant execute on function public.admin_planes() to authenticated;
+
+create or replace function public.admin_plan_guardar(
+    p_id text, p_nombre text, p_precio numeric, p_limite integer,
+    p_descripcion text, p_activo boolean, p_caracteristicas jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if not public.es_super_admin() then raise exception 'sin_permisos'; end if;
+    if p_id is null or trim(p_id) = '' then raise exception 'id_requerido'; end if;
+    insert into public.planes (id, nombre, precio, limite_empleadas, descripcion, activo, caracteristicas)
+    values (
+        lower(trim(p_id)), trim(p_nombre), coalesce(p_precio, 0), p_limite,
+        p_descripcion, coalesce(p_activo, true), coalesce(p_caracteristicas, '{}'::jsonb)
+    )
+    on conflict (id) do update
+        set nombre = excluded.nombre,
+            precio = excluded.precio,
+            limite_empleadas = excluded.limite_empleadas,
+            descripcion = excluded.descripcion,
+            activo = excluded.activo,
+            caracteristicas = excluded.caracteristicas;
+end $$;
+grant execute on function public.admin_plan_guardar(text, text, numeric, integer, text, boolean, jsonb) to authenticated;
+
+notify pgrst, 'reload schema';
