@@ -10,7 +10,7 @@
             var tema = (guardado === "light" || guardado === "dark") ? guardado : "dark";
             document.documentElement.setAttribute("data-theme", tema);
 
-            var PALETAS = ["blush", "salvia", "mauve", "rose-gold", "nude-gold", "mono"];
+            var PALETAS = ["blush", "salvia", "mauve", "rose-gold", "golden-glam", "nude-gold", "mono-light", "mono-dark"];
             var paleta = null;
             try { paleta = localStorage.getItem("eli_admin_paleta"); } catch (error) { /* modo privado */ }
             if (!paleta || PALETAS.indexOf(paleta) < 0) paleta = "blush";
@@ -26,139 +26,275 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <style>
-        :root {
-            --canvas: #08070A;
-            --surface-1: #101014;
-            --surface-2: #15151B;
-            --surface-3: #1B1B23;
-            --hairline: #26262F;
-            --hairline-2: #34343F;
-            --ink: #F4F1F6;
-            --ink-muted: #B6B0C0;
-            --ink-subtle: #7C7686;
-            --gold: #C9A96A;
-            --gold-2: #E0C48F;
-            --gold-soft: rgba(201, 169, 106, .12);
-            --ok: #7FBF9A;
-            --ok-soft: rgba(127, 191, 154, .12);
-            --warn: #D9B36C;
-            --warn-soft: rgba(217, 179, 108, .12);
-            --danger: #E2705F;
-            --danger-soft: rgba(226, 112, 95, .12);
-            --info: #8FB2D9;
-            --info-soft: rgba(143, 178, 217, .12);
-            --radio: 12px;
-            --sombra: 0 20px 50px rgba(0, 0, 0, .45);
 
-            /* I57 · alias que el CSS ya usaba pero nadie definía */
-            --line: var(--hairline);
-            --surface: var(--surface-1);
-            --ink-soft: var(--ink-muted);
-            --gold-ink: var(--gold);
-            --topbar: rgba(8, 7, 10, .88);
-            color-scheme: dark;
+        /* ══════════════════════════════════════════════════════════════════
+           I63 · sistema de diseño compartido con index.html
+           Estos son los MISMOS tokens y las MISMAS 8 paletas de la app.
+           El panel no define colores propios: los hereda.
+           ══════════════════════════════════════════════════════════════════ */
+
+        :root {
+            --paper: #FAF6F3;
+            --surface: #FFFFFF;
+            --surface-2: #F7EFEC;
+            --blush: #E9D3DC;
+            --blush-2: #F4E7EC;
+            --ink: #3B2F35;
+            --ink-soft: #776569;
+            --line: #EADFDB;
+            --gold: #BE9E6F;
+            --gold-ink: #8C6B3A;
         }
 
-        /* I57 · modo día. Mismos nombres, otros valores: todo el panel cambia
-           sin tocar una regla de layout. */
-        [data-theme="light"] {
-            color-scheme: light;
-            --canvas: #F7F3EF;
-            --surface-1: #FFFFFF;
-            --surface-2: #FBF7F3;
-            --surface-3: #F2EBE5;
-            --hairline: #E8DFD7;
-            --hairline-2: #D6C9BF;
-            --ink: #241E1B;
-            --ink-muted: #5E5350;
-            --ink-subtle: #8A7F79;
-            --gold: #A47C2B;
-            --gold-2: #8C6822;
-            --gold-soft: rgba(164, 124, 43, .12);
-            --ok: #2E7A57;
-            --ok-soft: rgba(46, 122, 87, .10);
-            --warn: #8A6512;
-            --warn-soft: rgba(138, 101, 18, .12);
-            --danger: #B4453C;
-            --danger-soft: rgba(180, 69, 60, .10);
+        :root[data-theme="dark"] {
+            --paper: #2B1F26;
+            --surface: #3A2830;
+            --surface-2: #452F3A;
+            --blush: #6E4A5E;
+            --blush-2: #4A3340;
+            --ink: #F5EFF1;
+            --ink-soft: #BBA8B3;
+            --line: #4E3A44;
+            --gold: #D9BE8E;
+            --gold-ink: #D9BE8E;
+        }
+
+        :root[data-tema="salvia"] {
+            --paper: #F4F5F0;
+            --surface: #FFFFFF;
+            --surface-2: #EDF0E8;
+            --blush: #CBD8C6;
+            --blush-2: #E3E9DE;
+            --ink: #2F3A31;
+            --ink-soft: #5C675E;
+            --line: #DDE3D8;
+            --gold: #A98F5E;
+            --gold-ink: #7E6738;
+        }
+
+        :root[data-tema="salvia"][data-theme="dark"] {
+            --paper: #1E2721;
+            --surface: #28332B;
+            --surface-2: #334036;
+            --blush: #4F6355;
+            --blush-2: #364438;
+            --ink: #EFF3EC;
+            --ink-soft: #B3BEB4;
+            --line: #3C4A3E;
+            --gold: #D2B884;
+            --gold-ink: #D2B884;
+        }
+
+        :root[data-tema="mauve"] {
+            --paper: #F7F3F6;
+            --surface: #FFFFFF;
+            --surface-2: #F1E9EF;
+            --blush: #DCCBD9;
+            --blush-2: #EFE3EC;
+            --ink: #352633;
+            --ink-soft: #6E5F6C;
+            --line: #E6DAE3;
+            --gold: #C6A97C;
+            --gold-ink: #856742;
+        }
+
+        :root[data-tema="mauve"][data-theme="dark"] {
+            --paper: #241A24;
+            --surface: #332533;
+            --surface-2: #3F2F3F;
+            --blush: #6A4C68;
+            --blush-2: #453346;
+            --ink: #F6EEF5;
+            --ink-soft: #C2B0C0;
+            --line: #4A3A4A;
+            --gold: #DCC394;
+            --gold-ink: #DCC394;
+        }
+
+        :root[data-tema="rose-gold"] {
+            --paper: #FDF6F4;
+            --surface: #FFFFFF;
+            --surface-2: #FAEDEA;
+            --blush: #F3D9D2;
+            --blush-2: #F9E8E4;
+            --ink: #2E2320;
+            --ink-soft: #6F5B55;
+            --line: #EEDCD6;
+            --gold: #C9A227;
+            --gold-ink: #8A6A12;
+        }
+
+        :root[data-tema="rose-gold"][data-theme="dark"] {
+            --paper: #241C1B;
+            --surface: #322624;
+            --surface-2: #3E2E2B;
+            --blush: #6E4A44;
+            --blush-2: #4A3532;
+            --ink: #F7EDEA;
+            --ink-soft: #C3AEA8;
+            --line: #4A3733;
+            --gold: #E3C46A;
+            --gold-ink: #E3C46A;
+        }
+
+        :root[data-tema="golden-glam"] {
+            --paper: #FBF7EC;
+            --surface: #FFFFFF;
+            --surface-2: #F5EDD8;
+            --blush: #E8C874;
+            --blush-2: #F4E6C0;
+            --ink: #2B2418;
+            --ink-soft: #6B5F45;
+            --line: #EBE0C6;
+            --gold: #C8A64B;
+            --gold-ink: #866A1F;
+        }
+
+        :root[data-tema="golden-glam"][data-theme="dark"] {
+            --paper: #1F1A10;
+            --surface: #2B2416;
+            --surface-2: #382F1D;
+            --blush: #6B5726;
+            --blush-2: #42371D;
+            --ink: #F8F1DF;
+            --ink-soft: #C9B995;
+            --line: #453A22;
+            --gold: #E2C275;
+            --gold-ink: #E2C275;
+        }
+
+        :root[data-tema="nude-gold"] {
+            --paper: #F7F1E8;
+            --surface: #FFFFFF;
+            --surface-2: #F1E8DA;
+            --blush: #E4CFB4;
+            --blush-2: #F2E7D8;
+            --ink: #33291F;
+            --ink-soft: #6F5F4D;
+            --line: #E8DCC9;
+            --gold: #C9A96A;
+            --gold-ink: #85652E;
+        }
+
+        :root[data-tema="nude-gold"][data-theme="dark"] {
+            --paper: #221B14;
+            --surface: #2E251B;
+            --surface-2: #3A2F22;
+            --blush: #6E573B;
+            --blush-2: #443626;
+            --ink: #F7EFE3;
+            --ink-soft: #C9B79E;
+            --line: #463A2A;
+            --gold: #DDC08A;
+            --gold-ink: #DDC08A;
+        }
+
+        :root[data-tema="mono-light"] {
+            --paper: #FAFAFA;
+            --surface: #FFFFFF;
+            --surface-2: #F0F0F0;
+            --blush: #E2E2E2;
+            --blush-2: #EDEDED;
+            --ink: #111111;
+            --ink-soft: #5A5A5A;
+            --line: #D9D9D9;
+            --gold: #9A9A9A;
+            --gold-ink: #333333;
+        }
+
+        :root[data-tema="mono-light"][data-theme="dark"] {
+            --paper: #FAFAFA;
+            --surface: #FFFFFF;
+            --surface-2: #F0F0F0;
+            --blush: #E2E2E2;
+            --blush-2: #EDEDED;
+            --ink: #111111;
+            --ink-soft: #5A5A5A;
+            --line: #D9D9D9;
+            --gold: #9A9A9A;
+            --gold-ink: #333333;
+        }
+
+        :root[data-tema="mono-dark"] {
+            --paper: #0F0F0F;
+            --surface: #1A1A1A;
+            --surface-2: #242424;
+            --blush: #3A3A3A;
+            --blush-2: #2A2A2A;
+            --ink: #F5F5F5;
+            --ink-soft: #B0B0B0;
+            --line: #333333;
+            --gold: #C9C9C9;
+            --gold-ink: #E8E8E8;
+        }
+
+        :root[data-tema="mono-dark"][data-theme="light"] {
+            --paper: #0F0F0F;
+            --surface: #1A1A1A;
+            --surface-2: #242424;
+            --blush: #3A3A3A;
+            --blush-2: #2A2A2A;
+            --ink: #F5F5F5;
+            --ink-soft: #B0B0B0;
+            --line: #333333;
+            --gold: #C9C9C9;
+            --gold-ink: #E8E8E8;
+        }
+
+        /* ── capa de alias ──────────────────────────────────────────────
+           El CSS del panel usa nombres propios (--canvas, --surface-1...).
+           Acá se traducen a los tokens de la app: cero cambios en las
+           ~200 reglas de layout. */
+        :root {
+            --canvas: var(--paper);
+            --surface-1: var(--surface);
+            --surface-3: var(--blush-2);
+            --hairline: var(--line);
+            --hairline-2: var(--blush);
+            --ink-muted: var(--ink-soft);
+
+            /* 3 niveles de texto: el más tenue se mezcla con el fondo */
+            --ink-subtle: var(--ink-soft);
+            --ink-subtle: color-mix(in srgb, var(--ink-soft) 72%, var(--paper));
+
+            /* estados: la app tiene ok/danger; warn e info se derivan */
+            --ok: var(--ok-ink);
+            --ok-soft: var(--ok-bg);
+            --danger: var(--danger-ink);
+            --danger-soft: var(--danger-bg);
+            --warn: var(--gold-ink);
+            --warn-soft: rgba(190, 158, 111, .16);
+            --warn-soft: color-mix(in srgb, var(--gold) 18%, transparent);
+            --info: #8FB2D9;
+            --info-soft: rgba(143, 178, 217, .14);
+
+            /* el hover del botón dorado aclara en oscuro y oscurece en claro */
+            --gold-2: var(--gold);
+            --gold-2: color-mix(in srgb, var(--gold) 82%, var(--ink));
+            --gold-soft: rgba(190, 158, 111, .14);
+            --gold-soft: color-mix(in srgb, var(--gold) 14%, transparent);
+
+            --btn-ink: #221A20;
+
+            --topbar: rgba(43, 31, 38, .90);
+            --topbar: color-mix(in srgb, var(--paper) 90%, transparent);
+
+            --sombra: 0 20px 50px rgba(0, 0, 0, .45);
+        }
+        :root[data-theme="light"] {
             --info: #2F5E8F;
             --info-soft: rgba(47, 94, 143, .10);
+            --btn-ink: #FFFFFF;
             --sombra: 0 18px 40px rgba(59, 47, 53, .12);
-
-            --line: var(--hairline);
-            --surface: var(--surface-1);
-            --ink-soft: var(--ink-muted);
-            --gold-ink: var(--gold);
-            --topbar: rgba(247, 243, 239, .90);
+        }
+        /* mono-dark fuerza chrome oscuro aun en modo día */
+        :root[data-tema="mono-dark"][data-theme="light"] {
+            --info: #8FB2D9;
+            --info-soft: rgba(143, 178, 217, .14);
+            --btn-ink: #221A20;
         }
 
         /* I57 · el botón dorado lleva texto claro en modo día */
-        [data-theme="light"] .btn-primario { color: #FFFFFF; }
-
-        /* ══ I58 · paletas de color ══
-           El acento y el tinte de fondo cambian; los textos siguen viniendo
-           del modo día/noche para no perder contraste. */
-        [data-tema="blush"] {
-            --gold: #C9A96A; --gold-2: #E0C48F; --gold-soft: rgba(201, 169, 106, .12); --gold-ink: #E0C48F;
-        }
-        [data-tema="blush"][data-theme="light"] {
-            --gold: #A47C2B; --gold-2: #8C6822; --gold-soft: rgba(164, 124, 43, .12); --gold-ink: #8C6822;
-        }
-
-        [data-tema="salvia"] {
-            --canvas: #0A0D0A; --surface-1: #121612; --surface-2: #171C17; --surface-3: #1E241E;
-            --hairline: #26302A; --hairline-2: #334034;
-            --gold: #A98F5E; --gold-2: #C6AE7C; --gold-soft: rgba(169, 143, 94, .14); --gold-ink: #C6AE7C;
-        }
-        [data-tema="salvia"][data-theme="light"] {
-            --canvas: #F4F6F1; --surface-1: #FFFFFF; --surface-2: #F8FAF5; --surface-3: #EFF3EA;
-            --hairline: #E2E8DC; --hairline-2: #CFD8C7;
-            --gold: #7E6534; --gold-2: #6B5529; --gold-soft: rgba(126, 101, 52, .12); --gold-ink: #6B5529;
-        }
-
-        [data-tema="mauve"] {
-            --canvas: #0C0A0D; --surface-1: #151219; --surface-2: #1B1720; --surface-3: #221D28;
-            --hairline: #2C2733; --hairline-2: #3B3544;
-            --gold: #C6A97C; --gold-2: #DEC49C; --gold-soft: rgba(198, 169, 124, .14); --gold-ink: #DEC49C;
-        }
-        [data-tema="mauve"][data-theme="light"] {
-            --canvas: #F7F3F7; --surface-1: #FFFFFF; --surface-2: #FBF7FB; --surface-3: #F3EDF4;
-            --hairline: #E8DFE9; --hairline-2: #D8CBD9;
-            --gold: #8A6A3E; --gold-2: #725530; --gold-soft: rgba(138, 106, 62, .12); --gold-ink: #725530;
-        }
-
-        [data-tema="rose-gold"] {
-            --canvas: #0D0909; --surface-1: #171010; --surface-2: #1E1515; --surface-3: #261B1B;
-            --hairline: #332525; --hairline-2: #432F2F;
-            --gold: #E3C46A; --gold-2: #F0D894; --gold-soft: rgba(227, 196, 106, .14); --gold-ink: #F0D894;
-        }
-        [data-tema="rose-gold"][data-theme="light"] {
-            --canvas: #FDF6F4; --surface-1: #FFFFFF; --surface-2: #FBF0ED; --surface-3: #F7E6E2;
-            --hairline: #EFDDD8; --hairline-2: #E2C9C2;
-            --gold: #A9822F; --gold-2: #8C6822; --gold-soft: rgba(169, 130, 47, .12); --gold-ink: #8C6822;
-        }
-
-        [data-tema="nude-gold"] {
-            --canvas: #0C0A08; --surface-1: #161210; --surface-2: #1D1714; --surface-3: #241D19;
-            --hairline: #332A24; --hairline-2: #453A31;
-            --gold: #DDC08A; --gold-2: #EFD9AE; --gold-soft: rgba(221, 192, 138, .14); --gold-ink: #EFD9AE;
-        }
-        [data-tema="nude-gold"][data-theme="light"] {
-            --canvas: #F8F2EA; --surface-1: #FFFFFF; --surface-2: #FCF7F0; --surface-3: #F4ECE1;
-            --hairline: #E9DFD1; --hairline-2: #D9CBB8;
-            --gold: #8A6A34; --gold-2: #71552A; --gold-soft: rgba(138, 106, 52, .12); --gold-ink: #71552A;
-        }
-
-        [data-tema="mono"] {
-            --canvas: #09090A; --surface-1: #111112; --surface-2: #171718; --surface-3: #1E1E20;
-            --hairline: #29292B; --hairline-2: #38383B;
-            --gold: #C5C1CB; --gold-2: #E2DFE7; --gold-soft: rgba(197, 193, 203, .12); --gold-ink: #E2DFE7;
-        }
-        [data-tema="mono"][data-theme="light"] {
-            --canvas: #F6F6F7; --surface-1: #FFFFFF; --surface-2: #FAFAFB; --surface-3: #F1F1F3;
-            --hairline: #E4E4E7; --hairline-2: #D2D2D7;
-            --gold: #5A5560; --gold-2: #49444F; --gold-soft: rgba(90, 85, 96, .12); --gold-ink: #49444F;
-        }
 
         /* selector de paletas */
         .paleta-caja { position: relative; }
@@ -287,7 +423,7 @@
         .btn:hover { background: var(--surface-3); border-color: var(--hairline-2); }
         .btn:active { transform: translateY(1px); }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
-        .btn-primario { background: var(--gold); border-color: var(--gold); color: #1A1409; font-weight: 600; }
+        .btn-primario { background: var(--gold); border-color: var(--gold); color: var(--btn-ink); font-weight: 600; }
         .btn-primario:hover { background: var(--gold-2); border-color: var(--gold-2); }
         .btn-peligro { color: var(--danger); border-color: var(--hairline); background: transparent; }
         .btn-peligro:hover { background: var(--danger-soft); border-color: var(--danger); }
@@ -373,10 +509,30 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--hairline);
         }
-        .topbar-titulo h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
-        .topbar-titulo p { margin: 1px 0 0; font-size: 12.5px; color: var(--ink-subtle); }
-        .topbar-acciones { display: flex; gap: 8px; align-items: center; }
+        .topbar-titulo { min-width: 0; }
+        .topbar-titulo h1 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: -.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .topbar-titulo p {
+            margin: 1px 0 0;
+            font-size: 12.5px;
+            color: var(--ink-subtle);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .topbar-acciones { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
         .menu-btn { display: none; }
+        .buscar-btn { display: none; }
+
+        /* I63 · áreas táctiles de 44px */
+        .btn-icono { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; }
         .contenido { width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 28px 70px; }
 
         .cabecera-seccion { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -474,6 +630,24 @@
         .kpi-pie { font-size: 11.5px; color: var(--ink-subtle); }
         .kpi-destacado { border-color: rgba(201, 169, 106, .35); }
         .kpi-destacado .kpi-valor { color: var(--gold-2); }
+
+        /* I63 · cobros */
+        .cobros-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+        .cobros-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .grid-cobros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+        .cobros-titulo { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+        .cobros-titulo h3 { margin: 0; }
+        .lista-cobros { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .cobro-item { border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; background: var(--surface-2); }
+        .cobro-nombre { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+        .cobro-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 6px; font-size: 11.5px; color: var(--ink-subtle); }
+        .cobro-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .cobro-acciones .btn { flex: 1 1 auto; min-height: 34px; font-size: 11.5px; padding: 5px 8px; }
+        .cobro-vacio { font-size: 12.5px; color: var(--ink-subtle); padding: 10px 0; }
+        @media (max-width: 980px) {
+            .cobros-kpis { grid-template-columns: 1fr 1fr; }
+            .grid-cobros { grid-template-columns: 1fr; }
+        }
 
         .panel { background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; }
         .tabla-panel { padding: 8px 8px 4px; overflow: hidden; }
@@ -642,16 +816,49 @@
         .sidebar-fondo { display: none; }
 
         @media (max-width: 980px) {
-            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); transition: transform .2s ease; box-shadow: var(--sombra); }
+            .sidebar {
+                position: fixed; left: 0; top: 0;
+                width: min(86vw, 300px);
+                transform: translateX(-100%);
+                transition: transform .2s ease;
+                box-shadow: var(--sombra);
+                z-index: 40;
+                padding-bottom: calc(22px + env(safe-area-inset-bottom));
+            }
             body.menu-abierto .sidebar { transform: none; }
-            .sidebar-fondo { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .55); z-index: 35; }
+            .sidebar-fondo { display: none; position: fixed; inset: 0; background: var(--overlay, rgba(0, 0, 0, .55)); z-index: 35; }
             body.menu-abierto .sidebar-fondo { display: block; }
             .menu-btn { display: inline-flex; }
-            .contenido { padding: 20px 18px 70px; }
-            .topbar { padding: 12px 18px; }
+            .nav-item { min-height: 44px; }
+            .contenido { padding: 20px 18px calc(70px + env(safe-area-inset-bottom)); }
+            .topbar { padding: 10px 14px; }
             .grid-anuncios { grid-template-columns: 1fr; }
         }
         @media (max-width: 720px) {
+            /* I63 · header de una fila + buscador colapsable */
+            .topbar { gap: 8px; flex-wrap: nowrap; }
+            .topbar-titulo h1 { font-size: 17px; }
+            .topbar-titulo p { display: none; }
+            .buscador-global { display: none; }
+            .buscar-btn { display: inline-flex; }
+            body.buscar-abierto .buscador-global {
+                display: block;
+                position: absolute;
+                left: 10px;
+                right: 10px;
+                top: calc(100% + 6px);
+                max-width: none;
+                padding: 8px;
+                border-radius: 12px;
+                border: 1px solid var(--hairline);
+                background: var(--surface-1);
+                box-shadow: var(--sombra);
+                z-index: 45;
+            }
+            body.buscar-abierto .buscador-global input { min-height: 44px; }
+            #refrescar-btn { width: 44px; min-width: 44px; height: 44px; padding: 0; }
+            #refrescar-btn .texto-btn { display: none; }
+            .tabla-panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .kpis { grid-template-columns: 1fr 1fr; }
             .tabla thead { display: none; }
             .tabla, .tabla tbody, .tabla tr, .tabla td { display: block; width: 100%; }
@@ -754,6 +961,10 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>
                     Suscripciones
                 </button>
+                <button type="button" class="nav-item" data-vista="cobros">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z"/><path d="M3 9.5h18M7 14.5h4"/></svg>
+                    Cobros
+                </button>
                 <button type="button" class="nav-item" data-vista="planes">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
                     Planes
@@ -805,6 +1016,11 @@
                     </div>
                 </div>
                 <div class="topbar-acciones">
+                    <button type="button" id="buscar-btn" class="btn btn-icono buscar-btn" title="Buscar" aria-label="Buscar" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
+                        </svg>
+                    </button>
                     <div class="buscador-global">
                         <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acción…" aria-label="Buscar en la plataforma">
                         <div id="busqueda-resultados" class="buscar-resultados glass oculto"></div>
@@ -833,7 +1049,7 @@
                     </button>
                     <button type="button" id="refrescar-btn" class="btn btn-sm" title="Actualizar datos">
                         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>
-                        Actualizar
+                        <span class="texto-btn">Actualizar</span>
                     </button>
                 </div>
             </header>
@@ -1102,6 +1318,40 @@
                         <p id="auditoria-vacio" class="vacio oculto">No hay registros.</p>
                     </div>
                 </section>
+                <!-- COBROS (I63) -->
+                <section id="seccion-cobros" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <div>
+                            <h2>Cobros</h2>
+                            <p class="sub">Quién vence, quién está en gracia y quién se pasó a Gratis.</p>
+                        </div>
+                        <div class="cobros-botones">
+                            <button type="button" id="cobros-refrescar" class="btn btn-sm">Actualizar</button>
+                            <button type="button" id="cobros-aplicar" class="btn btn-sm btn-peligro">Aplicar degradaciones</button>
+                        </div>
+                    </div>
+
+                    <div class="cobros-kpis" id="cobros-kpis"></div>
+
+                    <div class="grid-cobros">
+                        <div class="panel">
+                            <div class="cobros-titulo"><h3>Por vencer</h3><span id="cobros-n-porvencer" class="pill pill-info">0</span></div>
+                            <p class="sub">Próximos 7 días.</p>
+                            <div id="lista-porvencer" class="lista-cobros"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="cobros-titulo"><h3>En gracia</h3><span id="cobros-n-gracia" class="pill pill-warn">0</span></div>
+                            <p class="sub">Pago pendiente con margen.</p>
+                            <div id="lista-gracia" class="lista-cobros"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="cobros-titulo"><h3>Vencidos</h3><span id="cobros-n-vencidos" class="pill pill-danger">0</span></div>
+                            <p class="sub">Pendientes de pasar a Gratis.</p>
+                            <div id="lista-vencidos" class="lista-cobros"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- PLANES -->
                 <section id="seccion-planes" class="seccion oculto">
                     <div class="panel tabla-panel">
@@ -1230,6 +1480,7 @@
         const TITULOS = {
             salones: { t: 'Inicio', s: 'Estado general de la plataforma.' },
             suscripciones: { t: 'Suscripciones', s: 'Planes, pruebas y MRR estimado.' },
+            cobros: { t: 'Cobros', s: 'Vencimientos, gracias y pagos de las suscripciones.' },
             planes: { t: 'Planes', s: 'Precios y límites de cada plan.' },
             usuarios: { t: 'Usuarios', s: 'Todas las cuentas registradas.' },
             anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
@@ -1457,12 +1708,14 @@
         // tinte de fondo, el modo decide los contrastes de texto.
         var CLAVE_PALETA = 'eli_admin_paleta';
         var PALETAS_UI = [
-            { id: 'blush',     nombre: 'Blush',     muestras: ['#FBF7F5', '#E9D3DC', '#C9A96A'] },
-            { id: 'salvia',    nombre: 'Salvia',    muestras: ['#F4F6F1', '#CBD8C6', '#A98F5E'] },
-            { id: 'mauve',     nombre: 'Mauve',     muestras: ['#F7F3F7', '#DCCBD9', '#C6A97C'] },
-            { id: 'rose-gold', nombre: 'Rose gold', muestras: ['#FDF6F4', '#F3D9D2', '#C9A227'] },
-            { id: 'nude-gold', nombre: 'Nude',      muestras: ['#F8F2EA', '#E4CFB4', '#C9A96A'] },
-            { id: 'mono',      nombre: 'Monocromo', muestras: ['#F6F6F7', '#D2D2D7', '#8A8590'] }
+            { id: 'blush', nombre: 'Blush Atelier', muestras: ['#FAF6F3', '#E9D3DC', '#BE9E6F'] },
+            { id: 'salvia', nombre: 'Salvia Studio', muestras: ['#F4F5F0', '#CBD8C6', '#A98F5E'] },
+            { id: 'mauve', nombre: 'Mauve Room', muestras: ['#F7F3F6', '#DCCBD9', '#C6A97C'] },
+            { id: 'rose-gold', nombre: 'Rose Gold', muestras: ['#FDF6F4', '#F3D9D2', '#C9A227'] },
+            { id: 'golden-glam', nombre: 'Golden Glam', muestras: ['#FBF7EC', '#E8C874', '#C8A64B'] },
+            { id: 'nude-gold', nombre: 'Nude Elegance', muestras: ['#F7F1E8', '#E4CFB4', '#C9A96A'] },
+            { id: 'mono-light', nombre: 'Mono Light', muestras: ['#FAFAFA', '#E2E2E2', '#9A9A9A'] },
+            { id: 'mono-dark', nombre: 'Mono Dark', muestras: ['#0F0F0F', '#3A3A3A', '#C9C9C9'] }
         ];
 
         function paletaActual() {
@@ -2530,7 +2783,7 @@
                 if (activo) boton.setAttribute('aria-current', 'page');
                 else boton.removeAttribute('aria-current');
             });
-            ['salones', 'suscripciones', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'ajustes'].forEach(function (v) {
+            ['salones', 'suscripciones', 'cobros', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'ajustes'].forEach(function (v) {
                 var seccion = $('seccion-' + v);
                 if (seccion) seccion.classList.toggle('oculto', v !== nombre);
             });
@@ -2547,8 +2800,42 @@
             mostrarSeccion((location.hash || '#salones').slice(1));
         });
 
-        function abrirMenu() { document.body.classList.add('menu-abierto'); }
-        function cerrarMenu() { document.body.classList.remove('menu-abierto'); }
+        function abrirMenu() {
+            document.body.classList.add('menu-abierto');
+            var b = $('menu-btn');
+            if (b) b.setAttribute('aria-expanded', 'true');
+        }
+        function cerrarMenu() {
+            document.body.classList.remove('menu-abierto');
+            var b = $('menu-btn');
+            if (b) b.setAttribute('aria-expanded', 'false');
+        }
+
+        // I63 · buscador colapsable (solo móvil): la lupa lo abre, Escape y el
+        // clic afuera lo cierran. En desktop el input siempre está visible.
+        (function () {
+            var boton = $('buscar-btn');
+            var input = $('busqueda-global');
+            if (!boton) return;
+            function cerrar() {
+                document.body.classList.remove('buscar-abierto');
+                boton.setAttribute('aria-expanded', 'false');
+            }
+            boton.addEventListener('click', function () {
+                var abierto = document.body.classList.toggle('buscar-abierto');
+                boton.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+                if (abierto && input) setTimeout(function () { input.focus(); }, 40);
+            });
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key !== 'Escape') return;
+                cerrar();
+                cerrarMenu();
+            });
+            document.addEventListener('click', function (evento) {
+                if (evento.target.closest('.buscador-global') || evento.target.closest('#buscar-btn')) return;
+                cerrar();
+            });
+        })();
         $('menu-btn').addEventListener('click', abrirMenu);
         $('sidebar-fondo').addEventListener('click', cerrarMenu);
 
@@ -2570,6 +2857,7 @@
             await cargarAlertas();
             await cargarAnuncios();
             await cargarPatrocinadores();
+            await refrescarCobros();
             await cargarAuditoria();
             pintarSalones();
             pintarSuscripciones();
@@ -3610,6 +3898,236 @@
             }
         }
 
+        // ── cobros (I63) ──
+        // Fuente: admin_saas_por_vencer(7) y admin_saas_vencimientos(false).
+        // Acciones: admin_set_suscripcion() para el pago y update de salones
+        // para el trial. Ambas quedan en auditoria_admin por triggers.
+        var cobrosCache = { porvencer: [], gracia: [], vencidos: [] };
+
+        function sumarDias(fecha, dias) {
+            var base = fecha ? new Date(fecha) : new Date();
+            if (isNaN(base.getTime())) base = new Date();
+            base.setDate(base.getDate() + dias);
+            return base;
+        }
+
+        function isoFecha(d) {
+            var m = d.getMonth() + 1;
+            var dia = d.getDate();
+            return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (dia < 10 ? '0' : '') + dia;
+        }
+
+        async function cargarCobros() {
+            var por = await supabase.rpc('admin_saas_por_vencer', { p_dias: 7 });
+            if (por.error) throw por.error;
+            var ven = await supabase.rpc('admin_saas_vencimientos', { p_aplicar: false });
+            if (ven.error) throw ven.error;
+
+            var filas = por.data || [];
+            cobrosCache.porvencer = filas.filter(function (f) { return f.estado === 'trial' || f.estado === 'active'; });
+            cobrosCache.gracia = filas.filter(function (f) { return f.estado === 'gracia'; });
+            cobrosCache.vencidos = (ven.data || []).filter(function (f) { return f.estado === 'vencido' || f.estado === 'trial_vencido'; });
+        }
+
+        function pintarKpiCobros(etiqueta, valor, clase) {
+            var caja = crear('div', 'kpi ' + (clase || ''));
+            caja.appendChild(crear('div', 'kpi-label', etiqueta));
+            caja.appendChild(crear('div', 'kpi-valor', String(valor)));
+            return caja;
+        }
+
+        function tarjetaCobro(fila, acciones) {
+            var item = crear('div', 'cobro-item');
+            item.appendChild(crear('div', 'cobro-nombre', fila.nombre || 'Salón'));
+
+            var meta = crear('div', 'cobro-meta');
+            meta.appendChild(pill(nombrePlan(fila.plan_efectivo || fila.plan_guardado || 'gratis'),
+                (fila.plan_efectivo === 'pro' ? 'pill-info' : (fila.plan_efectivo === 'premium' ? 'pill-gold' : 'pill-neutral'))));
+            if (fila.dias_restantes !== null && fila.dias_restantes !== undefined) {
+                meta.appendChild(crear('span', '', fila.dias_restantes <= 0 ? 'vence hoy' : 'en ' + fila.dias_restantes + (fila.dias_restantes === 1 ? ' día' : ' días')));
+            }
+            if (fila.vence_en) meta.appendChild(crear('span', '', 'vence ' + fechaCorta(fila.vence_en)));
+            else if (fila.trial_hasta) meta.appendChild(crear('span', '', 'trial ' + fechaCorta(fila.trial_hasta)));
+            item.appendChild(meta);
+
+            if (acciones && acciones.length) {
+                var caja = crear('div', 'cobro-acciones');
+                acciones.forEach(function (a) { caja.appendChild(a); });
+                item.appendChild(caja);
+            }
+            return item;
+        }
+
+        function botonCobro(texto, clase, accion) {
+            var b = crear('button', 'btn btn-sm ' + (clase || ''), texto);
+            b.type = 'button';
+            b.addEventListener('click', accion);
+            return b;
+        }
+
+        function pintarCobros() {
+            var kpis = $('cobros-kpis');
+            if (kpis) {
+                kpis.textContent = '';
+                kpis.appendChild(pintarKpiCobros('Por vencer', cobrosCache.porvencer.length, 'kpi-destacado'));
+                kpis.appendChild(pintarKpiCobros('En gracia', cobrosCache.gracia.length));
+                kpis.appendChild(pintarKpiCobros('Vencidos', cobrosCache.vencidos.length));
+                kpis.appendChild(pintarKpiCobros('Degradables', cobrosCache.vencidos.length));
+            }
+
+            var contadores = {
+                porvencer: $('cobros-n-porvencer'),
+                gracia: $('cobros-n-gracia'),
+                vencidos: $('cobros-n-vencidos')
+            };
+            if (contadores.porvencer) contadores.porvencer.textContent = String(cobrosCache.porvencer.length);
+            if (contadores.gracia) contadores.gracia.textContent = String(cobrosCache.gracia.length);
+            if (contadores.vencidos) contadores.vencidos.textContent = String(cobrosCache.vencidos.length);
+
+            var llenar = function (id, lista, accionesDe) {
+                var caja = $(id);
+                if (!caja) return;
+                caja.textContent = '';
+                if (!lista.length) {
+                    caja.appendChild(crear('p', 'cobro-vacio', 'Nadie por acá.'));
+                    return;
+                }
+                lista.forEach(function (f) { caja.appendChild(tarjetaCobro(f, accionesDe(f))); });
+            };
+
+            llenar('lista-porvencer', cobrosCache.porvencer, function (f) {
+                return [
+                    botonCobro('Pago +30 d', 'btn-primario', function (e) { registrarPago(f, e.target); }),
+                    botonCobro('Trial +7', '', function (e) { extenderTrial(f, 7, e.target); }),
+                    botonCobro('Trial +14', '', function (e) { extenderTrial(f, 14, e.target); })
+                ];
+            });
+
+            llenar('lista-gracia', cobrosCache.gracia, function (f) {
+                return [
+                    botonCobro('Pago +30 d', 'btn-primario', function (e) { registrarPago(f, e.target); })
+                ];
+            });
+
+            llenar('lista-vencidos', cobrosCache.vencidos, function (f) {
+                return [
+                    botonCobro('Pago +30 d', 'btn-primario', function (e) { registrarPago(f, e.target); }),
+                    botonCobro('Trial +14', '', function (e) { extenderTrial(f, 14, e.target); })
+                ];
+            });
+        }
+
+        async function refrescarCobros() {
+            try {
+                await cargarCobros();
+                pintarCobros();
+            } catch (error) {
+                console.error('cobros:', error);
+                toast('No se pudieron cargar los cobros: ' + (error.message || 'error de conexión'), 'error');
+            }
+        }
+
+        async function registrarPago(fila, boton) {
+            var plan = fila.plan_efectivo || fila.plan_guardado || 'pro';
+            if (plan === 'gratis') {
+                toast('Ese salón está en el plan Gratis: cambiale el plan antes de registrar un pago.', 'error');
+                return;
+            }
+            var ok = await confirmar(
+                'Registrar pago',
+                'Se registra el pago de ' + (fila.nombre || 'el salón') + ' y se extiende 30 días el plan ' + nombrePlan(plan) + '.',
+                'Registrar pago'
+            );
+            if (!ok) return;
+
+            ocupado(boton, '…');
+            try {
+                var base = fila.vence_en ? new Date(fila.vence_en) : new Date();
+                if (isNaN(base.getTime()) || base < new Date()) base = new Date();
+                var vence = isoFecha(sumarDias(base, 30));
+
+                var sus = await supabase.rpc('admin_set_suscripcion', {
+                    p_salon: fila.salon_id,
+                    p_plan: plan,
+                    p_estado: 'active',
+                    p_vence: vence
+                });
+                if (sus.error) throw sus.error;
+
+                var salon = await supabase.from('salones')
+                    .update({ plan_id: plan, estado_suscripcion: 'active', suscripcion_desde: new Date().toISOString() })
+                    .eq('id', fila.salon_id)
+                    .select('id');
+                if (salon.error) throw salon.error;
+
+                toast('Pago registrado. Vence el ' + fechaCorta(vence) + '.', 'ok');
+                await refrescarCobros();
+            } catch (error) {
+                console.error('registrarPago:', error);
+                toast('No se pudo registrar el pago: ' + (error.message || 'error de conexión'), 'error');
+                ocupado(boton, '');
+            }
+        }
+
+        async function extenderTrial(fila, dias, boton) {
+            var ok = await confirmar(
+                'Extender prueba',
+                'Se le suman ' + dias + ' días de prueba a ' + (fila.nombre || 'el salón') + '.',
+                'Extender +' + dias + ' d'
+            );
+            if (!ok) return;
+
+            ocupado(boton, '…');
+            try {
+                var plan = await supabase.rpc('admin_saas_plan', { p_salon: fila.salon_id });
+                if (plan.error) throw plan.error;
+                var datos = (plan.data || [])[0] || {};
+                var base = datos.trial_hasta ? new Date(datos.trial_hasta) : null;
+                if (!base || isNaN(base.getTime()) || base < new Date()) base = new Date();
+                var nuevo = sumarDias(base, dias);
+
+                var res = await supabase.from('salones')
+                    .update({ trial_hasta: nuevo.toISOString(), estado_suscripcion: 'trial' })
+                    .eq('id', fila.salon_id)
+                    .select('id');
+                if (res.error) throw res.error;
+
+                toast('Prueba extendida hasta el ' + fechaCorta(nuevo.toISOString()) + '.', 'ok');
+                await refrescarCobros();
+            } catch (error) {
+                console.error('extenderTrial:', error);
+                toast('No se pudo extender la prueba: ' + (error.message || 'error de conexión'), 'error');
+                ocupado(boton, '');
+            }
+        }
+
+        async function aplicarDegradaciones() {
+            if (!cobrosCache.vencidos.length) {
+                toast('No hay degradaciones pendientes.', 'ok');
+                return;
+            }
+            var ok = await confirmar(
+                'Aplicar degradaciones',
+                'Se pasan a plan Gratis ' + cobrosCache.vencidos.length + ' salón(es) vencidos. La acción queda en auditoría.',
+                'Aplicar',
+                true
+            );
+            if (!ok) return;
+            var boton = $('cobros-aplicar');
+            ocupado(boton, 'Aplicando…');
+            try {
+                var res = await supabase.rpc('admin_saas_vencimientos', { p_aplicar: true });
+                if (res.error) throw res.error;
+                toast('Degradaciones aplicadas.', 'ok');
+                await refrescarCobros();
+            } catch (error) {
+                console.error('degradaciones:', error);
+                toast('No se pudieron aplicar: ' + (error.message || 'error de conexión'), 'error');
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
         // ── auditoría ──
         function resumenDetalle(detalle) {
             if (detalle == null) return '—';
@@ -3834,6 +4352,10 @@
         $('filtro-accion').addEventListener('change', pintarAuditoria);
         $('anuncio-mensaje').addEventListener('input', actualizarContadorAnuncio);
         $('anuncio-publicar').addEventListener('click', publicarAnuncio);
+
+        // I63 · cobros
+        if ($('cobros-refrescar')) $('cobros-refrescar').addEventListener('click', refrescarCobros);
+        if ($('cobros-aplicar')) $('cobros-aplicar').addEventListener('click', aplicarDegradaciones);
 
         // I55 · patrocinadores
         if ($('pat-guardar')) $('pat-guardar').addEventListener('click', guardarPatrocinador);
