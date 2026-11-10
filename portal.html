@@ -941,6 +941,7 @@
 
             try {
                 var res = await cliente.rpc('crear_resena', {
+                    p_salon_id: turnoSeleccionado.salon_id,
                     p_turno_id: turnoSeleccionado.id,
                     p_estrellas: estrellasSeleccionadas,
                     p_comentario: comentario
