@@ -4,8 +4,8 @@
 // "no se puede abrir la página" en ese caso).
 // I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de version
 // es lo que dispara la purga de la cache vieja en 'activate'. Subir esta
-// constante siempre que cambie el shell.
-const CACHE = 'eli-nails-v10';
+// constante siempre que cambie el shell. Ahora v11 para PWA.
+const CACHE = 'eli-nails-v11';
 const SHELL = [
     './',
     'index.html',
