@@ -1634,6 +1634,30 @@
         </div>
     </div>
 
+    <!-- I72 · COMPLETAR PERFIL PÚBLICO (rubro + slug) ANTES DE APROBAR -->
+    <div id="perfil-overlay" class="overlay oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="perfil-titulo">
+            <h2 id="perfil-titulo">Completar perfil público</h2>
+            <p id="perfil-texto" class="nota">Para aparecer en Elima Belleza el salón necesita rubro y slug.</p>
+            <div class="campo">
+                <label for="perfil-rubro">Rubro</label>
+                <select id="perfil-rubro">
+                    <option value="">Elegí un rubro…</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label for="perfil-slug">Slug del perfil</label>
+                <input type="text" id="perfil-slug" maxlength="60" autocomplete="off" spellcheck="false" placeholder="ej: eli-m-nails">
+                <small class="nota">Link público: marketplace.html?slug=<span id="perfil-slug-preview">—</span></small>
+            </div>
+            <p id="perfil-error" class="alerta error oculto" role="alert"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="perfil-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="perfil-guardar" class="btn btn-primario">Guardar y aprobar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script>
     (function () {
@@ -1854,6 +1878,34 @@
         $('confirm-overlay').addEventListener('click', function (evento) {
             if (evento.target === $('confirm-overlay')) cerrarConfirmar(false);
         });
+
+        // ── I72 · modal de perfil público ──
+        (function () {
+            var overlay = $('perfil-overlay');
+            if (!overlay) return;
+            llenarSelectRubros($('perfil-rubro'));
+
+            $('perfil-cancelar').addEventListener('click', cerrarModalPerfil);
+            overlay.addEventListener('click', function (evento) {
+                if (evento.target === overlay) cerrarModalPerfil();
+            });
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Escape' && !overlay.classList.contains('oculto')) cerrarModalPerfil();
+            });
+            $('perfil-slug').addEventListener('input', function () {
+                $('perfil-slug-preview').textContent = normalizarSlugAdmin(this.value) || '—';
+            });
+            $('perfil-rubro').addEventListener('change', function () {
+                if (!perfilCtx) return;
+                mostrarErrorPerfil('');
+            });
+            $('perfil-guardar').addEventListener('click', async function () {
+                var ctx = perfilCtx;
+                if (!ctx) return;
+                var guardado = await guardarPerfil(ctx.salon, $('perfil-rubro').value, $('perfil-slug').value, ctx.publicar, this);
+                if (guardado) cerrarModalPerfil();
+            });
+        })();
 
         // ── I57 · tema día / noche ──
         // La preferencia vive en localStorage y se aplica temprano en el <head>.
@@ -3633,6 +3685,19 @@
             return !!(s && s.slug && s.rubro);
         }
 
+        // I72 · mismo saneado que aplica trg_normalizar_perfil_publico en la base,
+        // para que el preview del panel sea exactamente lo que se guarda.
+        function normalizarSlugAdmin(valor) {
+            return String(valor || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/-{2,}/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .slice(0, 60)
+                .replace(/^-+|-+$/g, '');
+        }
+
         function salonesFiltrados() {
             var busqueda = normalizar(filtroSalones).trim();
             return salones.filter(function (s) {
@@ -3757,11 +3822,12 @@
                 var botonPerfil = crear('button', 'btn btn-sm ' + (publicado ? '' : 'btn-ok'), publicado ? 'Despublicar' : 'Aprobar');
                 botonPerfil.type = 'button';
                 botonPerfil.setAttribute('aria-label', (publicado ? 'Despublicar perfil de ' : 'Aprobar perfil de ') + s.nombre);
-                if (!publicado && (!perfilDisponible || !perfilCompleto(s))) {
+                if (!publicado && !perfilDisponible) {
                     botonPerfil.disabled = true;
-                    botonPerfil.title = !perfilDisponible
-                        ? 'Faltan las columnas de perfil público en la base'
-                        : 'Completá rubro y slug desde la app de la dueña para aprobar';
+                    botonPerfil.title = 'Faltan las columnas de perfil público en la base';
+                } else if (!publicado && !perfilCompleto(s)) {
+                    // I72 · ya no se bloquea: al tocarlo se abre el modal para completar rubro y slug.
+                    botonPerfil.title = 'Aprobar: te va a pedir completar rubro y slug';
                 } else {
                     botonPerfil.title = publicado ? 'Quitar de Elima Belleza' : 'Publicar en Elima Belleza';
                 }
@@ -3819,14 +3885,154 @@
             }
         }
 
+        // ── I72 · perfil público: rubro + slug editables y aprobación asistida ──
+        var perfilCtx = null;
+
+        function llenarSelectRubros(select) {
+            if (!select || select.getAttribute('data-rubros-listo') === '1') return;
+            Object.keys(RUBROS).forEach(function (id) {
+                var op = document.createElement('option');
+                op.value = id;
+                op.textContent = RUBROS[id];
+                select.appendChild(op);
+            });
+            select.setAttribute('data-rubros-listo', '1');
+        }
+
+        function mostrarErrorPerfil(mensaje) {
+            var caja = $('perfil-error');
+            if (!caja) return;
+            if (mensaje) {
+                caja.textContent = mensaje;
+                caja.classList.remove('oculto');
+            } else {
+                caja.textContent = '';
+                caja.classList.add('oculto');
+            }
+        }
+
+        // Traduce los errores de la base a algo que se entienda sin saber SQL.
+        function mensajeErrorPerfil(error) {
+            var texto = String((error && (error.message || error.details || error.hint)) || '');
+            var codigo = String((error && error.code) || '');
+            if (codigo === '23505' || /un_salones_slug|duplicate key/i.test(texto)) {
+                return 'Ese slug ya lo usa otro salón. Probá con otro.';
+            }
+            if (/salones_slug_check/i.test(texto)) {
+                return 'El slug necesita entre 3 y 60 caracteres: minúsculas, números y guiones simples.';
+            }
+            if (/salones_rubro_check/i.test(texto)) {
+                return 'Rubro inválido. Elegí Nails, Peluquería, Maquillaje o Barbería.';
+            }
+            if (/solo_admin_publica/.test(texto)) {
+                return 'Tu sesión no es de SuperAdmin: no podés aprobar perfiles.';
+            }
+            if (/row-level security|permission denied/i.test(texto)) {
+                return 'La base rechazó el cambio por permisos (RLS).';
+            }
+            return texto || 'No se pudo guardar el perfil.';
+        }
+
+        function reportarErrorPerfil(mensaje) {
+            toast(mensaje, 'error');
+            var overlay = $('perfil-overlay');
+            if (overlay && !overlay.classList.contains('oculto')) mostrarErrorPerfil(mensaje);
+        }
+
+        function abrirModalPerfil(s, publicar) {
+            if (!s) return;
+            llenarSelectRubros($('perfil-rubro'));
+            perfilCtx = { salon: s, publicar: publicar !== false, foco: document.activeElement };
+
+            $('perfil-titulo').textContent = perfilCtx.publicar ? 'Completar perfil y aprobar' : 'Editar perfil público';
+            $('perfil-texto').textContent = perfilCtx.publicar
+                ? 'Para aprobar «' + s.nombre + '» hacen falta rubro y slug. Se guardan y se publica en un mismo paso.'
+                : 'Rubro y slug del perfil público de «' + s.nombre + '».';
+            $('perfil-rubro').value = s.rubro || '';
+            $('perfil-slug').value = s.slug || '';
+            $('perfil-slug-preview').textContent = normalizarSlugAdmin(s.slug) || '—';
+            $('perfil-guardar').textContent = perfilCtx.publicar ? 'Guardar y aprobar' : 'Guardar';
+            mostrarErrorPerfil('');
+            $('perfil-overlay').classList.remove('oculto');
+            document.body.style.overflow = 'hidden';
+            $('perfil-rubro').focus();
+        }
+
+        function cerrarModalPerfil() {
+            var overlay = $('perfil-overlay');
+            if (overlay) overlay.classList.add('oculto');
+            document.body.style.overflow = '';
+            var ctx = perfilCtx;
+            perfilCtx = null;
+            if (ctx && ctx.foco && ctx.foco.focus) {
+                try { ctx.foco.focus(); } catch (error) { /* sin foco */ }
+            }
+        }
+
+        async function guardarPerfil(s, rubro, slug, publicar, boton) {
+            var limpio = normalizarSlugAdmin(slug);
+            if (!RUBROS[rubro]) {
+                reportarErrorPerfil('Elegí un rubro antes de guardar.');
+                return false;
+            }
+            if (limpio.length < 3) {
+                reportarErrorPerfil('El slug necesita al menos 3 caracteres (letras, números o guiones).');
+                return false;
+            }
+
+            var cambios = { rubro: rubro, slug: limpio };
+            if (publicar) cambios.publicado = true;
+
+            ocupado(boton, 'Guardando…');
+            try {
+                var res = await supabase
+                    .from('salones')
+                    .update(cambios)
+                    .eq('id', s.id)
+                    .select('id, rubro, slug, publicado')
+                    .single();
+                if (res.error) throw res.error;
+                if (!res.data) throw new Error('La base no actualizó el perfil (permisos RLS).');
+
+                s.rubro = res.data.rubro || rubro;
+                s.slug = res.data.slug || limpio;
+                s.publicado = res.data.publicado === true;
+
+                var enLista = salonPorId(s.id);
+                if (enLista) {
+                    enLista.rubro = s.rubro;
+                    enLista.slug = s.slug;
+                    enLista.publicado = s.publicado;
+                }
+                if (detalleActual && String(detalleActual.id) === String(s.id)) {
+                    detalleActual.rubro = s.rubro;
+                    detalleActual.slug = s.slug;
+                    detalleActual.publicado = s.publicado;
+                }
+
+                pintarSalones();
+                calcularSaas();
+                if (detalleActual && String(detalleActual.id) === String(s.id)) pintarDetalle(detalleActual);
+                toast(publicar ? 'Perfil aprobado y publicado en Elima Belleza.' : 'Perfil guardado.', 'ok');
+                return true;
+            } catch (error) {
+                console.error(error);
+                reportarErrorPerfil(mensajeErrorPerfil(error));
+                return false;
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
         async function pedirCambioPublicacion(s, boton) {
             var publicar = s.publicado !== true;
             if (publicar && !perfilDisponible) {
                 toast('No se pudieron leer las columnas del perfil público. Revisá la migración I62.', 'error');
                 return;
             }
+            // I72 · si faltan rubro/slug no bloqueamos: abrimos el modal para completarlos y aprobar.
             if (publicar && !perfilCompleto(s)) {
-                toast('Completá rubro y slug desde la app de la dueña antes de aprobar el perfil.', 'error');
+                abrirModalPerfil(s, true);
                 return;
             }
 
@@ -4173,8 +4379,61 @@
             caja.appendChild(filaDetalle('Último turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
             caja.appendChild(filaDetalle('Estado', s.activo ? 'Activo' : 'Suspendido'));
             caja.appendChild(filaDetalle('Perfil público', s.publicado === true ? 'Publicado' : 'Pendiente'));
-            caja.appendChild(filaDetalle('Rubro', RUBROS[s.rubro] || 'Sin rubro'));
-            caja.appendChild(filaDetalle('Slug', s.slug || '—'));
+
+            // I72 · rubro y slug editables en el drawer: antes eran solo lectura y
+            // bloqueaban la aprobación cuando el salón llegaba incompleto.
+            var editor = crear('div', 'perfil-editor');
+            editor.appendChild(crear('h3', '', 'Rubro y slug'));
+
+            var campoRubro = crear('div', 'campo');
+            var etiquetaRubro = crear('label', '', 'Rubro');
+            etiquetaRubro.htmlFor = 'drawer-rubro';
+            campoRubro.appendChild(etiquetaRubro);
+            var selRubro = document.createElement('select');
+            selRubro.id = 'drawer-rubro';
+            var opcionVacia = document.createElement('option');
+            opcionVacia.value = '';
+            opcionVacia.textContent = 'Sin rubro';
+            selRubro.appendChild(opcionVacia);
+            Object.keys(RUBROS).forEach(function (id) {
+                var opcion = document.createElement('option');
+                opcion.value = id;
+                opcion.textContent = RUBROS[id];
+                selRubro.appendChild(opcion);
+            });
+            selRubro.value = s.rubro || '';
+            campoRubro.appendChild(selRubro);
+            editor.appendChild(campoRubro);
+
+            var campoSlug = crear('div', 'campo');
+            var etiquetaSlug = crear('label', '', 'Slug del perfil');
+            etiquetaSlug.htmlFor = 'drawer-slug';
+            campoSlug.appendChild(etiquetaSlug);
+            var inputSlug = document.createElement('input');
+            inputSlug.type = 'text';
+            inputSlug.id = 'drawer-slug';
+            inputSlug.maxLength = 60;
+            inputSlug.autocomplete = 'off';
+            inputSlug.spellcheck = false;
+            inputSlug.placeholder = 'ej: eli-m-nails';
+            inputSlug.value = s.slug || '';
+            campoSlug.appendChild(inputSlug);
+            var ayudaSlug = crear('small', 'nota', 'Link: marketplace.html?slug=' + (s.slug || '—'));
+            campoSlug.appendChild(ayudaSlug);
+            inputSlug.addEventListener('input', function () {
+                ayudaSlug.textContent = 'Link: marketplace.html?slug=' + (normalizarSlugAdmin(this.value) || '—');
+            });
+            editor.appendChild(campoSlug);
+
+            var accionesEditor = crear('div', 'acciones-fila');
+            var botonGuardarPerfil = crear('button', 'btn btn-sm btn-primario', 'Guardar rubro y slug');
+            botonGuardarPerfil.type = 'button';
+            botonGuardarPerfil.addEventListener('click', function () {
+                guardarPerfil(s, selRubro.value, inputSlug.value, false, botonGuardarPerfil);
+            });
+            accionesEditor.appendChild(botonGuardarPerfil);
+            editor.appendChild(accionesEditor);
+            caja.appendChild(editor);
 
             $('drawer-titulo').textContent = s.nombre;
             $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
@@ -4247,11 +4506,9 @@
                 'btn ' + (publicado ? '' : 'btn-ok'),
                 function () { pedirCambioPublicacion(s, botonPerfil); }
             );
-            if (!publicado && (!perfilDisponible || !perfilCompleto(s))) {
+            if (!publicado && !perfilDisponible) {
                 botonPerfil.disabled = true;
-                botonPerfil.title = !perfilDisponible
-                    ? 'Faltan las columnas de perfil público en la base'
-                    : 'Completá rubro y slug desde la app de la dueña para aprobar';
+                botonPerfil.title = 'Faltan las columnas de perfil público en la base';
             }
             caja.appendChild(botonPerfil);
 
