@@ -701,6 +701,69 @@
         .rf-modal .acciones { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
         .rf-modal .acciones .btn { min-width:120px; }
 
+        /* I83 · Mejoras UI financiera */
+        .rf-badge-superadmin {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-ink));
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 12px;
+        }
+        .rf-kpi-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .rf-kpi {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-1);
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        .rf-kpi .etiqueta { font-size: 12px; color: var(--ink-subtle); }
+        .rf-kpi .valor { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .rf-kpi .valor.positivo { color: var(--ok); }
+        .rf-kpi .valor.negativo { color: var(--danger); }
+        .rf-kpi .valor.cero { color: var(--ink-subtle); }
+        .rf-tabla-financiera {
+            border: 1px solid var(--hairline);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        #rf-tabla { font-size: 14px; }
+        #rf-tabla th {
+            background: linear-gradient(135deg, var(--surface-1), var(--surface-2));
+            font-weight: 600;
+            color: var(--ink);
+        }
+        #rf-tabla td {
+            border-bottom: 1px solid var(--line);
+            padding: 12px 14px;
+        }
+        #rf-tabla tr:last-child td { border-bottom: none; }
+        #rf-tabla tr.seleccionado { background: var(--blush-2); }
+        #rf-tabla tr.seleccionado td { font-weight: 600; }
+        .rf-acciones-btn {
+            font-size: 13px;
+            min-height: 32px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .rf-acciones-btn:hover {
+            background: var(--gold-soft);
+            color: var(--ink);
+        }
+
         /* Movimientos modal */
         .movimientos-lista { max-height:400px; overflow-y:auto; display:grid; gap:8px; }
         .movimiento-item { padding:12px 14px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface-1); display:grid; gap:4px; }
@@ -1519,6 +1582,11 @@
                 <!-- RESERVA FEDERAL -->
                 <section id="seccion-reserva-federal" class="seccion oculto">
                     <div class="alerta" id="rf-alerta" role="alert" hidden></div>
+
+                    <div class="cabecera-seccion">
+                        <h2>Reserva Federal <span class="rf-badge-superadmin">SuperAdmin</span></h2>
+                        <p class="sub">Panel financiero de Elima Points • Gestión de billeteras y emision</p>
+                    </div>
 
                     <div class="kpis" id="rf-kpis">
                         <div class="kpi">
@@ -5828,6 +5896,22 @@
         async function cargarReservaFederal() {
             alerta('rf-alerta', '', 'error');
             try {
+                // Cargar salones en el select
+                var resSalones = await supabase.from('salones').select('id, nombre').eq('activo', true).order('nombre');
+                if (resSalones.error) throw resSalones.error;
+                var rfSalon = $('rf-salon');
+                rfSalon.innerHTML = '<option value="">Todos los salones</option>';
+                (resSalones.data || []).forEach(function (s) {
+                    var option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = s.nombre || 'Salón';
+                    rfSalon.appendChild(option);
+                });
+                // Si hay al menos un salón, seleccionar el primero
+                if (resSalones.data && resSalones.data.length > 0) {
+                    rfSalon.value = resSalones.data[0].id;
+                }
+
                 var resResumen = await supabase.rpc('admin_resumen_puntos');
                 if (resResumen.error) throw resResumen.error;
                 pintarKPIsReserva(resResumen.data[0]);
@@ -5857,9 +5941,13 @@
             var offset = (rfPaginaActual - 1) * rfLIMITE_PAGINA;
 
             try {
-                var res = await supabase.rpc('admin_listar_wallets', {
-                    p_busqueda: buscar,
+                if (!salonId) {
+                    alerta('rf-alerta', 'Seleccioná un salón para ver las clientas.', 'error');
+                    return;
+                }
+                var res = await supabase.rpc('admin_listar_clientes_billeteras', {
                     p_salon_id: salonId,
+                    p_busqueda: buscar,
                     p_solo_con_saldo: soloSaldo,
                     p_limite: rfLIMITE_PAGINA,
                     p_offset: offset
@@ -6407,133 +6495,8 @@
             });
         }
 
-        actualizarContadorAnuncio();
-
-        // I83 · Reserva Federal: emisión de puntos
-        function pintarFilaSeleccionada(tr) {
-            document.querySelectorAll('#rf-tabla tr').forEach(function (r) {
-                r.classList.remove('seleccionado');
-            });
-            tr.classList.add('seleccionado');
-        }
-
-        function abrirModalEmitir(f) {
-            rfModalEmitir = f;
-            var modal = document.createElement('div');
-            modal.id = 'rf-modal-emitir';
-            modal.className = 'overlay overlay-confirmar oculto';
-            modal.innerHTML = '\
-                <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-emitir-titulo" style="max-width:500px">\
-                    <h2 id="rf-emitir-titulo">Emitir Elima Points</h2>\
-                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> · Salón: ' + escapeHtml(f.salon_nombre) + '</p>\
-                    <div class="modal-cuerpo">\
-                        <div class="campo">\
-                            <label for="rf-cantidad">Cantidad de puntos a emitir</label>\
-                            <input type="number" id="rf-cantidad" step="1" min="1" max="1000000" placeholder="Ej: 500" required>\
-                        </div>\
-                        <div class="campo">\
-                            <label for="rf-motivo-emitir">Motivo (3-180 caracteres)</label>\
-                            <textarea id="rf-motivo-emitir" rows="2" maxlength="180" placeholder="Ej: Bono de bienvenida, recompensa por turno" required></textarea>\
-                            <div class="contador-caracteres"><span id="rf-motivo-contador">0 / 180</span></div>\
-                        </div>\
-                        <div class="vista-previa">\
-                            <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(f.saldo_actual) || 0) + '</span></div>\
-                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-emitir">—</span></div>\
-                        </div>\
-                    </div>\
-                    <div class="acciones">\
-                        <button type="button" class="btn" id="rf-emitir-cancelar">Cancelar</button>\
-                        <button type="button" class="btn btn-primario" id="rf-emitir-confirmar">Emitir puntos</button>\
-                    </div>\
-                </div>';
-            document.body.appendChild(modal);
-            modal.classList.remove('oculto');
-            document.body.style.overflow = 'hidden';
-
-            // Contador de caracteres
-            var motivoInput = $('rf-motivo-emitir');
-            var contadorInput = $('rf-motivo-contador');
-            if (motivoInput) {
-                motivoInput.addEventListener('input', function () {
-                    contadorInput.textContent = motivoInput.value.length + ' / 180';
-                });
-            }
-
-            // Vista previa del saldo
-            var cantidadInput = $('rf-cantidad');
-            var previewEl = $('rf-saldo-emitir');
-            if (cantidadInput && previewEl) {
-                cantidadInput.addEventListener('input', function () {
-                    var cantidad = Number(this.value) || 0;
-                    var saldoActual = Number(f.saldo_actual) || 0;
-                    previewEl.textContent = formatearPuntos(saldoActual + cantidad);
-                });
-            }
-
-            // Cerrar modal
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) cerrarModalEmitir();
-            });
-            document.addEventListener('keydown', function esc(e) {
-                if (e.key === 'Escape') { cerrarModalEmitir(); document.removeEventListener('keydown', esc); }
-            });
-        }
-
-        function cerrarModalEmitir() {
-            var modal = document.getElementById('rf-modal-emitir');
-            if (modal) modal.classList.add('oculto');
-            document.body.style.overflow = '';
-            if (rfModalEmitir) rfModalEmitir = null;
-        }
-
-        function confirmarEmitir() {
-            if (!rfModalEmitir) return;
-
-            var monto = Number($('rf-cantidad').value);
-            var motivo = $('rf-motivo-emitir').value.trim();
-
-            if (!monto || monto <= 0) {
-                alerta('rf-alerta', 'Introduce una cantidad válida de puntos.', 'error');
-                return;
-            }
-            if (!motivo || motivo.length < 3) {
-                alerta('rf-alerta', 'El motivo debe tener al menos 3 caracteres.', 'error');
-                return;
-            }
-
-            var btn = $('rf-emitir-confirmar');
-            btn.disabled = true; btn.textContent = 'Emitiendo…';
-
-            supabase.rpc('admin_emitir_puntos', {
-                p_cliente_id: rfModalEmitir.cliente_id,
-                p_salon_id: rfModalEmitir.salon_id,
-                p_monto: monto,
-                p_motivo: motivo
-            }).then(function (res) {
-                if (res.error) { throw res.error; }
-                var d = res.data && res.data[0];
-                alerta('rf-alerta', 'Se emitieron ' + monto + ' puntos. Saldo nuevo: ' + formatearPuntos(d.saldo_nuevo), 'ok');
-                cerrarModalEmitir();
-                rfSeleccion = null;
-                cargarReservaFederal();
-            }).catch(function (error) {
-                console.error('Emitir:', error);
-                alerta('rf-alerta', 'No se pudieron emitir los puntos: ' + (error.message || 'error de conexión'), 'error');
-            }).finally(function () {
-                btn.disabled = false; btn.textContent = 'Emitir puntos';
-            });
-        }
-
-        $('rf-emitir-cancelar').addEventListener('click', function () {
-            cerrarModalEmitir();
-        });
-        $('rf-emitir-confirmar').addEventListener('click', function () {
-            confirmarEmitir();
-        });
-
-        actualizarContadorAnuncio();
+actualizarContadorAnuncio();
     })();
     </script>
 </body>
 </html>
-
