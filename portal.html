@@ -246,7 +246,7 @@
         <section class="vista" id="vista-login">
             <div class="acceso">
                 <h1>Entrá a tus Elima Points</h1>
-                <p>Te mandamos un código de 6 dígitos al email que le diste a tu salón. Sin contraseñas.</p>
+                <p>Te mandamos un código de 6 a 10 dígitos al email que le diste a tu salón. Sin contraseñas.</p>
 
                 <div class="alerta" id="login-alerta" role="alert" hidden></div>
 
@@ -265,16 +265,16 @@
         <section class="vista" id="vista-enviado" hidden>
             <div class="acceso">
                 <h1>Ingresá tu código</h1>
-                <p id="enviado-texto">Te enviamos un código de 6 dígitos. Revisá spam si no llega.</p>
+                <p id="enviado-texto">Te enviamos un código de 6 a 10 dígitos. Revisá spam si no llega.</p>
 
                 <div class="alerta" id="enviado-alerta" role="alert" hidden></div>
 
                 <form id="otp-form" novalidate>
                     <div class="campo">
-                        <label for="otp">Código de 6 dígitos</label>
+                        <label for="otp">Código de 6 a 10 dígitos</label>
                         <input type="text" id="otp" inputmode="numeric"
-                               autocomplete="one-time-code" pattern="[0-9]{6}"
-                               maxlength="6" placeholder="123456" required
+                               autocomplete="one-time-code" pattern="[0-9]{6,10}"
+                               maxlength="10" placeholder="12345678" required
                                style="text-align:center; letter-spacing:.35em; font-size:20px">
                     </div>
                     <button type="submit" class="btn" id="otp-btn">Ingresar</button>
@@ -606,7 +606,7 @@
 
                 emailOtp = email;
                 $('enviado-texto').textContent =
-                    'Te enviamos un código de 6 dígitos a ' + email + '. Revisá spam si no llega.';
+                    'Te enviamos un código de 6 a 10 dígitos a ' + email + '. Revisá spam si no llega.';
 
                 var otp = $('otp');
                 if (otp) otp.value = '';
@@ -634,11 +634,11 @@
         $('otp-form').addEventListener('submit', async function (evento) {
             evento.preventDefault();
 
-            var codigo = String($('otp').value || '').replace(/\D/g, '').slice(0, 6);
+            var codigo = String($('otp').value || '').replace(/\D/g, '').slice(0, 10);
             var boton = $('otp-btn');
 
-            if (codigo.length !== 6) {
-                aviso('enviado-alerta', 'Ingresá el código de 6 dígitos.', '');
+            if (codigo.length < 6 || codigo.length > 10) {
+                aviso('enviado-alerta', 'Ingresá el código de 6 a 10 dígitos.', '');
                 $('otp').focus();
                 return;
             }
