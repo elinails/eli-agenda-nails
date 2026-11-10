@@ -2591,6 +2591,15 @@
                         <button type="button" id="salon-guardar" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
                             <i class="fas fa-check mr-2" aria-hidden="true"></i> Guardar datos
                         </button>
+                        <!-- I71 · navegación real desde Ajustes → Mi Salón (antes era texto "próximamente") -->
+                        <a id="btn-ir-portal" href="portal.html"
+                           class="btn-secondary px-4 py-2.5 rounded-lg font-medium text-sm inline-flex items-center">
+                            <i class="fas fa-star mr-2" aria-hidden="true"></i> Ir a mi Portal de Puntos
+                        </a>
+                        <a id="btn-ver-marketplace" href="marketplace.html" target="_blank" rel="noopener noreferrer"
+                           class="btn-secondary px-4 py-2.5 rounded-lg font-medium text-sm inline-flex items-center">
+                            <i class="fas fa-store mr-2" aria-hidden="true"></i> Ver mi perfil en el Marketplace
+                        </a>
                         <span id="salon-estado" class="setting-note" role="status" aria-live="polite"></span>
                     </div>
 
@@ -9368,11 +9377,32 @@
             function actualizarSlugPreview() {
                 const campo = document.getElementById('salon-slug');
                 const preview = document.getElementById('salon-slug-preview');
-                if (!preview) return;
                 const slug = normalizarSlug(campo ? campo.value : '');
-                preview.textContent = slug
-                    ? 'Link público (próximamente): portal.html?salon=' + slug
-                    : 'Todavía no definiste el slug.';
+                if (preview) {
+                    preview.textContent = slug
+                        ? 'Tu link público: marketplace.html?slug=' + slug
+                        : 'Todavía no definiste el slug.';
+                }
+                pintarBotonMarketplace(slug);
+            }
+
+            // I71 · el botón de marketplace solo se habilita cuando hay slug.
+            function pintarBotonMarketplace(slug) {
+                const boton = document.getElementById('btn-ver-marketplace');
+                if (!boton) return;
+                if (slug) {
+                    boton.setAttribute('href', 'marketplace.html?slug=' + encodeURIComponent(slug));
+                    boton.classList.remove('opacity-50', 'pointer-events-none');
+                    boton.removeAttribute('aria-disabled');
+                    boton.removeAttribute('tabindex');
+                    boton.title = 'Ver tu perfil público en Elima Belleza';
+                } else {
+                    boton.removeAttribute('href');
+                    boton.classList.add('opacity-50', 'pointer-events-none');
+                    boton.setAttribute('aria-disabled', 'true');
+                    boton.setAttribute('tabindex', '-1');
+                    boton.title = 'Definí tu slug y guardá los datos para tener link público';
+                }
             }
 
             function pintarEstadoPublicacion() {

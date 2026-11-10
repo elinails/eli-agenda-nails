@@ -64,6 +64,16 @@
     .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; }
     .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
     .enlace-suave { font-size: 13px; color: var(--ink-soft); text-decoration: none; }
+
+    /* I71 · navegación de vuelta a la app */
+    .cabecera-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .enlace-suave.boton-volver {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px;
+        background: var(--surface); color: var(--ink); font-weight: 500;
+        transition: background-color .16s ease;
+    }
+    .enlace-suave.boton-volver:hover { background: var(--blush-2); }
     .enlace-suave:hover { color: var(--ink); text-decoration: underline; }
 
     /* ── main ── */
@@ -220,7 +230,12 @@
                 <span class="marca-sub">Mis puntos</span>
             </span>
         </a>
-        <a class="enlace-suave" href="marketplace.html">Ver salones</a>
+        <div class="cabecera-acciones">
+            <a class="enlace-suave boton-volver" href="index.html">
+                <span aria-hidden="true">←</span> Volver a mi Salón
+            </a>
+            <a class="enlace-suave" href="marketplace.html">Ver salones</a>
+        </div>
     </div>
 </header>
 

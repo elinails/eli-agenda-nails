@@ -567,6 +567,8 @@
     var estado = {
         rubro: '',
         busqueda: '',
+        slug: '',
+        slugAbierto: false,
         salones: [],
         cargando: true,
         error: '',
@@ -1252,6 +1254,12 @@
             estado.rubro = NOMBRE_RUBRO[rubro] ? rubro : '';
             estado.busqueda = String(params.get('q') || '').slice(0, 80);
             if (estado.busqueda) entrada.value = estado.busqueda;
+            // I71 · deep link del perfil: /marketplace.html?slug=mi-salon
+            estado.slug = String(params.get('slug') || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '')
+                .slice(0, 60).replace(/^-+|-+$/g, '');
         } catch (error) { /* noop */ }
     }
 
@@ -1286,6 +1294,22 @@
             estado.error = 'Revisá tu conexión e intentá de nuevo en un momento.';
         }
         pintar();
+        abrirDesdeSlug();
+    }
+
+    // I71 · deep link: si viene ?slug=, abre el perfil de ese salón automáticamente.
+    function abrirDesdeSlug() {
+        if (!estado.slug || estado.slugAbierto) return;
+        var fila = null;
+        for (var i = 0; i < estado.salones.length; i++) {
+            if (String(estado.salones[i].slug || '') === estado.slug) {
+                fila = estado.salones[i];
+                break;
+            }
+        }
+        if (!fila) return;
+        estado.slugAbierto = true;
+        abrirModal(fila);
     }
 
     var espera = null;

@@ -2,12 +2,15 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-// I62: v9. El cambio de version es lo que dispara la purga de la cache vieja
-// en 'activate'. Subir esta constante siempre que cambie el shell.
-const CACHE = 'eli-nails-v9';
+// I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de version
+// es lo que dispara la purga de la cache vieja en 'activate'. Subir esta
+// constante siempre que cambie el shell.
+const CACHE = 'eli-nails-v10';
 const SHELL = [
     './',
     'index.html',
+    'marketplace.html',
+    'portal.html',
     'manifest.json',
     'icon-192.png',
     'icon-512.png',

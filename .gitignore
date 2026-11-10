@@ -20,3 +20,7 @@ supabase/.temp/
 # I48 · capturas de QA visual (locales, no se publican)
 _qa_*
 *.exe
+
+# I71 · seeds de QA: contienen emails y contraseñas de prueba en texto plano.
+# Se corren localmente contra un proyecto de prueba, nunca se commitean.
+supabase/seed/
