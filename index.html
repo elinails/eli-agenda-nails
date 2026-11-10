@@ -1574,6 +1574,12 @@
         .mi-plan-tabla .col-pro { background: rgba(190, 158, 111, .10); }
         .mi-plan-tabla tr:last-child td { border-bottom: 0; }
         .mi-plan-sino { font-size: 14px; }
+        .mi-plan-lock {
+            border: 0; background: none; padding: 3px 6px; border-radius: 6px;
+            font: inherit; font-size: 12.5px; font-weight: 600;
+            color: var(--gold-ink); cursor: pointer;
+        }
+        .mi-plan-lock:hover { background: var(--blush-2); }
         .mi-plan-cta { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
         .mi-plan-cta button[disabled] { opacity: .62; cursor: not-allowed; }
 
@@ -2401,14 +2407,6 @@
                         <span id="salon-estado" class="setting-note" role="status" aria-live="polite"></span>
                     </div>
 
-                    <button type="button" class="pro-item hidden" data-pro-bloqueo="reservas" title="Función exclusiva del Plan Pro" style="margin-top:16px">
-                        <span class="pro-candado" aria-hidden="true">🔒</span>
-                        <span class="pro-texto">
-                            <span class="pro-titulo">Link de reservas público</span>
-                            <span class="pro-nota">Tus clientas reservan solas desde un link.</span>
-                        </span>
-                        <span class="pro-pill">Pro</span>
-                    </button>
                 </div>
 
                 <div id="panel-servicios">
@@ -2951,7 +2949,18 @@
                 </div>
             </form>
         </div>
-    </div>    <script>
+    </div>
+    <!-- I55 · Modal "Próximamente" para Pro -->
+    <div id="modal-pro" class="fixed inset-0 z-[80] hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-sm mx-4">
+            <div class="p-6">
+                <h3 class="text-xl font-bold" id="modal-pro-titulo">Plan Pro</h3>
+                <p class="setting-note mt-2" id="modal-pro-texto"></p>
+                <button type="button" id="modal-pro-cerrar" class="btn-primary w-full py-2.5 rounded-lg font-medium mt-4">Entendido</button>
+            </div>
+        </div>
+    </div>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // I54: sin logo propio se usa un monograma del salon (logoNeutro),
             // nunca una imagen fija de otro salon.
@@ -7193,9 +7202,22 @@
                 const salonGuardar = document.getElementById('salon-guardar');
                 if (salonGuardar) salonGuardar.addEventListener('click', guardarBranding);
 
-                // I55: los candados no ejecutan nada: llevan a Mi Plan.
+                // I55: los candados abren el modal "Próximamente" (no ejecutan nada).
+                const NOMBRES_PRO = {
+                    reservas: 'Link de reservas público',
+                    automatizaciones: 'Automatizaciones de WhatsApp',
+                    reportes: 'Reportes avanzados'
+                };
                 document.querySelectorAll('[data-pro-bloqueo]').forEach(function (item) {
-                    item.addEventListener('click', abrirMiPlan);
+                    item.addEventListener('click', function () {
+                        const clave = item.getAttribute('data-pro-bloqueo');
+                        abrirModalPro('Plan Pro', 'Muy pronto podrás pagar con MercadoPago. ' +
+                            (NOMBRES_PRO[clave] || 'Esta función') + ' es exclusiva del Plan Pro.');
+                    });
+                });
+                const modalProCerrar = document.getElementById('modal-pro-cerrar');
+                if (modalProCerrar) modalProCerrar.addEventListener('click', function () {
+                    cerrarModal(document.getElementById('modal-pro'));
                 });
 
                 const cerrarPatrocinio = document.getElementById('patrocinio-cerrar');
@@ -8058,9 +8080,12 @@
             // falla se usan estos valores, que son los que hoy tiene la base.
             // ─────────────────────────────────────────────────────────────
             const PLANES_POR_DEFECTO = {
-                gratis:  { nombre: 'Gratis',  precio: 0,     limite: 1 },
-                pro:     { nombre: 'Pro',     precio: 9900,  limite: 3 },
-                premium: { nombre: 'Premium', precio: 19900, limite: null }
+                gratis:  { nombre: 'Gratis',  precio: 0,     limite: 1,
+                           caracteristicas: { reservas_link: false, automatizaciones: false, reportes_avanzados: false, sin_publicidad: false } },
+                pro:     { nombre: 'Pro',     precio: 9900,  limite: 3,
+                           caracteristicas: { reservas_link: true, automatizaciones: true, reportes_avanzados: true, sin_publicidad: true } },
+                premium: { nombre: 'Premium', precio: 19900, limite: null,
+                           caracteristicas: { reservas_link: true, automatizaciones: true, reportes_avanzados: true, sin_publicidad: true } }
             };
 
             let planesCache = null;
@@ -8069,12 +8094,12 @@
                 if (planesCache) return planesCache;
                 const base = Object.keys(PLANES_POR_DEFECTO).map(function (id) {
                     const p = PLANES_POR_DEFECTO[id];
-                    return { id: id, nombre: p.nombre, precio: p.precio, limite_empleadas: p.limite };
+                    return { id: id, nombre: p.nombre, precio: p.precio, limite_empleadas: p.limite, caracteristicas: p.caracteristicas || {} };
                 });
                 try {
                     const { data, error } = await supabase
                         .from('planes')
-                        .select('id, nombre, precio, limite_empleadas, activo')
+                        .select('id, nombre, precio, limite_empleadas, activo, caracteristicas')
                         .eq('activo', true);
                     if (!error && data && data.length) {
                         planesCache = data.map(function (p) {
@@ -8082,7 +8107,8 @@
                                 id: p.id,
                                 nombre: p.nombre || p.id,
                                 precio: Number(p.precio) || 0,
-                                limite_empleadas: p.limite_empleadas === undefined ? null : p.limite_empleadas
+                                limite_empleadas: p.limite_empleadas === undefined ? null : p.limite_empleadas,
+                                caracteristicas: (p.caracteristicas && typeof p.caracteristicas === 'object') ? p.caracteristicas : {}
                             };
                         });
                         return planesCache;
@@ -8101,7 +8127,8 @@
                     id: buscado,
                     nombre: def ? def.nombre : buscado,
                     precio: def ? def.precio : 0,
-                    limite_empleadas: def ? def.limite : null
+                    limite_empleadas: def ? def.limite : null,
+                    caracteristicas: def && def.caracteristicas ? def.caracteristicas : {}
                 };
             }
 
@@ -8116,12 +8143,23 @@
                 return String(limite) + (Number(limite) === 1 ? ' persona' : ' personas');
             }
 
+            function abrirModalPro(titulo, texto) {
+                const modal = document.getElementById('modal-pro');
+                if (!modal) return;
+                const t = document.getElementById('modal-pro-titulo');
+                const p = document.getElementById('modal-pro-texto');
+                if (t) t.textContent = titulo || 'Plan Pro';
+                if (p) p.textContent = texto || 'Muy pronto podrás pagar con MercadoPago.';
+                abrirModal(modal);
+            }
+
             async function pintarMiPlan() {
                 const panel = document.getElementById('panel-mi-plan');
                 if (!panel) return;
                 await cargarPlanes();
                 const actualId = contexto.planId || 'gratis';
                 const actual = datosPlan(actualId);
+                const gratis = datosPlan('gratis');
                 const pro = datosPlan('pro');
 
                 const chip = document.getElementById('mi-plan-chip');
@@ -8144,16 +8182,20 @@
                     if (barra.parentElement) barra.parentElement.classList.toggle('hidden', limite === null || limite === undefined);
                 }
 
+                const carG = gratis.caracteristicas || {};
+                const carP = pro.caracteristicas || {};
+                const siNo = function (valor) { return valor ? 'Sí' : '—'; };
                 const filas = [
                     ['Agenda y turnos', 'Ilimitados', 'Ilimitados'],
                     ['Clientas', 'Ilimitadas', 'Ilimitadas'],
                     ['Tarjetas de WhatsApp', 'Sí', 'Sí'],
                     ['Finanzas', 'Básicas', 'Completas'],
-                    ['Personas activas', nombrePersonas(actual.limite_empleadas), nombrePersonas(pro.limite_empleadas)],
-                    ['Publicidad en el inicio', 'Sí, sutil', 'Sin publicidad'],
-                    ['Link de reservas', 'pro', 'Sí'],
-                    ['Automatizaciones WhatsApp', 'pro', 'Sí'],
-                    ['Reportes avanzados', 'pro', 'Sí']
+                    ['Personas activas', nombrePersonas(gratis.limite_empleadas), nombrePersonas(pro.limite_empleadas)],
+                    ['Publicidad en el inicio', carG.sin_publicidad ? 'Sin publicidad' : 'Sí, sutil',
+                                               carP.sin_publicidad ? 'Sin publicidad' : 'Sí, sutil'],
+                    ['Link de reservas', carG.reservas_link ? 'Sí' : 'pro', siNo(carP.reservas_link)],
+                    ['Automatizaciones WhatsApp', carG.automatizaciones ? 'Sí' : 'pro', siNo(carP.automatizaciones)],
+                    ['Reportes avanzados', carG.reportes_avanzados ? 'Sí' : 'pro', siNo(carP.reportes_avanzados)]
                 ];
                 const cuerpo = document.getElementById('mi-plan-filas');
                 if (cuerpo) {
@@ -8168,8 +8210,16 @@
                             if (indice === 1) td.className = 'col-pro';
                             if (valor === 'pro') {
                                 td.className = (indice === 1 ? 'col-pro ' : '') + 'mi-plan-sino';
-                                td.textContent = '🔒';
-                                td.title = 'Función exclusiva del Plan Pro';
+                                const boton = document.createElement('button');
+                                boton.type = 'button';
+                                boton.className = 'mi-plan-lock';
+                                boton.title = 'Función exclusiva del Plan Pro';
+                                boton.setAttribute('aria-label', 'Función exclusiva del Plan Pro');
+                                boton.textContent = '🔒 Pro';
+                                boton.addEventListener('click', function () {
+                                    abrirModalPro('Plan Pro', 'Muy pronto podrás pagar con MercadoPago. ' + fila[0] + ' es una función del Plan Pro.');
+                                });
+                                td.appendChild(boton);
                             } else {
                                 td.textContent = valor;
                             }
@@ -8186,9 +8236,12 @@
                 const aviso = document.getElementById('mi-plan-aviso');
                 if (cta) {
                     const yaEsPro = actualId !== 'gratis';
-                    cta.disabled = true;
+                    cta.disabled = yaEsPro;
                     cta.textContent = yaEsPro ? 'Ya tenés el Plan ' + actual.nombre : 'Actualizar a Pro';
-                    if (aviso) aviso.textContent = 'Pagos con MercadoPago: disponible en la próxima versión.';
+                    cta.onclick = yaEsPro ? null : function () {
+                        abrirModalPro('Plan Pro', 'Muy pronto podrás pagar con MercadoPago. Estamos preparando el cobro online para que pases al Plan Pro sin salir de la app.');
+                    };
+                    if (aviso) aviso.textContent = yaEsPro ? '' : 'Pagos con MercadoPago: muy pronto.';
                 }
             }
 

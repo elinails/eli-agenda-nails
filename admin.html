@@ -391,6 +391,9 @@
         .anuncio-item-texto { font-size: 13px; overflow-wrap: anywhere; white-space: pre-wrap; }
         .anuncio-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-subtle); }
 
+        /* I55 · funciones por plan (B1) */
+        .carac-check { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-soft); margin-right: 10px; white-space: nowrap; }
+
         /* I55 · patrocinadores */
         .pat-item-fila { display: flex; align-items: center; gap: 10px; }
         .pat-logo { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex: 0 0 auto; background: var(--surface); border: 1px solid var(--hairline); }
@@ -914,6 +917,7 @@
                                     <th>Precio</th>
                                     <th>Límite empleadas</th>
                                     <th>Descripción</th>
+                                    <th>Funciones</th>
                                     <th>Activo</th>
                                     <th></th>
                                 </tr>
@@ -930,6 +934,12 @@
                             <input type="number" id="plan-precio" placeholder="Precio" min="0" step="100" aria-label="Precio">
                             <input type="number" id="plan-limite" placeholder="Límite empleadas" min="1" aria-label="Límite de empleadas">
                             <button type="button" id="plan-crear" class="btn btn-primario">Agregar</button>
+                        </div>
+                        <div class="toolbar" style="margin-top:8px;gap:6px;flex-wrap:wrap" aria-label="Funciones incluidas en el plan">
+                            <label class="carac-check"><input type="checkbox" id="plan-carac-reservas_link"> Reservas</label>
+                            <label class="carac-check"><input type="checkbox" id="plan-carac-automatizaciones"> Automatizaciones</label>
+                            <label class="carac-check"><input type="checkbox" id="plan-carac-reportes_avanzados"> Reportes</label>
+                            <label class="carac-check"><input type="checkbox" id="plan-carac-sin_publicidad"> Sin publicidad</label>
                         </div>
                     </div>
                 </section>
@@ -1563,7 +1573,7 @@
             } catch (error) {
                 console.warn('planes:', error);
                 planesCache = Object.keys(PLANES).map(function (k) {
-                    return { id: k, nombre: PLANES[k].nombre, precio: PLANES[k].precio, limite_empleadas: null, descripcion: '', activo: true };
+                    return { id: k, nombre: PLANES[k].nombre, precio: PLANES[k].precio, limite_empleadas: null, descripcion: '', activo: true, caracteristicas: {} };
                 });
                 pintarPlanes();
                 calcularSaas();
@@ -1619,6 +1629,23 @@
                 tdDesc.appendChild(desc);
                 fila.appendChild(tdDesc);
 
+                var tdCarac = document.createElement('td');
+                tdCarac.setAttribute('data-label', 'Funciones');
+                var carac = p.caracteristicas || {};
+                [['reservas_link', 'Reservas'], ['automatizaciones', 'Automatizaciones'],
+                 ['reportes_avanzados', 'Reportes'], ['sin_publicidad', 'Sin publicidad']].forEach(function (par) {
+                    var etiqueta = document.createElement('label');
+                    etiqueta.className = 'carac-check';
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.checked = carac[par[0]] === true;
+                    cb.setAttribute('data-carac', par[0]);
+                    etiqueta.appendChild(cb);
+                    etiqueta.appendChild(document.createTextNode(' ' + par[1]));
+                    tdCarac.appendChild(etiqueta);
+                });
+                fila.appendChild(tdCarac);
+
                 var tdActivo = document.createElement('td');
                 tdActivo.setAttribute('data-label', 'Activo');
                 var activo = document.createElement('input');
@@ -1633,7 +1660,11 @@
                 var guardar = crear('button', 'btn btn-sm btn-primario', 'Guardar');
                 guardar.type = 'button';
                 guardar.addEventListener('click', function () {
-                    guardarPlan(p.id, nombre.value, precio.value, limite.value, desc.value, activo.checked, guardar);
+                    var caracteristicas = {};
+                    fila.querySelectorAll('input[data-carac]').forEach(function (cb) {
+                        caracteristicas[cb.getAttribute('data-carac')] = cb.checked;
+                    });
+                    guardarPlan(p.id, nombre.value, precio.value, limite.value, desc.value, activo.checked, caracteristicas, guardar);
                 });
                 tdAccion.appendChild(guardar);
                 fila.appendChild(tdAccion);
@@ -1641,7 +1672,7 @@
             });
         }
 
-        async function guardarPlan(id, nombre, precio, limite, descripcion, activo, boton) {
+        async function guardarPlan(id, nombre, precio, limite, descripcion, activo, caracteristicas, boton) {
             ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_plan_guardar', {
@@ -1649,7 +1680,8 @@
                     p_precio: Number(precio) || 0,
                     p_limite: limite === '' ? null : Number(limite),
                     p_descripcion: descripcion || null,
-                    p_activo: activo !== false
+                    p_activo: activo !== false,
+                    p_caracteristicas: caracteristicas || {}
                 });
                 if (res.error) throw res.error;
                 toast('Plan actualizado.', 'ok');
@@ -1675,10 +1707,19 @@
                     p_id: id, p_nombre: nombre,
                     p_precio: Number($('plan-precio').value) || 0,
                     p_limite: $('plan-limite').value === '' ? null : Number($('plan-limite').value),
-                    p_descripcion: null, p_activo: true
+                    p_descripcion: null, p_activo: true,
+                    p_caracteristicas: {
+                        reservas_link: !!($('plan-carac-reservas_link') || {}).checked,
+                        automatizaciones: !!($('plan-carac-automatizaciones') || {}).checked,
+                        reportes_avanzados: !!($('plan-carac-reportes_avanzados') || {}).checked,
+                        sin_publicidad: !!($('plan-carac-sin_publicidad') || {}).checked
+                    }
                 });
                 if (res.error) throw res.error;
                 $('plan-id').value = ''; $('plan-nombre').value = ''; $('plan-precio').value = ''; $('plan-limite').value = '';
+                ['plan-carac-reservas_link', 'plan-carac-automatizaciones', 'plan-carac-reportes_avanzados', 'plan-carac-sin_publicidad'].forEach(function (idCarac) {
+                    var cb = $(idCarac); if (cb) cb.checked = false;
+                });
                 toast('Plan creado.', 'ok');
                 await cargarPlanes();
                 await cargarSeries();
