@@ -243,6 +243,26 @@
         line-height: 1.5;
     }
 
+    /* I82 · modal detalle turno con canje */
+    .modal-detalle {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal-detalle h3 { font-family: var(--serif); font-size: 20px; margin: 0 0 16px; }
+    .detalle-item { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+    .detalle-label { color: var(--ink-soft); }
+    .detalle-valor { font-weight: 500; color: var(--ink); }
+    .canje-bloque { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .canje-bloque label { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 8px; display: block; }
+    .canje-input { width: 100%; max-width: 180px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 16px; text-align: center; }
+    .saldo-puntos-display { font-family: var(--serif); font-size: 16px; color: var(--ink); margin-bottom: 10px; }
+    .ayuda-canje { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+    .btn-canjear { min-width: 120px; }
+
     @media (max-width: 420px) {
         .acceso { padding: 24px 20px; }
         .acceso h1 { font-size: 27px; }
@@ -346,6 +366,18 @@
                 </div>
             </div>
 
+            <!-- I82 · Turnos futuros con opción de canje -->
+            <section id="turnos-futuros-seccion" hidden>
+                <h2 class="seccion-titulo">Turnos Futuros</h2>
+                <div id="turnos-futuros" class="lista" aria-live="polite"></div>
+                <div id="turnos-futuros-vacio" hidden>
+                    <div class="vacio">
+                        <h2>No tenés turnos futuros</h2>
+                        <p>Podés reservar un turno desde el app del salón para poder canjear tus puntos.</p>
+                    </div>
+                </div>
+            </section>
+
             <h2 class="seccion-titulo">Movimientos</h2>
             <div class="lista" id="historial" aria-live="polite"></div>
             <div id="historial-vacio" hidden>
@@ -385,6 +417,63 @@
             <button type="button" id="btn-enviar-resena" class="btn">Enviar reseña</button>
         </div>
         <div id="alerta-resena" class="alerta" role="alert" hidden style="margin-top:12px;"></div>
+    </div>
+</div>
+
+<!-- I82 · Modal detalle turno con canje de puntos -->
+<div id="modal-turno-detalle" class="modal-overlay" hidden>
+    <div class="modal modal-detalle">
+        <h3>Detalles del Turno</h3>
+        <div class="campo">
+            <label>Salon</label>
+            <div id="detalle-salon" class="detalle-item">
+                <span class="detalle-label">Salón</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Servicio</label>
+            <div id="detalle-servicio" class="detalle-item">
+                <span class="detalle-label">Servicio</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Fecha y hora</label>
+            <div id="detalle-fecha" class="detalle-item">
+                <span class="detalle-label">Fecha</span>
+                <span class="detalle-valor"></span>
+            </div>
+            <div id="detalle-hora" class="detalle-item">
+                <span class="detalle-label">Hora</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Precio</label>
+            <div id="detalle-precio" class="detalle-item">
+                <span class="detalle-label">Precio</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        
+        <!-- I82 · Bloque de canje -->
+        <div class="canje-bloque hidden" id="bloque-canje">
+            <div class="saldo-puntos-display" id="saldo-canje">
+                Saldo disponible: <span id="saldo-puntos-cantidad">0</span> pts
+            </div>
+            <div class="campo">
+                <label>Usar Elima Points (máx. 30% del servicio)</label>
+                <input type="number" id="puntos-canjear-input" min="0" step="1" placeholder="0" class="canje-input">
+            </div>
+            <div class="ayuda-canje" id="ayuda-canje"></div>
+        </div>
+        
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+            <button type="button" id="btn-cancelar-detalle" class="btn btn-secundario">Cancelar</button>
+            <button type="button" id="btn-canjear" class="btn btn-canjear hidden">Canjear Puntos</button>
+        </div>
+        <div id="alerta-canje" class="alerta" role="alert" hidden style="margin-top:12px;"></div>
     </div>
 </div>
 
@@ -589,6 +678,168 @@
         } finally {
             cargando = false;
         }
+    }
+
+    // I82 · cargar turnos futuros con opción de canje
+    async function cargarTurnosFuturos() {
+        if (!cliente) return;
+        
+        try {
+            var res = await cliente.rpc('cliente_turnos_canjeables', { p_limit: 10 });
+            if (res.error) {
+                console.warn('portal: error cargando turnos futuros:', res.error);
+                return;
+            }
+            
+            var turnos = Array.isArray(res.data) ? res.data : [];
+            var lista = $('turnos-futuros');
+            var vacio = $('turnos-futuros-vacio');
+            var seccion = $('turnos-futuros-seccion');
+            
+            if (lista) lista.innerHTML = '';
+            
+            if (!turnos || turnos.length === 0) {
+                if (vacio) vacio.hidden = false;
+                if (seccion) seccion.hidden = false;
+                return;
+            }
+            
+            if (vacio) vacio.hidden = true;
+            if (seccion) seccion.hidden = false;
+            
+            var saldoClienta = Number($('saldo')?.textContent?.replace(/\./g, '').replace(/,/g, '') || 0);
+            
+            turnos.forEach(function (t) {
+                var fila = document.createElement('div');
+                fila.className = 'mov';
+                var salon = t.salon_nombre || '';
+                var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                var precio = Number(t.precio || 0);
+                var tope = Number(t.tope_puntos || 0);
+                var saldoSalon = Number(t.saldo_puntos || 0);
+                var saldoClientaTurno = saldoClienta;
+                
+                var puedeCanjear = saldoClientaTurno > 0 && tope > 0 && precio > 0;
+                
+                var texto = document.createElement('div');
+                texto.className = 'mov-texto';
+                var titulo = document.createElement('span');
+                titulo.className = 'mov-titulo';
+                titulo.textContent = salon + ' - ' + (t.servicio || 'Servicio');
+                texto.appendChild(titulo);
+                var subtitulo = document.createElement('span');
+                subtitulo.className = 'mov-sub';
+                subtitulo.textContent = fecha + ' a las ' + (t.hora || '') + ' - $' + precio;
+                if (puedeCanjear) {
+                    subtitulo.textContent += ' · Puedés canjear hasta ' + Math.floor(tope) + ' pts';
+                }
+                texto.appendChild(subtitulo);
+                fila.appendChild(texto);
+                
+                if (puedeCanjear) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-sm';
+                    btn.style.marginLeft = '12px';
+                    btn.style.fontSize = '13px';
+                    btn.textContent = 'Canjear Puntos';
+                    btn.dataset.turnoId = t.id;
+                    btn.dataset.precio = precio;
+                    btn.dataset.salonId = t.salon_id;
+                    btn.dataset.salonNombre = salon;
+                    btn.dataset.fecha = fecha;
+                    btn.dataset.hora = t.hora;
+                    btn.dataset.servicio = t.servicio || 'Servicio';
+                    btn.dataset.tope = tope;
+                    btn.addEventListener('click', function () {
+                        abrirModalDetalleTurno(t.id, {
+                            salonId: t.salon_id,
+                            salonNombre: salon,
+                            fecha: fecha,
+                            hora: t.hora,
+                            servicio: t.servicio || 'Servicio',
+                            precio: precio,
+                            tope: tope,
+                            saldoClienta: saldoClientaTurno
+                        });
+                    });
+                    fila.appendChild(btn);
+                }
+                
+                lista.appendChild(fila);
+            });
+        } catch (error) {
+            console.error('portal: error cargando turnos futuros:', error);
+        }
+    }
+
+    // I82 · abrir modal detalle y manejar canje
+    async function abrirModalDetalleTurno(turnoId, datos) {
+        var modal = $('modal-turno-detalle');
+        var salonEl = $('detalle-salon').querySelector('.detalle-valor');
+        var servicioEl = $('detalle-servicio').querySelector('.detalle-valor');
+        var fechaEl = $('detalle-fecha').querySelector('.detalle-valor');
+        var horaEl = $('detalle-hora').querySelector('.detalle-valor');
+        var precioEl = $('detalle-precio').querySelector('.detalle-valor');
+        var bloqueCanje = $('bloque-canje');
+        var inputCanje = $('puntos-canjear-input');
+        var ayudaCanje = $('ayuda-canje');
+        var btnCanjear = $('btn-canjear');
+        var alertaCanje = $('alerta-canje');
+        
+        // Llenar datos
+        if (salonEl) salonEl.textContent = datos.salonNombre;
+        if (servicioEl) servicioEl.textContent = datos.servicio;
+        if (fechaEl) fechaEl.textContent = datos.fecha;
+        if (horaEl) horaEl.textContent = datos.hora;
+        if (precioEl) precioEl.textContent = '$' + datos.precio;
+        
+        // Mostrar bloque de canje
+        if (bloqueCanje) bloqueCanje.hidden = false;
+        if (inputCanje) {
+            inputCanje.value = '';
+            inputCanje.max = Math.floor(datos.tope);
+        }
+        if (ayudaCanje) ayudaCanje.textContent = 'Podés usar hasta ' + Math.floor(datos.tope) + ' puntos (30% de $' + datos.precio + ').';
+        if (btnCanjear) btnCanjear.hidden = false;
+        
+        // Calcular saldo disponible con RPC
+        try {
+            var saldoRes = await cliente.rpc('cliente_saldo_puntos_turno', { p_turno_id: turnoId });
+            if (!saldoRes.error && saldoRes.data) {
+                var saldoData = Array.isArray(saldoRes.data) ? saldoRes.data[0] : saldoRes.data;
+                var saldoDisp = Number(saldoData.saldo_disponible || 0);
+                var topeMax = Number(saldoData.tope_maximo || 0);
+                
+                var saldoCantidad = $('saldo-puntos-cantidad');
+                if (saldoCantidad) saldoCantidad.textContent = saldoDisp;
+                
+                if (inputCanje) inputCanje.max = Math.floor(topeMax);
+                if (ayudaCanje) ayudaCanje.textContent = 'Saldo: ' + saldoDisp + ' pts · Podés usar hasta ' + Math.floor(topeMax) + ' pts (30% de $' + datos.precio + ').';
+            }
+        } catch (error) {
+            console.warn('portal: error obteniendo saldo para turno:', error);
+        }
+        
+        // Event listener para actualizar ayuda
+        if (inputCanje) {
+            inputCanje.addEventListener('input', function () {
+                var puntos = Math.min(Math.max(0, parseInt(this.value) || 0), Math.floor(datos.tope));
+                var descuento = puntos;
+                var total = Math.max(0, datos.precio - descuento);
+                if (puntos > 0) {
+                    ayudaCanje.textContent = 'Descuento: $' + descuento + ' · Total a pagar: $' + total;
+                } else {
+                    if (saldoCantidad) {
+                        saldoCanje.textContent = 'Saldo disponible: ' + Number(saldoCantidad.textContent.replace(/[^0-9]/g, '') || 0) + ' pts · Podés usar hasta ' + Math.floor(datos.tope) + ' pts (30% de $' + datos.precio + ').';
+                    }
+                }
+            });
+        }
+        
+        // Guardar el turno actual para el canje
+        window.turnoDetalleActual = turnoId;
+        modal.hidden = false;
     }
 
     // ── copiar email ─────────────────────────────────────────────────────
@@ -964,6 +1215,106 @@
         // Cerrar modal al click fuera
         document.addEventListener('click', function (e) {
             if (e.target === $('modal-resena')) cerrarModalResena();
+            if (e.target === $('modal-turno-detalle')) cerrarModalDetalleTurno();
+        });
+
+        // I82 · cerrar modal detalle
+        function cerrarModalDetalleTurno() {
+            var modal = $('modal-turno-detalle');
+            if (modal) modal.hidden = true;
+            var input = $('puntos-canjear-input');
+            var alerta = $('alerta-canje');
+            
+            if (input) input.value = '';
+            if (alerta) {
+                alerta.hidden = true;
+                alerta.textContent = '';
+                alerta.className = 'alerta';
+            }
+            var btnCanjear = $('btn-canjear');
+            if (btnCanjear) btnCanjear.hidden = true;
+        }
+
+        // I82 · evento canjear puntos
+        $('btn-canjear')?.addEventListener('click', async function () {
+            var turnoId = window.turnoDetalleActual;
+            if (!turnoId) return;
+            
+            var input = $('puntos-canjear-input');
+            var puntos = parseInt(input && input.value) || 0;
+            var alerta = $('alerta-canje');
+            
+            if (alerta) alerta.hidden = true;
+            
+            if (puntos <= 0) {
+                if (alerta) {
+                    alerta.textContent = 'Ingrese una cantidad válida de puntos.';
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+                return;
+            }
+            
+            var btnCanjearElem = $('btn-canjear');
+            if (btnCanjearElem) {
+                btnCanjearElem.disabled = true;
+                btnCanjearElem.textContent = 'Procesando...';
+            }
+            
+            try {
+                var res = await cliente.rpc('cliente_canjear_puntos', {
+                    p_turno_id: turnoId,
+                    p_puntos: puntos
+                });
+                
+                var data = res.data && res.data[0] ? res.data[0] : res.data;
+                
+                if (res.error || !data || data.ok !== true) {
+                    var motivo = (data && data.motivo) ? data.motivo : (res.error && res.error.message ? res.error.message : 'Error desconocido');
+                    if (alerta) {
+                        alerta.textContent = 'No se pudo canjear: ' + motivo;
+                        alerta.className = 'alerta';
+                        alerta.hidden = false;
+                    }
+                    return;
+                }
+                
+                // Éxito
+                if (alerta) {
+                    alerta.textContent = '¡Canje exitoso! ' + puntos + ' puntos aplicados al turno.';
+                    alerta.className = 'alerta ok';
+                    alerta.hidden = false;
+                }
+                
+                // Recargar saldo y turnos
+                await cargarPuntos();
+                await cargarTurnosFuturos();
+                
+                // Cerrar modal
+                setTimeout(function () {
+                    cerrarModalDetalleTurno();
+                }, 1500);
+                
+            } catch (error) {
+                if (alerta) {
+                    alerta.textContent = 'Error al canjear: ' + (error.message || 'Intente más tarde');
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+            } finally {
+                if (btnCanjearElem) {
+                    btnCanjearElem.disabled = false;
+                    btnCanjearElem.textContent = 'Canjear Puntos';
+                }
+            }
+        });
+
+        // También cerrar modal de detalle con Escape
+        document.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Escape') {
+                var modal = $('modal-turno-detalle');
+                if (modal && !modal.hidden) cerrarModalDetalleTurno();
+            }
         });
 
         cliente.auth.onAuthStateChange(function (evento, sesion) {
@@ -972,10 +1323,14 @@
                 setTimeout(function () {
                     cargarPuntos();
                     setTimeout(cargarTurnos, 300);
+                    cargarTurnosFuturos();
                 }, 0);
             } else if (evento === 'SIGNED_OUT') {
                 emailOtp = '';
                 detenerReenvio();
+                // Ocultar sección de turnos futuros
+                var seccion = $('turnos-futuros-seccion');
+                if (seccion) seccion.hidden = true;
                 mostrar('vista-login');
             }
         });
@@ -984,6 +1339,7 @@
             if (res && res.data && res.data.session) {
                 cargarPuntos();
                 setTimeout(cargarTurnos, 300);
+                cargarTurnosFuturos();
             }
             else mostrar('vista-login');
         }).catch(function () { mostrar('vista-login'); });
