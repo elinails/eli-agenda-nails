@@ -38,6 +38,100 @@ jobs:
             echo "::error::Falta BACKUP_PASSPHRASE. El repo es público: los dumps NO se suben sin cifrar."
             exit 1
           fi
+          # La URL lleva la contraseña: se enmascara para que nunca aparezca en el log.
+          echo "::add-mask::$DATABASE_URL"
+
+      # ── I53/Fix backup · preflight ─────────────────────────────────────
+      # Valida puerto (Session Pooler 5432) y compatibilidad de versiones ANTES
+      # de intentar el dump, para que un fallo diga exactamente qué corregir en
+      # lugar de terminar en un "version mismatch" críptico.
+      - name: Validar conexión, puerto y versiones
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+
+          # ── Puerto: pg_dump NO funciona contra el Transaction Pooler (6543) ──
+          resto="${DATABASE_URL##*@}"          # host:puerto/db  (##*@ = último @)
+          host_puerto="${resto%%/*}"
+          host="${host_puerto%%:*}"
+          puerto="${host_puerto##*:}"
+          if [ "$puerto" = "$host_puerto" ]; then puerto="5432"; fi
+
+          echo "Host: ${host}"
+          echo "Puerto: ${puerto}"
+
+          if [ "$puerto" = "6543" ]; then
+            echo "::error::DATABASE_URL apunta al puerto 6543 (Transaction Pooler). pg_dump necesita el Session Pooler: usá el puerto 5432."
+            exit 1
+          fi
+          if [ "$puerto" != "5432" ]; then
+            echo "::warning::El puerto es ${puerto}; para Session Pooler de Supabase se espera 5432."
+          fi
+
+          # ── Conexión: si esto falla, el resto del job no tiene sentido ──
+          if ! servidor_version="$(psql "$DATABASE_URL" -tAc 'show server_version' | tr -d '[:space:]')"; then
+            echo "::error::No se pudo conectar con DATABASE_URL (psql falló). Revisá la contraseña de backup_reader, el SSL y el host del Session Pooler."
+            exit 1
+          fi
+          if [ -z "$servidor_version" ]; then
+            echo "::error::La conexión respondió vacío al pedir server_version."
+            exit 1
+          fi
+
+          # ── Permisos: el dump necesita leer todas las tablas ──
+          if ! psql "$DATABASE_URL" -tAc "select 1 from public.miembros_salon limit 1" >/dev/null 2>&1; then
+            echo "::warning::No se pudo leer public.miembros_salon: verificá que backup_reader tenga pg_read_all_data."
+          fi
+
+          # ── Versiones: cliente (pg_dump) vs servidor ──
+          version_cliente="$(pg_dump --version 2>/dev/null || echo 'cliente no encontrado')"
+          echo "Cliente: ${version_cliente}"
+          echo "Servidor: ${servidor_version}"
+
+          cliente_major="$(printf '%s' "$version_cliente" | sed -n 's/.*) \([0-9][0-9]*\).*/\1/p')"
+          servidor_major="$(printf '%s' "$servidor_version" | sed -n 's/^\([0-9][0-9]*\).*/\1/p')"
+          echo "Major cliente=${cliente_major:-?} · major servidor=${servidor_major:-?}"
+
+          if [ -n "$servidor_major" ]; then
+            echo "PG_MAJOR_SERVIDOR=${servidor_major}" >> "$GITHUB_ENV"
+          fi
+          echo "PG_CLIENTE_MAJOR=${cliente_major}" >> "$GITHUB_ENV"
+
+          # pg_dump aborta si el cliente es más viejo que el servidor (nunca al revés).
+          if [ -n "$cliente_major" ] && [ -n "$servidor_major" ] && [ "$cliente_major" -lt "$servidor_major" ]; then
+            echo "::warning::El cliente (${cliente_major}) es más viejo que el servidor (${servidor_major}); se instalará el cliente ${servidor_major}."
+          fi
+
+      # ── I53/Fix backup · cliente con la versión correcta ───────────────
+      # Solo se ejecuta si hay mismatch real. Instalar postgresql-client-17 a
+      # ciegas en Debian/Ubuntu falla (no existe en los repos base): el paquete
+      # por major lo publica postgresql.org (PGDG), que es lo que usa la imagen.
+      - name: Instalar cliente PostgreSQL compatible
+        if: "env.PG_MAJOR_SERVIDOR != '' && env.PG_MAJOR_SERVIDOR != env.PG_CLIENTE_MAJOR"
+        run: |
+          set -euo pipefail
+          major="$PG_MAJOR_SERVIDOR"
+          echo "Instalando postgresql-client-${major}..."
+          apt-get update
+          if ! apt-get install -y --no-install-recommends "postgresql-client-${major}"; then
+            echo "::error::No se pudo instalar postgresql-client-${major}. Ajustá la imagen del job (container: postgres:${major}) y volvé a correr."
+            exit 1
+          fi
+          candidato="/usr/lib/postgresql/${major}/bin/pg_dump"
+          if [ -x "$candidato" ]; then
+            echo "PG_BIN=${candidato}" >> "$GITHUB_ENV"
+            "$candidato" --version
+          else
+            echo "::error::Se instaló el cliente ${major} pero no se encontró ${candidato}."
+            exit 1
+          fi
+
+      - name: Usar cliente por defecto
+        if: "env.PG_BIN == ''"
+        run: echo "PG_BIN=pg_dump" >> "$GITHUB_ENV"
+
 
       - name: Instalar gpg
         run: |
@@ -51,9 +145,10 @@ jobs:
           PGSSLMODE: require
         run: |
           set -euo pipefail
+          BIN="${PG_BIN:-pg_dump}"          # I53: cliente validado en el preflight
           mkdir -p "$GITHUB_WORKSPACE/backup"
           FECHA="$(date -u +%Y-%m-%d)"
-          pg_dump "$DATABASE_URL" \
+          "$BIN" "$DATABASE_URL" \
             --schema=public \
             --no-owner \
             --no-privileges \
@@ -61,7 +156,7 @@ jobs:
             --if-exists \
             --format=plain \
             | gzip -9 > "$GITHUB_WORKSPACE/backup/public_${FECHA}.sql.gz"
-          pg_dump "$DATABASE_URL" \
+          "$BIN" "$DATABASE_URL" \
             --schema=auth \
             --no-owner \
             --no-privileges \
@@ -70,6 +165,44 @@ jobs:
             --format=plain \
             | gzip -9 > "$GITHUB_WORKSPACE/backup/auth_${FECHA}.sql.gz"
           echo "FECHA=${FECHA}" >> "$GITHUB_ENV"
+
+      # ── I53/Fix backup · validación del archivo ───────────────────────
+      # Un dump "exitoso" pero vacío es peor que un fallo: se subiría un
+      # artifact inútil y nadie se enteraría hasta necesitarlo.
+      - name: Validar que los dumps no estén vacíos
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          archivos=("$GITHUB_WORKSPACE"/backup/*.sql.gz)
+          if [ ${#archivos[@]} -eq 0 ]; then
+            echo "::error::No se generó ningún archivo de backup."
+            exit 1
+          fi
+          for archivo in "${archivos[@]}"; do
+            nombre="$(basename "$archivo")"
+            bytes="$(stat -c%s "$archivo")"
+            # 1) Tamaño: un archivo de 0 bytes es el caso más común de dump fallido.
+            if [ "$bytes" -eq 0 ]; then
+              echo "::error::${nombre} pesa 0 bytes: el dump salió vacío. Revisá DATABASE_URL y los permisos de backup_reader."
+              exit 1
+            fi
+            # 2) Integridad: si el gzip está roto, cualquier lectura posterior
+            #    aborta el paso por pipefail y se pierde el mensaje.
+            if ! gzip -t "$archivo" 2>/dev/null; then
+              echo "::error::${nombre} está corrupto (gzip -t falló): el dump se cortó a mitad de camino."
+              exit 1
+            fi
+            lineas="$(gzip -dc "$archivo" 2>/dev/null | wc -l | tr -d '[:space:]')"
+            echo "${nombre}: ${bytes} bytes comprimidos, ${lineas} líneas"
+            if [ "$lineas" -lt 20 ]; then
+              echo "::error::${nombre} tiene ${lineas} líneas: no parece un dump válido de pg_dump."
+              exit 1
+            fi
+            if [ "$bytes" -lt 512 ]; then
+              echo "::error::${nombre} pesa solo ${bytes} bytes comprimidos: sospechosamente chico para un schema completo."
+              exit 1
+            fi
+          done
 
       - name: Cifrar dumps
         env:
