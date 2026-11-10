@@ -458,7 +458,7 @@
         .secreto { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--ink-subtle); word-break: break-all; text-align: center; margin: 0; }
 
         /* â”€â”€ Shell â”€â”€ */
-        .app { display: flex; min-height: 100dvh; }
+        .app { display: flex; height: 100vh; overflow: hidden; }
         .sidebar {
             width: 248px;
             flex: 0 0 248px;
@@ -495,7 +495,7 @@
         .sidebar-pie { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hairline); }
         .admin-email { font-size: 11.5px; color: var(--ink-subtle); word-break: break-all; padding: 0 10px; }
 
-        .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; }
         .topbar {
             position: sticky;
             top: 0;
@@ -1186,7 +1186,7 @@
         <div class="app-main">
             <header class="topbar">
                 <div style="display:flex;align-items:center;gap:12px;min-width:0">
-                    <button type="button" id="menu-btn" class="btn btn-icono menu-btn" aria-label="Abrir menÃº">
+                    <button type="button" id="menu-btn" class="btn btn-icono menu-btn" aria-label="Abrir menú">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
                     </button>
                     <div class="topbar-titulo">
@@ -1201,7 +1201,7 @@
                         </svg>
                     </button>
                     <div class="buscador-global">
-                        <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acciónâ€¦" aria-label="Buscar en la plataforma">
+                        <input type="search" id="busqueda-global" class="btn" placeholder="Buscar salón, usuario o acción…" aria-label="Buscar en la plataforma">
                         <div id="busqueda-resultados" class="buscar-resultados glass oculto"></div>
                     </div>
                     <div class="paleta-caja">
@@ -1243,7 +1243,7 @@
                         <div class="panel grafico">
                             <div class="grafico-cabecera">
                                 <h2>Evolución del MRR</h2>
-                                <span class="grafico-nota">Ãºltimos 12 meses</span>
+                                <span class="grafico-nota">últimos 12 meses</span>
                             </div>
                             <div class="barras" id="grafico-mrr" aria-label="Evolución del MRR"></div>
                         </div>
@@ -1259,27 +1259,27 @@
                     <div class="kpis">
                         <div class="kpi">
                             <span class="kpi-label">Salones</span>
-                            <strong class="kpi-valor" id="kpi-salones">â€”</strong>
-                            <span class="kpi-pie" id="kpi-salones-pie">cargandoâ€¦</span>
+                            <strong class="kpi-valor" id="kpi-salones">—</strong>
+                            <span class="kpi-pie" id="kpi-salones-pie">cargando…</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Billeteras con saldo</span>
-                            <strong class="kpi-valor" id="kpi-billeteras-saldo">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-billeteras-saldo">—</strong>
                             <span class="kpi-pie">que tienen puntos</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Turnos</span>
-                            <strong class="kpi-valor" id="kpi-turnos">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-turnos">—</strong>
                             <span class="kpi-pie">en toda la plataforma</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Clientes totales</span>
-                            <strong class="kpi-valor" id="kpi-clientes">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-clientes">—</strong>
                             <span class="kpi-pie">registradas</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">En trial</span>
-                            <strong class="kpi-valor" id="kpi-trial">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-trial">—</strong>
                             <span class="kpi-pie">pruebas activas</span>
                         </div>
                     </div>
@@ -1287,32 +1287,32 @@
                     <div class="kpis kpis-fin">
                         <div class="kpi kpi-destacado">
                             <span class="kpi-label">MRR</span>
-                            <strong class="kpi-valor" id="met-mrr">â€”</strong>
+                            <strong class="kpi-valor" id="met-mrr">—</strong>
                             <span class="kpi-pie">ingreso mensual recurrente</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">ARR</span>
-                            <strong class="kpi-valor" id="met-arr">â€”</strong>
+                            <strong class="kpi-valor" id="met-arr">—</strong>
                             <span class="kpi-pie">proyección anual</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Churn 30 días</span>
-                            <strong class="kpi-valor" id="met-churn">â€”</strong>
+                            <strong class="kpi-valor" id="met-churn">—</strong>
                             <span class="kpi-pie" id="met-churn-pie">cancelaciones</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Online ahora</span>
-                            <strong class="kpi-valor" id="met-online">â€”</strong>
-                            <span class="kpi-pie">Ãºltimos 15 min</span>
+                            <strong class="kpi-valor" id="met-online">—</strong>
+                            <span class="kpi-pie">últimos 15 min</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Activos esta semana</span>
-                            <strong class="kpi-valor" id="met-semana">â€”</strong>
+                            <strong class="kpi-valor" id="met-semana">—</strong>
                             <span class="kpi-pie">con turnos</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Nuevos este mes</span>
-                            <strong class="kpi-valor" id="met-nuevos">â€”</strong>
+                            <strong class="kpi-valor" id="met-nuevos">—</strong>
                             <span class="kpi-pie" id="met-trials">trials por vencer</span>
                         </div>
                     </div>
@@ -1321,17 +1321,17 @@
                     <div class="kpis kpis-fin">
                         <div class="kpi">
                             <span class="kpi-label">Churn del mes</span>
-                            <strong class="kpi-valor" id="saas-churn">â€”</strong>
+                            <strong class="kpi-valor" id="saas-churn">—</strong>
                             <span class="kpi-pie" id="saas-churn-pie">cancelaciones del mes</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">LTV estimado</span>
-                            <strong class="kpi-valor" id="saas-ltv">â€”</strong>
+                            <strong class="kpi-valor" id="saas-ltv">—</strong>
                             <span class="kpi-pie" id="saas-ltv-pie">por salón</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Salud de salones</span>
-                            <strong class="kpi-valor" id="saas-health">â€”</strong>
+                            <strong class="kpi-valor" id="saas-health">—</strong>
                             <span class="kpi-pie" id="saas-health-pie">sin datos</span>
                         </div>
                     </div>
@@ -1381,7 +1381,7 @@
                             <option value="barberia">Barbería</option>
                             <option value="sin-rubro">Sin rubro</option>
                         </select>
-                        <button type="button" id="csv-salones" class="btn">â†“ CSV</button>
+                        <button type="button" id="csv-salones" class="btn">↗ CSV</button>
                         <span class="contador" id="salones-contador"></span>
                     </div>
 
@@ -1408,7 +1408,7 @@
                                     <th>Miembros</th>
                                     <th>Turnos</th>
                                     <th>Creado</th>
-                                    <th>Ãšltimo turno</th>
+                                    <th>Último turno</th>
                                     <th>Estado</th>
                                     <th>Perfil</th>
                                     <th><input type="checkbox" id="checkbox-todo-header"></th>
@@ -1426,27 +1426,27 @@
                     <div class="kpis">
                         <div class="kpi kpi-destacado">
                             <span class="kpi-label">MRR estimado</span>
-                            <strong class="kpi-valor" id="kpi-mrr">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-mrr">—</strong>
                             <span class="kpi-pie">planes activos, por mes</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">En trial</span>
-                            <strong class="kpi-valor" id="kpi-trial-sus">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-trial-sus">—</strong>
                             <span class="kpi-pie">pruebas gratuitas</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Activos</span>
-                            <strong class="kpi-valor" id="kpi-activos">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-activos">—</strong>
                             <span class="kpi-pie">suscripción al día</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Past due</span>
-                            <strong class="kpi-valor" id="kpi-pastdue">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-pastdue">—</strong>
                             <span class="kpi-pie">pago pendiente</span>
                         </div>
                         <div class="kpi">
                             <span class="kpi-label">Gratis</span>
-                            <strong class="kpi-valor" id="kpi-gratis">â€”</strong>
+                            <strong class="kpi-valor" id="kpi-gratis">—</strong>
                             <span class="kpi-pie">plan sin costo</span>
                         </div>
                     </div>
@@ -1626,7 +1626,7 @@
                     </div>
                 </section>
 
-                <!-- AUDITORÃA -->
+                <!-- AUDITORÍA -->
                 <section id="seccion-auditoria" class="seccion oculto">
                     <div class="toolbar">
                         <input type="search" id="buscar-auditoria" placeholder="Buscar admin, salón o acción" aria-label="Buscar en auditoría">
@@ -1768,7 +1768,7 @@
                                     <th>Salón</th>
                                     <th>Rol</th>
                                     <th>Alta</th>
-                                    <th>Ãšltimo acceso</th>
+                                    <th>Último acceso</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -1820,7 +1820,7 @@
                     <h2 id="drawer-titulo">Salón</h2>
                     <p class="sub" id="drawer-estado" style="margin:0"></p>
                 </div>
-                <button type="button" id="drawer-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">âœ•</button>
+                <button type="button" id="drawer-cerrar" class="btn btn-icono" aria-label="Cerrar detalle">✓</button>
             </div>
             <div id="drawer-datos" class="drawer-seccion"></div>
             <div id="drawer-plan" class="drawer-seccion"></div>
@@ -1830,7 +1830,7 @@
         </aside>
     </div>
 
-    <!-- 5 · CONFIRMACIÃ“N -->
+    <!-- 5 · CONFIRMACIÓN -->
     <div id="confirm-overlay" class="overlay overlay-confirmar oculto">
         <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="confirm-titulo">
             <h2 id="confirm-titulo"></h2>
@@ -1876,21 +1876,21 @@
         </div>
     </div>
 
-    <!-- I72 · COMPLETAR PERFIL PÃšBLICO (rubro + slug) ANTES DE APROBAR -->
+    <!-- I72 · COMPLETAR PERFIL PÚBLICO (rubro + slug) ANTES DE APROBAR -->
     <div id="perfil-overlay" class="overlay oculto">
         <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="perfil-titulo">
-            <h2 id="perfil-titulo">Completar perfil pÃºblico</h2>
+            <h2 id="perfil-titulo">Completar perfil público</h2>
             <p id="perfil-texto" class="nota">Para aparecer en Elima Belleza el salón necesita rubro y slug.</p>
             <div class="campo">
                 <label for="perfil-rubro">Rubro</label>
                 <select id="perfil-rubro">
-                    <option value="">Elegí un rubroâ€¦</option>
+                    <option value="">Elegí un rubro…</option>
                 </select>
             </div>
             <div class="campo">
                 <label for="perfil-slug">Slug del perfil</label>
                 <input type="text" id="perfil-slug" maxlength="60" autocomplete="off" spellcheck="false" placeholder="ej: eli-m-nails">
-                <small class="nota">Link pÃºblico: marketplace.html?slug=<span id="perfil-slug-preview">â€”</span></small>
+                <small class="nota">Link público: marketplace.html?slug=<span id="perfil-slug-preview">—</span></small>
             </div>
             <p id="perfil-error" class="alerta error oculto" role="alert"></p>
             <div class="confirmar-acciones">
@@ -2014,17 +2014,17 @@
             }
         }
         function fechaCorta(valor) {
-            if (!valor) return 'â€”';
+            if (!valor) return '—';
             var texto = String(valor);
             var soloFecha = texto.length === 10 && texto.charAt(4) === '-' && texto.charAt(7) === '-';
             var d = new Date(soloFecha ? texto + 'T00:00:00' : valor);
-            if (isNaN(d.getTime())) return 'â€”';
+            if (isNaN(d.getTime())) return '—';
             return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
         }
         function fechaHora(valor) {
-            if (!valor) return 'â€”';
+            if (!valor) return '—';
             var d = new Date(valor);
-            if (isNaN(d.getTime())) return 'â€”';
+            if (isNaN(d.getTime())) return '—';
             return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' · ' +
                    d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         }
@@ -2058,7 +2058,7 @@
         function recortar(texto, maximo) {
             var s = String(texto == null ? '' : texto);
             if (s.length <= maximo) return s;
-            return s.slice(0, maximo - 1) + 'â€¦';
+            return s.slice(0, maximo - 1) + '…';
         }
         function toast(mensaje, tipo) {
             var caja = $('toasts');
@@ -2126,7 +2126,7 @@
             if (evento.target === $('confirm-overlay')) cerrarConfirmar(false);
         });
 
-        // â”€â”€ I72 · modal de perfil pÃºblico â”€â”€
+        // â”€â”€ I72 · modal de perfil público â”€â”€
         (function () {
             var overlay = $('perfil-overlay');
             if (!overlay) return;
@@ -2140,7 +2140,7 @@
                 if (evento.key === 'Escape' && !overlay.classList.contains('oculto')) cerrarModalPerfil();
             });
             $('perfil-slug').addEventListener('input', function () {
-                $('perfil-slug-preview').textContent = normalizarSlugAdmin(this.value) || 'â€”';
+                $('perfil-slug-preview').textContent = normalizarSlugAdmin(this.value) || '—';
             });
             $('perfil-rubro').addEventListener('change', function () {
                 if (!perfilCtx) return;
@@ -2373,7 +2373,7 @@
 
         async function iniciarEnrolamiento() {
             var boton = $('dosfa-btn');
-            ocupado(boton, 'Preparandoâ€¦');
+            ocupado(boton, 'Preparando…');
             try {
                 var enrol = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Panel admin' });
                 if (enrol.error) throw enrol.error;
@@ -2413,7 +2413,7 @@
             if (!factorPendiente) { alerta('dosfa-alerta', 'Volvé a iniciar sesión.'); return; }
             if (codigo.length !== 6) { alerta('dosfa-alerta', 'El código tiene que tener 6 dígitos.'); return; }
             alerta('dosfa-alerta', '');
-            ocupado(boton, 'Verificandoâ€¦');
+            ocupado(boton, 'Verificando…');
             try {
                 await verificarCodigo(codigo);
                 factorPendiente = null;
@@ -2448,7 +2448,7 @@
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alerta('login-alerta', 'Ingresá un email válido.'); return; }
             if (password.length < 6) { alerta('login-alerta', 'La contraseña debe tener al menos 6 caracteres.'); return; }
             alerta('login-alerta', '');
-            ocupado(boton, 'Entrandoâ€¦');
+            ocupado(boton, 'Entrando…');
             try {
                 var ingreso = await supabase.auth.signInWithPassword({ email: email, password: password });
                 if (ingreso.error) throw ingreso.error;
@@ -2729,7 +2729,7 @@
         }
 
         async function guardarPlan(id, nombre, precio, limite, descripcion, activo, caracteristicas, boton) {
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_plan_guardar', {
                     p_id: id, p_nombre: nombre,
@@ -2757,7 +2757,7 @@
             var nombre = String($('plan-nombre').value || '').trim();
             if (!id || !nombre) { toast('Completá id y nombre del plan.', 'error'); return; }
             var boton = $('plan-crear');
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_plan_guardar', {
                     p_id: id, p_nombre: nombre,
@@ -2818,12 +2818,12 @@
             if (vacio) vacio.classList.add('oculto');
             lista.forEach(function (u) {
                 var fila = document.createElement('tr');
-                fila.appendChild(celda('Email', u.email || 'â€”'));
-                fila.appendChild(celda('Salón', u.salon_nombre || 'â€”'));
+                fila.appendChild(celda('Email', u.email || '—'));
+                fila.appendChild(celda('Salón', u.salon_nombre || '—'));
                 fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral'))));
                 fila.appendChild(celda('Alta', fechaCorta(u.creado_en)));
                 var tdUltimo = document.createElement('td');
-                tdUltimo.setAttribute('data-label', 'Ãšltimo acceso');
+                tdUltimo.setAttribute('data-label', 'Último acceso');
                 var semaforo = document.createElement('span');
                 semaforo.className = 'semaforo ' + claseAcceso(u.ultimo_acceso);
                 semaforo.title = etiquetaAcceso(u.ultimo_acceso);
@@ -2865,7 +2865,7 @@
 
             var ventana = window.open('about:blank', '_blank');
             if (ventana) { try { ventana.opener = null; } catch (error) { /* noop */ } }
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var destino = new URL('index.html?soporte=1', window.location.href).href;
                 if (bloqueoImpersonacion()) { toast('Impersonación bloqueada por intentos fallidos. Revisá Auditoría.', 'error'); return; }
@@ -2924,8 +2924,8 @@
                     banner.textContent = "";
                 } else {
                     banner.classList.remove("oculto");
-                    banner.textContent = "âš  " + n + " intento" + (n === 1 ? "" : "s") +
-                        " de impersonación fallido" + (n === 1 ? "" : "s") + " en la Ãºltima hora" +
+                    banner.textContent = "⚠ " + n + " intento" + (n === 1 ? "" : "s") +
+                        " de impersonación fallido" + (n === 1 ? "" : "s") + " en la última hora" +
                         (bloqueoImpersonacion() ? ". La impersonación está bloqueada hasta revisarlo." : ".");
                 }
             }
@@ -2964,7 +2964,7 @@
                 true
             );
             if (!ok) return;
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase.functions.invoke('admin-user', {
                     body: { action: 'revoke_sessions', user_id: u.id }
@@ -3007,9 +3007,9 @@
                 case 'salon_cancelado':
                     return admin + ' marcó como cancelada la suscripción de ' + (salon || 'un salón');
                 case 'plan_cambio':
-                    return admin + ' cambió el plan de ' + (salon || 'un salón') + ' de ' + (d.plan_anterior || 'â€”') + ' a ' + (d.plan_nuevo || 'â€”');
+                    return admin + ' cambió el plan de ' + (salon || 'un salón') + ' de ' + (d.plan_anterior || '—') + ' a ' + (d.plan_nuevo || '—');
                 case 'plan_estado':
-                    return admin + ' cambió el estado de ' + (salon || 'un salón') + ': ' + (d.estado_anterior || 'â€”') + ' → ' + (d.estado_nuevo || 'â€”');
+                    return admin + ' cambió el estado de ' + (salon || 'un salón') + ': ' + (d.estado_anterior || '—') + ' → ' + (d.estado_nuevo || '—');
                 case 'plan_alta':
                     return admin + ' creó el plan ' + (d.nombre || d.plan || '');
                 case 'plan_editado':
@@ -3043,7 +3043,7 @@
             } catch (error) {
                 console.warn("metricas:", error);
                 ["met-mrr","met-arr","met-churn","met-online","met-semana","met-nuevos"].forEach(function (id) {
-                    if ($(id)) $(id).textContent = "â€”";
+                    if ($(id)) $(id).textContent = "—";
                 });
             }
             cargarTopSalones();
@@ -3086,7 +3086,7 @@
             try {
                 var res = await supabase.rpc('admin_flags');
                 if (res.error) {
-                    // Fallback: la RPC pÃºblica ya existe en la base.
+                    // Fallback: la RPC pública ya existe en la base.
                     var pub = await supabase.rpc('flags_publicos');
                     if (pub.error) throw res.error;
                     var fila = (pub.data && pub.data[0]) || {};
@@ -3264,7 +3264,7 @@
             });
         })();
         // ══════════════════════════════════════════════════════════════════
-        // I66 · God Mode V3 â€” métricas SaaS, soporte y operaciones
+        // I66 · God Mode V3 — métricas SaaS, soporte y operaciones
         // ══════════════════════════════════════════════════════════════════
 
         var ticketsCache = [];
@@ -3275,7 +3275,7 @@
             ['finanzas',    'Finanzas'],
             ['resenas',     'Reseñas'],
             ['marketplace', 'Marketplace'],
-            ['perfil',      'Perfil pÃºblico'],
+            ['perfil',      'Perfil público'],
             ['equipo',      'Equipo (2+)'],
             ['puntos',      'Puntos']
         ];
@@ -3328,7 +3328,7 @@
             } catch (error) {
                 console.warn('metricas saas:', error);
                 ['saas-churn', 'saas-ltv', 'saas-health'].forEach(function (id) {
-                    if ($(id)) $(id).textContent = 'â€”';
+                    if ($(id)) $(id).textContent = '—';
                 });
                 if ($('saas-churn-pie')) $('saas-churn-pie').textContent = 'no disponible';
             }
@@ -3339,7 +3339,7 @@
             if (!cont) return;
             cont.textContent = '';
             if (!lista.length) {
-                cont.appendChild(crear('p', 'vacio', 'NingÃºn salón pago lleva 15 días sin turnos.'));
+                cont.appendChild(crear('p', 'vacio', 'Ningún salón pago lleva 15 días sin turnos.'));
                 return;
             }
             lista.forEach(function (s) {
@@ -3414,7 +3414,7 @@
                 en_proceso: ['En proceso', 'pill-gold'],
                 cerrado: ['Cerrado', 'pill-ok']
             };
-            var info = mapa[estado] || ['â€”', 'pill-neutral'];
+            var info = mapa[estado] || ['—', 'pill-neutral'];
             return pill(info[0], info[1]);
         }
 
@@ -3424,7 +3424,7 @@
                 media: ['Media', 'pill-gold'],
                 baja: ['Baja', 'pill-neutral']
             };
-            var info = mapa[prioridad] || ['â€”', 'pill-neutral'];
+            var info = mapa[prioridad] || ['—', 'pill-neutral'];
             return pill(info[0], info[1]);
         }
 
@@ -3442,11 +3442,11 @@
                 var tr = document.createElement('tr');
 
                 var celdaAsunto = document.createElement('td');
-                celdaAsunto.appendChild(crear('strong', null, recortar(t.asunto || 'â€”', 70)));
+                celdaAsunto.appendChild(crear('strong', null, recortar(t.asunto || '—', 70)));
                 if (t.mensaje) celdaAsunto.title = String(t.mensaje).slice(0, 400);
                 tr.appendChild(celdaAsunto);
 
-                tr.appendChild(crear('td', null, t.salon_nombre || 'â€”'));
+                tr.appendChild(crear('td', null, t.salon_nombre || '—'));
 
                 var celdaPrioridad = document.createElement('td');
                 celdaPrioridad.appendChild(pillPrioridad(t.prioridad));
@@ -3550,7 +3550,7 @@
             if (error) error.className = 'alerta error oculto';
 
             var boton = $('ticket-guardar');
-            ocupado(boton, 'Creandoâ€¦');
+            ocupado(boton, 'Creando…');
             try {
                 var res = await supabase.rpc('admin_ticket_crear', {
                     p_asunto: asunto,
@@ -3622,8 +3622,8 @@
             );
             if (!ok) return;
             var boton = $('backup-btn');
-            ocupado(boton, 'Disparandoâ€¦');
-            estadoOperacion('Disparando el workflowâ€¦');
+            ocupado(boton, 'Disparando…');
+            estadoOperacion('Disparando el workflow…');
             try {
                 var sesion = await supabase.auth.getSession();
                 var jwt = sesion && sesion.data && sesion.data.session ? sesion.data.session.access_token : '';
@@ -3669,8 +3669,8 @@
             );
             if (!ok) return;
             var boton = $('cache-btn');
-            ocupado(boton, 'Limpiandoâ€¦');
-            estadoOperacion('Subiendo el epoch de cachéâ€¦');
+            ocupado(boton, 'Limpiando…');
+            estadoOperacion('Subiendo el epoch de caché…');
             try {
                 var res = await supabase.rpc('admin_cache_purgar');
                 if (res.error) throw res.error;
@@ -3863,7 +3863,7 @@
                 return {
                     id: id,
                     nombre: campo(s, ['nombre', 'salon', 'nombre_salon'], 'Salón'),
-                    dueno: campo(s, ['dueno', 'dueno_email', 'email_dueno', 'owner_email'], 'â€”'),
+                    dueno: campo(s, ['dueno', 'dueno_email', 'email_dueno', 'owner_email'], '—'),
                     miembros: Number(campo(s, ['miembros', 'cantidad_miembros', 'total_miembros'], 0)) || 0,
                     turnos: Number(campo(s, ['turnos', 'turnos_total', 'turnos_totales', 'total_turnos'], 0)) || 0,
                     creado: campo(s, ['creado_en', 'fecha_creacion', 'created_at'], null),
@@ -3900,8 +3900,8 @@
             }
             $('kpi-salones').textContent = String(total);
             $('kpi-salones-pie').textContent = activos + (activos === 1 ? ' activo' : ' activos');
-            $('kpi-turnos').textContent = turnos == null ? 'â€”' : String(turnos);
-            $('kpi-clientes').textContent = clientes == null ? 'â€”' : String(clientes);
+            $('kpi-turnos').textContent = turnos == null ? '—' : String(turnos);
+            $('kpi-clientes').textContent = clientes == null ? '—' : String(clientes);
             calcularSaas();
         }
 
@@ -3986,7 +3986,7 @@
         }
         function mailtoReenganche(s) {
             var destino = String(s.dueno || '').trim();
-            if (!destino || destino === 'â€”') return null;
+            if (!destino || destino === '—') return null;
             var asunto = 'Â¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
             var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salón') + '.\n\n' +
                 'Si querés, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo Eli M. Nails';
@@ -3997,7 +3997,7 @@
             var td = document.createElement('td');
             td.setAttribute('data-label', etiqueta);
             if (contenido instanceof Node) td.appendChild(contenido);
-            else td.textContent = contenido == null ? 'â€”' : String(contenido);
+            else td.textContent = contenido == null ? '—' : String(contenido);
             return td;
         }
 
@@ -4011,7 +4011,7 @@
 
             var vacio = $('salones-vacio');
             if (!lista.length) {
-                vacio.textContent = salones.length ? 'NingÃºn salón coincide con el filtro.' : 'No hay salones todavía.';
+                vacio.textContent = salones.length ? 'Ningún salón coincide con el filtro.' : 'No hay salones todavía.';
                 vacio.classList.remove('oculto');
                 return;
             }
@@ -4043,7 +4043,7 @@
                 fila.appendChild(celda('Miembros', s.miembros));
                 fila.appendChild(celda('Turnos', s.turnos));
                 fila.appendChild(celda('Creado', fechaCorta(s.creado)));
-                var celdaUltimo = celda('Ãšltimo turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
+                var celdaUltimo = celda('Último turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
                 if (salonInactivo(s)) celdaUltimo.appendChild(pill('Inactivo', 'pill-danger'));
                 fila.appendChild(celdaUltimo);
                 fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
@@ -4084,7 +4084,7 @@
                 var cajaAcciones = crear('div', 'acciones-fila');
                 var enlace = mailtoReenganche(s);
                 if (enlace && salonInactivo(s)) {
-                    var correo = crear('a', 'btn btn-sm', 'âœ‰');
+                    var correo = crear('a', 'btn btn-sm', '✉');
                     correo.href = enlace;
                     correo.title = 'Escribir a la dueña';
                     correo.setAttribute('aria-label', 'Escribir a ' + s.dueno);
@@ -4097,7 +4097,7 @@
                 botonPerfil.setAttribute('aria-label', (publicado ? 'Despublicar perfil de ' : 'Aprobar perfil de ') + s.nombre);
                 if (!publicado && !perfilDisponible) {
                     botonPerfil.disabled = true;
-                    botonPerfil.title = 'Faltan las columnas de perfil pÃºblico en la base';
+                    botonPerfil.title = 'Faltan las columnas de perfil público en la base';
                 } else if (!publicado && !perfilCompleto(s)) {
                     // I72 · ya no se bloquea: al tocarlo se abre el modal para completar rubro y slug.
                     botonPerfil.title = 'Aprobar: te va a pedir completar rubro y slug';
@@ -4126,7 +4126,7 @@
                 fila.appendChild(celda('Miembros', s.miembros));
                 fila.appendChild(celda('Turnos', s.turnos));
                 fila.appendChild(celda('Creado', fechaCorta(s.creado)));
-                var celdaUltimo = celda('Ãšltimo turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
+                var celdaUltimo = celda('Último turno', s.ultimoTurno ? fechaCorta(s.ultimoTurno) : 'Sin turnos');
                 if (salonInactivo(s)) celdaUltimo.appendChild(pill('Inactivo', 'pill-danger'));
                 fila.appendChild(celdaUltimo);
                 fila.appendChild(celda('Estado', pill(s.activo ? 'Activo' : 'Suspendido', s.activo ? 'pill-ok' : 'pill-danger')));
@@ -4153,7 +4153,7 @@
                 suspender
             );
             if (!ok) return;
-            ocupado(boton, 'Guardandoâ€¦');
+            ocupado(boton, 'Guardando…');
             try {
                 var res = await supabase.rpc('admin_set_salon_activo', { p_salon: s.id, p_activo: !s.activo });
                 if (res.error) throw res.error;
@@ -4172,7 +4172,7 @@
             }
         }
 
-        // â”€â”€ I72 · perfil pÃºblico: rubro + slug editables y aprobación asistida â”€â”€
+        // â”€â”€ I72 · perfil público: rubro + slug editables y aprobación asistida â”€â”€
         var perfilCtx = null;
 
         function llenarSelectRubros(select) {
@@ -4206,7 +4206,7 @@
                 return 'Ese slug ya lo usa otro salón. Probá con otro.';
             }
             if (/salones_slug_check/i.test(texto)) {
-                return 'El slug necesita entre 3 y 60 caracteres: minÃºsculas, nÃºmeros y guiones simples.';
+                return 'El slug necesita entre 3 y 60 caracteres: minúsculas, números y guiones simples.';
             }
             if (/salones_rubro_check/i.test(texto)) {
                 return 'Rubro inválido. Elegí Nails, Peluquería, Maquillaje o Barbería.';
@@ -4231,13 +4231,13 @@
             llenarSelectRubros($('perfil-rubro'));
             perfilCtx = { salon: s, publicar: publicar !== false, foco: document.activeElement };
 
-            $('perfil-titulo').textContent = perfilCtx.publicar ? 'Completar perfil y aprobar' : 'Editar perfil pÃºblico';
+            $('perfil-titulo').textContent = perfilCtx.publicar ? 'Completar perfil y aprobar' : 'Editar perfil público';
             $('perfil-texto').textContent = perfilCtx.publicar
                 ? 'Para aprobar Â«' + s.nombre + 'Â» hacen falta rubro y slug. Se guardan y se publica en un mismo paso.'
-                : 'Rubro y slug del perfil pÃºblico de Â«' + s.nombre + 'Â».';
+                : 'Rubro y slug del perfil público de Â«' + s.nombre + 'Â».';
             $('perfil-rubro').value = s.rubro || '';
             $('perfil-slug').value = s.slug || '';
-            $('perfil-slug-preview').textContent = normalizarSlugAdmin(s.slug) || 'â€”';
+            $('perfil-slug-preview').textContent = normalizarSlugAdmin(s.slug) || '—';
             $('perfil-guardar').textContent = perfilCtx.publicar ? 'Guardar y aprobar' : 'Guardar';
 
             // I79: Checklist visual de requisitos
@@ -4262,14 +4262,14 @@
                 var requisitos = [
                     { campo: s.rubro ? 'rubro' : null, texto: 'Rubro: ' + (s.rubro || 'No asignado'), ok: !!s.rubro },
                     { campo: s.slug ? 'slug' : null, texto: 'Slug: ' + (s.slug || 'Sin slug'), ok: !!s.slug },
-                    { campo: s.bio ? 'bio' : null, texto: 'Bio: ' + (s.bio ? s.bio.substring(0, 30) + 'â€¦' : 'Sin bio'), ok: !!s.bio },
+                    { campo: s.bio ? 'bio' : null, texto: 'Bio: ' + (s.bio ? s.bio.substring(0, 30) + '…' : 'Sin bio'), ok: !!s.bio },
                     { campo: s.foto_portada_url ? 'foto' : null, texto: 'Foto: ' + (s.foto_portada_url ? 'Cargada' : 'Sin foto'), ok: !!s.foto_portada_url }
                 ];
 
                 requisitos.forEach(function(r) {
                     var li = document.createElement('li');
                     li.className = r.ok ? 'checklist-ok' : 'checklist-pendiente';
-                    li.innerHTML = (r.ok ? 'âœ…' : 'âŒ') + ' ' + r.texto;
+                    li.innerHTML = (r.ok ? '✓' : '✗') + ' ' + r.texto;
                     checklistLista.appendChild(li);
                 });
             }
@@ -4298,14 +4298,14 @@
                 return false;
             }
             if (limpio.length < 3) {
-                reportarErrorPerfil('El slug necesita al menos 3 caracteres (letras, nÃºmeros o guiones).');
+                reportarErrorPerfil('El slug necesita al menos 3 caracteres (letras, números o guiones).');
                 return false;
             }
 
             var cambios = { rubro: rubro, slug: limpio };
             if (publicar) cambios.publicado = true;
 
-            ocupado(boton, 'Guardandoâ€¦');
+            ocupado(boton, 'Guardando…');
             try {
                 var res = await supabase
                     .from('salones')
@@ -4349,7 +4349,7 @@
         async function pedirCambioPublicacion(s, boton) {
             var publicar = s.publicado !== true;
             if (publicar && !perfilDisponible) {
-                toast('No se pudieron leer las columnas del perfil pÃºblico. Revisá la migración I62.', 'error');
+                toast('No se pudieron leer las columnas del perfil público. Revisá la migración I62.', 'error');
                 return;
             }
             // I72 · si faltan rubro/slug no bloqueamos: abrimos el modal para completarlos y aprobar.
@@ -4359,7 +4359,7 @@
             }
 
             var ok = await confirmar(
-                publicar ? 'Aprobar perfil pÃºblico' : 'Despublicar perfil pÃºblico',
+                publicar ? 'Aprobar perfil público' : 'Despublicar perfil público',
                 publicar
                     ? 'El salón va a aparecer en Elima Belleza. Verificá que rubro, bio, portada y slug estén completos.'
                     : 'El salón va a dejar de aparecer en Elima Belleza. Su perfil y sus datos se conservan.',
@@ -4368,7 +4368,7 @@
             );
             if (!ok) return;
 
-            ocupado(boton, 'Guardandoâ€¦');
+            ocupado(boton, 'Guardando…');
             try {
                 var res = await supabase
                     .from('salones')
@@ -4491,7 +4491,7 @@
                 : new Date();
             base.setDate(base.getDate() + dias);
             var iso = base.toISOString();
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase
                     .from('salones')
@@ -4540,7 +4540,7 @@
                 var tdNombre = document.createElement('td');
                 tdNombre.setAttribute('data-label', 'Salón');
                 tdNombre.appendChild(crear('div', 'salon-nombre', s.nombre));
-                if (s.dueno && s.dueno !== 'â€”') tdNombre.appendChild(crear('div', 'salon-id', s.dueno));
+                if (s.dueno && s.dueno !== '—') tdNombre.appendChild(crear('div', 'salon-id', s.dueno));
                 fila.appendChild(tdNombre);
 
                 var tdPlan = document.createElement('td');
@@ -4566,7 +4566,7 @@
                 var tdTrial = document.createElement('td');
                 tdTrial.setAttribute('data-label', 'Trial hasta');
                 var dias = diasTrial(s.trial_hasta);
-                var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : 'â€”';
+                var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : '—';
                 if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' d)' : ' (vencido)';
                 tdTrial.textContent = texto;
                 tdTrial.className = 'num';
@@ -4617,7 +4617,7 @@
             $('drawer-titulo').textContent = s.nombre;
             $('drawer-estado').textContent = s.activo ? 'Activo' : 'Suspendido';
             $('drawer-estado').style.color = s.activo ? 'var(--ok)' : 'var(--danger)';
-            $('drawer-datos').textContent = 'Cargando detalleâ€¦';
+            $('drawer-datos').textContent = 'Cargando detalle…';
             $('drawer-plan').textContent = '';
             $('drawer-acciones').textContent = '';
             $('drawer-nota').textContent = '';
@@ -4647,7 +4647,7 @@
         function filaDetalle(etiqueta, valor) {
             var dl = crear('dl', 'detalle-fila');
             dl.appendChild(crear('dt', '', etiqueta));
-            var dd = crear('dd', '', valor == null ? 'â€”' : String(valor));
+            var dd = crear('dd', '', valor == null ? '—' : String(valor));
             dl.appendChild(dd);
             return dl;
         }
@@ -4658,7 +4658,7 @@
             var base = PLANES[planId] || {};
             return {
                 id: planId,
-                nombre: base.nombre || planId || 'â€”',
+                nombre: base.nombre || planId || '—',
                 precio: base.precio || 0,
                 limite_empleadas: planId === 'gratis' ? 1 : (planId === 'pro' ? 3 : null)
             };
@@ -4672,7 +4672,7 @@
                 return String(f.salon_id) === String(s.id);
             }).slice(0, 5);
 
-            caja.appendChild(crear('h3', '', 'Ãšltimas acciones'));
+            caja.appendChild(crear('h3', '', 'Últimas acciones'));
             if (!registros.length) {
                 caja.appendChild(crear('p', 'nota', 'Sin acciones registradas para este salón.'));
                 return;
@@ -4698,9 +4698,9 @@
             caja.appendChild(filaDetalle('Turnos', String(Number(campo(d, ['turnos_total'], 0)) || 0) + ' (' + (Number(campo(d, ['turnos_realizados'], 0)) || 0) + ' realizados)'));
             caja.appendChild(filaDetalle('Clientes', String(Number(campo(d, ['clientes'], 0)) || 0)));
             var ultimo = campo(d, ['ultimo_turno'], null);
-            caja.appendChild(filaDetalle('Ãšltimo turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
+            caja.appendChild(filaDetalle('Último turno', ultimo ? fechaCorta(ultimo) : 'Sin turnos'));
             caja.appendChild(filaDetalle('Estado', s.activo ? 'Activo' : 'Suspendido'));
-            caja.appendChild(filaDetalle('Perfil pÃºblico', s.publicado === true ? 'Publicado' : 'Pendiente'));
+            caja.appendChild(filaDetalle('Perfil público', s.publicado === true ? 'Publicado' : 'Pendiente'));
 
             // I72 · rubro y slug editables en el drawer: antes eran solo lectura y
             // bloqueaban la aprobación cuando el salón llegaba incompleto.
@@ -4740,10 +4740,10 @@
             inputSlug.placeholder = 'ej: eli-m-nails';
             inputSlug.value = s.slug || '';
             campoSlug.appendChild(inputSlug);
-            var ayudaSlug = crear('small', 'nota', 'Link: marketplace.html?slug=' + (s.slug || 'â€”'));
+            var ayudaSlug = crear('small', 'nota', 'Link: marketplace.html?slug=' + (s.slug || '—'));
             campoSlug.appendChild(ayudaSlug);
             inputSlug.addEventListener('input', function () {
-                ayudaSlug.textContent = 'Link: marketplace.html?slug=' + (normalizarSlugAdmin(this.value) || 'â€”');
+                ayudaSlug.textContent = 'Link: marketplace.html?slug=' + (normalizarSlugAdmin(this.value) || '—');
             });
             editor.appendChild(campoSlug);
 
@@ -4779,17 +4779,17 @@
 
             caja.appendChild(filaDetalle('Estado', (ESTADOS[s.estado] || ESTADOS.trial).nombre));
             var dias = diasTrial(s.trial_hasta);
-            var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : 'â€”';
+            var texto = s.trial_hasta ? fechaCorta(s.trial_hasta) : '—';
             if (dias !== null) texto += dias >= 0 ? ' (' + dias + ' días)' : ' (vencido)';
             caja.appendChild(filaDetalle('Trial hasta', texto));
-            caja.appendChild(filaDetalle('Activo desde', s.suscripcion_desde ? fechaCorta(s.suscripcion_desde) : 'â€”'));
+            caja.appendChild(filaDetalle('Activo desde', s.suscripcion_desde ? fechaCorta(s.suscripcion_desde) : '—'));
 
             // I51 · plan, límite de empleadas y consumo
             var plan = planDe(s.plan_id);
             var miembrosStaff = Number(campo(d || {}, ["miembros", "cantidad_miembros"], 0)) || 0;
             var empleadas = Math.max(0, miembrosStaff - 1);
             var limite = plan && plan.limite_empleadas != null ? Number(plan.limite_empleadas) : null;
-            caja.appendChild(filaDetalle('Plan', (plan && plan.nombre) || s.plan_id || 'â€”'));
+            caja.appendChild(filaDetalle('Plan', (plan && plan.nombre) || s.plan_id || '—'));
             caja.appendChild(filaDetalle('Límite de empleadas',
                 limite === null ? 'sin límite' : String(limite) + ' · usando ' + empleadas));
             var barraUso = crear('div', 'uso-plan');
@@ -4814,13 +4814,13 @@
             caja.appendChild(botonAccion('Entrar como este salón', 'btn btn-primario', function () { pedirImpersonacion(s); }));
             var enlace = mailtoReenganche(s);
             if (enlace) {
-                var contacto = crear('a', 'btn', 'âœ‰ Contactar');
+                var contacto = crear('a', 'btn', '✉ Contactar');
                 contacto.href = enlace;
                 contacto.style.textDecoration = 'none';
                 caja.appendChild(contacto);
             }
-            caja.appendChild(botonAccion('âœ‰ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
-            caja.appendChild(botonAccion('â†“ CSV', 'btn', function () { descargarCsv([s]); }));
+            caja.appendChild(botonAccion('✉ Recuperación', 'btn', function () { enviarRecuperacion(s); }));
+            caja.appendChild(botonAccion('↗ CSV', 'btn', function () { descargarCsv([s]); }));
 
             var publicado = s.publicado === true;
             var botonPerfil = botonAccion(
@@ -4830,7 +4830,7 @@
             );
             if (!publicado && !perfilDisponible) {
                 botonPerfil.disabled = true;
-                botonPerfil.title = 'Faltan las columnas de perfil pÃºblico en la base';
+                botonPerfil.title = 'Faltan las columnas de perfil público en la base';
             }
             caja.appendChild(botonPerfil);
 
@@ -4841,7 +4841,7 @@
 
         async function enviarRecuperacion(s) {
             var email = s.dueno;
-            if (!email || email === 'â€”') {
+            if (!email || email === '—') {
                 $('drawer-nota').textContent = 'Este salón no tiene email de dueña registrado.';
                 return;
             }
@@ -4878,7 +4878,7 @@
                 sin_dueno: 'El salón no tiene una dueña registrada.',
                 dueno_inactivo: 'La dueña está desactivada.',
                 dueno_sin_email: 'La dueña no tiene email en Auth.',
-                demasiadas_impersonaciones: 'Demasiadas impersonaciones en la Ãºltima hora.',
+                demasiadas_impersonaciones: 'Demasiadas impersonaciones en la última hora.',
                 origen_no_permitido: 'El dominio del panel no está permitido en la Edge Function.',
                 redirect_to_requerido: 'Falta el redirect_to.',
                 redirect_invalido: 'El redirect_to no es válido.',
@@ -5001,7 +5001,7 @@
                 return;
             }
             alerta('anuncio-alerta', '');
-            ocupado(boton, 'Publicandoâ€¦');
+            ocupado(boton, 'Publicando…');
 
             try {
                 var expira = dias > 0 ? new Date(Date.now() + dias * 86400000).toISOString() : null;
@@ -5042,7 +5042,7 @@
         }
 
         async function cambiarActivoAnuncio(a, boton) {
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase
                     .from('anuncios_globales')
@@ -5200,7 +5200,7 @@
             if (url && !/^https:\/\//i.test(url)) { alerta('pat-alerta', 'El link tiene que empezar con https://', 'error'); return; }
 
             alerta('pat-alerta', '');
-            ocupado(boton, 'Guardandoâ€¦');
+            ocupado(boton, 'Guardando…');
             try {
                 var res = await supabase.rpc('admin_patrocinador_guardar', {
                     p_id: patrocinadorEditando ? patrocinadorEditando.id : null,
@@ -5230,7 +5230,7 @@
         }
 
         async function cambiarEstadoPatrocinador(p, boton) {
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_patrocinador_estado', { p_id: p.id, p_activo: !p.activo });
                 if (res.error) throw res.error;
@@ -5246,7 +5246,7 @@
 
         async function borrarPatrocinador(p, boton) {
             if (!window.confirm('Â¿Borrar el patrocinador?')) return;
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_patrocinador_borrar', { p_id: p.id });
                 if (res.error) throw res.error;
@@ -5402,7 +5402,7 @@
             );
             if (!ok) return;
 
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var base = fila.vence_en ? new Date(fila.vence_en) : new Date();
                 if (isNaN(base.getTime()) || base < new Date()) base = new Date();
@@ -5439,7 +5439,7 @@
             );
             if (!ok) return;
 
-            ocupado(boton, 'â€¦');
+            ocupado(boton, '…');
             try {
                 var plan = await supabase.rpc('admin_saas_plan', { p_salon: fila.salon_id });
                 if (plan.error) throw plan.error;
@@ -5476,7 +5476,7 @@
             );
             if (!ok) return;
             var boton = $('cobros-aplicar');
-            ocupado(boton, 'Aplicandoâ€¦');
+            ocupado(boton, 'Aplicando…');
             try {
                 var res = await supabase.rpc('admin_saas_vencimientos', { p_aplicar: true });
                 if (res.error) throw res.error;
@@ -5492,7 +5492,7 @@
 
         // â”€â”€ auditoría â”€â”€
         function resumenDetalle(detalle) {
-            if (detalle == null) return 'â€”';
+            if (detalle == null) return '—';
             if (typeof detalle === 'string') return detalle;
             var partes = [];
             Object.keys(detalle).some(function (clave) {
@@ -5502,7 +5502,7 @@
                 partes.push(clave + ': ' + String(valor));
                 return partes.length >= 4;
             });
-            return partes.length ? partes.join(' · ') : 'â€”';
+            return partes.length ? partes.join(' · ') : '—';
         }
 
         async function cargarAuditoria() {
@@ -5533,7 +5533,7 @@
                     admin_email: campo(f, ['admin_email', 'email'], null),
                     salon_id: campo(f, ['salon_id', 'salon'], null),
                     salon_nombre: campo(f, ['salon_nombre', 'nombre_salon'], null),
-                    accion: campo(f, ['accion', 'action'], 'â€”'),
+                    accion: campo(f, ['accion', 'action'], '—'),
                     detalle: campo(f, ['detalle', 'detail'], null),
                     creado_en: campo(f, ['creado_en', 'created_at'], null)
                 };
@@ -5571,7 +5571,7 @@
 
             tbody.textContent = '';
             if (!lista.length) {
-                vacio.textContent = auditoria.length ? 'NingÃºn registro coincide con el filtro.' : 'No hay registros de auditoría.';
+                vacio.textContent = auditoria.length ? 'Ningún registro coincide con el filtro.' : 'No hay registros de auditoría.';
                 vacio.classList.remove('oculto');
                 return;
             }
@@ -5580,8 +5580,8 @@
             lista.forEach(function (f) {
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Fecha', fechaHora(f.creado_en)));
-                fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || f.admin_email || (f.admin_id ? String(f.admin_id).slice(0, 8) : 'â€”')));
-                fila.appendChild(celda('Salón', nombres[f.salon_id] || f.salon_nombre || (f.salon_id ? String(f.salon_id).slice(0, 8) : 'â€”')));
+                fila.appendChild(celda('Admin', emailsAdmins[f.admin_id] || f.admin_email || (f.admin_id ? String(f.admin_id).slice(0, 8) : '—')));
+                fila.appendChild(celda('Salón', nombres[f.salon_id] || f.salon_nombre || (f.salon_id ? String(f.salon_id).slice(0, 8) : '—')));
 
                 var tdAccion = document.createElement('td');
                 tdAccion.setAttribute('data-label', 'Acción');
@@ -5742,7 +5742,7 @@
         });
         $('refrescar-btn').addEventListener('click', async function () {
             var boton = $('refrescar-btn');
-            ocupado(boton, 'Actualizandoâ€¦');
+            ocupado(boton, 'Actualizando…');
             await cargarTodo();
             ocupado(boton, '');
             toast('Datos actualizados.', 'ok');
@@ -5770,7 +5770,7 @@
                 await cargarListaBilleteras();
             } catch (error) {
                 console.error('Reserva Federal:', error);
-                alerta('rf-alerta', 'No se pudo cargar la Reserva Federal: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                alerta('rf-alerta', 'No se pudo cargar la Reserva Federal: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
@@ -5807,7 +5807,7 @@
                 pintarPaginacion();
             } catch (error) {
                 console.error('Lista billeteras:', error);
-                alerta('rf-alerta', 'No se pudo cargar la lista: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                alerta('rf-alerta', 'No se pudo cargar la lista: ' + (error.message || 'error de conexión'), 'error');
             }
         }
 
@@ -5826,19 +5826,19 @@
 
                 var tdClienta = document.createElement('td');
                 var strong = document.createElement('strong');
-                strong.textContent = f.cliente_nombre || 'Ã¢â‚¬â€';
+                strong.textContent = f.cliente_nombre || '—';
                 var small = document.createElement('div');
                 small.style.fontSize = '12px';
                 small.style.color = 'var(--ink-subtle)';
                 var contact = [];
                 if (f.cliente_email) contact.push(f.cliente_email);
                 if (f.cliente_telefono) contact.push(f.cliente_telefono);
-                small.textContent = contact.join(' Ã‚· ');
+                small.textContent = contact.join(' · ');
                 tdClienta.appendChild(strong);
                 tdClienta.appendChild(small);
 
                 var tdSalon = document.createElement('td');
-                tdSalon.textContent = f.salon_nombre || 'Ã¢â‚¬â€';
+                tdSalon.textContent = f.salon_nombre || '—';
 
                 var tdSaldo = document.createElement('td');
                 var saldo = Number(f.saldo_actual) || 0;
@@ -5851,7 +5851,7 @@
                 tdMovimientos.textContent = String(f.movimientos || 0);
 
                 var tdUltimo = document.createElement('td');
-                tdUltimo.textContent = f.ultimo_movimiento ? fechaCorta(f.ultimo_movimiento) : 'Ã¢â‚¬â€';
+                tdUltimo.textContent = f.ultimo_movimiento ? fechaCorta(f.ultimo_movimiento) : '—';
 
                 var tdAcciones = document.createElement('td');
                 var divAcciones = document.createElement('div');
@@ -5885,7 +5885,7 @@
 
         function pintarPaginacion() {
             var totalPaginas = Math.ceil(rfTotalRegistros / rfLIMITE_PAGINA);
-            $('rf-pagina-info').textContent = 'PÃƒÂ¡gina ' + rfPaginaActual + ' de ' + (totalPaginas || 1);
+            $('rf-pagina-info').textContent = 'Página ' + rfPaginaActual + ' de ' + (totalPaginas || 1);
             $('rf-prev').disabled = rfPaginaActual <= 1;
             $('rf-next').disabled = rfPaginaActual >= totalPaginas;
         }
@@ -5925,7 +5925,7 @@
             modal.innerHTML = '\
                 <div class="confirmar rf-modal" role="dialog" aria-modal="true" aria-labelledby="rf-ajustar-titulo">\
                     <h2 id="rf-ajustar-titulo">Ajustar puntos</h2>\
-                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> Ã‚· SalÃƒÂ³n: ' + escapeHtml(f.salon_nombre) + '</p>\
+                    <p class="sub" style="margin:0 0 16px">Clienta: <strong>' + escapeHtml(f.cliente_nombre) + '</strong> · Salón: ' + escapeHtml(f.salon_nombre) + '</p>\
                     <div class="modal-cuerpo">\
                         <div class="campo">\
                             <label for="rf-monto">Monto (positivo suma, negativo resta)</label>\
@@ -5938,7 +5938,7 @@
                         </div>\
                         <div class="vista-previa">\
                             <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(rfModalBilletera.saldo_actual) || 0) + '</span></div>\
-                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">Ã¢â‚¬â€</span></div>\
+                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">—</span></div>\
                         </div>\
                     </div>\
                     <div class="acciones">\
@@ -5989,7 +5989,7 @@
                 if (!motivo || motivo.length < 3 || motivo.length > 180) { alerta('rf-alerta', 'El motivo debe tener entre 3 y 180 caracteres.', 'error'); return; }
 
                 var btn = $('rf-ajustar-confirmar');
-                btn.disabled = true; btn.textContent = 'AplicandoÃ¢â‚¬Â¦';
+                btn.disabled = true; btn.textContent = 'Aplicando…';
 
                 try {
                     var res = await supabase.rpc('admin_ajustar_puntos_cliente', {
@@ -6006,7 +6006,7 @@
                     await cargarReservaFederal();
                 } catch (error) {
                     console.error('Ajuste:', error);
-                    alerta('rf-alerta', 'No se pudo aplicar el ajuste: ' + (error.message || 'error de conexiÃƒÂ³n'), 'error');
+                    alerta('rf-alerta', 'No se pudo aplicar el ajuste: ' + (error.message || 'error de conexión'), 'error');
                 } finally {
                     btn.disabled = false; btn.textContent = 'Aplicar ajuste';
                 }
@@ -6022,13 +6022,13 @@
                     <div class="drawer-cabecera" style="padding:0 24px 16px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center">\
                         <div>\
                             <h2 id="rf-mov-titulo">Movimientos de ' + escapeHtml(f.cliente_nombre) + '</strong></h2>\
-                            <p class="sub" style="margin:0">SalÃƒÂ³n: ' + escapeHtml(f.salon_nombre) + ' Ã‚· Saldo: ' + formatearPuntos(Number(f.saldo_actual) || 0) + '</p>\
+                            <p class="sub" style="margin:0">Salón: ' + escapeHtml(f.salon_nombre) + ' · Saldo: ' + formatearPuntos(Number(f.saldo_actual) || 0) + '</p>\
                         </div>\
-                        <button type="button" id="rf-mov-cerrar" class="btn btn-icono" aria-label="Cerrar">Ãƒâ€”</button>\
+                        <button type="button" id="rf-mov-cerrar" class="btn btn-icono" aria-label="Cerrar">—</button>\
                     </div>\
                     <div class="modal-cuerpo" style="padding:0 24px 24px;max-height:60vh;overflow-y:auto">\
                         <div class="movimientos-lista" id="rf-mov-lista">\
-                            <div class="cargando" style="text-align:center;padding:24px;color:var(--ink-subtle)">CargandoÃ¢â‚¬Â¦</div>\
+                            <div class="cargando" style="text-align:center;padding:24px;color:var(--ink-subtle)">Cargando…</div>\
                         </div>\
                     </div>\
                 </div>';
@@ -6093,18 +6093,18 @@
 
                     var motivoEl = document.createElement('div');
                     motivoEl.className = 'movimiento-motivo';
-                    motivoEl.textContent = m.motivo || 'â€”';
+                    motivoEl.textContent = m.motivo || '—';
                     div.appendChild(motivoEl);
 
                     var detalle = document.createElement('div');
                     detalle.className = 'movimiento-detalle';
 
                     var spanSalon = document.createElement('span');
-                    spanSalon.textContent = 'Salón: ' + (m.salon_nombre || 'â€”');
+                    spanSalon.textContent = 'Salón: ' + (m.salon_nombre || '—');
                     detalle.appendChild(spanSalon);
 
                     var spanClienta = document.createElement('span');
-                    spanClienta.textContent = 'Clienta: ' + (m.cliente_nombre || 'â€”');
+                    spanClienta.textContent = 'Clienta: ' + (m.cliente_nombre || '—');
                     detalle.appendChild(spanClienta);
 
                     if (m.turno_id) {
