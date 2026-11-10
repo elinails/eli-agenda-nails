@@ -6397,7 +6397,19 @@
             }
         })();
 
-        // I79 · EMITIR PUNTOS - Modal y funciones
+        // I83b · EMITIR PUNTOS - Modal y funciones
+        // Función para cerrar el modal de emisión (debe estar antes de abrirModalEmitir)
+        function cerrarModalEmitir() {
+            var modal = document.getElementById('rf-modal-emitir');
+            if (modal) {
+                modal.classList.add('oculto');
+                document.body.removeChild(modal);
+            }
+            document.body.style.overflow = '';
+            if (rfModalEmitir) rfModalEmitir = null;
+            if (rfSaldoPreview) rfSaldoPreview = null;
+        }
+
         function abrirModalEmitir(f) {
             rfModalEmitir = f;
             var modal = document.createElement('div');
@@ -6452,16 +6464,9 @@
                 contadorEl.style.color = len > 180 ? 'var(--danger)' : 'var(--ink-subtle)';
             });
 
-            function cerrar() {
-                document.body.removeChild(modal);
-                document.body.style.overflow = '';
-                rfModalEmitir = null;
-                rfSaldoPreview = null;
-            }
-
-            $('rf-emitir-cancelar').addEventListener('click', cerrar);
-            modal.addEventListener('click', function (e) { if (e.target === modal) cerrar(); });
-            document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrar(); document.removeEventListener('keydown', esc); } });
+            $('rf-emitir-cancelar').addEventListener('click', cerrarModalEmitir);
+            modal.addEventListener('click', function (e) { if (e.target === modal) cerrarModalEmitir(); });
+            document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrarModalEmitir(); document.removeEventListener('keydown', esc); } });
 
             $('rf-emitir-confirmar').addEventListener('click', async function () {
                 var cantidad = Number(cantidadEl.value) || 0;
@@ -6477,18 +6482,18 @@
                     var res = await supabase.rpc('admin_emitir_puntos', {
                         p_cliente_id: rfModalEmitir.cliente_id,
                         p_salon_id: rfModalEmitir.salon_id,
-                        p_cantidad: cantidad,
+                        p_monto: cantidad,
                         p_motivo: motivo
                     });
                     if (res.error) throw res.error;
 
-                    var d = res.data[0];
+                    var d = res.data && res.data[0];
                     alerta('rf-alerta', 'Puntos emitidos. Saldo nuevo: ' + formatearPuntos(d.saldo_nuevo), 'ok');
-                    cerrar();
+                    cerrarModalEmitir();
                     await cargarReservaFederal();
                 } catch (error) {
                     console.error('Emitir puntos:', error);
-                    alerta('rf-alerta', 'No se pudo emitir los puntos: ' + (error.message || 'error de conexión'), 'error');
+                    alerta('rf-alerta', 'No se pudo emitir los puntos: ' + (error.message || error.description || 'error de conexión'), 'error');
                 } finally {
                     btn.disabled = false; btn.textContent = 'Emitir puntos';
                 }
