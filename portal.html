@@ -212,6 +212,37 @@
     .pie { padding: 24px 0 36px; text-align: center; color: var(--ink-faint); font-size: 12.5px; }
     .pie a { color: var(--ink-soft); }
 
+    /* ── modal reseña ── */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(59, 47, 53, 0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 100;
+    }
+    .modal {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal h3 { font-family: var(--serif); font-size: 20px; margin: 0 0 16px; }
+    .estrellas-modal {
+        display: flex; gap: 4px; margin-bottom: 16px;
+    }
+    .estrella {
+        font-size: 28px; cursor: pointer;
+        color: var(--ink-faint);
+        transition: color .16s ease;
+    }
+    .estrella.seleccionada { color: var(--gold); }
+    .campo textarea {
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
     @media (max-width: 420px) {
         .acceso { padding: 24px 20px; }
         .acceso h1 { font-size: 27px; }
@@ -306,6 +337,15 @@
 
             <div class="alerta" id="panel-alerta" role="alert" hidden></div>
 
+            <h2 class="seccion-titulo">Mis Turnos</h2>
+            <div class="lista" id="mis-turnos" aria-live="polite"></div>
+            <div id="mis-turnos-vacio" hidden>
+                <div class="vacio">
+                    <h2>Aún no tenés turnos completados</h2>
+                    <p>Cuando tu salón marque un turno como realizado, podrás dejar tu reseña.</p>
+                </div>
+            </div>
+
             <h2 class="seccion-titulo">Movimientos</h2>
             <div class="lista" id="historial" aria-live="polite"></div>
             <div id="historial-vacio" hidden>
@@ -323,6 +363,30 @@
 
     </div>
 </main>
+
+<!-- Modal de Reseña -->
+<div id="modal-resena" class="modal-overlay" hidden>
+    <div class="modal">
+        <h3>Dejá tu reseña</h3>
+        <div class="campo">
+            <label>Servicio</label>
+            <div id="modal-servicio" style="font-weight:500; margin-bottom:12px;"></div>
+        </div>
+        <div class="campo">
+            <label>Calificación (1-5 estrellas)</label>
+            <div id="estrellas-modal" class="estrellas-modal"></div>
+        </div>
+        <div class="campo">
+            <label for="comentario-resena">Comentario (opcional)</label>
+            <textarea id="comentario-resena" rows="3" maxlength="1000" placeholder="Contá lo que pensás..."></textarea>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <button type="button" id="btn-cancelar-resena" class="btn btn-secundario">Cancelar</button>
+            <button type="button" id="btn-enviar-resena" class="btn">Enviar reseña</button>
+        </div>
+        <div id="alerta-resena" class="alerta" role="alert" hidden style="margin-top:12px;"></div>
+    </div>
+</div>
 
 <footer class="pie">
     <div class="envoltura">
@@ -723,10 +787,191 @@
         conectarCopiar('copiar-btn');
         conectarCopiar('copiar-btn-2');
 
+        // ── resena modal ────────────────────────────────────────────────────────
+        var turnoSeleccionado = null;
+
+        function renderizarEstrellas(contenedor) {
+            contenedor.innerHTML = '';
+            for (var i = 1; i <= 5; i++) {
+                var estrella = document.createElement('span');
+                estrella.className = 'estrella';
+                estrella.textContent = '☆';
+                estrella.dataset.valor = i;
+                estrella.addEventListener('click', function () {
+                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
+                    seleccionados.forEach(function (e) { e.classList.remove('estrellas'); });
+                    for (var j = 0; j <= this.dataset.valor; j++) {
+                        contenedor.children[j].classList.add('estrellas');
+                        contenedor.children[j].textContent = '★';
+                    }
+                });
+                estrella.addEventListener('mouseenter', function () {
+                    var valor = this.dataset.valor;
+                    var destino = contenedor.querySelectorAll('.estrella');
+                    for (var k = 0; k < destino.length; k++) {
+                        if (k < valor) {
+                            destino[k].textContent = '★';
+                            destino[k].classList.add('estrellas');
+                        } else {
+                            destino[k].textContent = '☆';
+                            destino[k].classList.remove('estrellas');
+                        }
+                    }
+                });
+                estrella.addEventListener('mouseleave', function () {
+                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
+                    Array.from(contenedor.children).forEach(function (e) {
+                        e.classList.remove('estrellas');
+                        e.textContent = e.classList.contains('estrellas') ? '★' : '☆';
+                    });
+                });
+                contenedor.appendChild(estrella);
+            }
+        }
+
+        function abrirModalResena(turno) {
+            turnoSeleccionado = turno;
+            var modal = $('modal-resena');
+            var servicio = $('modal-servicio');
+            var comentario = $('comentario-resena');
+            var alerta = $('alerta-resena');
+
+            if (servicio) servicio.textContent = escapeHTML(turno.servicio_nombre || 'Servicio');
+            if (comentario) comentario.value = '';
+            if (alerta) { alerta.hidden = true; alerta.textContent = ''; alerta.className = 'alerta'; }
+
+            var estrellasCont = $('estrellas-modal');
+            if (estrellasCont) renderizarEstrellas(estrellasCont);
+
+            if (modal) modal.hidden = false;
+        }
+
+        function cerrarModalResena() {
+            turnoSeleccionado = null;
+            var modal = $('modal-resena');
+            if (modal) modal.hidden = true;
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function cargarTurnos() {
+            if (!cliente) return;
+
+            cliente.rpc('turnos_de_cliente').then(function (res) {
+                var turnos = Array.isArray(res.data) ? res.data : [];
+                var caja = $('mis-turnos');
+                var vacio = $('mis-turnos-vacio');
+                caja.innerHTML = '';
+
+                if (turnos.length === 0) {
+                    vacio.hidden = false;
+                    return;
+                }
+                vacio.hidden = true;
+
+                turnos.forEach(function (t) {
+                    var fila = document.createElement('div');
+                    fila.className = 'mov';
+                    var salon = t.salon_nombre || '';
+                    var servicio = t.servicio_nombre || '';
+                    var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                    var hora = t.hora ? t.hora.toString().slice(0, 8) : '';
+
+                    var texto = document.createElement('div');
+                    texto.className = 'mov-texto';
+                    var titulo = document.createElement('span');
+                    titulo.className = 'mov-titulo';
+                    titulo.textContent = salon + ' - ' + servicio;
+                    texto.appendChild(titulo);
+                    var subtitulo = document.createElement('span');
+                    subtitulo.className = 'mov-sub';
+                    subtitulo.textContent = fecha + ' a las ' + hora;
+                    texto.appendChild(subtitulo);
+                    fila.appendChild(texto);
+
+                    if (!t.ya_resenado) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm';
+                        btn.style.marginLeft = '12px';
+                        btn.style.fontSize = '13px';
+                        btn.textContent = 'Dejar Reseña';
+                        btn.addEventListener('click', function () {
+                            abrirModalResena(t);
+                        });
+                        fila.appendChild(btn);
+                    }
+
+                    caja.appendChild(fila);
+                });
+            }).catch(function () {
+                // Silencioso, no importa si la RPC no existe aún
+            });
+        }
+
+        // ── respuesta del modal ─────────────────────────────────────────────────
+        $('btn-cancelar-resena')?.addEventListener('click', function () {
+            cerrarModalResena();
+        });
+
+        $('btn-enviar-resena')?.addEventListener('click', async function () {
+            if (!turnoSeleccionado) return;
+
+            var estrellas = $('estrellas-modal');
+            var estrellasSeleccionadas = Array.from(estrellas.children).filter(function (e) { return e.classList.contains('estrellas'); }).length;
+
+            if (estrellasSeleccionadas === 0) {
+                var alerta = $('alerta-resena');
+                if (alerta) {
+                    alerta.textContent = 'Seleccioná al menos una estrella.';
+                    alerta.hidden = false;
+                }
+                return;
+            }
+
+            var comentario = $('comentario-resena').value.trim();
+
+            try {
+                var res = await cliente.rpc('crear_resena', {
+                    p_turno_id: turnoSeleccionado.id,
+                    p_estrellas: estrellasSeleccionadas,
+                    p_comentario: comentario
+                });
+                if (res.error) throw res.error;
+
+                cerrarModalResena();
+                turnoSeleccionado = null;
+                cargarTurnos(); // refrescar para mostrar "Reseña enviada"
+            } catch (error) {
+                var alerta = $('alerta-resena');
+                if (alerta) {
+                    alerta.textContent = error.message || 'Error al enviar la reseña';
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+            }
+        });
+
+        // Cerrar modal al click fuera
+        document.addEventListener('click', function (e) {
+            if (e.target === $('modal-resena')) cerrarModalResena();
+        });
+
         cliente.auth.onAuthStateChange(function (evento, sesion) {
             if (evento === 'SIGNED_IN' && sesion) {
                 detenerReenvio();
-                setTimeout(cargarPuntos, 0);
+                setTimeout(function () {
+                    cargarPuntos();
+                    setTimeout(cargarTurnos, 300);
+                }, 0);
             } else if (evento === 'SIGNED_OUT') {
                 emailOtp = '';
                 detenerReenvio();
@@ -735,7 +980,10 @@
         });
 
         cliente.auth.getSession().then(function (res) {
-            if (res && res.data && res.data.session) cargarPuntos();
+            if (res && res.data && res.data.session) {
+                cargarPuntos();
+                setTimeout(cargarTurnos, 300);
+            }
             else mostrar('vista-login');
         }).catch(function () { mostrar('vista-login'); });
     }
