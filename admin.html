@@ -731,6 +731,18 @@
         .cobro-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         .cobro-acciones .btn { flex: 1 1 auto; min-height: 34px; font-size: 11.5px; padding: 5px 8px; }
         .cobro-vacio { font-size: 12.5px; color: var(--ink-subtle); padding: 10px 0; }
+
+        /* Secciones (pestañas) */
+        .seccion {
+            display: none;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        .seccion:not(.oculto) {
+            display: block;
+        }
+
         @media (max-width: 980px) {
             .cobros-kpis { grid-template-columns: 1fr 1fr; }
             .grid-cobros { grid-template-columns: 1fr; }
