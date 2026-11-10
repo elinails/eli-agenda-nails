@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -5826,7 +5826,7 @@
 
                 var tdClienta = document.createElement('td');
                 var strong = document.createElement('strong');
-                strong.textContent = f.cliente_nombre || 'Ã¢â‚¬â€';
+                strong.textContent = f.cliente_nombre || '…';
                 var small = document.createElement('div');
                 small.style.fontSize = '12px';
                 small.style.color = 'var(--ink-subtle)';
@@ -5838,7 +5838,7 @@
                 tdClienta.appendChild(small);
 
                 var tdSalon = document.createElement('td');
-                tdSalon.textContent = f.salon_nombre || 'Ã¢â‚¬â€';
+                tdSalon.textContent = f.salon_nombre || '…';
 
                 var tdSaldo = document.createElement('td');
                 var saldo = Number(f.saldo_actual) || 0;
@@ -5851,7 +5851,7 @@
                 tdMovimientos.textContent = String(f.movimientos || 0);
 
                 var tdUltimo = document.createElement('td');
-                tdUltimo.textContent = f.ultimo_movimiento ? fechaCorta(f.ultimo_movimiento) : 'Ã¢â‚¬â€';
+                tdUltimo.textContent = f.ultimo_movimiento ? fechaCorta(f.ultimo_movimiento) : '…';
 
                 var tdAcciones = document.createElement('td');
                 var divAcciones = document.createElement('div');
@@ -5938,7 +5938,7 @@
                         </div>\
                         <div class="vista-previa">\
                             <div>Saldo actual: <span class="saldo-actual">' + formatearPuntos(Number(rfModalBilletera.saldo_actual) || 0) + '</span></div>\
-                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">Ã¢â‚¬â€</span></div>\
+                            <div>Saldo resultante: <span class="saldo-nuevo" id="rf-saldo-preview">…</span></div>\
                         </div>\
                     </div>\
                     <div class="acciones">\
@@ -5989,7 +5989,7 @@
                 if (!motivo || motivo.length < 3 || motivo.length > 180) { alerta('rf-alerta', 'El motivo debe tener entre 3 y 180 caracteres.', 'error'); return; }
 
                 var btn = $('rf-ajustar-confirmar');
-                btn.disabled = true; btn.textContent = 'AplicandoÃ¢â‚¬Â¦';
+                btn.disabled = true; btn.textContent = 'Aplicando…';
 
                 try {
                     var res = await supabase.rpc('admin_ajustar_puntos_cliente', {
@@ -6028,7 +6028,7 @@
                     </div>\
                     <div class="modal-cuerpo" style="padding:0 24px 24px;max-height:60vh;overflow-y:auto">\
                         <div class="movimientos-lista" id="rf-mov-lista">\
-                            <div class="cargando" style="text-align:center;padding:24px;color:var(--ink-subtle)">CargandoÃ¢â‚¬Â¦</div>\
+                            <div class="cargando" style="text-align:center;padding:24px;color:var(--ink-subtle)">Cargando…</div>\
                         </div>\
                     </div>\
                 </div>';
