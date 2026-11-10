@@ -896,6 +896,35 @@
         @media (max-width: 360px) {
             .kpis { grid-template-columns: 1fr; }
         }
+
+        /* ── I66 · operaciones, adopción y soporte ── */
+        .operaciones-fila {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; padding: 12px 0; border-top: 1px solid var(--hairline);
+        }
+        .operaciones-fila:first-of-type { border-top: 0; }
+        .operaciones-titulo { font-weight: 600; margin: 0 0 2px; }
+        .adopcion-lista { display: grid; gap: 10px; }
+        .adopcion-fila {
+            display: grid; grid-template-columns: 148px 1fr 52px;
+            gap: 10px; align-items: center; font-size: 13px;
+        }
+        .adopcion-fila .adopcion-nombre { color: var(--ink-muted); }
+        .adopcion-barra { height: 8px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+        .adopcion-barra span { display: block; height: 100%; background: var(--gold); border-radius: 999px; }
+        .adopcion-pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-subtle); }
+        .salud-resumen { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13.5px; }
+        .salud { display: inline-flex; align-items: center; gap: 6px; }
+        .salud-punto { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+        .salud-rojo { background: var(--danger); }
+        .salud-amarillo { background: #D9A93B; }
+        .salud-verde { background: var(--ok); }
+        .ticket-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ticket-acciones select { min-height: 34px; padding: 4px 8px; font-size: 12.5px; }
+        @media (max-width: 560px) {
+            .operaciones-fila { flex-direction: column; align-items: stretch; }
+            .adopcion-fila { grid-template-columns: 104px 1fr 44px; }
+        }
     </style>
 </head>
 <body>
@@ -994,6 +1023,11 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M3.5 5h.01M3.5 12h.01M3.5 19h.01"/></svg>
                     Auditoría
                     <span id="auditoria-badge" class="badge-alerta oculto">0</span>
+                </button>
+                <button type="button" class="nav-item" data-vista="soporte">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.4 9.4 0 0 1-3.4-.6L3 21l1.7-5a8.2 8.2 0 0 1-.7-3.5 8.4 8.4 0 0 1 8.5-8.4 8.4 8.4 0 0 1 8.5 8.4Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg>
+                    Soporte
+                    <span id="soporte-badge" class="badge-alerta oculto">0</span>
                 </button>
                 <button type="button" class="nav-item" data-vista="ajustes">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
@@ -1140,6 +1174,41 @@
                             <strong class="kpi-valor" id="met-nuevos">—</strong>
                             <span class="kpi-pie" id="met-trials">trials por vencer</span>
                         </div>
+                    </div>
+
+                    <!-- I66 · inteligencia de negocio -->
+                    <div class="kpis kpis-fin">
+                        <div class="kpi">
+                            <span class="kpi-label">Churn del mes</span>
+                            <strong class="kpi-valor" id="saas-churn">—</strong>
+                            <span class="kpi-pie" id="saas-churn-pie">cancelaciones del mes</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">LTV estimado</span>
+                            <strong class="kpi-valor" id="saas-ltv">—</strong>
+                            <span class="kpi-pie" id="saas-ltv-pie">por salón</span>
+                        </div>
+                        <div class="kpi">
+                            <span class="kpi-label">Salud de salones</span>
+                            <strong class="kpi-valor" id="saas-health">—</strong>
+                            <span class="kpi-pie" id="saas-health-pie">sin datos</span>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-top" id="panel-riesgo">
+                        <div class="grafico-cabecera">
+                            <h2>Salones en riesgo</h2>
+                            <span class="grafico-nota">pagan y no tienen turnos hace 15 días</span>
+                        </div>
+                        <div id="lista-riesgo" class="top-lista"></div>
+                    </div>
+
+                    <div class="panel panel-top" id="panel-adopcion">
+                        <div class="grafico-cabecera">
+                            <h2>Adopción de funciones</h2>
+                            <span class="grafico-nota">salones que usan cada función</span>
+                        </div>
+                        <div id="grafico-adopcion" class="adopcion-lista"></div>
                     </div>
 
                     <div class="panel panel-top" id="panel-top">
@@ -1341,6 +1410,36 @@
                         <p id="auditoria-vacio" class="vacio oculto">No hay registros.</p>
                     </div>
                 </section>
+                <!-- I66 · SOPORTE (CRM) -->
+                <section id="seccion-soporte" class="seccion oculto">
+                    <div class="toolbar">
+                        <select id="filtro-tickets" aria-label="Filtrar tickets por estado">
+                            <option value="">Todos los estados</option>
+                            <option value="abierto" selected>Abiertos</option>
+                            <option value="en_proceso">En proceso</option>
+                            <option value="cerrado">Cerrados</option>
+                        </select>
+                        <span class="contador" id="tickets-contador"></span>
+                        <button type="button" id="nuevo-ticket-btn" class="btn btn-primario">+ Nuevo ticket</button>
+                    </div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Asunto</th>
+                                    <th>Salón</th>
+                                    <th>Prioridad</th>
+                                    <th>Estado</th>
+                                    <th>Creado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-tickets"></tbody>
+                        </table>
+                        <p id="tickets-vacio" class="vacio oculto">No hay tickets en esta bandeja.</p>
+                    </div>
+                </section>
                 <!-- COBROS (I63) -->
                 <section id="seccion-cobros" class="seccion oculto">
                     <div class="cabecera-seccion">
@@ -1444,6 +1543,27 @@
                         <div id="lista-flags"></div>
                         <p id="flags-vacio" class="vacio oculto">No hay ajustes cargados.</p>
                     </div>
+
+                    <!-- I66 · operaciones -->
+                    <div class="panel" style="padding:18px;margin-top:16px" id="panel-operaciones">
+                        <h2 style="margin:0 0 4px">Operaciones</h2>
+                        <p class="muted" style="margin:0 0 14px">Acciones manuales sobre la plataforma. Quedan registradas en Auditoría.</p>
+                        <div class="operaciones-fila">
+                            <div>
+                                <p class="operaciones-titulo">Forzar backup</p>
+                                <p class="muted" style="margin:0">Dispara el workflow de GitHub Actions ahora, sin esperar las 23:00.</p>
+                            </div>
+                            <button type="button" id="backup-btn" class="btn btn-primario">Forzar backup</button>
+                        </div>
+                        <div class="operaciones-fila">
+                            <div>
+                                <p class="operaciones-titulo">Limpiar caché global</p>
+                                <p class="muted" style="margin:0">Los clientes purgan su caché y actualizan el service worker la próxima vez que abran la app.</p>
+                            </div>
+                            <button type="button" id="cache-btn" class="btn">Limpiar caché</button>
+                        </div>
+                        <p id="operaciones-estado" class="muted" role="status" aria-live="polite" style="margin:12px 0 0"></p>
+                    </div>
                 </section>
 
             </main>
@@ -1482,6 +1602,38 @@
 
     <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
 
+    <!-- I66 · NUEVO TICKET -->
+    <div id="ticket-overlay" class="overlay oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="ticket-titulo">
+            <h2 id="ticket-titulo">Nuevo ticket</h2>
+            <div class="campo">
+                <label for="ticket-asunto">Asunto</label>
+                <input type="text" id="ticket-asunto" maxlength="120" placeholder="Ej: no puede subir la foto de portada">
+            </div>
+            <div class="campo">
+                <label for="ticket-salon">Salón (opcional)</label>
+                <select id="ticket-salon"><option value="">Sin salón</option></select>
+            </div>
+            <div class="campo">
+                <label for="ticket-prioridad">Prioridad</label>
+                <select id="ticket-prioridad">
+                    <option value="baja">Baja</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label for="ticket-mensaje">Detalle (opcional)</label>
+                <textarea id="ticket-mensaje" maxlength="2000" rows="4"></textarea>
+            </div>
+            <p id="ticket-error" class="alerta error oculto" role="alert"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="ticket-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="ticket-guardar" class="btn btn-primario">Crear ticket</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script>
     (function () {
@@ -1515,6 +1667,7 @@
             anuncios: { t: 'Anuncios', s: 'El megáfono global de la plataforma.' },
             patrocinadores: { t: 'Patrocinadores', s: 'Marcas que financian el plan Gratis.' },
             auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' },
+            soporte: { t: 'Soporte', s: 'Tickets y pedidos de las clientas.' },
             ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' }
         };
 
@@ -2811,6 +2964,464 @@
                 }
             });
         })();
+        // ══════════════════════════════════════════════════════════════════
+        // I66 · God Mode V3 — métricas SaaS, soporte y operaciones
+        // ══════════════════════════════════════════════════════════════════
+
+        var ticketsCache = [];
+        var ticketsCargando = false;
+
+        var ETIQUETAS_ADOPCION = [
+            ['agenda',      'Agenda'],
+            ['finanzas',    'Finanzas'],
+            ['resenas',     'Reseñas'],
+            ['marketplace', 'Marketplace'],
+            ['perfil',      'Perfil público'],
+            ['equipo',      'Equipo (2+)'],
+            ['puntos',      'Puntos']
+        ];
+
+        function puntoSalud(clase) {
+            return crear('span', 'salud-punto salud-' + clase);
+        }
+
+        async function cargarMetricasSaas() {
+            try {
+                var res = await supabase.rpc('admin_metricas_saas');
+                if (res.error) throw res.error;
+                var f = (res.data && res.data[0]) || {};
+
+                if ($('saas-churn')) $('saas-churn').textContent = (Number(f.churn_mes) || 0).toFixed(1) + '%';
+                if ($('saas-churn-pie')) {
+                    $('saas-churn-pie').textContent =
+                        (Number(f.cancelados_mes) || 0) + ' cancelados de ' + (Number(f.salones_total) || 0) + ' salones';
+                }
+                if ($('saas-ltv')) $('saas-ltv').textContent = dinero(Number(f.ltv) || 0);
+                if ($('saas-ltv-pie')) {
+                    $('saas-ltv-pie').textContent = 'ARPU ' + dinero(Number(f.arpu) || 0) +
+                        ' · ' + (Number(f.salones_pagos) || 0) + ' salones pagos';
+                }
+
+                var rojo = Number(f.health_rojo) || 0;
+                var amarillo = Number(f.health_amarillo) || 0;
+                var verde = Number(f.health_verde) || 0;
+                var total = rojo + amarillo + verde;
+
+                var valor = $('saas-health');
+                if (valor) {
+                    valor.textContent = '';
+                    valor.appendChild(puntoSalud('rojo'));
+                    valor.appendChild(document.createTextNode(' ' + rojo));
+                }
+                var pie = $('saas-health-pie');
+                if (pie) {
+                    pie.textContent = '';
+                    var partes = [['verde', verde], ['amarillo', amarillo]];
+                    partes.forEach(function (par) {
+                        pie.appendChild(puntoSalud(par[0]));
+                        pie.appendChild(document.createTextNode(' ' + par[1] + '  '));
+                    });
+                    pie.appendChild(document.createTextNode('de ' + total + ' activos'));
+                }
+
+                pintarRiesgo(Array.isArray(f.en_riesgo) ? f.en_riesgo : []);
+                pintarAdopcion(f.adopcion || {});
+            } catch (error) {
+                console.warn('metricas saas:', error);
+                ['saas-churn', 'saas-ltv', 'saas-health'].forEach(function (id) {
+                    if ($(id)) $(id).textContent = '—';
+                });
+                if ($('saas-churn-pie')) $('saas-churn-pie').textContent = 'no disponible';
+            }
+        }
+
+        function pintarRiesgo(lista) {
+            var cont = $('lista-riesgo');
+            if (!cont) return;
+            cont.textContent = '';
+            if (!lista.length) {
+                cont.appendChild(crear('p', 'vacio', 'Ningún salón pago lleva 15 días sin turnos.'));
+                return;
+            }
+            lista.forEach(function (s) {
+                var fila = crear('div', 'top-fila');
+                fila.appendChild(crear('span', 'top-puesto', '!'));
+                fila.appendChild(crear('span', 'top-nombre', s.nombre || 'Salón'));
+                var detalle = s.dias_sin_turnos === null || s.dias_sin_turnos === undefined
+                    ? 'nunca cargó turnos'
+                    : s.dias_sin_turnos + ' días sin turnos';
+                fila.appendChild(crear('span', 'top-turnos', detalle));
+                fila.appendChild(planPill(s.plan || 'pro'));
+                cont.appendChild(fila);
+            });
+        }
+
+        function pintarAdopcion(datos) {
+            var cont = $('grafico-adopcion');
+            if (!cont) return;
+            cont.textContent = '';
+            var activos = Number(datos.activos) || 0;
+            if (!activos) {
+                cont.appendChild(crear('p', 'vacio', 'Todavía no hay salones activos.'));
+                return;
+            }
+            ETIQUETAS_ADOPCION.forEach(function (par) {
+                var clave = par[0];
+                var valor = datos[clave];
+                var n = (valor === null || valor === undefined) ? null : Number(valor) || 0;
+                var pct = n === null ? 0 : Math.min(100, Math.round((n / activos) * 100));
+
+                var fila = crear('div', 'adopcion-fila');
+                fila.appendChild(crear('span', 'adopcion-nombre', par[1]));
+
+                var barra = crear('div', 'adopcion-barra');
+                var relleno = document.createElement('span');
+                relleno.style.width = (n === null ? 0 : Math.max(2, pct)) + '%';
+                barra.appendChild(relleno);
+                fila.appendChild(barra);
+
+                fila.appendChild(crear('span', 'adopcion-pct', n === null ? 'n/d' : pct + '%'));
+                fila.title = n === null
+                    ? par[1] + ': función todavía no disponible en la base'
+                    : par[1] + ': ' + n + ' de ' + activos + ' salones';
+                cont.appendChild(fila);
+            });
+        }
+
+        // ── tickets ──
+        async function cargarTickets() {
+            if (ticketsCargando) return;
+            ticketsCargando = true;
+            try {
+                var estado = $('filtro-tickets') ? $('filtro-tickets').value : '';
+                var res = await supabase.rpc('admin_tickets', { p_estado: estado || null });
+                if (res.error) throw res.error;
+                ticketsCache = res.data || [];
+                pintarTickets(ticketsCache);
+            } catch (error) {
+                console.warn('tickets:', error);
+                if ($('tickets-vacio')) {
+                    $('tickets-vacio').textContent = 'No se pudieron cargar los tickets.';
+                    $('tickets-vacio').classList.remove('oculto');
+                }
+            } finally {
+                ticketsCargando = false;
+            }
+        }
+
+        function pillEstadoTicket(estado) {
+            var mapa = {
+                abierto: ['Abierto', 'pill-info'],
+                en_proceso: ['En proceso', 'pill-gold'],
+                cerrado: ['Cerrado', 'pill-ok']
+            };
+            var info = mapa[estado] || ['—', 'pill-neutral'];
+            return pill(info[0], info[1]);
+        }
+
+        function pillPrioridad(prioridad) {
+            var mapa = {
+                alta: ['Alta', 'pill-danger'],
+                media: ['Media', 'pill-gold'],
+                baja: ['Baja', 'pill-neutral']
+            };
+            var info = mapa[prioridad] || ['—', 'pill-neutral'];
+            return pill(info[0], info[1]);
+        }
+
+        function pintarTickets(lista) {
+            var cuerpo = $('tabla-tickets');
+            if (!cuerpo) return;
+            cuerpo.textContent = '';
+            if ($('tickets-contador')) {
+                $('tickets-contador').textContent = lista.length + (lista.length === 1 ? ' ticket' : ' tickets');
+            }
+            if ($('tickets-vacio')) $('tickets-vacio').classList.toggle('oculto', lista.length > 0);
+            if (!lista.length) return;
+
+            lista.forEach(function (t) {
+                var tr = document.createElement('tr');
+
+                var celdaAsunto = document.createElement('td');
+                celdaAsunto.appendChild(crear('strong', null, recortar(t.asunto || '—', 70)));
+                if (t.mensaje) celdaAsunto.title = String(t.mensaje).slice(0, 400);
+                tr.appendChild(celdaAsunto);
+
+                tr.appendChild(crear('td', null, t.salon_nombre || '—'));
+
+                var celdaPrioridad = document.createElement('td');
+                celdaPrioridad.appendChild(pillPrioridad(t.prioridad));
+                tr.appendChild(celdaPrioridad);
+
+                var celdaEstado = document.createElement('td');
+                celdaEstado.appendChild(pillEstadoTicket(t.estado));
+                tr.appendChild(celdaEstado);
+
+                tr.appendChild(crear('td', null, fechaCorta(t.creado_en)));
+
+                var celdaAcciones = document.createElement('td');
+                var caja = crear('div', 'ticket-acciones');
+
+                var select = document.createElement('select');
+                select.setAttribute('aria-label', 'Cambiar estado del ticket');
+                [['abierto', 'Abierto'], ['en_proceso', 'En proceso'], ['cerrado', 'Cerrado']].forEach(function (op) {
+                    var option = document.createElement('option');
+                    option.value = op[0];
+                    option.textContent = op[1];
+                    if (t.estado === op[0]) option.selected = true;
+                    select.appendChild(option);
+                });
+                select.addEventListener('change', function () {
+                    cambiarEstadoTicket(t.id, select.value);
+                });
+                caja.appendChild(select);
+
+                var borrar = crear('button', 'btn btn-peligro', 'Borrar');
+                borrar.type = 'button';
+                borrar.addEventListener('click', function () { borrarTicket(t); });
+                caja.appendChild(borrar);
+
+                celdaAcciones.appendChild(caja);
+                tr.appendChild(celdaAcciones);
+
+                cuerpo.appendChild(tr);
+            });
+        }
+
+        async function cargarTicketsAbiertos() {
+            try {
+                var res = await supabase.rpc('admin_tickets_abiertos');
+                if (res.error) throw res.error;
+                var n = Number(res.data) || 0;
+                var badge = $('soporte-badge');
+                if (badge) {
+                    badge.textContent = String(n);
+                    badge.classList.toggle('oculto', n === 0);
+                }
+            } catch (error) { /* sin badge si falla */ }
+        }
+
+        async function cargarSalonesParaTicket() {
+            var select = $('ticket-salon');
+            if (!select) return;
+            select.textContent = '';
+            var sin = document.createElement('option');
+            sin.value = '';
+            sin.textContent = 'Sin salón';
+            select.appendChild(sin);
+            try {
+                var res = await supabase.from('salones').select('id, nombre').order('nombre');
+                if (res.error) throw res.error;
+                (res.data || []).forEach(function (s) {
+                    var option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = s.nombre || 'Salón';
+                    select.appendChild(option);
+                });
+            } catch (error) { /* queda solo "Sin salón" */ }
+        }
+
+        function abrirTicketModal() {
+            if (!$('ticket-overlay')) return;
+            $('ticket-asunto').value = '';
+            $('ticket-mensaje').value = '';
+            $('ticket-prioridad').value = 'media';
+            if ($('ticket-salon')) $('ticket-salon').value = '';
+            if ($('ticket-error')) $('ticket-error').className = 'alerta error oculto';
+            $('ticket-overlay').classList.remove('oculto');
+            cargarSalonesParaTicket();
+            setTimeout(function () { $('ticket-asunto').focus(); }, 40);
+        }
+
+        function cerrarTicketModal() {
+            if ($('ticket-overlay')) $('ticket-overlay').classList.add('oculto');
+        }
+
+        async function crearTicket() {
+            var asunto = String($('ticket-asunto').value || '').trim();
+            var mensaje = String($('ticket-mensaje').value || '').trim();
+            var prioridad = $('ticket-prioridad').value || 'media';
+            var salon = $('ticket-salon').value || null;
+            var error = $('ticket-error');
+
+            function fallo(texto) {
+                if (error) { error.textContent = texto; error.className = 'alerta error'; }
+            }
+            if (asunto.length < 3) { fallo('Escribí un asunto de al menos 3 caracteres.'); $('ticket-asunto').focus(); return; }
+            if (error) error.className = 'alerta error oculto';
+
+            var boton = $('ticket-guardar');
+            ocupado(boton, 'Creando…');
+            try {
+                var res = await supabase.rpc('admin_ticket_crear', {
+                    p_asunto: asunto,
+                    p_mensaje: mensaje || null,
+                    p_salon: salon,
+                    p_prioridad: prioridad
+                });
+                if (res.error) throw res.error;
+                cerrarTicketModal();
+                toast('Ticket creado.', 'ok');
+                await cargarTickets();
+                await cargarTicketsAbiertos();
+            } catch (err) {
+                console.warn('crear ticket:', err);
+                fallo('No se pudo crear el ticket: ' + (err.message || 'error de conexión'));
+            } finally {
+                ocupado(boton, null);
+            }
+        }
+
+        async function cambiarEstadoTicket(id, estado) {
+            try {
+                var res = await supabase.rpc('admin_ticket_estado', { p_id: Number(id), p_estado: estado });
+                if (res.error) throw res.error;
+                toast('Ticket actualizado.', 'ok');
+                await cargarTickets();
+                await cargarTicketsAbiertos();
+            } catch (error) {
+                console.warn('cambiar ticket:', error);
+                toast('No se pudo actualizar el ticket.', 'error');
+                await cargarTickets();
+            }
+        }
+
+        async function borrarTicket(ticket) {
+            var ok = await confirmar(
+                'Borrar ticket',
+                '¿Borrar "' + recortar(ticket.asunto || 'ticket', 60) + '"? No se puede deshacer.',
+                'Borrar',
+                true
+            );
+            if (!ok) return;
+            try {
+                var res = await supabase.rpc('admin_ticket_borrar', { p_id: Number(ticket.id) });
+                if (res.error) throw res.error;
+                toast('Ticket borrado.', 'ok');
+                await cargarTickets();
+                await cargarTicketsAbiertos();
+            } catch (error) {
+                console.warn('borrar ticket:', error);
+                toast('No se pudo borrar el ticket.', 'error');
+            }
+        }
+
+        // ── operaciones ──
+        function estadoOperacion(texto, tipo) {
+            var el = $('operaciones-estado');
+            if (!el) return;
+            el.textContent = texto || '';
+            el.className = 'muted' + (tipo === 'ok' ? '' : '');
+        }
+
+        async function forzarBackup() {
+            var ok = await confirmar(
+                'Forzar backup',
+                'Se va a disparar el workflow de backup en GitHub Actions ahora mismo. ¿Seguimos?',
+                'Disparar',
+                false
+            );
+            if (!ok) return;
+            var boton = $('backup-btn');
+            ocupado(boton, 'Disparando…');
+            estadoOperacion('Disparando el workflow…');
+            try {
+                var sesion = await supabase.auth.getSession();
+                var jwt = sesion && sesion.data && sesion.data.session ? sesion.data.session.access_token : '';
+                if (!jwt) throw new Error('Tu sesión no tiene token. Volvé a iniciar sesión.');
+
+                var res = await fetch(SUPABASE_URL + '/functions/v1/admin-backup-trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+                    body: '{}'
+                });
+                var datos = {};
+                try { datos = await res.json(); } catch (e) { datos = {}; }
+
+                if (!res.ok || !datos.ok) {
+                    throw new Error(datos.detalle || datos.error || ('el servicio respondió ' + res.status));
+                }
+                toast('Backup disparado.', 'ok');
+                estadoOperacion('Listo: el workflow ' + (datos.workflow || 'backup') + ' se está ejecutando.');
+                if (datos.url) {
+                    var enlace = document.createElement('a');
+                    enlace.href = datos.url;
+                    enlace.target = '_blank';
+                    enlace.rel = 'noopener noreferrer';
+                    enlace.textContent = ' Ver la corrida en GitHub';
+                    var el = $('operaciones-estado');
+                    if (el) el.appendChild(enlace);
+                }
+            } catch (error) {
+                console.warn('backup:', error);
+                toast('No se pudo disparar el backup.', 'error');
+                estadoOperacion('Error: ' + (error.message || 'no se pudo disparar el backup.'));
+            } finally {
+                ocupado(boton, null);
+            }
+        }
+
+        async function limpiarCacheGlobal() {
+            var ok = await confirmar(
+                'Limpiar caché global',
+                'Los clientes van a purgar su caché y a actualizar el service worker la próxima vez que abran la app. ¿Seguimos?',
+                'Limpiar',
+                false
+            );
+            if (!ok) return;
+            var boton = $('cache-btn');
+            ocupado(boton, 'Limpiando…');
+            estadoOperacion('Subiendo el epoch de caché…');
+            try {
+                var res = await supabase.rpc('admin_cache_purgar');
+                if (res.error) throw res.error;
+                var epoch = Number(res.data) || 0;
+                toast('Caché global marcada para purga.', 'ok');
+                estadoOperacion('Listo: epoch de caché en ' + epoch + '. Los clientes se actualizan al abrir la app.');
+            } catch (error) {
+                console.warn('cache:', error);
+                toast('No se pudo limpiar la caché.', 'error');
+                estadoOperacion('Error: ' + (error.message || 'no se pudo subir el epoch.'));
+            } finally {
+                ocupado(boton, null);
+            }
+        }
+
+        // Cableado de la sección de soporte y operaciones.
+        (function conectarI66() {
+            var nuevo = $('nuevo-ticket-btn');
+            if (nuevo) nuevo.addEventListener('click', abrirTicketModal);
+            var cancelar = $('ticket-cancelar');
+            if (cancelar) cancelar.addEventListener('click', cerrarTicketModal);
+            var guardar = $('ticket-guardar');
+            if (guardar) guardar.addEventListener('click', crearTicket);
+            var overlay = $('ticket-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', function (evento) {
+                    if (evento.target === overlay) cerrarTicketModal();
+                });
+            }
+            var asunto = $('ticket-asunto');
+            if (asunto) {
+                asunto.addEventListener('keydown', function (evento) {
+                    if (evento.key === 'Enter') { evento.preventDefault(); crearTicket(); }
+                });
+            }
+            var filtro = $('filtro-tickets');
+            if (filtro) filtro.addEventListener('change', cargarTickets);
+
+            var backup = $('backup-btn');
+            if (backup) backup.addEventListener('click', forzarBackup);
+            var cache = $('cache-btn');
+            if (cache) cache.addEventListener('click', limpiarCacheGlobal);
+
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Escape' && overlay && !overlay.classList.contains('oculto')) {
+                    cerrarTicketModal();
+                }
+            });
+        })();
+
         // ── navegación ──
         function mostrarSeccion(nombre) {
             if (!TITULOS[nombre]) nombre = 'salones';
@@ -2820,7 +3431,7 @@
                 if (activo) boton.setAttribute('aria-current', 'page');
                 else boton.removeAttribute('aria-current');
             });
-            ['salones', 'suscripciones', 'cobros', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'ajustes'].forEach(function (v) {
+            ['salones', 'suscripciones', 'cobros', 'planes', 'usuarios', 'anuncios', 'patrocinadores', 'auditoria', 'soporte', 'ajustes'].forEach(function (v) {
                 var seccion = $('seccion-' + v);
                 if (seccion) seccion.classList.toggle('oculto', v !== nombre);
             });
@@ -2891,6 +3502,9 @@
             await cargarUsuarios();
             await cargarFlags();
             await cargarMetricas();
+            await cargarMetricasSaas();
+            await cargarTickets();
+            await cargarTicketsAbiertos();
             await cargarAlertas();
             await cargarAnuncios();
             await cargarPatrocinadores();
