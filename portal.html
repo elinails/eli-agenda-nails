@@ -384,13 +384,17 @@
             fila.appendChild(icono);
 
             var texto = crear('div', 'mov-texto');
+            var esAjuste = m.tipo === 'ajuste';
             var titulo = m.tipo === 'ganado'
                 ? 'Ganaste ' + formatearPuntos(Math.abs(monto)) + ' pts en ' + (m.salon || 'tu salón')
                 : (m.tipo === 'canjeado'
                     ? 'Canjeaste ' + formatearPuntos(Math.abs(monto)) + ' pts'
-                    : (m.motivo || 'Ajuste de puntos'));
+                    : (esAjuste ? 'Ajuste de saldo' : (m.motivo || 'Ajuste de puntos')));
+            var subtitulo = esAjuste
+                ? [m.fecha ? fechaCorta(m.fecha) : '', m.salon || ''].filter(Boolean).join(' · ')
+                : (m.motivo || '') + (m.fecha ? ' · ' + fechaCorta(m.fecha) : '');
             texto.appendChild(crear('span', 'mov-titulo', titulo));
-            texto.appendChild(crear('span', 'mov-sub', (m.motivo || '') + (m.fecha ? ' · ' + fechaCorta(m.fecha) : '')));
+            texto.appendChild(crear('span', 'mov-sub', subtitulo));
             fila.appendChild(texto);
 
             var montoEl = crear('span', 'mov-monto' + (monto < 0 ? ' negativo' : ''), (monto > 0 ? '+' : '') + formatearPuntos(monto));
