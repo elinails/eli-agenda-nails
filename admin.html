@@ -6040,7 +6040,13 @@
                     pintarMovimientos(res.data || []);
                 } catch (error) {
                     console.error('Movimientos:', error);
-                    $('rf-mov-lista').innerHTML = '<div class="alerta error" style="padding:16px">No se pudieron cargar los movimientos: ' + (error.message || 'error de conexiÃ³n') + '</div>';
+                    var cont = $('rf-mov-lista');
+                    cont.textContent = '';
+                    var caja = document.createElement('div');
+                    caja.className = 'alerta error';
+                    caja.style.padding = '16px';
+                    caja.textContent = 'No se pudieron cargar los movimientos: ' + (error.message || 'error de conexión');
+                    cont.appendChild(caja);
                 }
             }
 
@@ -6055,19 +6061,52 @@
                     var div = document.createElement('div');
                     div.className = 'movimiento-item';
                     var monto = Number(m.monto) || 0;
-                    var tipoClase = m.tipo;
-                    div.innerHTML = '\
-                        <div class="movimiento-header">\
-                            <span class="movimiento-tipo ' + tipoClase + '">' + m.tipo + '</span>\
-                            <span class="movimiento-fecha">' + fechaCorta(m.creado_en) + '</span>\
-                        </div>\
-                        <div class="movimiento-monto ' + (monto >= 0 ? 'positivo' : 'negativo') + '">' + (monto >= 0 ? '+' : '') + formatearPuntos(monto) + '</div>\
-                        <div class="movimiento-motivo">' + escapeHtml(m.motivo || 'â€”') + '</div>\
-                        <div class="movimiento-detalle">\
-                            <span>SalÃ³n: ' + escapeHtml(m.salon_nombre) + '</span>\
-                            <span>Clienta: ' + escapeHtml(m.cliente_nombre) + '</span>\
-                            ' + (m.turno_id ? '<span>Turno #' + m.turno_id + '</span>' : '') + '\
-                        </div>';
+                    var tipoCrudo = String(m.tipo == null ? '' : m.tipo);
+                    var tiposValidos = ['ganado', 'canjeado', 'ajuste', 'reverso'];
+                    var tipoClase = tiposValidos.indexOf(tipoCrudo) === -1 ? '' : tipoCrudo;
+
+                    var cabecera = document.createElement('div');
+                    cabecera.className = 'movimiento-header';
+
+                    var pillTipo = document.createElement('span');
+                    pillTipo.className = 'movimiento-tipo ' + tipoClase;
+                    pillTipo.textContent = tipoCrudo || 'movimiento';
+                    cabecera.appendChild(pillTipo);
+
+                    var fecha = document.createElement('span');
+                    fecha.className = 'movimiento-fecha';
+                    fecha.textContent = fechaCorta(m.creado_en);
+                    cabecera.appendChild(fecha);
+                    div.appendChild(cabecera);
+
+                    var montoEl = document.createElement('div');
+                    montoEl.className = 'movimiento-monto ' + (monto >= 0 ? 'positivo' : 'negativo');
+                    montoEl.textContent = (monto >= 0 ? '+' : '') + formatearPuntos(monto);
+                    div.appendChild(montoEl);
+
+                    var motivoEl = document.createElement('div');
+                    motivoEl.className = 'movimiento-motivo';
+                    motivoEl.textContent = m.motivo || '—';
+                    div.appendChild(motivoEl);
+
+                    var detalle = document.createElement('div');
+                    detalle.className = 'movimiento-detalle';
+
+                    var spanSalon = document.createElement('span');
+                    spanSalon.textContent = 'Salón: ' + (m.salon_nombre || '—');
+                    detalle.appendChild(spanSalon);
+
+                    var spanClienta = document.createElement('span');
+                    spanClienta.textContent = 'Clienta: ' + (m.cliente_nombre || '—');
+                    detalle.appendChild(spanClienta);
+
+                    if (m.turno_id) {
+                        var spanTurno = document.createElement('span');
+                        spanTurno.textContent = 'Turno #' + m.turno_id;
+                        detalle.appendChild(spanTurno);
+                    }
+
+                    div.appendChild(detalle);
                     cont.appendChild(div);
                 });
             }
