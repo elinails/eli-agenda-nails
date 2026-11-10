@@ -2,9 +2,9 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-// I56: v8. El cambio de version es lo que dispara la purga de la cache vieja
+// I62: v9. El cambio de version es lo que dispara la purga de la cache vieja
 // en 'activate'. Subir esta constante siempre que cambie el shell.
-const CACHE = 'eli-nails-v8';
+const CACHE = 'eli-nails-v9';
 const SHELL = [
     './',
     'index.html',

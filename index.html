@@ -1503,7 +1503,9 @@
             font-weight: 600;
             letter-spacing: .01em;
         }
-        .mi-salon-campo input {
+        .mi-salon-campo input,
+        .mi-salon-campo select,
+        .mi-salon-campo textarea {
             width: 100%;
             min-height: 44px;
             padding: 10px 12px;
@@ -1513,9 +1515,49 @@
             color: var(--ink);
             font-size: 15px;
         }
-        .mi-salon-campo input:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
+        .mi-salon-campo textarea { min-height: 96px; resize: vertical; }
+        .mi-salon-campo input:focus-visible,
+        .mi-salon-campo select:focus-visible,
+        .mi-salon-campo textarea:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
         .mi-salon-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
         .mi-salon-barra .setting-note { margin: 0; }
+
+        /* I62 · perfil público (Elima Belleza) */
+        .mi-salon-perfil {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+        .mi-salon-subtitulo { font-size: 15px; font-weight: 600; margin: 0; }
+        .mi-salon-ayuda { font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+        .mi-salon-contador { font-size: 11px; color: var(--ink-soft); text-align: right; }
+        .salon-portada-preview {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+        .salon-slug-preview { font-size: 12px; color: var(--ink-soft); word-break: break-all; }
+        .salon-publicado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--ink-soft);
+        }
+        .salon-publicado-badge.es-publicado {
+            color: var(--ok, #2E7A57);
+            border-color: var(--ok, #2E7A57);
+            background: var(--ok-soft, rgba(46, 122, 87, .10));
+        }
 
         /* I55 · candados del Plan Pro */
         .pro-item {
@@ -2420,6 +2462,43 @@
                             <input type="text" id="salon-descripcion" maxlength="60" placeholder="Nail studio">
                         </label>
                     </div>
+
+                    <div class="mi-salon-perfil">
+                        <h3 class="mi-salon-subtitulo">Mi Perfil Público</h3>
+                        <p class="setting-note">Así te van a ver en Elima Belleza. La publicación la aprueba el equipo.</p>
+                        <span id="salon-publicado-estado" class="salon-publicado-badge">Pendiente de aprobación</span>
+
+                        <div class="mi-salon-campos">
+                            <label class="mi-salon-campo">
+                                <span>Rubro</span>
+                                <select id="salon-rubro" aria-label="Rubro">
+                                    <option value="">Elegí un rubro…</option>
+                                    <option value="nails">Nails</option>
+                                    <option value="peluqueria">Peluquería</option>
+                                    <option value="maquillaje">Maquillaje</option>
+                                    <option value="barberia">Barbería</option>
+                                </select>
+                            </label>
+                            <label class="mi-salon-campo">
+                                <span>Bio pública</span>
+                                <textarea id="salon-bio" maxlength="500" rows="3" aria-label="Bio pública" placeholder="Contá qué hacés, tu estilo y tus especialidades…"></textarea>
+                                <small class="mi-salon-contador"><span id="salon-bio-contador">0</span>/500</small>
+                            </label>
+                            <label class="mi-salon-campo">
+                                <span>Foto de portada (URL)</span>
+                                <input type="url" id="salon-foto-portada" maxlength="500" aria-label="Foto de portada (URL)" placeholder="https://…" autocomplete="off">
+                                <small class="mi-salon-ayuda">Pegá el link de una imagen horizontal. Si no tenés, dejalo vacío.</small>
+                                <img id="salon-portada-preview" class="salon-portada-preview hidden" alt="Vista previa de la portada">
+                            </label>
+                            <label class="mi-salon-campo">
+                                <span>Slug del perfil</span>
+                                <input type="text" id="salon-slug" maxlength="60" aria-label="Slug del perfil" placeholder="ej: eli-nails" autocomplete="off" spellcheck="false">
+                                <small class="mi-salon-ayuda">Solo minúsculas, números y guiones. Se usa en tu link público.</small>
+                                <small id="salon-slug-preview" class="salon-slug-preview"></small>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="mi-salon-barra">
                         <button type="button" id="salon-guardar" class="btn-primary px-4 py-2.5 rounded-lg font-medium text-sm">
                             <i class="fas fa-check mr-2" aria-hidden="true"></i> Guardar datos
@@ -3200,7 +3279,7 @@
             const CLAVES = ['turnos', 'clientes', 'servicios', 'gastos', 'deudas', 'pagos_deudas', 'miembros'];
 
             // I39 · contexto multi-tenant. Vive SOLO en memoria (nunca en localStorage).
-            const contexto = { salonId: null, rol: null, userId: null, email: null, nombreSalon: '', logoUrl: '', telefono: '', instagram: '', descripcion: '' };
+            const contexto = { salonId: null, rol: null, userId: null, email: null, nombreSalon: '', logoUrl: '', telefono: '', instagram: '', descripcion: '', rubro: '', bio: '', fotoPortadaUrl: '', slug: '', publicado: false };
 
             // I41: aplica el logo del salon (o el de por defecto) en toda la UI
             function aplicarLogo() {
@@ -3235,6 +3314,18 @@
                 contexto.email = user && user.email ? user.email : '';
                 contexto.rol = null;   // I53: nunca arrastrar un rol previo
                 contexto.salonId = null;
+                // I62: no arrastrar el perfil de una cuenta anterior.
+                contexto.nombreSalon = '';
+                contexto.logoUrl = '';
+                contexto.planId = '';
+                contexto.telefono = '';
+                contexto.instagram = '';
+                contexto.descripcion = '';
+                contexto.rubro = '';
+                contexto.bio = '';
+                contexto.fotoPortadaUrl = '';
+                contexto.slug = '';
+                contexto.publicado = false;
                 if (!supabase || !contexto.userId) return { estado: 'ninguna' };
                 const { data, error } = await supabase
                     .from('miembros_salon')
@@ -3265,19 +3356,28 @@
                 contexto.salonId = elegida.salon_id;
                 contexto.rol = elegida.rol === 'owner' ? 'owner' : 'staff';
                 try {
-                    // I54 · branding dinamico. Si i54_branding.sql todavia no se
-                    // corrio, la consulta completa falla por columna inexistente:
-                    // se reintenta con las columnas base para no romper el login.
-                    const CAMPOS_SALON = 'nombre, logo_url, activo, plan_id';
+                    // I54/I62 · branding dinámico. Si i62 todavía no se corrió,
+                    // la consulta completa falla por columna inexistente: se
+                    // reintenta con i54 y, por último, con las columnas base.
+                    const CAMPOS_BASE = 'nombre, logo_url, activo, plan_id';
+                    const CAMPOS_I54 = CAMPOS_BASE + ', telefono_contacto, instagram, descripcion';
+                    const CAMPOS_I62 = CAMPOS_I54 + ', rubro, bio, foto_portada_url, slug, publicado';
                     let consultaSalon = await supabase
                         .from('salones')
-                        .select(CAMPOS_SALON + ', telefono_contacto, instagram, descripcion')
+                        .select(CAMPOS_I62)
                         .eq('id', contexto.salonId)
                         .limit(1);
                     if (consultaSalon.error) {
                         consultaSalon = await supabase
                             .from('salones')
-                            .select(CAMPOS_SALON)
+                            .select(CAMPOS_I54)
+                            .eq('id', contexto.salonId)
+                            .limit(1);
+                    }
+                    if (consultaSalon.error) {
+                        consultaSalon = await supabase
+                            .from('salones')
+                            .select(CAMPOS_BASE)
                             .eq('id', contexto.salonId)
                             .limit(1);
                     }
@@ -3295,6 +3395,11 @@
                         contexto.telefono = salon.telefono_contacto || '';
                         contexto.instagram = salon.instagram || '';
                         contexto.descripcion = salon.descripcion || '';
+                        contexto.rubro = salon.rubro || '';
+                        contexto.bio = salon.bio || '';
+                        contexto.fotoPortadaUrl = salon.foto_portada_url || '';
+                        contexto.slug = salon.slug || '';
+                        contexto.publicado = salon.publicado === true;
                     }
                 } catch (error) { /* sin salon visible: queda el logo por defecto */ }
                 return { estado: 'activa', salonId: contexto.salonId, rol: contexto.rol };
@@ -7264,13 +7369,30 @@
                     const id = tarjeta.dataset.patrocinio;
                     if (id) localStorage.setItem('eli_patrocinio_oculto_' + id, '1');
                 });
-                ['salon-nombre', 'salon-telefono', 'salon-instagram', 'salon-descripcion'].forEach(function (id) {
+                ['salon-nombre', 'salon-telefono', 'salon-instagram', 'salon-descripcion', 'salon-foto-portada', 'salon-slug'].forEach(function (id) {
                     const campo = document.getElementById(id);
                     if (!campo) return;
                     campo.addEventListener('keydown', function (evento) {
                         if (evento.key === 'Enter') { evento.preventDefault(); guardarBranding(); }
                     });
                 });
+
+                const bioCampo = document.getElementById('salon-bio');
+                if (bioCampo) bioCampo.addEventListener('input', actualizarContadorBio);
+
+                const portadaCampo = document.getElementById('salon-foto-portada');
+                if (portadaCampo) portadaCampo.addEventListener('input', actualizarPreviewPortada);
+                const portadaPreview = document.getElementById('salon-portada-preview');
+                if (portadaPreview) portadaPreview.addEventListener('error', function () { this.classList.add('hidden'); });
+
+                const slugCampo = document.getElementById('salon-slug');
+                if (slugCampo) {
+                    slugCampo.addEventListener('input', actualizarSlugPreview);
+                    slugCampo.addEventListener('blur', function () {
+                        this.value = normalizarSlug(this.value);
+                        actualizarSlugPreview();
+                    });
+                }
 
                 const miembrosBtn = document.getElementById('miembros-btn');
                 if (miembrosBtn) miembrosBtn.addEventListener('click', abrirMiembrosModal);
@@ -8475,18 +8597,95 @@
                 tarjeta.classList.remove('hidden');
             }
 
-            // I54 · perfil del salón: nombre, teléfono, Instagram y frase corta.
+            // I54/I62 · perfil del salón + perfil público de Elima Belleza.
             let guardandoBranding = false;
+
+            function normalizarSlug(valor) {
+                return String(valor || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/-{2,}/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                    .slice(0, 60)
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            function normalizarUrlPortada(valor) {
+                const texto = String(valor || '').trim();
+                if (!texto) return '';
+                if (/^[a-z][a-z0-9+.-]*:\/\//i.test(texto) && !/^https?:\/\//i.test(texto)) return null;
+                const conProtocolo = /^https?:\/\//i.test(texto) ? texto : 'https://' + texto;
+                try {
+                    const url = new URL(conProtocolo);
+                    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+                    if (!url.hostname) return null;
+                    return url.href;
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function actualizarContadorBio() {
+                const campo = document.getElementById('salon-bio');
+                const contador = document.getElementById('salon-bio-contador');
+                if (campo && contador) contador.textContent = String(campo.value.length);
+            }
+
+            function actualizarPreviewPortada() {
+                const campo = document.getElementById('salon-foto-portada');
+                const preview = document.getElementById('salon-portada-preview');
+                if (!preview) return;
+                const url = normalizarUrlPortada(campo ? campo.value : '');
+                if (!url) {
+                    preview.classList.add('hidden');
+                    preview.removeAttribute('src');
+                    return;
+                }
+                preview.classList.remove('hidden');
+                if (preview.getAttribute('src') !== url) preview.setAttribute('src', url);
+            }
+
+            function actualizarSlugPreview() {
+                const campo = document.getElementById('salon-slug');
+                const preview = document.getElementById('salon-slug-preview');
+                if (!preview) return;
+                const slug = normalizarSlug(campo ? campo.value : '');
+                preview.textContent = slug
+                    ? 'Link público (próximamente): portal.html?salon=' + slug
+                    : 'Todavía no definiste el slug.';
+            }
+
+            function pintarEstadoPublicacion() {
+                const estado = document.getElementById('salon-publicado-estado');
+                if (!estado) return;
+                const publicado = contexto.publicado === true;
+                estado.textContent = publicado ? 'Publicado en Elima Belleza' : 'Pendiente de aprobación';
+                estado.classList.toggle('es-publicado', publicado);
+            }
 
             function pintarBranding() {
                 const nombre = document.getElementById('salon-nombre');
                 const telefono = document.getElementById('salon-telefono');
                 const instagram = document.getElementById('salon-instagram');
                 const descripcion = document.getElementById('salon-descripcion');
+                const rubro = document.getElementById('salon-rubro');
+                const bio = document.getElementById('salon-bio');
+                const portada = document.getElementById('salon-foto-portada');
+                const slug = document.getElementById('salon-slug');
                 if (nombre) nombre.value = contexto.nombreSalon || '';
                 if (telefono) telefono.value = contexto.telefono || '';
                 if (instagram) instagram.value = contexto.instagram || '';
                 if (descripcion) descripcion.value = contexto.descripcion || '';
+                if (rubro) rubro.value = contexto.rubro || '';
+                if (bio) bio.value = contexto.bio || '';
+                if (portada) portada.value = contexto.fotoPortadaUrl || '';
+                if (slug) slug.value = contexto.slug || '';
+                actualizarContadorBio();
+                actualizarPreviewPortada();
+                actualizarSlugPreview();
+                pintarEstadoPublicacion();
                 const estado = document.getElementById('salon-estado');
                 if (estado) estado.textContent = '';
             }
@@ -8494,6 +8693,20 @@
             function valorCampo(id) {
                 const campo = document.getElementById(id);
                 return campo ? String(campo.value || '').trim() : '';
+            }
+
+            function esFaltaColumna(error) {
+                if (!error) return false;
+                return error.code === 'PGRST204' ||
+                       error.code === '42703' ||
+                       /column .* does not exist/i.test(String(error.message || ''));
+            }
+
+            function esSlugDuplicado(error) {
+                if (!error) return false;
+                const texto = String(error.message || '') + ' ' + String(error.details || '');
+                return (error.code === '23505' || /duplicate key/i.test(texto)) &&
+                       /slug|un_salones_slug/i.test(texto);
             }
 
             async function guardarBranding() {
@@ -8506,56 +8719,132 @@
                     mostrarBanner('No pudimos identificar tu salón.', 'error');
                     return;
                 }
+
                 const nombre = valorCampo('salon-nombre').slice(0, 60);
                 const telefono = valorCampo('salon-telefono').slice(0, 32);
                 const instagram = valorCampo('salon-instagram').slice(0, 60);
                 const descripcion = valorCampo('salon-descripcion').slice(0, 60);
+                const rubro = valorCampo('salon-rubro');
+                const bio = valorCampo('salon-bio').slice(0, 500);
+                const foto = normalizarUrlPortada(valorCampo('salon-foto-portada'));
+                const slug = normalizarSlug(valorCampo('salon-slug'));
                 const estado = document.getElementById('salon-estado');
+
                 if (!nombre) {
                     mostrarBanner('El nombre del negocio no puede quedar vacío.', 'error');
                     return;
                 }
+                if (foto === null) {
+                    mostrarBanner('La URL de la foto de portada no es válida. Tiene que empezar con http:// o https://.', 'error');
+                    const campo = document.getElementById('salon-foto-portada');
+                    if (campo) campo.focus();
+                    return;
+                }
+                if (foto && foto.length > 500) {
+                    mostrarBanner('La URL de la foto de portada es demasiado larga (máximo 500 caracteres).', 'error');
+                    const campo = document.getElementById('salon-foto-portada');
+                    if (campo) campo.focus();
+                    return;
+                }
+                if (slug && (slug.length < 3 || slug.length > 60)) {
+                    mostrarBanner('El slug debe tener entre 3 y 60 caracteres: minúsculas, números y guiones.', 'error');
+                    const campo = document.getElementById('salon-slug');
+                    if (campo) campo.focus();
+                    return;
+                }
+                if (contexto.publicado === true && !slug) {
+                    mostrarBanner('Tu perfil ya está publicado: no podés dejar el slug vacío.', 'error');
+                    const campo = document.getElementById('salon-slug');
+                    if (campo) campo.focus();
+                    return;
+                }
+                if (rubro && ['nails', 'peluqueria', 'maquillaje', 'barberia'].indexOf(rubro) === -1) {
+                    mostrarBanner('Elegí un rubro válido para el perfil público.', 'error');
+                    return;
+                }
+
+                const datosI62 = {
+                    nombre: nombre,
+                    telefono_contacto: telefono || null,
+                    instagram: instagram || null,
+                    descripcion: descripcion || null,
+                    rubro: rubro || null,
+                    bio: bio || null,
+                    foto_portada_url: foto || null,
+                    slug: slug || null
+                };
+                const datosI54 = {
+                    nombre: nombre,
+                    telefono_contacto: telefono || null,
+                    instagram: instagram || null,
+                    descripcion: descripcion || null
+                };
+
                 const boton = document.getElementById('salon-guardar');
                 const textoBoton = boton ? boton.innerHTML : '';
                 guardandoBranding = true;
                 if (boton) { boton.disabled = true; boton.innerHTML = 'Guardando…'; }
                 if (estado) estado.textContent = '';
+
                 try {
-                    let guardado = await supabase.from('salones').update({
-                        nombre: nombre,
-                        telefono_contacto: telefono || null,
-                        instagram: instagram || null,
-                        descripcion: descripcion || null
-                    }).eq('id', contexto.salonId);
-                    let completo = true;
-                    const faltaColumna = guardado.error && (
-                        guardado.error.code === 'PGRST204' ||
-                        guardado.error.code === '42703' ||
-                        /column .* does not exist/i.test(String(guardado.error.message || ''))
-                    );
-                    if (faltaColumna) {
-                        // i54_branding.sql todavía no se corrió: se guarda el nombre
-                        completo = false;
-                        guardado = await supabase.from('salones')
-                            .update({ nombre: nombre })
-                            .eq('id', contexto.salonId);
+                    let nivel = 'i62';
+                    let guardado = await supabase.from('salones').update(datosI62).eq('id', contexto.salonId);
+
+                    if (guardado.error && esSlugDuplicado(guardado.error)) {
+                        mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
+                        return;
+                    }
+                    if (guardado.error && guardado.error.code === '23514') {
+                        mostrarBanner('Revisá el perfil: algún dato no cumple el formato (rubro, bio, slug o portada).', 'error');
+                        return;
+                    }
+                    if (guardado.error && esFaltaColumna(guardado.error)) {
+                        nivel = 'i54';
+                        guardado = await supabase.from('salones').update(datosI54).eq('id', contexto.salonId);
+                    }
+                    if (guardado.error && esSlugDuplicado(guardado.error)) {
+                        mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
+                        return;
+                    }
+                    if (guardado.error && guardado.error.code === '23514') {
+                        mostrarBanner('Revisá los datos del salón: teléfono, Instagram o frase corta no cumplen el formato.', 'error');
+                        return;
+                    }
+                    if (guardado.error && esFaltaColumna(guardado.error)) {
+                        nivel = 'base';
+                        guardado = await supabase.from('salones').update({ nombre: nombre }).eq('id', contexto.salonId);
                     }
                     if (guardado.error) throw guardado.error;
+
                     contexto.nombreSalon = nombre;
-                    if (completo) {
+                    if (nivel === 'i62') {
+                        contexto.telefono = telefono;
+                        contexto.instagram = instagram.replace(/^@+/, '');
+                        contexto.descripcion = descripcion;
+                        contexto.rubro = rubro;
+                        contexto.bio = bio;
+                        contexto.fotoPortadaUrl = foto;
+                        contexto.slug = slug;
+                    } else if (nivel === 'i54') {
                         contexto.telefono = telefono;
                         contexto.instagram = instagram.replace(/^@+/, '');
                         contexto.descripcion = descripcion;
                     }
+
                     document.title = nombre + ' - Agenda de Turnos';
                     document.querySelectorAll('img[data-logo]').forEach(function (img) {
                         img.setAttribute('alt', nombre);
                     });
-                    if (estado) estado.textContent = completo ? 'Guardado ✓' : 'Guardado parcial';
-                    mostrarBanner(completo
-                        ? 'Datos del salón actualizados.'
-                        : 'Se guardó el nombre. Corré i54_branding.sql para teléfono e Instagram.',
-                        completo ? 'ok' : 'error');
+                    pintarBranding();
+                    if (estado) estado.textContent = nivel === 'i62' ? 'Guardado ✓' : 'Guardado parcial';
+                    mostrarBanner(
+                        nivel === 'i62'
+                            ? 'Datos del salón y perfil público actualizados.'
+                            : nivel === 'i54'
+                                ? 'Se guardaron los datos del salón. Corré i62_elima_belleza.sql para el perfil público.'
+                                : 'Se guardó el nombre. Corré i54_branding.sql para teléfono e Instagram.',
+                        nivel === 'i62' ? 'ok' : 'error'
+                    );
                 } catch (error) {
                     console.error('No se pudieron guardar los datos del salón:', error);
                     mostrarBanner(mensajeError(error), 'error');
