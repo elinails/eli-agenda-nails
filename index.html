@@ -1502,17 +1502,10 @@
         @media (min-width: 1024px) {
             .sw-update { bottom: 24px; }
         }
-        .modo-soporte .fab,
-        .modo-soporte #nuevo-cliente-btn,
-        .modo-soporte .row-actions button,
-        .modo-soporte #appointment-form button[type="submit"],
-        .modo-soporte .appt-row button { display: none !important; }
-        .modo-soporte #appointment-form input,
-        .modo-soporte #appointment-form select,
-        .modo-soporte #appointment-form textarea,
-        .modo-soporte #cliente-form input,
-        .modo-soporte #cliente-form select,
-        .modo-soporte #cliente-form textarea { pointer-events: none; opacity: .6; }
+        /* Modo soporte: control total. Antes había acá reglas que ocultaban
+           botones (.fab, #nuevo-cliente-btn, acciones de fila, submit del turno)
+           y dejaban los formularios sin pointer-events. Se quitaron para que el
+           SuperAdmin pueda corregir turnos y clientes de la dueña. */
 
         /* I45 · CRM de clientes */
         .filtro-inactivas {
@@ -5613,10 +5606,11 @@
                 }
             }
 
+            // El modo soporte ahora tiene CONTROL TOTAL: ya no bloquea cambios.
+            // Se conserva la función (siempre false) para no tocar los call sites
+            // de los formularios de turno y de cliente.
             function bloqueoSoporte() {
-                if (!soporteActivo) return false;
-                mostrarBanner("Modo soporte: no se pueden hacer cambios desde esta vista.", "error");
-                return true;
+                return false;
             }
 
             async function cargarAnuncio() {
