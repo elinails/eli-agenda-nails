@@ -73,6 +73,23 @@
         width: 34px; height: 34px; border-radius: 50%;
         border: 1px solid var(--line); background: var(--surface);
     }
+
+    /* I63 · contenedor de logo de salón 1:1 estricto */
+    .salon-logo-container {
+        width: 80px;
+        height: 80px;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .salon-logo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
     .marca-texto { display: grid; line-height: 1.05; }
     .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: .01em; }
     .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
@@ -177,7 +194,7 @@
 
     .grilla {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 22px;
     }
 
@@ -697,6 +714,36 @@
         rubro.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
         portada.appendChild(rubro);
         boton.appendChild(portada);
+
+        // NUEVO: Contenedor separado de logo 1:1 para el perfil del salón
+        // Se coloca después de la portada para no interferir en el aspect-ratio 4:3 de la cubierta
+        var logoContainer = document.createElement('div');
+        logoContainer.className = 'salon-logo-container';
+        logoContainer.style.marginTop = '8px';
+        logoContainer.style.width = '40px';
+        logoContainer.style.height = '40px';
+        logoContainer.style.aspectRatio = '1 / 1';
+        logoContainer.style.borderRadius = '50%';
+        logoContainer.style.overflow = 'hidden';
+        logoContainer.style.display = 'flex';
+        logoContainer.style.alignItems = 'center';
+        logoContainer.style.justifyContent = 'center';
+
+        var logoImg = document.createElement('img');
+        logoImg.src = urlSegura(fila.logo_url);
+        logoImg.alt = '';
+        logoImg.style.width = '100%';
+        logoImg.style.height = '100%';
+        logoImg.style.objectFit = 'cover';
+        logoContainer.appendChild(logoImg);
+
+        if (!foto) {
+            var inicialTexto = inicial(fila);
+            logoContainer.style.justifyContent = 'flex-start';
+            logoContainer.textContent = inicialDe(fila.nombre);
+        }
+
+        boton.appendChild(logoContainer);
 
         var cuerpo = document.createElement('div');
         cuerpo.className = 'tarjeta-cuerpo';
