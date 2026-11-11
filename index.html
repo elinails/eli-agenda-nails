@@ -16,7 +16,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Eli Nails">
+    <meta name="apple-mobile-web-app-title" content="ELIMA HUB">
     <script>
         // A1b/I10: fijar modo y paleta antes del primer render (evita el flash)
         (function () {
@@ -35,7 +35,7 @@
             }
         })();
     </script>
-    <title>Eli M. Nails - Agenda de Turnos</title>
+    <title>ELIMA HUB - Agenda de Turnos</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
@@ -1556,7 +1556,7 @@
         .solicitud-acciones .btn-danger { width: auto; }
         .solicitud-telefono { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 2px; }
 
-        /* I62 · perfil público (Elima Belleza) */
+        /* I62 · perfil público (ELIMA HUB) */
         .mi-salon-perfil {
             margin-top: 24px;
             padding-top: 18px;
@@ -1927,7 +1927,7 @@
         <!-- Sidebar (desktop) -->
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-brand">
-                <img data-logo alt="Eli M. Nails" class="brand-logo" width="56" height="56">
+                <img data-logo alt="ELIMA HUB" class="brand-logo" width="56" height="56">
             </div>
             <nav class="sidebar-nav" aria-label="Secciones">
                 <button type="button" class="nav-item" data-section="inicio">
@@ -1961,7 +1961,7 @@
         <!-- Header -->
         <header class="mb-6 flex items-start justify-between gap-4">
             <div class="min-w-0">
-                <div class="brand-mini"><img data-logo alt="Eli M. Nails" class="brand-logo brand-logo-sm" width="34" height="34"></div>
+                <div class="brand-mini"><img data-logo alt="ELIMA HUB" class="brand-logo brand-logo-sm" width="34" height="34"></div>
                 <h1 class="section-title" id="section-title">Agenda</h1>
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
@@ -2517,7 +2517,7 @@
                     <div class="mi-salon-campos">
                         <label class="mi-salon-campo">
                             <span>Nombre del negocio</span>
-                            <input type="text" id="salon-nombre" maxlength="60" autocomplete="organization" placeholder="Ej: Eli M. Nails">
+                            <input type="text" id="salon-nombre" maxlength="60" autocomplete="organization" placeholder="Ej: Nombre del salón">
                         </label>
                         <label class="mi-salon-campo">
                             <span>Teléfono / WhatsApp</span>
@@ -2535,7 +2535,7 @@
 
                     <div class="mi-salon-perfil">
                         <h3 class="mi-salon-subtitulo">Mi Perfil Público</h3>
-                        <p class="setting-note">Así te van a ver en Elima Belleza. La publicación la aprueba el equipo.</p>
+                        <p class="setting-note">Así te van a ver en ELIMA HUB. La publicación la aprueba el equipo.</p>
                         <span id="salon-publicado-estado" class="salon-publicado-badge">Pendiente de aprobación</span>
                         <p class="mi-salon-ayuda salon-instagram-linea">
                             <i class="fab fa-instagram" aria-hidden="true"></i>
@@ -2679,7 +2679,7 @@
     <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
         <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
             <div class="text-center mb-6">
-                <img data-logo alt="Eli M. Nails" class="brand-logo brand-logo-login" width="124" height="124">
+                <img data-logo alt="ELIMA HUB" class="brand-logo brand-logo-login" width="124" height="124">
                 <p class="text-xs text-ink-soft mt-2">Agenda de turnos</p>
             </div>
             <form id="email-auth-form" class="space-y-3">
@@ -6342,7 +6342,7 @@
                 const telefono = telefonoWhatsApp(cliente && cliente.telefono);
                 if (!telefono) return;
                 const nombre = String((cliente && cliente.nombre) || '').trim().split(' ').filter(Boolean)[0] || '';
-                const mensaje = '¡Hola ' + nombre + '! Hace un tiempo no te vemos por Eli Nails. ' +
+                const mensaje = '¡Hola ' + nombre + '! Hace un tiempo no te vemos por ELIMA HUB. ' +
                     '¿Te gustaría agendar un turno para esta semana? 💅';
                 const url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
                 window.open(url, '_blank', 'noopener');
@@ -9322,7 +9322,7 @@
                 tarjeta.classList.remove('hidden');
             }
 
-            // I54/I62 · perfil del salón + perfil público de Elima Belleza.
+            // I54/I62 · perfil del salón + perfil público de ELIMA HUB.
             let guardandoBranding = false;
 
             function normalizarSlug(valor) {
@@ -9435,7 +9435,7 @@
                     boton.classList.remove('opacity-50', 'pointer-events-none');
                     boton.removeAttribute('aria-disabled');
                     boton.removeAttribute('tabindex');
-                    boton.title = 'Ver tu perfil público en Elima Belleza';
+                    boton.title = 'Ver tu perfil público en ELIMA HUB';
                 } else {
                     boton.removeAttribute('href');
                     boton.classList.add('opacity-50', 'pointer-events-none');
@@ -9464,7 +9464,7 @@
                 const estado = document.getElementById('salon-publicado-estado');
                 if (!estado) return;
                 const publicado = contexto.publicado === true;
-                estado.textContent = publicado ? 'Publicado en Elima Belleza' : 'Pendiente de aprobación';
+                estado.textContent = publicado ? 'Publicado en ELIMA HUB' : 'Pendiente de aprobación';
                 estado.classList.toggle('es-publicado', publicado);
             }
 

@@ -42,7 +42,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
-    <title>God Mode · Eli M. Nails</title>
+    <title>God Mode · ELIMA HUB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1223,7 +1223,7 @@
     <section id="vista-login" class="acceso">
         <div class="tarjeta-acceso">
             <div>
-                <span class="marca">Eli M. Nails</span>
+                <span class="marca">ELIMA HUB</span>
                 <span class="marca-sub">God Mode</span>
             </div>
             <h1>Ingresar</h1>
@@ -1247,7 +1247,7 @@
     <section id="vista-2fa" class="acceso oculto">
         <div class="tarjeta-acceso">
             <div>
-                <span class="marca">Eli M. Nails</span>
+                <span class="marca">ELIMA HUB</span>
                 <span class="marca-sub">God Mode</span>
             </div>
             <h1 id="dosfa-titulo">Verificación en dos pasos</h1>
@@ -1282,7 +1282,7 @@
         <div id="sidebar-fondo" class="sidebar-fondo"></div>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-marca">
-                <span class="marca">Eli M. Nails</span>
+                <span class="marca">ELIMA HUB</span>
                 <span class="marca-sub">God Mode</span>
             </div>
             <div class="sidebar-toggle">
@@ -2114,7 +2114,7 @@
     <div id="perfil-overlay" class="overlay oculto">
         <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="perfil-titulo">
             <h2 id="perfil-titulo">Completar perfil público</h2>
-            <p id="perfil-texto" class="nota">Para aparecer en Elima Belleza el salón necesita rubro y slug.</p>
+            <p id="perfil-texto" class="nota">Para aparecer en ELIMA HUB el salón necesita rubro y slug.</p>
             <div class="campo">
                 <label for="perfil-rubro">Rubro</label>
                 <select id="perfil-rubro">
@@ -3238,7 +3238,7 @@
                 case 'salon_activado':
                     return admin + ' reactivó ' + (salon || 'un salón');
                 case 'salon_publicado':
-                    return admin + ' publicó el perfil de ' + (salon || 'un salón') + ' en Elima Belleza';
+                    return admin + ' publicó el perfil de ' + (salon || 'un salón') + ' en ELIMA HUB';
                 case 'salon_despublicado':
                     return admin + ' despublicó el perfil de ' + (salon || 'un salón');
                 case 'salon_cancelado':
@@ -4241,7 +4241,7 @@
             if (!destino || destino === '—') return null;
             var asunto = 'Â¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
             var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salón') + '.\n\n' +
-                'Si querés, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo Eli M. Nails';
+                'Si querés, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo ELIMA HUB';
             return 'mailto:' + encodeURIComponent(destino) + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
         }
 
@@ -4354,7 +4354,7 @@
                     // I72 · ya no se bloquea: al tocarlo se abre el modal para completar rubro y slug.
                     botonPerfil.title = 'Aprobar: te va a pedir completar rubro y slug';
                 } else {
-                    botonPerfil.title = publicado ? 'Quitar de Elima Belleza' : 'Publicar en Elima Belleza';
+                    botonPerfil.title = publicado ? 'Quitar de ELIMA HUB' : 'Publicar en ELIMA HUB';
                 }
                 botonPerfil.addEventListener('click', function (evento) {
                     evento.stopPropagation();
@@ -4587,7 +4587,7 @@
                 pintarSalones();
                 calcularSaas();
                 if (detalleActual && String(detalleActual.id) === String(s.id)) pintarDetalle(detalleActual);
-                toast(publicar ? 'Perfil aprobado y publicado en Elima Belleza.' : 'Perfil guardado.', 'ok');
+                toast(publicar ? 'Perfil aprobado y publicado en ELIMA HUB.' : 'Perfil guardado.', 'ok');
                 return true;
             } catch (error) {
                 console.error(error);
@@ -4613,8 +4613,8 @@
             var ok = await confirmar(
                 publicar ? 'Aprobar perfil público' : 'Despublicar perfil público',
                 publicar
-                    ? 'El salón va a aparecer en Elima Belleza. Verificá que rubro, bio, portada y slug estén completos.'
-                    : 'El salón va a dejar de aparecer en Elima Belleza. Su perfil y sus datos se conservan.',
+                    ? 'El salón va a aparecer en ELIMA HUB. Verificá que rubro, bio, portada y slug estén completos.'
+                    : 'El salón va a dejar de aparecer en ELIMA HUB. Su perfil y sus datos se conservan.',
                 publicar ? 'Aprobar' : 'Despublicar',
                 !publicar
             );
@@ -4638,7 +4638,7 @@
                 if (detalleActual && detalleActual.id === s.id) detalleActual.publicado = valor;
                 pintarSalones();
                 if (detalleActual && detalleActual.id === s.id) pintarDetalle(detalleActual);
-                toast(valor ? 'Perfil publicado en Elima Belleza.' : 'Perfil despublicado.', 'ok');
+                toast(valor ? 'Perfil publicado en ELIMA HUB.' : 'Perfil despublicado.', 'ok');
             } catch (error) {
                 console.error(error);
                 toast('No se pudo cambiar la publicación: ' + (error.message || 'error de conexión'), 'error');
