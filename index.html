@@ -4224,18 +4224,20 @@
                 const saldoElem = document.querySelector('.card-saldo-numero');
                 if (!saldoElem) return;
                 try {
-                    const { data, error } = await supabase.rpc('comprar_puntos_salon', { p_monto: 0 });
+                    const { data, error } = await supabase
+                        .from('billeteras_salones')
+                        .select('saldo_actual')
+                        .eq('salon_id', contexto.salonId)
+                        .single();
                     if (error) {
                         console.warn('I85 · no se pudo leer el saldo de la billetera:', error && error.message);
                         saldoElem.textContent = '0';
                         mostrarToast('Error al cargar saldo', 'error');
                         return;
                     }
-                    // La RPC comprar_puntos_salon con 0 no suma nada, solo devuelve el saldo actual
-                    // El formato de retorno es: exito, puntos_agregados, saldo_anterior, saldo_nuevo, mensaje
-                    if (data && data.length > 0) {
-                        const saldoActual = data[0].saldo_nuevo;
-                        saldoElem.textContent = String(saldoActual);
+                    // El saldo actual de la billetera del salon
+                    if (data && data.saldo_actual !== undefined) {
+                        saldoElem.textContent = String(data.saldo_actual);
                     } else {
                         saldoElem.textContent = '0';
                     }
