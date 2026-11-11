@@ -18,9 +18,9 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
-/* ─────────────────────────── Configuración ─────────────────────────── */
+/* ─────────────────────────── Configuración ───────────────────────────── */
 
-const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "").replace(/\/+$/, "");
+const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "").replace(/\\/+$/, "");
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 const PUBLISHABLE_KEY =
@@ -49,7 +49,7 @@ const ORIGENES_PERMITIDOS = (
   ].join(",")
 )
   .split(",")
-  .map((origen) => origen.trim().replace(/\/+$/, ""))
+  .map((origen) => origen.trim().replace(/\\/+$/, ""))
   .filter(Boolean);
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -234,18 +234,20 @@ Deno.serve(async (req: Request) => {
   let detalleError: string | null = null;
 
   try {
-    const respuesta = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(userId)}/logout?scope=global`,
-      {
-        method: "POST",
-        headers: {
-          apikey: SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ scope: "global" }),
+    const urlRevocar = `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(userId)}/logout?scope=global`;
+    console.log(`Intentando revocar sesiones en: ${urlRevocar}`);
+    if (!/^https:\/\/./i.test(urlRevocar)) {
+      return await fallo(500, "url_revocar_invalida");
+    }
+    const respuesta = await fetch(urlRevocar, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ scope: "global" }),
+    });
 
     if (respuesta.ok) {
       ok = true;

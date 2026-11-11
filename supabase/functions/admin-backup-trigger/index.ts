@@ -123,6 +123,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const destino = `https://api.github.com/repos/${repo}/actions/workflows/${encodeURIComponent(workflow)}/dispatches`;
+    console.log(`Intentando disparar workflow en: ${destino}`);
+    if (!/^https:\/\//i.test(destino)) {
+      return json({ error: "github_url_invalida", detalle: "La URL de destino para GitHub Actions es inválida." }, 500, origen);
+    }
 
   let respuesta: Response;
   try {
