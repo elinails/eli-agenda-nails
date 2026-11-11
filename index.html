@@ -4060,7 +4060,15 @@
             function mostrarSeccion(nombre) {
                 // I39: una empleada no entra a Inicio ni a Finanzas, ni escribiendo la seccion a mano
                 if (esStaff() && (nombre === 'inicio' || nombre === 'finanzas')) nombre = 'agenda';
-                const destino = SECCIONES[nombre] ? nombre : 'agenda';
+                // I86 · nuevas secciones: billetera y tienda no están en SECCIONES
+                let destino;
+                if (nombre === 'billetera') {
+                    destino = 'billetera';
+                } else if (nombre === 'tienda') {
+                    destino = 'tienda';
+                } else {
+                    destino = SECCIONES[nombre] ? nombre : 'agenda';
+                }
                 // Mostrar u ocultar secciones basándose en data-section o id
                 document.querySelectorAll('.section').forEach(function(seccion) {
                     // Secciones nuevas (billetera, tienda) usan style.display
