@@ -5608,7 +5608,7 @@
                 document.body.classList.add("modo-soporte");
                 const barra = document.getElementById("soporte-banner");
                 if (barra) {
-                    barra.textContent = "MODO SOPORTE · solo lectura" + (contexto.email ? " · " + contexto.email : "");
+                    barra.textContent = "⚠️ MODO SOPORTE - Sesión iniciada como " + (contexto.email || "la dueña");
                     barra.classList.remove("hidden");
                 }
             }
