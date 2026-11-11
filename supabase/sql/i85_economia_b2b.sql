@@ -136,6 +136,7 @@ declare
     v_puntos numeric := 0;
     v_saldo_actual numeric;
     v_nombre text;
+    v_row record;
 begin
     -- Obtener el salon logueado (usamos el contexto de la sesión)
     -- En RLS security definer, auth.uid() estará disponible si hay sesión JWT
@@ -156,7 +157,9 @@ begin
         insert into public.billeteras_salones (salon_id, saldo_actual)
         values (auth.uid(), 0)
         on conflict (salon_id) do update set saldo_actual = billeteras_salones.saldo_actual + coalesce(values(saldo_actual), 0)
-        returning saldo_actual, salon_id into v_saldo_actual, v_salon_id;
+        returning * into v_row;
+        v_saldo_actual := v_row.saldo_actual;
+        v_salon_id := v_row.id;
     else
         -- Ya existía, leemos el saldo actual
         select saldo_actual into v_saldo_actual
