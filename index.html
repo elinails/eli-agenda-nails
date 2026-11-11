@@ -1084,6 +1084,71 @@
         }
         .billetera-card .btn-comprar-puntos { min-height: 44px; margin-top: 2px; }
 
+        /* ══════════════════════════════════════════════════════════════
+           I87 · recarga de puntos por transferencia bancaria
+           ══════════════════════════════════════════════════════════════ */
+        .recarga-datos {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .recarga-datos-titulo {
+            margin: 0 0 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .recarga-dato {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 0;
+            border-top: 1px dashed var(--line);
+            min-width: 0;
+        }
+        .recarga-dato:first-of-type { border-top: 0; padding-top: 0; }
+        .recarga-dato-label {
+            flex: 0 0 46px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .recarga-dato-valor {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--ink);
+            overflow-wrap: anywhere;
+        }
+        .recarga-copiar {
+            flex: 0 0 auto;
+            min-height: 32px;
+            padding: 0 11px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--ink-soft);
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .recarga-copiar:hover { color: var(--ink); border-color: var(--gold); }
+        .recarga-dato-nota { margin: 10px 0 0; font-size: 11.5px; color: var(--ink-soft); }
+        /* En pantallas chicas el CVU (22 dígitos) no entra en una fila:
+           la etiqueta y el botón quedan arriba y el valor usa todo el ancho. */
+        @media (max-width: 420px) {
+            .recarga-dato { flex-wrap: wrap; row-gap: 2px; }
+            .recarga-dato-valor { order: 3; flex: 1 1 100%; }
+            .recarga-copiar { margin-left: auto; }
+        }
+        #recarga-form input { min-height: 44px; }
+
         /* ── Clientes: nombre + badges (VIP, Frecuente) + precios ── */
         .data-title-crm {
             display: flex;
@@ -2960,7 +3025,7 @@
                         <span class="card-saldo-numero">0</span>
                     </div>
                     <button type="button" class="btn-comprar-puntos btn-primary w-full">
-                        Comprar Puntos con MercadoPago
+                        Comprar Puntos
                     </button>
                 </div>
             </div>
@@ -3040,6 +3105,58 @@
         </button>
     </div>
     
+    <!-- I87 · Recarga de puntos por transferencia bancaria -->
+    <div id="recarga-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xl font-bold">Comprar Puntos</h3>
+                    <button type="button" id="recarga-cerrar" class="text-ink-soft hover:text-ink min-w-0" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <p class="setting-note mb-4">
+                    1 peso = 1 Elima Point. Transferí el monto y pegá el número de operación:
+                    los puntos se acreditan cuando validamos el pago.
+                </p>
+
+                <div class="recarga-datos">
+                    <p class="recarga-datos-titulo">Datos para la Transferencia</p>
+                    <div class="recarga-dato">
+                        <span class="recarga-dato-label">Alias</span>
+                        <span class="recarga-dato-valor" id="recarga-alias">elimahub.mp</span>
+                        <button type="button" class="recarga-copiar" data-copiar="elimahub.mp">Copiar</button>
+                    </div>
+                    <div class="recarga-dato">
+                        <span class="recarga-dato-label">CVU</span>
+                        <span class="recarga-dato-valor" id="recarga-cvu">0000003100000000000000</span>
+                        <button type="button" class="recarga-copiar" data-copiar="0000003100000000000000">Copiar</button>
+                    </div>
+                    <p class="recarga-dato-nota">Titular: ELIMA HUB</p>
+                </div>
+
+                <form id="recarga-form" class="space-y-4 mt-5" novalidate>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="recarga-monto">Monto a transferir (ARS)</label>
+                        <input id="recarga-monto" type="number" min="1" step="1" inputmode="decimal" required
+                               class="w-full px-4 py-2 rounded-lg border border-line" placeholder="10000">
+                        <p class="setting-note mt-1" id="recarga-puntos-preview">Equivale a 0 puntos</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-ink-soft block mb-1" for="recarga-comprobante">Comprobante / N° de operación</label>
+                        <input id="recarga-comprobante" type="text" maxlength="120" required autocomplete="off"
+                               class="w-full px-4 py-2 rounded-lg border border-line" placeholder="Ej: 1234567890">
+                    </div>
+                    <p id="recarga-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                    <button type="submit" id="recarga-enviar" class="btn-primary w-full py-2.5 rounded-lg font-medium">
+                        Notificar Transferencia
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- P2: pantalla de login -->
     <div id="auth-screen" class="fixed inset-0 z-[60] hidden flex items-center justify-center modal-overlay">
         <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm mx-4 p-8">
@@ -4565,34 +4682,165 @@
                 }, 3000);
             }
 
-            // I85 · Manjar para comprar puntos con MercadoPago (mock)
+            // I87 · Recarga de puntos por TRANSFERENCIA bancaria.
+            // El botón abre un modal; la recarga queda 'pendiente' hasta que el
+            // SuperAdmin aprueba la transferencia (ver i87_recargas_puntos.sql).
+            const recargaModal = document.getElementById('recarga-modal');
+            const recargaForm = document.getElementById('recarga-form');
+            const recargaMonto = document.getElementById('recarga-monto');
+            const recargaComprobante = document.getElementById('recarga-comprobante');
+            const recargaError = document.getElementById('recarga-error');
+            const recargaPreview = document.getElementById('recarga-puntos-preview');
+            const recargaEnviar = document.getElementById('recarga-enviar');
+
+            const RECARGA_ERRORES = {
+                sin_sesion: 'Se venció tu sesión. Volvé a iniciar sesión.',
+                sin_salon: 'No encontramos tu salón.',
+                sin_permisos: 'No tenés permiso para recargar este salón.',
+                monto_invalido: 'Ingresá un monto mayor a cero.',
+                monto_fuera_de_rango: 'El monto máximo por transferencia es $2.000.000.',
+                comprobante_requerido: 'Pegá el número de operación de la transferencia.',
+                comprobante_repetido: 'Ya hay una recarga pendiente con ese comprobante.'
+            };
+
+            function mensajeDeRecarga(codigo) {
+                return RECARGA_ERRORES[codigo] || 'No se pudo registrar la recarga. Probá de nuevo.';
+            }
+
+            function mostrarErrorRecarga(texto) {
+                if (!recargaError) return;
+                recargaError.textContent = texto;
+                recargaError.classList.remove('hidden');
+            }
+
+            function limpiarErrorRecarga() {
+                if (!recargaError) return;
+                recargaError.textContent = '';
+                recargaError.classList.add('hidden');
+            }
+
+            function actualizarPreviewRecarga() {
+                if (!recargaPreview) return;
+                const monto = Number(String((recargaMonto && recargaMonto.value) || '').replace(',', '.'));
+                const puntos = Number.isFinite(monto) && monto > 0 ? Math.round(monto) : 0;
+                recargaPreview.textContent = 'Equivale a ' + puntos.toLocaleString('es-AR') + ' puntos';
+            }
+
+            function abrirModalRecarga() {
+                if (!recargaModal) return;
+                limpiarErrorRecarga();
+                if (recargaMonto) recargaMonto.value = '10000';
+                if (recargaComprobante) recargaComprobante.value = '';
+                actualizarPreviewRecarga();
+                abrirModal(recargaModal);
+            }
+
             const btnComprarPuntos = document.querySelector('.btn-comprar-puntos');
             if (btnComprarPuntos) {
-                btnComprarPuntos.addEventListener('click', async function() {
-                    // Por ahora mock: siempre comprar 10.000 puntos (= $10.000 ARS)
-                    const monto = 10000;
-                    try {
-                        const { data, error } = await supabase.rpc('comprar_puntos_salon', { p_monto: monto });
-                        if (error) throw error;
-                        // data: [exito, puntos_agregados, saldo_anterior, saldo_nuevo, mensaje]
-                        if (data && data.length > 0) {
-                            const exito = data[0].exito;
-                            const saldoNuevo = data[0].saldo_nuevo;
-                            const mensaje = data[0].mensaje;
-                            
-                            // I86 · el saldo se relee desde la billetera (formateado).
-                            if (exito) cargarSaldoBilletera();
+                btnComprarPuntos.addEventListener('click', function () {
+                    abrirModalRecarga();
+                });
+            }
 
-                            mostrarToast(mensaje, exito ? 'ok' : 'error');
+            if (recargaMonto) recargaMonto.addEventListener('input', actualizarPreviewRecarga);
+
+            // Copiar alias / CVU al portapapeles.
+            document.querySelectorAll('.recarga-copiar').forEach(function (boton) {
+                boton.addEventListener('click', async function () {
+                    const texto = boton.getAttribute('data-copiar') || '';
+                    if (!texto) return;
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(texto);
+                        } else {
+                            const tmp = document.createElement('textarea');
+                            tmp.value = texto;
+                            tmp.setAttribute('readonly', 'readonly');
+                            tmp.style.position = 'fixed';
+                            tmp.style.opacity = '0';
+                            document.body.appendChild(tmp);
+                            tmp.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(tmp);
                         }
-                    } catch (err) {
-                        console.error('I85 · error al comprar puntos:', err);
-                        mostrarToast('Error al procesar la compra', 'error');
+                        mostrarToast('Copiado: ' + texto, 'ok');
+                    } catch (error) {
+                        mostrarToast('No se pudo copiar. Copialo a mano.', 'error');
+                    }
+                });
+            });
+
+            const recargaCerrar = document.getElementById('recarga-cerrar');
+            if (recargaCerrar) {
+                recargaCerrar.addEventListener('click', function () { cerrarModal(recargaModal); });
+            }
+            if (recargaModal) {
+                recargaModal.addEventListener('click', function (evento) {
+                    // Cierra sólo si el clic fue en el fondo, no en el contenido.
+                    if (evento.target === recargaModal) cerrarModal(recargaModal);
+                });
+            }
+
+            if (recargaForm) {
+                recargaForm.addEventListener('submit', async function (evento) {
+                    evento.preventDefault();
+                    limpiarErrorRecarga();
+
+                    const monto = Number(String((recargaMonto && recargaMonto.value) || '').replace(',', '.'));
+                    const comprobante = String((recargaComprobante && recargaComprobante.value) || '').trim();
+
+                    if (!Number.isFinite(monto) || monto <= 0) {
+                        mostrarErrorRecarga('Ingresá un monto mayor a cero.');
+                        if (recargaMonto) recargaMonto.focus();
+                        return;
+                    }
+                    if (comprobante.length < 3) {
+                        mostrarErrorRecarga('Pegá el número de operación (mínimo 3 caracteres).');
+                        if (recargaComprobante) recargaComprobante.focus();
+                        return;
+                    }
+                    if (!supabase) {
+                        mostrarErrorRecarga('Supabase no está configurado en esta app.');
+                        return;
+                    }
+                    if (!contexto || !contexto.salonId) {
+                        mostrarErrorRecarga('Tu salón todavía no cargó. Probá de nuevo en un segundo.');
+                        return;
+                    }
+
+                    const etiquetaOriginal = recargaEnviar ? recargaEnviar.textContent : '';
+                    if (recargaEnviar) {
+                        recargaEnviar.disabled = true;
+                        recargaEnviar.textContent = 'Enviando…';
+                    }
+
+                    try {
+                        const { data, error } = await supabase.rpc('solicitar_recarga_transferencia', {
+                            p_salon_id: contexto.salonId,
+                            p_monto_ars: monto,
+                            p_comprobante: comprobante
+                        });
+                        if (error) throw error;
+
+                        const fila = Array.isArray(data) ? data[0] : data;
+                        console.info('I87 · recarga solicitada:', fila);
+
+                        cerrarModal(recargaModal);
+                        mostrarToast('Recarga solicitada. Tus puntos se acreditarán una vez validado el pago.', 'ok');
+                    } catch (error) {
+                        console.warn('I87 · no se pudo solicitar la recarga:', error);
+                        const codigo = String((error && (error.message || error.error_description)) || '')
+                            .trim().toLowerCase();
+                        mostrarErrorRecarga(mensajeDeRecarga(codigo));
+                    } finally {
+                        if (recargaEnviar) {
+                            recargaEnviar.disabled = false;
+                            recargaEnviar.textContent = etiquetaOriginal;
+                        }
                     }
                 });
             }
 
-            // I85 · Manjar para comprar productos en la Tienda HUB
             document.querySelectorAll('.btn-comprar').forEach(function(btn) {
                 btn.addEventListener('click', async function() {
                     const productCard = btn.closest('.product-card');
