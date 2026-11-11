@@ -5775,6 +5775,31 @@
                 // I51: si venimos de un enlace de soporte, canjear el token primero.
                 await canjearTokenSoporte();
 
+                // NUEVO: Verificar si hay access_token en el hash de la URL
+                // (flujo: admin genera link con access_token, redirige a index.html#access_token=...)
+                function verificarHashDeSoporte() {
+                    try {
+                        var hash = window.location.hash;
+                        if (!hash) return null;
+                        // Parsear hash para obtener access_token y refresh_token
+                        // Formato esperado: #access_token=TOKEN&refresh_token=TOKEN o #access_token=TOKEN
+                        var hashParams = new URLSearchParams(hash.replace('#', '?'));
+                        var accessToken = hashParams.get('access_token');
+                        var refreshToken = hashParams.get('refresh_token');
+                        if (accessToken) {
+                            // Limpiar la URL removiendo el hash
+                            var urlLimpia = window.location.origin + window.location.pathname + window.location.search;
+                            history.pushState(null, '', urlLimpia);
+                            return { access_token: accessToken, refresh_token: refreshToken };
+                        }
+                    } catch (error) {
+                        // error alparsear hash: continuar normalmente
+                    }
+                    return null;
+                }
+
+                var sessionDesdeHash = verificarHashDeSoporte();
+
                 // El megáfono y los flags se leen al arrancar: también aplican en el login.
                 cargarAnuncio();
                 cargarFlagsApp();
@@ -5798,14 +5823,28 @@
                 // I52: los usuarios que ya estaban logueados quedan cubiertos ya.
                 sembrarRespaldoInicial();
                 try {
-                    const { data, error } = await supabase.auth.getSession();
-                    if (error) { mostrarLogin('No se pudo comprobar la sesión: ' + error.message); return; }
+                    var data, error;
+                    // Si venimos del hash con tokens, usarlos para iniciar sesión directamente
+                    if (sessionDesdeHash) {
+                        try {
+                            data = { session: await supabase.auth.setSession(sessionDesdeHash) };
+                            error = data.session ? null : new Error('setSession failed');
+                        } catch (error) {
+                            console.error('Error setting session from hash:', error);
+                        }
+                    }
+                    if (!data || !data.session) {
+                        // Intentar obtener sesión existente
+                        var _data = await supabase.auth.getSession();
+                        if (error) { mostrarLogin('No se pudo comprobar la sesión: ' + error.message); return; }
+                        if (_data && _data.session) { data = _data; }
+                    }
                     if (data && data.session) { await iniciarApp(data.session); return; }
 
                     // I52: la sesión desapareció del storage -> un único intento
                     // con el respaldo (antes era refreshSession() sin argumento,
                     // que responde AuthSessionMissingError y nunca podía funcionar).
-                    const recuperada = await recuperarSesionDelRespaldo();
+                    var recuperada = await recuperarSesionDelRespaldo();
                     if (recuperada) { await iniciarApp(recuperada); return; }
 
                     mostrarLogin(cambioDeModo ? mensajeSesionPerdida() : '');

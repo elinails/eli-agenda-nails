@@ -16,6 +16,18 @@
             if (!paleta || PALETAS.indexOf(paleta) < 0) paleta = "blush";
             document.documentElement.setAttribute("data-tema", paleta);
         })();
+
+        // I63 · toggle del menú lateral
+        document.addEventListener('DOMContentLoaded', function() {
+            var toggleBtn = document.getElementById('menu-toggle-btn');
+            var app = document.querySelector('.app');
+            if (toggleBtn && app) {
+                toggleBtn.addEventListener('click', function() {
+                    app.classList.toggle('sidebar-oculto');
+                });
+            }
+        });
+</script>
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
@@ -484,6 +496,7 @@
             height: 100dvh;
             z-index: 40;
         }
+        .sidebar-oculto .sidebar { transform: translateX(-100%); }
         .sidebar-marca { padding: 0 10px; }
         .nav { display: flex; flex-direction: column; gap: 3px; }
         .nav-item {
@@ -1231,6 +1244,11 @@
             <div class="sidebar-marca">
                 <span class="marca">Eli M. Nails</span>
                 <span class="marca-sub">God Mode</span>
+            </div>
+            <div class="sidebar-toggle">
+                <button type="button" id="menu-toggle-btn" aria-label="Menú lateral">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18M3 6h18M3 12h18"/></svg>
+                </button>
             </div>
             <nav class="nav" aria-label="Secciones">
                 <button type="button" class="nav-item activo" data-vista="salones" aria-current="page">
