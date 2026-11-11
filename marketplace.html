@@ -90,6 +90,31 @@
         height: 100%;
         object-fit: cover;
     }
+    /* Variante tarjeta: el logo se ubica DENTRO de la portada, nunca suelto
+       entre la portada y el título (eso lo dejaba cortado por el overflow). */
+    .salon-logo-container.tarjeta-logo-badge {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        z-index: 2;
+        border: 2px solid rgba(255, 255, 255, .92);
+        box-shadow: 0 2px 10px rgba(59, 47, 53, .18);
+        background: var(--surface);
+        color: var(--gold-ink);
+        font-family: var(--serif);
+        font-size: 30px;
+        font-weight: 600;
+    }
+    .salon-logo-container.tarjeta-logo-centro {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        background: var(--surface);
+        color: var(--gold-ink);
+        font-family: var(--serif);
+        font-size: 30px;
+        font-weight: 600;
+    }
     .marca-texto { display: grid; line-height: 1.05; }
     .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: .01em; }
     .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
@@ -313,6 +338,9 @@
     @keyframes subir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     .modal-portada { aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--blush-2), var(--surface-2)); position: relative; }
     .modal-portada img { width: 100%; height: 100%; object-fit: cover; }
+    /* Si el salón solo tiene logo (sin foto de portada), lo mostramos entero
+       en lugar de recortarlo con cover. */
+    .modal-portada img.es-logo { object-fit: contain; padding: 26px; background: var(--surface-2); }
     .modal-cerrar {
         position: absolute; right: 12px; top: 12px;
         width: 38px; height: 38px; border-radius: 50%;
@@ -427,7 +455,8 @@
     @media (max-width: 560px) {
         .hero { padding-top: 38px; padding-bottom: 20px; }
         .hero p { font-size: 14.5px; }
-        .grilla { grid-template-columns: 1fr 1fr; gap: 14px; }
+        /* El grid lo gobierna auto-fit/minmax(280px): no forzamos columnas. */
+        .grilla { gap: 14px; }
         .tarjeta-nombre { font-size: 17px; }
         .tarjeta-bio { display: none; }
         .tarjeta-cuerpo { padding: 12px 12px 14px; }
@@ -437,7 +466,6 @@
         .btn-app { padding: 0 12px; }
     }
     @media (max-width: 400px) {
-        .grilla { grid-template-columns: 1fr; }
         .tarjeta-bio { display: -webkit-box; }
     }
 </style>
@@ -697,53 +725,46 @@
 
         var portada = document.createElement('div');
         portada.className = 'tarjeta-portada';
-        var foto = urlSegura(fila.foto_portada_url) || urlSegura(fila.logo_url);
-        if (foto) {
+        var fotoPortada = urlSegura(fila.foto_portada_url);
+        var logoSalon = urlSegura(fila.logo_url);
+
+        if (fotoPortada) {
             var img = document.createElement('img');
-            img.src = foto;
+            img.src = fotoPortada;
             img.alt = '';
             img.loading = 'lazy';
             img.decoding = 'async';
             img.addEventListener('error', function () { img.remove(); portada.appendChild(inicial(fila)); });
             portada.appendChild(img);
-        } else {
+        }
+
+        // El logo va SIEMPRE dentro de un contenedor 1:1: así nunca se deforma
+        // ni se recorta para encajar en la portada 4:3.
+        if (logoSalon) {
+            var logoContainer = document.createElement('div');
+            logoContainer.className = 'salon-logo-container ' +
+                (fotoPortada ? 'tarjeta-logo-badge' : 'tarjeta-logo-centro');
+
+            var logoImg = document.createElement('img');
+            logoImg.src = logoSalon;
+            logoImg.alt = '';
+            logoImg.loading = 'lazy';
+            logoImg.decoding = 'async';
+            logoImg.addEventListener('error', function () {
+                logoImg.remove();
+                logoContainer.textContent = inicialDe(fila.nombre);
+            });
+            logoContainer.appendChild(logoImg);
+            portada.appendChild(logoContainer);
+        } else if (!fotoPortada) {
             portada.appendChild(inicial(fila));
         }
+
         var rubro = document.createElement('span');
         rubro.className = 'tarjeta-rubro';
         rubro.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
         portada.appendChild(rubro);
         boton.appendChild(portada);
-
-        // NUEVO: Contenedor separado de logo 1:1 para el perfil del salón
-        // Se coloca después de la portada para no interferir en el aspect-ratio 4:3 de la cubierta
-        var logoContainer = document.createElement('div');
-        logoContainer.className = 'salon-logo-container';
-        logoContainer.style.marginTop = '8px';
-        logoContainer.style.width = '40px';
-        logoContainer.style.height = '40px';
-        logoContainer.style.aspectRatio = '1 / 1';
-        logoContainer.style.borderRadius = '50%';
-        logoContainer.style.overflow = 'hidden';
-        logoContainer.style.display = 'flex';
-        logoContainer.style.alignItems = 'center';
-        logoContainer.style.justifyContent = 'center';
-
-        var logoImg = document.createElement('img');
-        logoImg.src = urlSegura(fila.logo_url);
-        logoImg.alt = '';
-        logoImg.style.width = '100%';
-        logoImg.style.height = '100%';
-        logoImg.style.objectFit = 'cover';
-        logoContainer.appendChild(logoImg);
-
-        if (!foto) {
-            var inicialTexto = inicial(fila);
-            logoContainer.style.justifyContent = 'flex-start';
-            logoContainer.textContent = inicialDe(fila.nombre);
-        }
-
-        boton.appendChild(logoContainer);
 
         var cuerpo = document.createElement('div');
         cuerpo.className = 'tarjeta-cuerpo';
@@ -1239,11 +1260,15 @@
 
         var portada = $('modal-portada');
         Array.prototype.slice.call(portada.querySelectorAll('img, .tarjeta-inicial')).forEach(function (n) { n.remove(); });
-        var foto = urlSegura(fila.foto_portada_url) || urlSegura(fila.logo_url);
+        var fotoPortadaModal = urlSegura(fila.foto_portada_url);
+        var logoModal = urlSegura(fila.logo_url);
+        var foto = fotoPortadaModal || logoModal;
         if (foto) {
             var img = document.createElement('img');
             img.src = foto;
             img.alt = '';
+            // Sin foto de portada, el logo se muestra contenido (no recortado ni estirado).
+            if (!fotoPortadaModal) img.className = 'es-logo';
             portada.insertBefore(img, portada.firstChild);
         } else {
             portada.insertBefore(inicial(fila), portada.firstChild);
