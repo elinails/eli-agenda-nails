@@ -896,6 +896,7 @@
 
         /* ── secciones y paneles ── */
         .section { animation: fade-in .18s ease; }
+        .oculto { display: none; }
         .panel {
             background: var(--surface);
             border: 1px solid var(--line);
@@ -1945,6 +1946,12 @@
                 <button type="button" class="nav-item" data-section="ajustes">
                     <i class="fas fa-sliders-h" aria-hidden="true"></i> Ajustes
                 </button>
+                <button type="button" class="nav-item" data-section="billetera">
+                    <i class="fas fa-wallet" aria-hidden="true"></i> Mi Billetera
+                </button>
+                <button type="button" class="nav-item" data-section="tienda">
+                    <i class="fas fa-shopping-bag" aria-hidden="true"></i> Tienda HUB
+                </button>
             </nav>
             <div class="sidebar-foot">
                 <button type="button" id="logout-sidebar" class="nav-item nav-item-danger">
@@ -2641,6 +2648,66 @@
                         </span>
                         <span class="pro-pill">Pro</span>
                     </button>
+                </div>
+            </div>
+        </section>
+        <!-- Mi Billetera -->
+        <section id="vista-billetera" class="section oculto">
+            <div class="container mx-auto px-4 py-6 max-w-2xl">
+                <div class="card billetera-card">
+                    <h2 class="card-title">Tus Elima Points</h2>
+                    <p class="card-subtitle">Saldo actual</p>
+                    <div class="card-saldo">
+                        <span class="card-saldo-simbolo">Pts</span>
+                        <span class="card-saldo-numero">0</span>
+                    </div>
+                    <button type="button" class="btn-comprar-puntos btn-primary w-full">
+                        Comprar Puntos con MercadoPago
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- Tienda HUB -->
+        <section id="vista-tienda" class="section oculto">
+            <div class="container mx-auto px-4 py-6 max-w-4xl">
+                <h2 class="section-title text-center mb-6">Marketplace ELIMA HUB</h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 product-grid">
+                    <!-- Product card 1 -->
+                    <div class="product-card card">
+                        <div class="product-icon">
+                            <i class="fas fa-gem" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="product-title">Diseño de Tarjeta Gold</h3>
+                        <p class="product-price">2.500 Pts</p>
+                        <button type="button" class="btn-comprar product-btn btn-primary w-full">Comprar</button>
+                    </div>
+                    <!-- Product card 2 -->
+                    <div class="product-card card">
+                        <div class="product-icon">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="product-title">Destacar Salón (7 días)</h3>
+                        <p class="product-price">5.000 Pts</p>
+                        <button type="button" class="btn-comprar product-btn btn-primary w-full">Comprar</button>
+                    </div>
+                    <!-- Product card 3 -->
+                    <div class="product-card card">
+                        <div class="product-icon">
+                            <i class="fas fa-book" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="product-title">Curso: Fotos para Instagram</h3>
+                        <p class="product-price">10.000 Pts</p>
+                        <button type="button" class="btn-comprar product-btn btn-primary w-full">Comprar</button>
+                    </div>
+                    <!-- Product card 4 -->
+                    <div class="product-card card">
+                        <div class="product-icon">
+                            <i class="fas fa-box" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="product-title">Kit de Esmaltes (Aliado)</h3>
+                        <p class="product-price">15.000 Pts</p>
+                        <button type="button" class="btn-comprar product-btn btn-primary w-full">Comprar</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -3898,8 +3965,17 @@
                 // I39: una empleada no entra a Inicio ni a Finanzas, ni escribiendo la seccion a mano
                 if (esStaff() && (nombre === 'inicio' || nombre === 'finanzas')) nombre = 'agenda';
                 const destino = SECCIONES[nombre] ? nombre : 'agenda';
+                // Mostrar u ocultar secciones basándose en data-section o id
                 document.querySelectorAll('.section').forEach(function(seccion) {
-                    seccion.classList.toggle('hidden', seccion.dataset.section !== destino);
+                    // Secciones nuevas (billetera, tienda) usan style.display
+                    if (seccion.id === 'vista-billetera') {
+                        seccion.style.display = (destino === 'billetera') ? 'block' : 'none';
+                    } else if (seccion.id === 'vista-tienda') {
+                        seccion.style.display = (destino === 'tienda') ? 'block' : 'none';
+                    } else {
+                        // Secciones existentes usan la clase hidden
+                        seccion.classList.toggle('hidden', seccion.dataset.section !== destino);
+                    }
                 });
                 document.querySelectorAll('.nav-item[data-section]').forEach(function(item) {
                     const activo = item.dataset.section === destino;
@@ -3907,14 +3983,16 @@
                     if (activo) item.setAttribute('aria-current', 'page');
                     else item.removeAttribute('aria-current');
                 });
-                if (sectionTitle) sectionTitle.textContent = SECCIONES[destino].titulo;
-                if (sectionSub) sectionSub.textContent = SECCIONES[destino].sub;
+                if (sectionTitle) sectionTitle.textContent = SECCIONES[destino] ? SECCIONES[destino].titulo : 'ELIMA HUB';
+                if (sectionSub) sectionSub.textContent = SECCIONES[destino] ? SECCIONES[destino].sub : 'Panel de control';
                 if (nuevoTurnoBtn) nuevoTurnoBtn.classList.toggle('hidden', destino !== 'agenda');
                 if (fabNuevo) fabNuevo.classList.toggle('hidden', destino !== 'agenda');
                 seccionActual = destino;
                 pintarSecciones();
                 // I69: al entrar a Agenda, refrescar solicitudes pendientes.
                 if (destino === 'agenda' && contexto.salonId) cargarSolicitudes();
+                // Ocultar FAB también al entrar a las nuevas vistas
+                if (fabNuevo) fabNuevo.classList.toggle('hidden', destino !== 'agenda' && destino !== 'billetera' && destino !== 'tienda');
                 window.scrollTo({ top: 0, behavior: 'auto' });
             }
 
