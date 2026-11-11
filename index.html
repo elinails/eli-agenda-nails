@@ -937,6 +937,11 @@
             }
             /* Mostrar botón hamburguesa en móviles */
             .btn-menu-movil {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                left: auto;
+                z-index: 9999;
                 display: block;
             }
             /* Overlay semi-transparente cuando el menú está abierto */
@@ -2061,7 +2066,7 @@
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
             <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
-            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-0 top-2 m-2 md:hidden">
+            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-4 top-2 m-2 md:hidden">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
                     <path d="M3 6h18M3 12h18M3 18h18"/>
                 </svg>
