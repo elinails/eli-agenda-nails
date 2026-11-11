@@ -155,7 +155,7 @@ begin
         -- Intentamos insertar una billetera nueva para el salon actual
         insert into public.billeteras_salones (salon_id, saldo_actual)
         values (auth.uid(), 0)
-        on conflict (salon_id) do update set saldo_actual = billeteras_salones.saldo_actual + coalesce(values(saldo_actual), 0);
+        on conflict (salon_id) do update set saldo_actual = billeteras_salones.saldo_actual + EXCLUDED.saldo_actual;
         -- Obtenemos el saldo creado insertando y luego selectando
         select saldo_actual into v_saldo_actual
         from public.billeteras_salones
