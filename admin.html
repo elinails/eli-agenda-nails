@@ -20,10 +20,10 @@
         // I63 · toggle del menú lateral
         document.addEventListener('DOMContentLoaded', function() {
             var toggleBtn = document.getElementById('menu-toggle-btn');
-            var app = document.querySelector('.app');
-            if (toggleBtn && app) {
+            var sidebar = document.getElementById('sidebar');
+            if (toggleBtn && sidebar) {
                 toggleBtn.addEventListener('click', function() {
-                    app.classList.toggle('sidebar-oculto');
+                    sidebar.parentElement.classList.toggle('sidebar-oculto');
                 });
             }
         });
