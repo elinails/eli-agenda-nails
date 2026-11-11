@@ -20,11 +20,21 @@
         // I63 · toggle del menú lateral
         document.addEventListener('DOMContentLoaded', function() {
             var toggleBtn = document.getElementById('menu-toggle-btn');
-            var sidebar = document.getElementById('sidebar');
-            if (toggleBtn && sidebar) {
-                toggleBtn.addEventListener('click', function() {
-                    sidebar.parentElement.classList.toggle('sidebar-oculto');
-                });
+            var floatBtn = document.getElementById('btn-flotante-sidebar');
+            var app = document.querySelector('.app');
+            if (toggleBtn && app) {
+                // Alternar clase sidebar-oculto en el contenedor app
+                function toggleSidebar() {
+                    app.classList.toggle('sidebar-oculto');
+                    // Mostrar u ocultar el botón flotante según el estado
+                    if (app.classList.contains('sidebar-oculto')) {
+                        floatBtn.classList.remove('visible');
+                    } else {
+                        floatBtn.classList.add('visible');
+                    }
+                }
+                toggleBtn.addEventListener('click', toggleSidebar);
+                floatBtn.addEventListener('click', toggleSidebar);
             }
         });
 </script>
@@ -479,6 +489,31 @@
 
         /* â”€â”€ Shell â”€â”€ */
         .app { display: flex; min-height: 100dvh; height: 100vh; overflow: hidden; width: 100vw; box-sizing: border-box; }
+        .btn-flotante-sidebar {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 9999;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: var(--paper);
+            border: 2px solid var(--gold);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color .15s ease, transform .15s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .btn-flotante-sidebar:hover { background: var(--gold); color: var(--ink); }
+        .btn-flotante-sidebar.visible { opacity: 1; visibility: visible; }
+        .sidebar-oculto .btn-flotante-sidebar { opacity: 0; visibility: hidden; }
+        .app.sidebar-oculto .btn-flotante-sidebar { visibility: visible; opacity: 1; }
+        .btn-flotante-sidebar:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
         .sidebar {
             width: 248px;
             flex: 0 0 248px;
@@ -1236,6 +1271,11 @@
             </p>
         </div>
     </section>
+
+    <!-- Botón flotante para toggle del sidebar -->
+    <button type="button" id="btn-flotante-sidebar" class="btn-flotante-sidebar" aria-label="Abrir menú lateral">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18M3 6h18M3 12h18"/></svg>
+    </button>
 
     <!-- 3 · APP -->
     <div id="app" class="app oculto">
