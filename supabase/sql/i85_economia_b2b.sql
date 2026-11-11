@@ -318,7 +318,7 @@ notify pgrst, 'reload schema';
 -- ============================================================================
 
 -- 7.1 · billeteras_salones: solo el dueño del salon puede ver/actualizar su propia billetera
-create policy if not exists "Los salones solo ven su propia billetera"
+create policy "Los salones solo ven su propia billetera"
     on public.billeteras_salones
     for all
     using (true); -- En producción sería: using (salon_id = ...), pero usamos true porque el control
@@ -327,13 +327,13 @@ create policy if not exists "Los salones solo ven su propia billetera"
                  -- Las RPCs son el punto de entrada controlado.
 
 -- 7.2 · catalogo_hub: lectura pública (todos pueden ver qué hay en la tienda)
-create policy if not exists "Catálogo visible para todos"
+create policy "Catálogo visible para todos"
     on public.catalogo_hub
     for select
     using (activo = true);
 
 -- 7.3 · compras_hub: el salon solo ve sus propias compras
-create policy if not exists "Los salones solo ven sus propias compras"
+create policy "Los salones solo ven sus propias compras"
     on public.compras_hub
     for all
     using (salon_id = auth.uid()); -- Esto requiere que auth.uid() devuelva el salon_id
