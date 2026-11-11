@@ -34,6 +34,47 @@
                 document.documentElement.dataset.tema = 'blush';
             }
         })();
+
+        /* --- Toggle menú hamburguesa responsive --- */
+        document.addEventListener('DOMContentLoaded', function() {
+            var btnMenu = document.getElementById('btn-menu-movil');
+            var sidebar = document.getElementById('sidebar');
+            var appMain = document.querySelector('.app-main');
+            var overlay = document.querySelector('.overlay') || null;
+
+            if (btnMenu && sidebar) {
+                // Alternar menú al hacer click en hamburguesa
+                btnMenu.addEventListener('click', function() {
+                    sidebar.classList.toggle('sidebar-abierto');
+                    if (overlay) overlay.classList.toggle('overlay');
+                    if (appMain) {
+                        if (sidebar.classList.contains('sidebar-abierto')) {
+                            appMain.classList.add('sidebar-abierto');
+                        } else {
+                            appMain.classList.remove('sidebar-abierto');
+                        }
+                    }
+                });
+
+                // Cerrar menú al hacer click en un ítem del menú
+                sidebar.querySelectorAll('.nav-item').forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        sidebar.classList.remove('sidebar-abierto');
+                        if (overlay) overlay.classList.remove('overlay');
+                        if (appMain) appMain.classList.remove('sidebar-abierto');
+                    });
+                });
+
+                // Cerrar menú al hacer click en el overlay
+                if (overlay) {
+                    overlay.addEventListener('click', function() {
+                        sidebar.classList.remove('sidebar-abierto');
+                        overlay.classList.remove('overlay');
+                        if (appMain) appMain.classList.remove('sidebar-abierto');
+                    });
+                }
+            }
+        });
     </script>
     <title>ELIMA HUB - Agenda de Turnos</title>
     <link rel="stylesheet" href="styles.css">
@@ -867,6 +908,50 @@
         }
         @media (max-width: 1023px) {
             .app-main { padding-bottom: 82px; }
+        }
+
+        /* --- Menú hamburguesa responsive --- */
+        @media (max-width: 768px) {
+            /* Ocultar sidebar por defecto en móviles y aplicar transformación */
+            .sidebar {
+                display: block;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 216px;
+                flex-direction: column;
+                gap: 8px;
+                padding: 22px 14px 16px;
+                background: var(--surface);
+                border-right: 1px solid var(--line);
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 999;
+            }
+            .sidebar-abierto .sidebar {
+                transform: translateX(0);
+            }
+            /* Mostrar botón hamburguesa en móviles */
+            .btn-menu-movil {
+                display: block;
+            }
+            /* Overlay semi-transparente cuando el menú está abierto */
+            .sidebar-abierto .overlay {
+                display: block;
+            }
+            .overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, .45);
+                z-index: 998;
+            }
+            /* Cuando el menú está abierto, esconder el contenido principal */
+            .sidebar-abierto .app-main {
+                margin-left: 0;
+                /* No afectar width, solo el margen */
+            }
         }
 
         .fab {
@@ -1972,8 +2057,11 @@
                 <h1 class="section-title" id="section-title">Agenda</h1>
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
-            <button type="button" id="nuevo-turno-btn" class="btn-primary hidden shrink-0 px-4 py-2.5 rounded-lg font-medium text-sm">
-                <i class="fas fa-plus mr-2"></i> Nuevo turno
+            <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
+            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute left-0 top-0 m-2 md:hidden">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
+                    <path d="M3 6h18M3 12h18M3 18h18"/>
+                </svg>
             </button>
         </header>
         
