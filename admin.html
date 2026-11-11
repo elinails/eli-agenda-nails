@@ -17,27 +17,10 @@
             document.documentElement.setAttribute("data-tema", paleta);
         })();
 
-        // I63 · toggle del menú lateral
-        document.addEventListener('DOMContentLoaded', function() {
-            var toggleBtn = document.getElementById('menu-toggle-btn');
-            var floatBtn = document.getElementById('btn-flotante-sidebar');
-            var app = document.querySelector('.app');
-            if (toggleBtn && app) {
-                // Alternar clase sidebar-oculto en el contenedor app
-                function toggleSidebar() {
-                    app.classList.toggle('sidebar-oculto');
-                    // Mostrar u ocultar el botón flotante según el estado
-                    if (app.classList.contains('sidebar-oculto')) {
-                        floatBtn.classList.remove('visible');
-                    } else {
-                        floatBtn.classList.add('visible');
-                    }
-                }
-                toggleBtn.addEventListener('click', toggleSidebar);
-                floatBtn.addEventListener('click', toggleSidebar);
-            }
-        });
-</script>
+        // El toggle del menu lateral vive en el script principal (abajo):
+        // es el unico duenio del estado (body.menu-abierto / body.sidebar-colapsado).
+        // Habia aca un segundo handler que togglaba .app.sidebar-oculto y peleaba
+        // con el principal, dejando el boton sin efecto. Se elimino.
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
@@ -531,7 +514,33 @@
             height: 100dvh;
             z-index: 40;
         }
+        /* Colapso del sidebar.
+           Desktop: body.sidebar-colapsado lo pliega por ancho (sin dejar hueco).
+           Mobile : el drawer usa body.menu-abierto (ver @media 980px). */
+        .sidebar {
+            transition: width .22s ease, min-width .22s ease, max-width .22s ease,
+                        flex-basis .22s ease, padding .22s ease, opacity .18s ease,
+                        transform .22s ease;
+        }
         .sidebar-oculto .sidebar { transform: translateX(-100%); }
+        @media (min-width: 981px) {
+            body.sidebar-colapsado .sidebar {
+                width: 0; min-width: 0; max-width: 0; flex-basis: 0;
+                padding-left: 0; padding-right: 0;
+                border-right-color: transparent;
+                opacity: 0; pointer-events: none; overflow: hidden;
+            }
+        }
+        body.sidebar-colapsado .btn-flotante-sidebar { opacity: 1; visibility: visible; }
+        .sidebar-toggle { display: flex; justify-content: flex-end; padding: 0 6px; }
+        .sidebar-toggle button {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 38px; height: 38px; border-radius: 9px;
+            border: 1px solid var(--hairline); background: transparent;
+            color: var(--ink-muted); cursor: pointer;
+        }
+        .sidebar-toggle button:hover { background: var(--surface-2); color: var(--ink); }
+        .sidebar-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
         .sidebar-marca { padding: 0 10px; }
         .nav { display: flex; flex-direction: column; gap: 3px; }
         .nav-item {
@@ -590,7 +599,7 @@
             text-overflow: ellipsis;
         }
         .topbar-acciones { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
-        .menu-btn { display: none; }
+        .menu-btn { display: inline-flex; }
         .buscar-btn { display: none; }
 
         /* I63 · áreas táctiles de 44px */
@@ -3825,7 +3834,7 @@
         async function borrarTicket(ticket) {
             var ok = await confirmar(
                 'Borrar ticket',
-                'Â¿Borrar "' + recortar(ticket.asunto || 'ticket', 60) + '"? No se puede deshacer.',
+                '¿Borrar "' + recortar(ticket.asunto || 'ticket', 60) + '"? No se puede deshacer.',
                 'Borrar',
                 true
             );
@@ -3853,7 +3862,7 @@
         async function forzarBackup() {
             var ok = await confirmar(
                 'Forzar backup',
-                'Se va a disparar el workflow de backup en GitHub Actions ahora mismo. Â¿Seguimos?',
+                'Se va a disparar el workflow de backup en GitHub Actions ahora mismo. ¿Seguimos?',
                 'Disparar',
                 false
             );
@@ -3900,7 +3909,7 @@
         async function limpiarCacheGlobal() {
             var ok = await confirmar(
                 'Limpiar caché global',
-                'Los clientes van a purgar su caché y a actualizar el service worker la próxima vez que abran la app. Â¿Seguimos?',
+                'Los clientes van a purgar su caché y a actualizar el service worker la próxima vez que abran la app. ¿Seguimos?',
                 'Limpiar',
                 false
             );
@@ -4004,16 +4013,53 @@
             mostrarSeccion((location.hash || '#salones').slice(1));
         });
 
-        function abrirMenu() {
-            document.body.classList.add('menu-abierto');
-            var b = $('menu-btn');
-            if (b) b.setAttribute('aria-expanded', 'true');
+        // ── Menú lateral: un único dueño del estado ─────────────────────
+        // Desktop: body.sidebar-colapsado pliega el sidebar por ancho.
+        // Mobile : body.menu-abierto abre el drawer (ver @media 980px).
+        function menuEsMovil() {
+            return window.matchMedia('(max-width: 980px)').matches;
         }
+
+        function reflejarMenu(abierto) {
+            var b = $('menu-btn');
+            if (b) b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        }
+
+        // Cierra SOLO el drawer móvil. No pliega el sidebar en desktop:
+        // lo llaman mostrarSeccion() y Escape y no deben colapsar nada.
         function cerrarMenu() {
             document.body.classList.remove('menu-abierto');
-            var b = $('menu-btn');
-            if (b) b.setAttribute('aria-expanded', 'false');
+            reflejarMenu(false);
         }
+
+        function abrirMenu() {
+            if (menuEsMovil()) {
+                document.body.classList.add('menu-abierto');
+                reflejarMenu(true);
+            } else {
+                document.body.classList.remove('sidebar-colapsado');
+                reflejarMenu(true);
+            }
+        }
+
+        function alternarMenu() {
+            if (menuEsMovil()) {
+                reflejarMenu(document.body.classList.toggle('menu-abierto'));
+            } else {
+                reflejarMenu(!document.body.classList.toggle('sidebar-colapsado'));
+            }
+        }
+
+        // Al cruzar el breakpoint se limpia el estado del otro modo.
+        (function () {
+            var mq = window.matchMedia('(max-width: 980px)');
+            function alCambiar() {
+                if (mq.matches) document.body.classList.remove('sidebar-colapsado');
+                else document.body.classList.remove('menu-abierto');
+            }
+            if (mq.addEventListener) mq.addEventListener('change', alCambiar);
+            else if (mq.addListener) mq.addListener(alCambiar);
+        })();
 
         // I63 · buscador colapsable (solo móvil): la lupa lo abre, Escape y el
         // clic afuera lo cierran. En desktop el input siempre está visible.
@@ -4040,8 +4086,16 @@
                 cerrar();
             });
         })();
-        $('menu-btn').addEventListener('click', abrirMenu);
-        $('sidebar-fondo').addEventListener('click', cerrarMenu);
+        // Los tres disparadores comparten un solo toggle.
+        (function () {
+            var disparadores = ['menu-btn', 'menu-toggle-btn', 'btn-flotante-sidebar'];
+            disparadores.forEach(function (id) {
+                var boton = $(id);
+                if (boton) boton.addEventListener('click', alternarMenu);
+            });
+            var fondo = $('sidebar-fondo');
+            if (fondo) fondo.addEventListener('click', cerrarMenu);
+        })();
 
         // â”€â”€ carga de datos â”€â”€
         async function cargarTodo() {
@@ -4239,7 +4293,7 @@
         function mailtoReenganche(s) {
             var destino = String(s.dueno || '').trim();
             if (!destino || destino === '—') return null;
-            var asunto = 'Â¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
+            var asunto = '¿Volvemos a agendar en ' + (s.nombre || 'tu salón') + '?';
             var cuerpo = 'Hola! Hace un tiempo no vemos turnos en ' + (s.nombre || 'tu salón') + '.\n\n' +
                 'Si querés, te cuento las novedades y te ayudo a poner la agenda al día.\n\nEquipo ELIMA HUB';
             return 'mailto:' + encodeURIComponent(destino) + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
@@ -4485,8 +4539,8 @@
 
             $('perfil-titulo').textContent = perfilCtx.publicar ? 'Completar perfil y aprobar' : 'Editar perfil público';
             $('perfil-texto').textContent = perfilCtx.publicar
-                ? 'Para aprobar Â«' + s.nombre + 'Â» hacen falta rubro y slug. Se guardan y se publica en un mismo paso.'
-                : 'Rubro y slug del perfil público de Â«' + s.nombre + 'Â».';
+                ? 'Para aprobar «' + s.nombre + '» hacen falta rubro y slug. Se guardan y se publica en un mismo paso.'
+                : 'Rubro y slug del perfil público de «' + s.nombre + '».';
             $('perfil-rubro').value = s.rubro || '';
             $('perfil-slug').value = s.slug || '';
             $('perfil-slug-preview').textContent = normalizarSlugAdmin(s.slug) || '—';
@@ -5497,7 +5551,7 @@
         }
 
         async function borrarPatrocinador(p, boton) {
-            if (!window.confirm('Â¿Borrar el patrocinador?')) return;
+            if (!window.confirm('¿Borrar el patrocinador?')) return;
             ocupado(boton, '…');
             try {
                 var res = await supabase.rpc('admin_patrocinador_borrar', { p_id: p.id });
