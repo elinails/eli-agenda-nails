@@ -468,6 +468,64 @@
     @media (max-width: 400px) {
         .tarjeta-bio { display: -webkit-box; }
     }
+
+    /* ── Móvil: tarjeta compacta con logo tipo perfil ────────────────────
+       La portada pasa de 4:3 (≈70% de la tarjeta) a una banda de 140px y el
+       logo se superpone en el borde inferior, así el título queda pegado y
+       entran varias tarjetas por pantalla. */
+    @media (max-width: 768px) {
+        .grilla { gap: 16px; }
+
+        .tarjeta-portada {
+            aspect-ratio: auto;
+            height: 140px;
+            /* El logo sobresale por debajo del borde: no se puede recortar acá. */
+            overflow: visible;
+        }
+        .tarjeta-portada > img { border-radius: var(--radio) var(--radio) 0 0; }
+        .tarjeta-inicial { font-size: 40px; }
+
+        .tarjeta-rubro { left: 10px; top: 10px; font-size: 9.5px; padding: 4px 9px; }
+
+        /* Logo 1:1 superpuesto, estilo foto de perfil */
+        .tarjeta .salon-logo-container {
+            position: absolute;
+            inset: auto;
+            margin: 0;
+            left: 16px;
+            bottom: -28px;
+            width: 56px;
+            height: 56px;
+            aspect-ratio: 1 / 1;
+            border: 3px solid var(--surface);
+            box-shadow: 0 3px 10px rgba(59, 47, 53, .16);
+            background: var(--surface);
+            font-size: 22px;
+            z-index: 3;
+        }
+
+        /* El padding-top deja lugar para la mitad del logo que se superpone. */
+        .tarjeta-cuerpo { padding: 34px 14px 12px; gap: 3px; }
+        .tarjeta-nombre { font-size: 17.5px; line-height: 1.18; }
+        .tarjeta-bio { font-size: 12.5px; line-height: 1.35; -webkit-line-clamp: 1; }
+
+        .estrellas { margin-top: 2px; padding-top: 0; gap: 5px; }
+        .estrellas-iconos { font-size: 12.5px; }
+        .estrellas-texto { font-size: 11.5px; }
+
+        /* Acción alineada a la derecha, con menos aire */
+        .tarjeta-ver {
+            justify-content: flex-end;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 9px;
+            font-size: 9.5px;
+        }
+        .tarjeta-ver span { font-size: 13px; }
+
+        .resultados { padding-top: 24px; }
+        .resultados-barra { margin-bottom: 14px; }
+    }
 </style>
 </head>
 <body>
