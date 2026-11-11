@@ -35,8 +35,10 @@
             }
         })();
 
-        /* --- Toggle menú hamburguesa responsive --- */
+        /* --- Toggle menú hamburguesa responsive ---
+           También cargamos el saldo de la billetera al iniciar la app --- */
         document.addEventListener('DOMContentLoaded', function() {
+            cargarSaldoBilletera();
             var btnMenu = document.getElementById('btn-menu-movil');
             var sidebar = document.getElementById('sidebar');
             var appMain = document.querySelector('.app-main');
