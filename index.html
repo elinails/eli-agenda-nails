@@ -908,6 +908,7 @@
         }
         @media (max-width: 1023px) {
             .app-main { padding-bottom: 82px; }
+            .bottom-nav { display: none; }
         }
 
         /* --- Menú hamburguesa responsive --- */
@@ -2058,7 +2059,7 @@
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
             <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
-            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute left-0 top-0 m-2 md:hidden">
+            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-0 top-2 m-2 md:hidden">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
                     <path d="M3 6h18M3 12h18M3 18h18"/>
                 </svg>
@@ -4058,6 +4059,10 @@
                     // Secciones nuevas (billetera, tienda) usan style.display
                     if (seccion.id === 'vista-billetera') {
                         seccion.style.display = (destino === 'billetera') ? 'block' : 'none';
+                        // Cuando se muestra la billetera, cargar el saldo real
+                        if (destino === 'billetera') {
+                            cargarSaldoBilletera();
+                        }
                     } else if (seccion.id === 'vista-tienda') {
                         seccion.style.display = (destino === 'tienda') ? 'block' : 'none';
                     } else {
@@ -4213,6 +4218,132 @@
                 }
                 pintarAyudaPuntos();
             }
+
+            // I85 · Función para cargar el saldo real de la billetera del salon
+            async function cargarSaldoBilletera() {
+                const saldoElem = document.querySelector('.card-saldo-numero');
+                if (!saldoElem) return;
+                try {
+                    const { data, error } = await supabase.rpc('comprar_puntos_salon', { p_monto: 0 });
+                    if (error) {
+                        console.warn('I85 · no se pudo leer el saldo de la billetera:', error && error.message);
+                        saldoElem.textContent = '0';
+                        mostrarToast('Error al cargar saldo', 'error');
+                        return;
+                    }
+                    // La RPC comprar_puntos_salon con 0 no suma nada, solo devuelve el saldo actual
+                    // El formato de retorno es: exito, puntos_agregados, saldo_anterior, saldo_nuevo, mensaje
+                    if (data && data.length > 0) {
+                        const saldoActual = data[0].saldo_nuevo;
+                        saldoElem.textContent = String(saldoActual);
+                    } else {
+                        saldoElem.textContent = '0';
+                    }
+                } catch (err) {
+                    console.error('I85 · error fetching wallet saldo:', err);
+                    saldoElem.textContent = '0';
+                    mostrarToast('Error de conexión', 'error');
+                }
+            }
+
+            // I85 · Mostrar toast/notification
+            function mostrarToast(titulo, tipo) {
+                // Buscar si ya existe un elemento de toast, o crearlo
+                let toast = document.querySelector('.toast-notif');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.className = 'toast-notif fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg border text-center z-50 animate-in fade-in-0';
+                    toast.style.background = tipo === 'ok' ? 'var(--ok-bg)' : 'var(--danger-bg)';
+                    toast.style.color = tipo === 'ok' ? 'var(--ok-ink)' : 'var(--danger-ink)';
+                    document.body.appendChild(toast);
+                }
+                toast.textContent = titulo;
+                // Auto-ocultar después de 3 segundos
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 3000);
+            }
+
+            // I85 · Manjar para comprar puntos con MercadoPago (mock)
+            const btnComprarPuntos = document.querySelector('.btn-comprar-puntos');
+            if (btnComprarPuntos) {
+                btnComprarPuntos.addEventListener('click', async function() {
+                    // Por ahora mock: siempre comprar 10.000 puntos (= $10.000 ARS)
+                    const monto = 10000;
+                    try {
+                        const { data, error } = await supabase.rpc('comprar_puntos_salon', { p_monto: monto });
+                        if (error) throw error;
+                        // data: [exito, puntos_agregados, saldo_anterior, saldo_nuevo, mensaje]
+                        if (data && data.length > 0) {
+                            const exito = data[0].exito;
+                            const saldoNuevo = data[0].saldo_nuevo;
+                            const mensaje = data[0].mensaje;
+                            
+                            // Actualizar display en pantalla
+                            const saldoElem = document.querySelector('.card-saldo-numero');
+                            if (saldoElem) {
+                                saldoElem.textContent = String(saldoNuevo);
+                            }
+                            
+                            mostrarToast(mensaje, exito ? 'ok' : 'error');
+                            
+                            // Recargar la vista para reflejar el nuevo saldo
+                            if (exito) {
+                                // Volver a mostrar la billetera para actualizar saldo
+                                document.getElementById('vista-billetera').style.display = 'block';
+                            }
+                        }
+                    } catch (err) {
+                        console.error('I85 · error al comprar puntos:', err);
+                        mostrarToast('Error al procesar la compra', 'error');
+                    }
+                });
+            }
+
+            // I85 · Manjar para comprar productos en la Tienda HUB
+            document.querySelectorAll('.btn-comprar').forEach(function(btn) {
+                btn.addEventListener('click', async function() {
+                    const productCard = btn.closest('.product-card');
+                    const productId = productCard.dataset.productId;
+                    const priceElem = productCard.querySelector('.product-price');
+                    const precioTexto = priceElem ? priceElem.textContent : '';
+                    const puntosCost = parseInt(precioTexto.replace(' Pts', ''), 10) || 0;
+                    
+                    if (productId && !isNaN(productId)) {
+                        try {
+                            const { data, error } = await supabase.rpc('comprar_producto_hub', { p_producto_id: productId });
+                            if (error) throw error;
+                            
+                            // data: [exito, producto_nombre, precio_puntos, saldo_anterior, saldo_nuevo, mensaje]
+                            if (data && data.length > 0) {
+                                const exito = data[0].exito;
+                                const nombreProd = data[0].producto_nombre;
+                                const saldoNuevo = data[0].saldo_nuevo;
+                                const mensaje = data[0].mensaje;
+                                
+                                // Actualizar display de la billetera
+                                const saldoElem = document.querySelector('.card-saldo-numero');
+                                if (saldoElem) {
+                                    saldoElem.textContent = String(saldoNuevo);
+                                }
+                                
+                                // Feedback visual
+                                mostrarToast(exito ? 'Compra exitosa: ' + nombreProd : 'Error: ' + (data[0].mensaje || ' desconocido'), exito ? 'ok' : 'error');
+                                
+                                // Recargar la vista de billetera
+                                if (exito) {
+                                    document.getElementById('vista-billetera').style.display = 'block';
+                                }
+                            }
+                        } catch (err) {
+                            console.error('I85 · error al comprar producto:', err);
+                            mostrarToast('Error al procesar la compra', 'error');
+                        }
+                    }
+                });
+            });
 
             async function consultarSaldoPuntos() {
                 const clienteId = tomarId('appointment-cliente-id');
