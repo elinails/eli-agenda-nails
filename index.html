@@ -48,6 +48,7 @@
 
             var btnMenu = document.getElementById('btn-menu-movil');
             var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('menu-overlay');
             if (!btnMenu || !sidebar) return;
 
             function estaAbierto() {
@@ -55,40 +56,68 @@
             }
 
             function reflejar() {
-                btnMenu.setAttribute('aria-expanded', estaAbierto() ? 'true' : 'false');
+                var abierto = estaAbierto();
+                btnMenu.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+                if (overlay) overlay.setAttribute('aria-hidden', abierto ? 'false' : 'true');
             }
 
             function abrir() {
                 document.body.classList.add('sidebar-abierto');
                 reflejar();
+                // El foco entra al panel para que el teclado no quede detrás.
+                var primero = sidebar.querySelector('.nav-item');
+                if (primero) { try { primero.focus({ preventScroll: true }); } catch (error) { /* noop */ } }
             }
 
             function cerrar() {
                 document.body.classList.remove('sidebar-abierto');
                 reflejar();
+                try { btnMenu.focus({ preventScroll: true }); } catch (error) { /* noop */ }
             }
 
             btnMenu.addEventListener('click', function (evento) {
                 evento.preventDefault();
+                evento.stopPropagation();
                 if (estaAbierto()) cerrar(); else abrir();
             });
+
+            // El overlay oscuro cubre la pantalla y cierra al tocarlo.
+            if (overlay) {
+                overlay.addEventListener('click', cerrar);
+                overlay.addEventListener('touchstart', function (evento) {
+                    evento.preventDefault();
+                    cerrar();
+                }, { passive: false });
+            }
 
             // Al elegir una sección, el drawer se cierra solo.
             sidebar.querySelectorAll('.nav-item').forEach(function (item) {
                 item.addEventListener('click', cerrar);
             });
 
-            // Escape y clic fuera del panel lo cierran.
+            // Escape cierra.
             document.addEventListener('keydown', function (evento) {
                 if (evento.key === 'Escape' && estaAbierto()) cerrar();
             });
 
+            // Tocar fuera del panel también cierra (el overlay ya lo cubre).
             document.addEventListener('click', function (evento) {
                 if (!estaAbierto()) return;
                 if (evento.target.closest('#sidebar')) return;
                 if (evento.target.closest('#btn-menu-movil')) return;
                 cerrar();
             });
+
+            // Si se agranda la ventana a desktop, el drawer se limpia solo.
+            var mqEscritorio = window.matchMedia('(min-width: 769px)');
+            function alCambiarAncho() {
+                if (mqEscritorio.matches && estaAbierto()) {
+                    document.body.classList.remove('sidebar-abierto');
+                    reflejar();
+                }
+            }
+            if (mqEscritorio.addEventListener) mqEscritorio.addEventListener('change', alCambiarAncho);
+            else if (mqEscritorio.addListener) mqEscritorio.addListener(alCambiarAncho);
 
             reflejar();
         });
@@ -933,41 +962,51 @@
            el botón quedaba visible (e inútil) en desktop. */
         .btn-menu-movil { display: none; }
 
-        /* --- Menú hamburguesa responsive --- */
+        /* --- Menú hamburguesa responsive (drawer desde la DERECHA) --- */
+        /* El botón está arriba a la derecha: el panel emerge de ese lado. */
+        .btn-menu-movil { display: none; }
+
         @media (max-width: 768px) {
-            /* Ocultar sidebar por defecto en móviles y aplicar transformación */
+            /* Ocultar sidebar por defecto en móviles: fuera de pantalla a la derecha */
             .sidebar {
                 display: block;
                 position: fixed;
-                left: 0;
+                right: 0;
+                left: auto;
                 top: 0;
                 height: 100vh;
-                width: 216px;
+                height: 100dvh;
+                width: min(86vw, 300px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
                 flex-direction: column;
                 gap: 8px;
-                padding: 22px 14px 16px;
+                padding: 22px 14px calc(16px + env(safe-area-inset-bottom, 0px));
                 background: var(--surface);
-                border-right: 1px solid var(--line);
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
+                border-right: 0;
+                border-left: 1px solid var(--line);
+                box-shadow: -18px 0 40px rgba(0, 0, 0, .18);
+                transform: translateX(100%);
+                transition: transform .28s cubic-bezier(.22, .61, .36, 1);
                 z-index: 999;
+                visibility: hidden;
             }
             .sidebar-abierto .sidebar {
                 transform: translateX(0);
+                visibility: visible;
             }
-            /* Mostrar botón hamburguesa en móviles */
+            /* Botón hamburguesa a la derecha del topbar */
             .btn-menu-movil {
                 position: absolute;
-                top: 16px;
-                right: 16px;
+                top: 14px;
+                right: 14px;
                 left: auto;
                 z-index: 9999;
                 display: block;
+                min-width: 44px;
+                min-height: 44px;
             }
-            /* Overlay semi-transparente cuando el menú está abierto */
-            .sidebar-abierto .overlay {
-                display: block;
-            }
+            /* Overlay oscuro que cubre TODA la pantalla */
             .overlay {
                 display: none;
                 position: fixed;
@@ -975,11 +1014,158 @@
                 background: rgba(0, 0, 0, .45);
                 z-index: 998;
             }
-            /* Cuando el menú está abierto, esconder el contenido principal */
+            .sidebar-abierto .overlay {
+                display: block;
+            }
+            /* Con el drawer abierto el fondo no scrollea */
+            body.sidebar-abierto {
+                overflow: hidden;
+                overscroll-behavior: contain;
+            }
+            /* El contenido no deja hueco a la izquierda */
             .sidebar-abierto .app-main {
                 margin-left: 0;
-                /* No afectar width, solo el margen */
             }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .sidebar { transition: none !important; }
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           I86 · auditoría móvil: desbordes, badges y grillas
+           ══════════════════════════════════════════════════════════════ */
+
+        /* Nada debe empujar la página de lado: el scroll vive en los
+           contenedores internos, nunca en el documento. */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        .app-main, .section, .container { max-width: 100%; min-width: 0; }
+
+        /* Arranque sin parpadeo: la app se pinta recién cuando la sesión y
+           los datos están listos (ver ocultarLogin/app-lista en el JS). */
+        body:not(.app-lista) #app-shell { visibility: hidden; }
+
+        /* ── Tarjeta genérica (.card) ──
+           No tenía NINGÚN estilo: la billetera se veía como texto suelto y el
+           botón se salía del marco. Los .product-card la heredan y la pisan. */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: var(--shadow-row);
+            padding: 18px 16px;
+            min-width: 0;
+        }
+        .card-title {
+            margin: 0 0 2px;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+        .card-subtitle { margin: 0; font-size: 13px; color: var(--ink-soft); }
+        .card-saldo { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin: 10px 0 16px; }
+        .card-saldo-simbolo {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .card-saldo-numero {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 40px;
+            line-height: 1;
+            font-weight: 600;
+            color: var(--gold-ink);
+            font-variant-numeric: tabular-nums;
+            overflow-wrap: anywhere;
+        }
+        .billetera-card .btn-comprar-puntos { min-height: 44px; margin-top: 2px; }
+
+        /* ── Clientes: nombre + badges (VIP, Frecuente) + precios ── */
+        .data-title-crm {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 6px;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .data-title-crm .data-nombre {
+            min-width: 0;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        .tag-cliente { margin-left: 0; flex: 0 0 auto; max-width: 100%; }
+        .data-row { min-width: 0; }
+        .data-meta { overflow-wrap: anywhere; }
+
+        @media (max-width: 639px) {
+            /* Specificity subida a propósito: las reglas base de .data-title-crm
+               viven más abajo en la hoja y si no, ganan ellas. */
+            .data-row .data-title-crm { gap: 4px 6px; }
+            .data-row .data-title-crm .data-nombre { white-space: normal; overflow: visible; text-overflow: clip; }
+            .data-row .data-value { white-space: normal; }
+            .data-row { padding: 12px 13px; }
+        }
+
+        /* ── Tienda HUB: grilla de tarjetas real ── */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            align-items: stretch;
+        }
+        @media (max-width: 359px) {
+            .product-grid { grid-template-columns: 1fr; }
+        }
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 14px;
+            box-shadow: var(--shadow-row);
+            min-width: 0;
+        }
+        .product-icon {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            background: var(--surface-2);
+            color: var(--gold-ink);
+            font-size: 18px;
+            flex: 0 0 auto;
+        }
+        .product-title {
+            margin: 0;
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--ink);
+            overflow-wrap: anywhere;
+        }
+        .product-price {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-ink);
+            font-variant-numeric: tabular-nums;
+        }
+        .product-card .product-btn {
+            margin-top: auto;
+            min-height: 40px;
+            width: 100%;
         }
 
         .fab {
@@ -2065,6 +2251,9 @@
                 </button>
             </div>
         </aside>
+
+        <!-- Fondo oscuro del drawer móvil: cubre toda la pantalla y cierra al tocarlo -->
+        <div id="menu-overlay" class="overlay" aria-hidden="true"></div>
 
         <div class="app-main">
             <div class="container mx-auto px-4 py-6 max-w-6xl">
@@ -4093,6 +4282,7 @@
                         }
                     } else if (seccion.id === 'vista-tienda') {
                         seccion.style.display = (destino === 'tienda') ? 'block' : 'none';
+                        if (destino === 'tienda') vincularCatalogoTienda();
                     } else {
                         // Secciones existentes usan la clase hidden
                         seccion.classList.toggle('hidden', seccion.dataset.section !== destino);
@@ -4251,32 +4441,111 @@
             async function cargarSaldoBilletera() {
                 const saldoElem = document.querySelector('.card-saldo-numero');
                 if (!saldoElem) return;
+
+                // Sin cliente o sin salón todavía no se puede consultar: no
+                // pintamos un "0" engañoso, dejamos el último valor conocido.
+                if (!supabase) {
+                    console.warn('I86 · billetera: Supabase no está configurado.');
+                    return;
+                }
+                const salonId = contexto && contexto.salonId;
+                if (!salonId) {
+                    console.info('I86 · billetera: todavía no hay salonId (sesión sin resolver).');
+                    return;
+                }
+
                 try {
+                    // maybeSingle(): 0 filas devuelve data=null SIN error
+                    // (antes .single() tiraba PGRST116 y se mostraba 0).
                     const { data, error } = await supabase
                         .from('billeteras_salones')
                         .select('saldo_actual')
-                        .eq('salon_id', contexto.salonId)
-                        .single();
+                        .eq('salon_id', salonId)
+                        .maybeSingle();
+
                     if (error) {
-                        console.warn('I85 · no se pudo leer el saldo de la billetera:', error && error.message);
-                        saldoElem.textContent = '0';
-                        mostrarToast('Error al cargar saldo', 'error');
+                        // Log completo: es lo que hace falta para saber si es RLS,
+                        // permisos o un problema de red.
+                        console.warn('I86 · billetera: fallo la lectura:', {
+                            codigo: error.code,
+                            mensaje: error.message,
+                            detalle: error.details,
+                            hint: error.hint,
+                            salonId: salonId
+                        });
+                        saldoElem.textContent = '—';
                         return;
                     }
-                    // El saldo actual de la billetera del salon
-                    if (data && data.saldo_actual !== undefined) {
-                        saldoElem.textContent = String(data.saldo_actual);
-                    } else {
+
+                    const crudo = data && data.saldo_actual != null ? Number(data.saldo_actual) : null;
+                    console.info('I86 · billetera:', {
+                        salonId: salonId,
+                        fila: data,
+                        saldo: crudo
+                    });
+
+                    if (crudo === null || Number.isNaN(crudo)) {
+                        // El salón todavía no tiene fila de billetera: 0 es correcto.
                         saldoElem.textContent = '0';
+                        return;
                     }
+                    saldoElem.textContent = crudo.toLocaleString('es-AR');
                 } catch (err) {
-                    console.error('I85 · error fetching wallet saldo:', err);
-                    saldoElem.textContent = '0';
-                    mostrarToast('Error de conexión', 'error');
+                    console.error('I86 · billetera: error inesperado:', err);
+                    saldoElem.textContent = '—';
                 }
             }
 
             // I85 · Mostrar toast/notification
+            // I86 · La grilla de la Tienda es estática, pero los ids viven en
+            // catalogo_hub. Sin este vínculo `dataset.productId` no existía y
+            // "Comprar" no hacía nada (el handler cortaba en silencio).
+            let catalogoVinculado = false;
+            async function vincularCatalogoTienda() {
+                if (catalogoVinculado || !supabase) return;
+                try {
+                    const { data, error } = await supabase
+                        .from('catalogo_hub')
+                        .select('id, nombre, precio_puntos')
+                        .eq('activo', true);
+                    if (error) {
+                        console.warn('I86 · tienda: no se pudo leer el catálogo:', {
+                            codigo: error.code,
+                            mensaje: error.message,
+                            detalle: error.details,
+                            hint: error.hint
+                        });
+                        return;
+                    }
+                    const porNombre = {};
+                    (data || []).forEach(function (producto) {
+                        porNombre[normalizar(producto.nombre)] = producto;
+                    });
+
+                    let vinculados = 0;
+                    document.querySelectorAll('.product-card').forEach(function (tarjeta) {
+                        const titulo = tarjeta.querySelector('.product-title');
+                        if (!titulo) return;
+                        const fila = porNombre[normalizar(titulo.textContent)];
+                        if (!fila) return;
+                        tarjeta.dataset.productId = String(fila.id);
+                        vinculados++;
+                        const precio = tarjeta.querySelector('.product-price');
+                        if (precio && fila.precio_puntos != null) {
+                            precio.textContent = Number(fila.precio_puntos).toLocaleString('es-AR') + ' Pts';
+                        }
+                    });
+
+                    catalogoVinculado = vinculados > 0;
+                    console.info('I86 · tienda: catálogo vinculado:', {
+                        productos: (data || []).length,
+                        tarjetasVinculadas: vinculados
+                    });
+                } catch (err) {
+                    console.error('I86 · tienda: error al vincular el catálogo:', err);
+                }
+            }
+
             function mostrarToast(titulo, tipo) {
                 // Buscar si ya existe un elemento de toast, o crearlo
                 let toast = document.querySelector('.toast-notif');
@@ -4311,19 +4580,10 @@
                             const saldoNuevo = data[0].saldo_nuevo;
                             const mensaje = data[0].mensaje;
                             
-                            // Actualizar display en pantalla
-                            const saldoElem = document.querySelector('.card-saldo-numero');
-                            if (saldoElem) {
-                                saldoElem.textContent = String(saldoNuevo);
-                            }
-                            
+                            // I86 · el saldo se relee desde la billetera (formateado).
+                            if (exito) cargarSaldoBilletera();
+
                             mostrarToast(mensaje, exito ? 'ok' : 'error');
-                            
-                            // Recargar la vista para reflejar el nuevo saldo
-                            if (exito) {
-                                // Volver a mostrar la billetera para actualizar saldo
-                                document.getElementById('vista-billetera').style.display = 'block';
-                            }
                         }
                     } catch (err) {
                         console.error('I85 · error al comprar puntos:', err);
@@ -4336,41 +4596,43 @@
             document.querySelectorAll('.btn-comprar').forEach(function(btn) {
                 btn.addEventListener('click', async function() {
                     const productCard = btn.closest('.product-card');
+                    if (!productCard) return;
+
+                    // I86 · el id real viene de catalogo_hub: si todavía no está
+                    // vinculado, lo resolvemos antes de comprar.
+                    if (!productCard.dataset.productId) await vincularCatalogoTienda();
                     const productId = productCard.dataset.productId;
-                    const priceElem = productCard.querySelector('.product-price');
-                    const precioTexto = priceElem ? priceElem.textContent : '';
-                    const puntosCost = parseInt(precioTexto.replace(' Pts', ''), 10) || 0;
-                    
-                    if (productId && !isNaN(productId)) {
-                        try {
-                            const { data, error } = await supabase.rpc('comprar_producto_hub', { p_producto_id: productId });
-                            if (error) throw error;
-                            
-                            // data: [exito, producto_nombre, precio_puntos, saldo_anterior, saldo_nuevo, mensaje]
-                            if (data && data.length > 0) {
-                                const exito = data[0].exito;
-                                const nombreProd = data[0].producto_nombre;
-                                const saldoNuevo = data[0].saldo_nuevo;
-                                const mensaje = data[0].mensaje;
-                                
-                                // Actualizar display de la billetera
-                                const saldoElem = document.querySelector('.card-saldo-numero');
-                                if (saldoElem) {
-                                    saldoElem.textContent = String(saldoNuevo);
-                                }
-                                
-                                // Feedback visual
-                                mostrarToast(exito ? 'Compra exitosa: ' + nombreProd : 'Error: ' + (data[0].mensaje || ' desconocido'), exito ? 'ok' : 'error');
-                                
-                                // Recargar la vista de billetera
-                                if (exito) {
-                                    document.getElementById('vista-billetera').style.display = 'block';
-                                }
-                            }
-                        } catch (err) {
-                            console.error('I85 · error al comprar producto:', err);
-                            mostrarToast('Error al procesar la compra', 'error');
+                    if (!productId || isNaN(Number(productId))) {
+                        console.warn('I86 · tienda: producto sin id de catálogo', productCard.querySelector('.product-title'));
+                        mostrarToast('Este producto no está disponible en el catálogo.', 'error');
+                        return;
+                    }
+
+                    const etiquetaOriginal = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Procesando…';
+                    try {
+                        const { data, error } = await supabase.rpc('comprar_producto_hub', { p_producto_id: Number(productId) });
+                        if (error) throw error;
+
+                        // data: [exito, producto_nombre, precio_puntos, saldo_anterior, saldo_nuevo, mensaje]
+                        if (data && data.length > 0) {
+                            const exito = data[0].exito;
+                            const nombreProd = data[0].producto_nombre;
+
+                            // El saldo se relee formateado desde la billetera.
+                            if (exito) cargarSaldoBilletera();
+
+                            mostrarToast(exito
+                                ? 'Compra exitosa: ' + nombreProd
+                                : 'Error: ' + (data[0].mensaje || 'desconocido'), exito ? 'ok' : 'error');
                         }
+                    } catch (err) {
+                        console.error('I86 · error al comprar producto:', err);
+                        mostrarToast('Error al procesar la compra', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = etiquetaOriginal;
                     }
                 });
             });
@@ -5969,10 +6231,14 @@
                     if (correo) authEmail.value = correo;
                 }
                 setAuthError(mensaje || '');
+                // I86 · la app vuelve a ocultarse mientras se muestra el login.
+                document.body.classList.remove('app-lista');
                 authScreen.classList.remove('hidden');
             }
 
             function ocultarLogin() {
+                // I86 · app-lista es lo que revela #app-shell (ver CSS).
+                document.body.classList.add('app-lista');
                 authScreen.classList.add('hidden');
             }
 
@@ -6051,18 +6317,28 @@
                     // I56: el plan efectivo se resuelve antes de pintar la UI, para
                     // que candados, patrocinador y límites arranquen correctos.
                     await cargarPlanEfectivo();
-                    // Recien aca hay rol confirmado: se puede mostrar la app.
-                    ocultarLogin();
+                    // I86 · fin del parpadeo: los estilos y el calendario se
+                    // preparan con la app todavía invisible (visibility:hidden
+                    // conserva el layout, así el calendario mide bien) y recién
+                    // al final se muestra todo junto, ya con datos cargados.
                     aplicarRol();
                     aplicarLogo();
                     aplicarModoSoporte();
                     cargarFlagsApp();
                     await arrancar();
                     mostrarSeccion("agenda");
+                    // Ahora sí: app visible y login oculto en el mismo frame.
+                    document.body.classList.add('app-lista');
+                    ocultarLogin();
+                    cargarSaldoBilletera();
                     cargarPatrocinio();
                     pintarMiPlan();   // ahora sí hay miembros cargados para el contador
                 } catch (error) {
                     console.error(error);
+                    // I86 · si algo falla, no dejamos la pantalla en blanco:
+                    // la app se muestra igual (con lo que haya cargado) y el
+                    // banner explica el problema.
+                    ocultarLogin();
                     mostrarBanner('No se pudo iniciar la agenda. Revisá la conexión.');
                 }
             }
