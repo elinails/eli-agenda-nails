@@ -2263,6 +2263,33 @@
         }
         .vp-media { position: absolute; inset: 0; overflow: hidden; }
         .vp-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* I99 · portada por defecto cuando el salón no subió foto */
+        .vp-media.portada-default {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 26% 16%, rgba(201, 164, 95, .52), transparent 58%),
+                radial-gradient(circle at 80% 88%, rgba(233, 211, 220, .85), transparent 64%),
+                linear-gradient(135deg, #F7EADF 0%, #F3E4E9 52%, #EADFCB 100%);
+        }
+        .vp-media.portada-default::after { display: none; }
+        .vp-media .portada-default-logo {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: #FFFFFF;
+            padding: 6px;
+            box-shadow: 0 4px 18px rgba(24, 15, 18, .18);
+        }
+        .portada-default-marca {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 15px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--gold-ink);
+            opacity: .9;
+        }
         .vp-media::after {
             content: "";
             position: absolute;
@@ -3568,8 +3595,8 @@
                                     </button>
                                     <button type="button" id="portada-quitar-btn" class="logo-quitar hidden">Quitar foto</button>
                                 </div>
-                                <input type="file" id="portada-input" accept="image/png,image/jpeg" class="hidden">
-                                <small class="mi-salon-ayuda">JPG o PNG · máximo 2 MB. Horizontal (16:9) se ve mejor.</small>
+                                <input type="file" id="portada-input" accept="image/*" class="hidden">
+                                <small class="mi-salon-ayuda">Opcional. Si no subís una foto, se usará un diseño por defecto.<br>JPG o PNG, horizontal (16:9) se ve mejor.</small>
                                 <img id="salon-portada-preview" class="salon-portada-preview hidden" alt="Vista previa de la portada">
                             </label>
                             <label class="mi-salon-campo">
@@ -11931,7 +11958,7 @@
                 if (!datos.bio) faltantes.push({ texto: 'Bio pública', id: 'salon-bio' });
                 if (!datos.slug) faltantes.push({ texto: 'Slug del perfil', id: 'salon-slug' });
                 if (!datos.direccion) faltantes.push({ texto: 'Dirección', id: 'salon-direccion' });
-                if (!datos.portada) faltantes.push({ texto: 'Foto de portada', id: 'salon-foto-portada' });
+                // I99: la foto de portada es opcional (se usa un fondo por defecto).
                 if (!datos.logo) faltantes.push({ texto: 'Logo del salón', id: 'salon-logo-preview' });
                 return faltantes;
             }
@@ -12001,7 +12028,29 @@
                     img.addEventListener('error', function () { img.style.display = 'none'; });
                     media.appendChild(img);
                 } else {
-                    media.appendChild(nodoPerfil('div', 'vp-inicial', inicialDelNombre(datos.nombre)));
+                    // I99 · sin foto: degradado + logo del salón o monograma.
+                    media.classList.add('portada-default');
+                    if (datos.logo) {
+                        const marca = document.createElement('img');
+                        marca.src = datos.logo;
+                        marca.alt = '';
+                        marca.className = 'portada-default-logo';
+                        marca.addEventListener('error', function () {
+                            marca.remove();
+                            if (!media.querySelector('.portada-default-marca')) {
+                                const mono = document.createElement('span');
+                                mono.className = 'portada-default-marca';
+                                mono.textContent = 'ELIMA HUB';
+                                media.appendChild(mono);
+                            }
+                        });
+                        media.appendChild(marca);
+                    } else {
+                        const mono = document.createElement('span');
+                        mono.className = 'portada-default-marca';
+                        mono.textContent = 'ELIMA HUB';
+                        media.appendChild(mono);
+                    }
                 }
                 portada.appendChild(media);
 

@@ -508,9 +508,40 @@
         );
         pointer-events: none;
     }
+    /* I99 · portada por defecto: degradado de marca + logo o monograma */
+    .tarjeta-media.portada-default {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background:
+            radial-gradient(circle at 26% 16%, rgba(201, 164, 95, .52), transparent 58%),
+            radial-gradient(circle at 80% 88%, rgba(233, 211, 220, .85), transparent 64%),
+            linear-gradient(135deg, #F7EADF 0%, #F3E4E9 52%, #EADFCB 100%);
+    }
+    .tarjeta-media.portada-default::after { display: none; }
+    /* Si el logo ya está centrado, no hace falta el badge de la esquina. */
+    .tarjeta-portada:has(.portada-default) .salon-logo-container { display: none; }
+    .tarjeta-media .portada-default-logo {
+        width: 62px; height: 62px;
+        border-radius: 50%;
+        object-fit: contain;
+        background: #FFFFFF;
+        padding: 6px;
+        box-shadow: 0 4px 18px rgba(42, 32, 36, .18);
+        transition: none;
+    }
+    .tarjeta:hover .tarjeta-media.portada-default .portada-default-logo { transform: none; }
+    .portada-default-marca {
+        font-family: var(--serif);
+        font-size: 14px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        color: var(--gold-ink, #7A5A24);
+        opacity: .9;
+    }
     .tarjeta-inicial {
-        position: absolute; inset: 0;
-        display: flex; align-items: center; justify-content: center;
+        position: absolute; inset: 0;        display: flex; align-items: center; justify-content: center;
         font-family: var(--serif); font-size: 52px; font-weight: 600;
         color: var(--gold-ink); opacity: .5;
     }
@@ -1818,43 +1849,18 @@
     }
 
     // ── portadas ──────────────────────────────────────────────────────────
-    // Unsplash (licencia libre, uso comercial) como respaldo por rubro: la
-    // grilla nunca queda con un bloque de color vacío. Si el salón sube su
-    // propia portada, esa gana siempre.
-    var FOTO_BASE = 'https://images.unsplash.com/';
-    var FOTO_QUERY = '?auto=format&fit=crop&w=640&q=72';
-    var FOTOS_RUBRO = {
-        nails: [
-            'photo-1522337660859-02fbefca4702',
-            'photo-1604654894610-df63bc536371',
-            'photo-1610992015732-2449b76344bc'
-        ],
-        peluqueria: [
-            'photo-1560066984-138dadb4c035',
-            'photo-1521590832167-7bcbfaa6381f',
-            'photo-1562322140-8baeececf3df'
-        ],
-        maquillaje: [
-            'photo-1596462502278-27bfdc403348'
-        ],
-        barberia: [
-            'photo-1503951914875-452162b0f3f1',
-            'photo-1585747860715-2ba37e788b70'
-        ]
-    };
-    var FOTOS_FALLBACK = [
-        'photo-1633681926022-84c23e8cb2d6',
-        'photo-1522337660859-02fbefca4702'
-    ];
+    // I99 · Si el salón no subió foto usamos un degradado de marca con su
+    // logo (clase .portada-default). Ya no se cae a imágenes de stock: una
+    // foto genérica de Unsplash se veía bien pero no decía nada del salón.
+    function portadaDe(fila) {
+        return urlSegura(fila.foto_portada_url);
+    }
 
-    function portadaDe(fila, usadas) {
-        var propia = urlSegura(fila.foto_portada_url);
-        if (propia) return propia;
-        var lista = FOTOS_RUBRO[fila.rubro] || FOTOS_FALLBACK;
-        var clave = String(fila.rubro || 'otros');
-        var indice = usadas && usadas[clave] ? usadas[clave] : 0;
-        if (usadas) usadas[clave] = indice + 1;
-        return FOTO_BASE + lista[indice % lista.length] + FOTO_QUERY;
+    function monogramaPortada() {
+        var marca = document.createElement('span');
+        marca.className = 'portada-default-marca';
+        marca.textContent = 'ELIMA HUB';
+        return marca;
     }
 
     function textoResenasTarjeta(fila) {
@@ -1885,7 +1891,7 @@
         var media = document.createElement('div');
         media.className = 'tarjeta-media';
 
-        var foto = portadaDe(fila, usadas);
+        var foto = portadaDe(fila);
         if (foto) {
             var img = document.createElement('img');
             img.src = foto;
@@ -1894,11 +1900,31 @@
             img.decoding = 'async';
             img.addEventListener('error', function () {
                 img.remove();
-                media.appendChild(inicial(fila));
+                media.classList.add('portada-default');
+                media.appendChild(monogramaPortada());
             });
             media.appendChild(img);
         } else {
-            media.appendChild(inicial(fila));
+            // I99 · sin foto de portada: degradado + logo del salón o monograma.
+            media.classList.add('portada-default');
+            var logoPortada = urlSegura(fila.logo_url);
+            if (logoPortada) {
+                var marca = document.createElement('img');
+                marca.src = logoPortada;
+                marca.alt = '';
+                marca.className = 'portada-default-logo';
+                marca.loading = 'lazy';
+                marca.decoding = 'async';
+                marca.addEventListener('error', function () {
+                    marca.remove();
+                    if (!media.querySelector('.portada-default-marca')) {
+                        media.appendChild(monogramaPortada());
+                    }
+                });
+                media.appendChild(marca);
+            } else {
+                media.appendChild(monogramaPortada());
+            }
         }
         portada.appendChild(media);
 
