@@ -242,9 +242,11 @@
 
     .tarjeta-portada {
         position: relative;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 16 / 9;
+        max-height: 132px;
         background: linear-gradient(135deg, var(--blush-2), var(--surface-2));
-        overflow: hidden;
+        /* El logo sobresale hacia el cuerpo: no se puede recortar acá. */
+        overflow: visible;
     }
     .tarjeta-portada img { width: 100%; height: 100%; object-fit: cover; }
     .tarjeta-inicial {
@@ -260,35 +262,61 @@
         font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
         border-radius: 999px; padding: 5px 11px;
     }
-    .tarjeta-cuerpo { display: flex; flex-direction: column; gap: 6px; padding: 16px 16px 18px; flex: 1; }
-    .tarjeta-nombre { font-family: var(--serif); font-size: 21px; font-weight: 600; line-height: 1.2; margin: 0; }
+    /* Logo compacto (40px) superpuesto al borde inferior de la portada */
+    .tarjeta .salon-logo-container {
+        position: absolute;
+        inset: auto;
+        margin: 0;
+        left: 16px;
+        bottom: -20px;
+        width: 40px;
+        height: 40px;
+        aspect-ratio: 1 / 1;
+        border: 2px solid var(--surface);
+        background: var(--surface);
+        box-shadow: 0 3px 10px rgba(59, 47, 53, .16);
+        font-size: 16px;
+        z-index: 3;
+    }
+
+    .tarjeta-cuerpo { display: flex; flex-direction: column; gap: 4px; padding: 2px 16px 12px; flex: 1; }
+    /* Título + estrellas al lado del logo (no debajo) */
+    .tarjeta-cabecera { display: grid; gap: 2px; padding-left: 48px; min-width: 0; }
+    /* Sin logo no hay nada que esquivar: el título va a la izquierda. */
+    .tarjeta.sin-logo .tarjeta-cabecera { padding-left: 0; }
+    .tarjeta-nombre {
+        font-family: var(--serif); font-size: 17px; font-weight: 600;
+        line-height: 1.2; margin: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .tarjeta-bio {
         margin: 0;
         color: var(--ink-soft);
-        font-size: 13.5px;
+        font-size: 12.5px;
+        line-height: 1.35;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    .estrellas { display: flex; align-items: center; gap: 6px; margin-top: 4px; padding-top: 4px; }
-    .estrellas-iconos { color: var(--gold); font-size: 14px; letter-spacing: .06em; }
-    .estrellas-texto { font-size: 12.5px; color: var(--ink-soft); }
+    .estrellas { display: flex; align-items: center; gap: 5px; margin-top: 0; padding-top: 0; }
+    .estrellas-iconos { color: var(--gold); font-size: 12px; letter-spacing: .06em; }
+    .estrellas-texto { font-size: 11.5px; color: var(--ink-soft); }
     .tarjeta-ver {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        justify-content: flex-end;
+        gap: 6px;
         margin-top: auto;
-        padding-top: 11px;
+        padding-top: 8px;
         border-top: 1px solid var(--line);
         color: var(--ink);
-        font-size: 10px;
+        font-size: 9.5px;
         font-weight: 600;
         letter-spacing: .12em;
         text-transform: uppercase;
     }
-    .tarjeta-ver span { font-size: 14px; transition: transform .2s; }
+    .tarjeta-ver span { font-size: 13px; transition: transform .2s; }
     .tarjeta:hover .tarjeta-ver span { transform: translateX(3px); }
 
     /* ── esqueletos ── */
@@ -469,62 +497,100 @@
         .tarjeta-bio { display: -webkit-box; }
     }
 
-    /* ── Móvil: tarjeta compacta con logo tipo perfil ────────────────────
-       La portada pasa de 4:3 (≈70% de la tarjeta) a una banda de 140px y el
-       logo se superpone en el borde inferior, así el título queda pegado y
-       entran varias tarjetas por pantalla. */
+    /* ── Móvil: tarjeta ultra compacta ───────────────────────────────────
+       Portada en banda de 112px, logo de 40px superpuesto y título/estrellas
+       al costado. Así entran 3-4 salones por pantalla. */
     @media (max-width: 768px) {
-        .grilla { gap: 16px; }
+        .grilla { gap: 10px; }
 
         .tarjeta-portada {
             aspect-ratio: auto;
-            height: 140px;
-            /* El logo sobresale por debajo del borde: no se puede recortar acá. */
+            height: 112px;
             overflow: visible;
         }
-        .tarjeta-portada > img { border-radius: var(--radio) var(--radio) 0 0; }
-        .tarjeta-inicial { font-size: 40px; }
+        .tarjeta-inicial { font-size: 34px; }
+        .tarjeta-rubro { left: 10px; top: 10px; font-size: 9px; padding: 3px 8px; }
 
-        .tarjeta-rubro { left: 10px; top: 10px; font-size: 9.5px; padding: 4px 9px; }
-
-        /* Logo 1:1 superpuesto, estilo foto de perfil */
         .tarjeta .salon-logo-container {
-            position: absolute;
-            inset: auto;
-            margin: 0;
-            left: 16px;
-            bottom: -28px;
-            width: 56px;
-            height: 56px;
-            aspect-ratio: 1 / 1;
-            border: 3px solid var(--surface);
-            box-shadow: 0 3px 10px rgba(59, 47, 53, .16);
-            background: var(--surface);
-            font-size: 22px;
-            z-index: 3;
+            left: 12px;
+            bottom: -20px;
+            width: 40px;
+            height: 40px;
+            border-width: 2px;
+            font-size: 15px;
         }
 
-        /* El padding-top deja lugar para la mitad del logo que se superpone. */
-        .tarjeta-cuerpo { padding: 34px 14px 12px; gap: 3px; }
-        .tarjeta-nombre { font-size: 17.5px; line-height: 1.18; }
-        .tarjeta-bio { font-size: 12.5px; line-height: 1.35; -webkit-line-clamp: 1; }
+        .tarjeta-cuerpo { padding: 2px 12px 10px; gap: 3px; }
+        .tarjeta-cabecera { padding-left: 46px; }
+        .tarjeta-nombre { font-size: 15px; }
+        .tarjeta-bio { font-size: 11.5px; line-height: 1.3; -webkit-line-clamp: 1; }
 
-        .estrellas { margin-top: 2px; padding-top: 0; gap: 5px; }
-        .estrellas-iconos { font-size: 12.5px; }
-        .estrellas-texto { font-size: 11.5px; }
+        .estrellas { gap: 4px; }
+        .estrellas-iconos { font-size: 11px; }
+        .estrellas-texto { font-size: 10.5px; }
 
-        /* Acción alineada a la derecha, con menos aire */
-        .tarjeta-ver {
-            justify-content: flex-end;
-            gap: 6px;
-            margin-top: 8px;
-            padding-top: 9px;
-            font-size: 9.5px;
-        }
-        .tarjeta-ver span { font-size: 13px; }
+        .tarjeta-ver { gap: 6px; margin-top: 4px; padding-top: 7px; font-size: 9px; }
+        .tarjeta-ver span { font-size: 12px; }
 
-        .resultados { padding-top: 24px; }
-        .resultados-barra { margin-bottom: 14px; }
+        .resultados { padding-top: 20px; }
+        .resultados-barra { margin-bottom: 12px; }
+        .destacados { padding-top: 18px; }
+        .destacado { flex-basis: 168px; }
+    }
+
+    /* ── Destacados: carrusel horizontal (placeholder comercial) ───────── */
+    .destacados { padding-top: 30px; }
+    .destacados-barra {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 12px; margin-bottom: 12px;
+    }
+    .destacados-titulo {
+        font-family: var(--serif); font-size: 19px; font-weight: 600;
+        margin: 0; letter-spacing: -.005em;
+    }
+    .destacados-etiqueta {
+        font-size: 9.5px; font-weight: 600; letter-spacing: .14em;
+        text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+    }
+    .destacados-carrusel {
+        display: flex; gap: 16px;
+        overflow-x: auto; overflow-y: hidden;
+        padding-bottom: 8px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    .destacado {
+        flex: 0 0 208px;
+        scroll-snap-align: start;
+        display: flex; flex-direction: column; gap: 4px;
+        padding: 14px;
+        border: 1px dashed var(--blush);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        min-width: 0;
+    }
+    .destacado-tag {
+        align-self: flex-start;
+        font-size: 9px; font-weight: 700; letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--gold-ink); background: var(--gold-soft);
+        border-radius: 999px; padding: 3px 8px;
+    }
+    .destacado-titulo {
+        font-family: var(--serif); font-size: 16px; font-weight: 600;
+        line-height: 1.2; margin: 2px 0 0;
+        overflow-wrap: anywhere;
+    }
+    .destacado-texto {
+        margin: 0; font-size: 11.5px; line-height: 1.35;
+        color: var(--ink-soft);
+    }
+    .destacado-nota {
+        margin-top: auto; padding-top: 8px;
+        font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--ink-faint);
     }
 </style>
 </head>
@@ -566,6 +632,34 @@
         </div>
 
         <div class="filtros" id="filtros" role="group" aria-label="Filtrar por rubro"></div>
+    </section>
+
+    <!-- Destacados: carrusel horizontal (espacio comercial / placeholder) -->
+    <section class="destacados envoltura" aria-labelledby="destacados-titulo">
+        <div class="destacados-barra">
+            <h2 class="destacados-titulo" id="destacados-titulo">Promociones Destacadas</h2>
+            <span class="destacados-etiqueta">Espacio publicitario</span>
+        </div>
+        <div class="destacados-carrusel" role="list" aria-label="Promociones destacadas">
+            <article class="destacado" role="listitem">
+                <span class="destacado-tag">Promo</span>
+                <h3 class="destacado-titulo">20% OFF en tu primera visita</h3>
+                <p class="destacado-texto">Ejemplo de espacio para una promo del salón destacado.</p>
+                <span class="destacado-nota">Contenido de muestra</span>
+            </article>
+            <article class="destacado" role="listitem">
+                <span class="destacado-tag">Combo</span>
+                <h3 class="destacado-titulo">Esculpidas + Kapping</h3>
+                <p class="destacado-texto">Acá iría una promo estacional o un combo del mes.</p>
+                <span class="destacado-nota">Contenido de muestra</span>
+            </article>
+            <article class="destacado" role="listitem">
+                <span class="destacado-tag">Tu marca</span>
+                <h3 class="destacado-titulo">Sumá tu salón acá</h3>
+                <p class="destacado-texto">Lugar reservado para patrocinadores y marcas aliadas.</p>
+                <span class="destacado-nota">Contenido de muestra</span>
+            </article>
+        </div>
     </section>
 
     <section class="resultados envoltura" aria-labelledby="resultados-titulo">
@@ -785,6 +879,7 @@
         portada.className = 'tarjeta-portada';
         var fotoPortada = urlSegura(fila.foto_portada_url);
         var logoSalon = urlSegura(fila.logo_url);
+        if (!logoSalon) boton.classList.add('sin-logo');
 
         if (fotoPortada) {
             var img = document.createElement('img');
@@ -827,10 +922,16 @@
         var cuerpo = document.createElement('div');
         cuerpo.className = 'tarjeta-cuerpo';
 
+        // Cabecera: nombre + estrellas al costado del logo superpuesto.
+        var cabecera = document.createElement('div');
+        cabecera.className = 'tarjeta-cabecera';
+
         var nombre = document.createElement('h3');
         nombre.className = 'tarjeta-nombre';
         nombre.textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
-        cuerpo.appendChild(nombre);
+        cabecera.appendChild(nombre);
+        cabecera.appendChild(bloqueEstrellas(fila));
+        cuerpo.appendChild(cabecera);
 
         if (fila.bio) {
             var bio = document.createElement('p');
@@ -838,8 +939,6 @@
             bio.textContent = String(fila.bio);
             cuerpo.appendChild(bio);
         }
-
-        cuerpo.appendChild(bloqueEstrellas(fila));
 
         var ver = document.createElement('span');
         ver.className = 'tarjeta-ver';
