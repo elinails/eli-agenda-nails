@@ -307,12 +307,103 @@ grant execute on function public.aprobar_recarga_puntos(uuid, uuid) to authentic
 
 
 -- ============================================================================
--- 5 · BASE PARA MERCADOPAGO (NO IMPLEMENTADO AÚN)
+-- 5 · RPC: rechazar_recarga_puntos()
+-- ============================================================================
+-- SuperAdmin rechaza una transferencia que no llegó / no coincide.
+-- NO toca la billetera: sólo marca la recarga y guarda el motivo, que la
+-- dueña puede ver. Igual que la aprobación, bloquea la fila para que dos
+-- resoluciones simultáneas no se pisen.
+--
+-- Códigos de error: sin_permisos, admin_id_requerido, admin_id_no_coincide,
+--                   motivo_requerido, recarga_no_encontrada, recarga_no_pendiente.
+
+create or replace function public.rechazar_recarga_puntos(
+    p_recarga_id uuid,
+    p_admin_id   uuid,
+    p_motivo     text
+)
+returns table (
+    exito   boolean,
+    estado  text,
+    mensaje text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_admin  uuid;
+    v_estado text;
+    v_motivo text;
+begin
+    if not (public.es_super_admin() or coalesce(auth.role(), '') = 'service_role') then
+        raise exception 'sin_permisos';
+    end if;
+
+    v_admin := coalesce(auth.uid(), p_admin_id);
+    if v_admin is null then
+        raise exception 'admin_id_requerido';
+    end if;
+    if auth.uid() is not null and p_admin_id is not null and p_admin_id <> auth.uid() then
+        raise exception 'admin_id_no_coincide';
+    end if;
+
+    v_motivo := nullif(btrim(coalesce(p_motivo, '')), '');
+    if v_motivo is null or length(v_motivo) < 3 then
+        raise exception 'motivo_requerido';
+    end if;
+    v_motivo := left(v_motivo, 300);
+
+    select r.estado into v_estado
+    from public.recargas_puntos r
+    where r.id = p_recarga_id
+    for update;
+
+    if not found then
+        raise exception 'recarga_no_encontrada';
+    end if;
+    if v_estado <> 'pendiente' then
+        raise exception 'recarga_no_pendiente';
+    end if;
+
+    update public.recargas_puntos r
+       set estado         = 'rechazado',
+           resuelto_en    = now(),
+           resuelto_por   = v_admin,
+           motivo_rechazo = v_motivo
+     where r.id = p_recarga_id;
+
+    return query
+    select true, 'rechazado'::text, 'Recarga rechazada. No se acreditaron puntos.';
+end $$;
+
+comment on function public.rechazar_recarga_puntos(uuid, uuid, text)
+    is 'Rechaza una recarga pendiente y guarda el motivo. No modifica el saldo. Sólo SuperAdmin.';
+
+grant execute on function public.rechazar_recarga_puntos(uuid, uuid, text) to authenticated;
+
+
+-- ============================================================================
+-- 6 · CIERRE DE LA VULNERABILIDAD: RPC viejo
+-- ============================================================================
+-- `comprar_puntos_salon(p_monto numeric)` acreditaba puntos SIN aprobación y
+-- derivaba el salón con `where s.id = auth.uid()` (incorrecto en multi-tenant).
+-- Cualquier usuario autenticado podía llamarlo y darse puntos sin transferir:
+-- MercadoPago nunca existió, era un "mock" que sumaba saldo.
+--
+-- OJO con la firma: la función es (numeric). Un drop con (uuid, numeric) NO
+-- coincide, IF EXISTS sólo emite un aviso y la función sigue viva.
+
+drop function if exists public.comprar_puntos_salon(numeric);
+
+
+-- ============================================================================
+-- 7 · BASE PARA MERCADOPAGO (NO IMPLEMENTADO AÚN)
 -- ============================================================================
 -- Cuando se conecte MercadoPago, el flujo cambia sólo en el ORIGEN del pago:
 -- la tabla recargas_puntos se reutiliza con metodo_pago = 'mercadopago'.
 --
--- 5.1 · Tabla de pagos del proveedor (una fila por preferencia/intención):
+-- 7.1 · Tabla de pagos del proveedor (una fila por preferencia/intención):
 --
 --   create table if not exists public.pagos_mp (
 --       id                  uuid primary key default gen_random_uuid(),
@@ -328,23 +419,23 @@ grant execute on function public.aprobar_recarga_puntos(uuid, uuid) to authentic
 --   create index on public.pagos_mp (recarga_id);
 --   create unique index on public.pagos_mp (mp_payment_id);
 --
--- 5.2 · Función que consumiría el webhook (Edge Function `mp-webhook`):
+-- 7.2 · Función que consumiría el webhook (Edge Function `mp-webhook`):
 --
 --   public.confirmar_pago_mp(p_mp_payment_id text, p_status text, p_payload jsonb)
 --     - buscar pagos_mp por mp_payment_id (si ya existe: salir, es un reintento)
 --     - si status = 'approved'  -> llamar aprobar_recarga_puntos(recarga_id, null)
 --     - si status = 'rejected'  -> estado 'rechazado' + motivo_rechazo
 --
--- 5.3 · La RPC de aprobación NO cambia: tanto la transferencia manual como el
+-- 7.3 · La RPC de aprobación NO cambia: tanto la transferencia manual como el
 --       webhook de MP terminan en aprobar_recarga_puntos(). La diferencia es
 --       quién la invoca (SuperAdmin vs service_role).
 --
--- 5.4 · Variables de entorno necesarias cuando se active:
+-- 7.4 · Variables de entorno necesarias cuando se active:
 --       MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET, MP_NOTIFICATION_URL.
 
 
 -- ============================================================================
--- 6 · Recargar el cache de esquema de PostgREST
+-- 8 · Recargar el cache de esquema de PostgREST
 -- ============================================================================
 
 notify pgrst, 'reload schema';
@@ -353,6 +444,13 @@ notify pgrst, 'reload schema';
 -- ============================================================================
 -- VERIFICACIÓN (opcional)
 -- ============================================================================
+-- -- 1) el RPC inseguro NO debe existir (0 filas):
+-- select proname, pg_get_function_identity_arguments(oid) as firma
+--   from pg_proc
+--  where proname in ('comprar_puntos_salon', 'solicitar_recarga_transferencia',
+--                    'aprobar_recarga_puntos', 'rechazar_recarga_puntos');
+--
+-- -- 2) recargas cargadas:
 -- select id, salon_id, monto_ars, puntos_equivalentes, estado, comprobante, creado_en
 --   from public.recargas_puntos
 --  order by creado_en desc
