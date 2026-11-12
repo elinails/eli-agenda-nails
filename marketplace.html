@@ -204,10 +204,14 @@
         padding: 1px;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
     }
     .filtros::-webkit-scrollbar { display: none; }
     .chip {
         flex: 0 0 auto;
+        scroll-snap-align: start;
         display: inline-flex; align-items: center;
         min-height: 32px; padding: 0 12px;
         border-radius: 999px;
@@ -1294,11 +1298,39 @@
         { id: 'nails',      nombre: 'Nails' },
         { id: 'peluqueria', nombre: 'Peluquería' },
         { id: 'maquillaje', nombre: 'Maquillaje' },
-        { id: 'barberia',   nombre: 'Barbería' }
+        { id: 'barberia',   nombre: 'Barbería' },
+        { id: 'lashes',     nombre: 'Cejas y Pestañas' },
+        { id: 'skincare',   nombre: 'Estética Facial' },
+        { id: 'depilacion', nombre: 'Depilación' },
+        { id: 'spa',        nombre: 'Spa y Masajes' },
+        { id: 'corporal',   nombre: 'Estética Corporal' },
+        { id: 'tatuajes',   nombre: 'Tatuajes' }
     ];
-    var NOMBRE_RUBRO = { nails: 'Nails', peluqueria: 'Peluquería', maquillaje: 'Maquillaje', barberia: 'Barbería' };
+    var NOMBRE_RUBRO = {
+        nails: 'Nails',
+        peluqueria: 'Peluquería',
+        maquillaje: 'Maquillaje',
+        barberia: 'Barbería',
+        lashes: 'Cejas y Pestañas',
+        skincare: 'Estética Facial',
+        depilacion: 'Depilación',
+        spa: 'Spa y Masajes',
+        corporal: 'Estética Corporal',
+        tatuajes: 'Tatuajes'
+    };
     // Etiqueta corta para el pie de la tarjeta en mobile (10px, sin cortes).
-    var RUBRO_CORTO = { nails: 'Nails', peluqueria: 'Pelo', maquillaje: 'Makeup', barberia: 'Barber' };
+    var RUBRO_CORTO = {
+        nails: 'Nails',
+        peluqueria: 'Pelo',
+        maquillaje: 'Makeup',
+        barberia: 'Barber',
+        lashes: 'Lashes',
+        skincare: 'Facial',
+        depilacion: 'Depil.',
+        spa: 'Spa',
+        corporal: 'Corporal',
+        tatuajes: 'Tattoo'
+    };
 
     var estado = {
         rubro: '',

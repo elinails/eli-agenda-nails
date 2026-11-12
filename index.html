@@ -3057,6 +3057,12 @@
                                     <option value="peluqueria">Peluquería</option>
                                     <option value="maquillaje">Maquillaje</option>
                                     <option value="barberia">Barbería</option>
+                                    <option value="lashes">Cejas y Pestañas</option>
+                                    <option value="skincare">Estética Facial</option>
+                                    <option value="depilacion">Depilación</option>
+                                    <option value="spa">Spa y Masajes</option>
+                                    <option value="corporal">Estética Corporal</option>
+                                    <option value="tatuajes">Tatuajes</option>
                                 </select>
                             </label>
                             <label class="mi-salon-campo">
@@ -10759,7 +10765,7 @@
                     if (campo) campo.focus();
                     return;
                 }
-                if (rubro && ['nails', 'peluqueria', 'maquillaje', 'barberia'].indexOf(rubro) === -1) {
+                if (rubro && ['nails', 'peluqueria', 'maquillaje', 'barberia', 'lashes', 'skincare', 'depilacion', 'spa', 'corporal', 'tatuajes'].indexOf(rubro) === -1) {
                     mostrarBanner('Elegí un rubro válido para el perfil público.', 'error');
                     return;
                 }
