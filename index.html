@@ -7627,6 +7627,10 @@
             // I96 · la sesión todavía no se resolvió: no mostramos ni login ni app.
             let authResuelta = false;
 
+            // I98 · candado estricto: mientras la autenticación está en curso,
+            // mostrarLogin() no puede pintar ni ocultar el telón.
+            let authEnProgreso = true;
+
             // I97 · timeout de seguridad: si Supabase no responde en 3 s,
             // ocultamos el telón y mostramos el login igual.
             var timeoutCarga = null;
@@ -7637,6 +7641,9 @@
             }
 
             function mostrarLogin(mensaje) {
+                console.log("Mostrando Login...", new Error().stack);
+                // I98 · durante el arranque, el login no puede ganarle a la app.
+                if (authEnProgreso) return;
                 appIniciada = false;
                 authOcupado(false);
                 authPassword.value = '';
@@ -7660,6 +7667,8 @@
 
             function ocultarLogin() {
                 // I86 · app-lista es lo que revela #app-shell (ver CSS).
+                // I98 · la app ya está decidida: liberamos el candado.
+                authEnProgreso = false;
                 if (timeoutCarga) { clearTimeout(timeoutCarga); timeoutCarga = null; }
                 document.body.classList.remove('login-listo');
                 document.body.classList.add('app-lista');
@@ -7709,12 +7718,14 @@
 
                     if (membresia.estado === 'suspendido') {
                         appIniciada = false;
+                        authEnProgreso = false;
                         mostrarLogin('Tu salón está suspendido. Escribinos para reactivarlo.');
                         return;
                     }
 
                     if (membresia.estado === 'inactiva') {
                         appIniciada = false;
+                        authEnProgreso = false;
                         mostrarLogin('Tu cuenta está desactivada. Hablá con la dueña del salón.');
                         return;
                     }
@@ -7723,6 +7734,7 @@
                         const alta = await crearSalonInicial();
                         if (!alta.ok) {
                             appIniciada = false;
+                            authEnProgreso = false;
                             mostrarLogin(MENSAJES_ALTA[alta.motivo] || MENSAJES_ALTA.error);
                             return;
                         }
@@ -7731,6 +7743,7 @@
 
                     if (membresia.estado !== 'activa') {
                         appIniciada = false;
+                        authEnProgreso = false;
                         mostrarLogin('No pudimos cargar tu salón. Probá de nuevo en un momento.');
                         return;
                     }
@@ -7740,6 +7753,7 @@
                     // parpadeo de Finanzas y el falso "modo empleada").
                     if (!contexto.rol) {
                         appIniciada = false;
+                        authEnProgreso = false;
                         mostrarLogin('No pudimos confirmar tu rol en el salón. Volvé a iniciar sesión.');
                         return;
                     }
@@ -7758,6 +7772,10 @@
                     document.body.classList.add('app-lista');
                     await arrancar();
                     mostrarSeccion("agenda");
+                    // I98 · sesión válida y app lista: recién acá se libera el
+                    // login y se quita login-listo antes de mostrar la app.
+                    authEnProgreso = false;
+                    document.body.classList.remove('login-listo');
                     ocultarLogin();
                     cargarSaldoBilletera();
                     cargarPatrocinio();
@@ -7815,6 +7833,7 @@
 
                 if (!SUPABASE_LISTO) {
                     authResuelta = true;
+                    authEnProgreso = false;
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
                     return;
                 }
@@ -7859,20 +7878,25 @@
                 cargarFlagsApp();
                 iniciarNotificaciones();
                 supabase.auth.onAuthStateChange(function(evento, session) {
-                    if (evento === 'SIGNED_OUT') {
-                        // I52: no expulsar en silencio. Si el logout lo pidió la
-                        // usuaria, no mostramos el aviso de "sesión perdida".
-                        if (cerrandoSesion) return;
-                        alPerderSesion();
-                        return;
-                    }
-                    if (session) {
+                    // I98 · INITIAL_SESSION / SIGNED_IN solo pueden mostrar la app.
+                    if (evento === 'INITIAL_SESSION' || evento === 'SIGNED_IN') {
+                        if (!session) return;
                         // Solo escrituras sincrónicas acá: llamar a la API de auth
                         // dentro de este callback puede bloquear la librería.
                         guardarRespaldo(session);
                         limpiarReintento();
                         if (session.user && session.user.email) guardarUltimoEmail(session.user.email);
                         iniciarApp(session);
+                        return;
+                    }
+                    if (evento === 'SIGNED_OUT') {
+                        // I52: no expulsar en silencio. Si el logout lo pidió la
+                        // usuaria, no mostramos el aviso de "sesión perdida".
+                        if (cerrandoSesion) return;
+                        // I98 · un SIGNED_OUT transitorio del arranque no debe
+                        // disparar el login: decide getSession/INITIAL_SESSION.
+                        if (authEnProgreso) return;
+                        alPerderSesion();
                     }
                 });
                 // I52: los usuarios que ya estaban logueados quedan cubiertos ya.
@@ -7911,11 +7935,15 @@
                         if (_data && _data.session) {
                             data = _data;
                         } else if (errorHash) {
+                            if (appIniciada) return;
                             authResuelta = true;
+                            authEnProgreso = false;
                             mostrarLogin('No se pudo entrar en modo soporte: ' + (errorHash.message || 'enlace vencido'));
                             return;
                         } else if (_data && _data.error) {
+                            if (appIniciada) return;
                             authResuelta = true;
+                            authEnProgreso = false;
                             mostrarLogin('No se pudo comprobar la sesión: ' + _data.error.message);
                             return;
                         }
@@ -7928,12 +7956,19 @@
                     var recuperada = await recuperarSesionDelRespaldo();
                     if (recuperada) { await iniciarApp(recuperada); return; }
 
+                    // I98 · si la app ya arrancó con sesión, el flujo de
+                    // getSession no puede pisarla con el login.
+                    if (appIniciada) return;
                     authResuelta = true;
+                    authEnProgreso = false;
                     mostrarLogin(cambioDeModo ? mensajeSesionPerdida() : '');
                 } catch (error) {
                     console.error(error);
-                    authResuelta = true;
-                    mostrarLogin('Error de conexión con el servidor.');
+                    if (!appIniciada) {
+                        authResuelta = true;
+                        authEnProgreso = false;
+                        mostrarLogin('Error de conexión con el servidor.');
+                    }
                 }
             }
 
