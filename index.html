@@ -502,7 +502,7 @@
         /* ── selector de paletas ── */
         .paletas {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
             margin-top: 10px;
         }
@@ -1101,9 +1101,16 @@
         html, body { max-width: 100%; overflow-x: hidden; }
         .app-main, .section, .container { max-width: 100%; min-width: 0; }
 
-        /* Arranque sin parpadeo: la app se pinta recién cuando la sesión y
-           los datos están listos (ver ocultarLogin/app-lista en el JS). */
-        body:not(.app-lista) #app-shell { visibility: hidden; }
+        /* I96 · gate de autenticación: login y app ocultos hasta resolver la
+           sesión. visibility no rompe el layout y el cambio es instantáneo. */
+        #app-shell { visibility: hidden; }
+        #auth-screen { visibility: hidden; }
+        body.app-lista #app-shell { visibility: visible; }
+        body.login-listo #auth-screen { visibility: visible; }
+
+        /* I96 · el login no se corta en pantallas bajas (iPhone SE, teclado). */
+        #auth-screen { overflow-y: auto; padding: 16px 0; }
+        #auth-screen > div { max-height: calc(100dvh - 32px); overflow-y: auto; }
 
         /* ── Tarjeta genérica (.card) ──
            No tenía NINGÚN estilo: la billetera se veía como texto suelto y el
@@ -7338,6 +7345,9 @@
 
             let calendarioIniciado = false;
 
+            // I96 · la sesión todavía no se resolvió: no mostramos ni login ni app.
+            let authResuelta = false;
+
             function mostrarLogin(mensaje) {
                 appIniciada = false;
                 authOcupado(false);
@@ -7351,11 +7361,16 @@
                 setAuthError(mensaje || '');
                 // I86 · la app vuelve a ocultarse mientras se muestra el login.
                 document.body.classList.remove('app-lista');
-                authScreen.classList.remove('hidden');
+                // I96 · no revelar el login hasta que la sesión esté resuelta.
+                if (authResuelta) {
+                    authScreen.classList.remove('hidden');
+                    document.body.classList.add('login-listo');
+                }
             }
 
             function ocultarLogin() {
                 // I86 · app-lista es lo que revela #app-shell (ver CSS).
+                document.body.classList.remove('login-listo');
                 document.body.classList.add('app-lista');
                 authScreen.classList.add('hidden');
             }
@@ -7377,6 +7392,8 @@
             async function iniciarApp(session) {
                 if (appIniciada) return;
                 appIniciada = true;
+                // I96 · hay sesión: la autenticación ya está resuelta.
+                authResuelta = true;
                 // I56: plan fresco en cada sesión (no arrastrar el de una cuenta previa).
                 planVigente.cargado = false;
                 // I52: cada sesión que entra en la app deja el respaldo al día.
@@ -7493,6 +7510,7 @@
 
             async function iniciarAuth() {
                 if (!SUPABASE_LISTO) {
+                    authResuelta = true;
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
                     return;
                 }
@@ -7589,9 +7607,11 @@
                         if (_data && _data.session) {
                             data = _data;
                         } else if (errorHash) {
+                            authResuelta = true;
                             mostrarLogin('No se pudo entrar en modo soporte: ' + (errorHash.message || 'enlace vencido'));
                             return;
                         } else if (_data && _data.error) {
+                            authResuelta = true;
                             mostrarLogin('No se pudo comprobar la sesión: ' + _data.error.message);
                             return;
                         }
@@ -7604,9 +7624,11 @@
                     var recuperada = await recuperarSesionDelRespaldo();
                     if (recuperada) { await iniciarApp(recuperada); return; }
 
+                    authResuelta = true;
                     mostrarLogin(cambioDeModo ? mensajeSesionPerdida() : '');
                 } catch (error) {
                     console.error(error);
+                    authResuelta = true;
                     mostrarLogin('Error de conexión con el servidor.');
                 }
             }
