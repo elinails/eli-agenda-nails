@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F3">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Tus puntos ELIMA HUB: consultá tu saldo y tu historial de puntos.">
+<title>MI PERFIL · ELIMA HUB</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --paper: #FAF6F3;
+        --surface: #FFFFFF;
+        --surface-2: #F7EFEC;
+        --blush: #E9D3DC;
+        --blush-2: #F4E7EC;
+        --ink: #3B2F35;
+        --ink-soft: #776569;
+        --ink-faint: #9C8B90;
+        --line: #EADFDB;
+        --gold: #BE9E6F;
+        --gold-ink: #8C6B3A;
+        --gold-soft: rgba(190, 158, 111, .16);
+        --ok: #2E7A57;
+        --ok-soft: rgba(46, 122, 87, .10);
+        --danger: #B4453C;
+        --danger-soft: rgba(180, 69, 60, .10);
+        --shadow: 0 1px 2px rgba(59, 47, 53, .04), 0 8px 24px rgba(59, 47, 53, .06);
+        --shadow-lg: 0 24px 60px rgba(59, 47, 53, .16);
+        --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+        --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: var(--gold-ink); }
+    button, input { font-family: inherit; }
+    .envoltura { width: 100%; max-width: 560px; margin: 0 auto; padding: 0 20px; }
+    .sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ── header ── */
+    .cabecera { border-bottom: 1px solid var(--line); background: rgba(250, 246, 243, .92); }
+    .cabecera-fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+    .marca-logo { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); }
+    .marca-texto { display: grid; line-height: 1.05; }
+    .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; }
+    .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+    .enlace-suave { font-size: 13px; color: var(--ink-soft); text-decoration: none; }
+
+    /* I71 · navegación de vuelta a la app */
+    .cabecera-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .enlace-suave.boton-volver {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px;
+        background: var(--surface); color: var(--ink); font-weight: 500;
+        transition: background-color .16s ease;
+    }
+    .enlace-suave.boton-volver:hover { background: var(--blush-2); }
+    .enlace-suave:hover { color: var(--ink); text-decoration: underline; }
+
+    /* ── main ── */
+    main { flex: 1; padding: 40px 0 64px; }
+    .vista { display: block; }
+    .vista[hidden] { display: none; }
+
+    /* ── tarjeta de acceso ── */
+    .acceso { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 30px 26px; }
+    .acceso h1 { font-family: var(--serif); font-size: 32px; font-weight: 600; margin: 0 0 8px; line-height: 1.15; }
+    .acceso p { margin: 0 0 20px; color: var(--ink-soft); font-size: 14.5px; }
+    .campo { display: grid; gap: 7px; margin-bottom: 16px; }
+    .campo label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+    .campo input {
+        width: 100%; min-height: 50px; padding: 0 16px;
+        border-radius: 12px; border: 1px solid var(--line);
+        background: var(--paper); color: var(--ink); font-size: 15px;
+        outline: none;
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .campo input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; min-height: 50px; padding: 0 20px;
+        border-radius: 12px; border: 1px solid var(--gold);
+        background: var(--gold); color: #fff;
+        font-size: 15px; font-weight: 600;
+        cursor: pointer;
+        transition: filter .16s ease;
+    }
+    .btn:hover { filter: brightness(1.04); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn-secundario { background: var(--surface); border-color: var(--line); color: var(--ink); font-weight: 500; }
+    .btn-secundario:hover { border-color: var(--gold); }
+    .alerta {
+        margin: 0 0 16px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        background: var(--danger-soft);
+        color: var(--danger);
+    }
+    .alerta.ok { background: var(--ok-soft); color: var(--ok); }
+    .alerta[hidden] { display: none; }
+
+    /* ── tarjeta de puntos ── */
+    .puntos-card {
+        position: relative;
+        border-radius: 22px;
+        padding: 28px 26px;
+        background: linear-gradient(135deg, var(--blush-2), var(--surface));
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    .puntos-card::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 180px; height: 180px;
+        border-radius: 50%;
+        background: var(--gold-soft);
+    }
+    .puntos-etiqueta {
+        font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+        color: var(--gold-ink); font-weight: 700;
+    }
+    .puntos-titulo { font-family: var(--serif); font-size: 20px; margin: 6px 0 0; color: var(--ink); }
+    .puntos-saldo {
+        font-family: var(--serif);
+        font-size: clamp(52px, 14vw, 76px);
+        font-weight: 700;
+        line-height: 1;
+        color: var(--ink);
+        margin: 10px 0 2px;
+        font-variant-numeric: tabular-nums;
+    }
+    .puntos-unidad { font-size: 13px; color: var(--ink-soft); }
+    .puntos-pie { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ── historial ── */
+    .seccion-titulo {
+        font-family: var(--serif); font-size: 22px; font-weight: 600;
+        margin: 30px 0 12px;
+    }
+    .lista { display: flex; flex-direction: column; gap: 10px; }
+    .mov {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+    }
+    .mov-icono {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; flex: 0 0 auto;
+        background: var(--ok-soft); color: var(--ok);
+    }
+    .mov-icono.negativo { background: var(--danger-soft); color: var(--danger); }
+    .mov-icono.neutro { background: var(--surface-2); color: var(--ink-soft); }
+    .mov-texto { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .mov-titulo { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mov-sub { font-size: 12px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mov-monto { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14.5px; color: var(--ok); white-space: nowrap; }
+    .mov-monto.negativo { color: var(--danger); }
+
+    /* ── vacío ── */
+    .vacio {
+        text-align: center;
+        padding: 40px 24px;
+        border: 1px dashed var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+    }
+    .vacio h2 { font-family: var(--serif); font-size: 24px; margin: 0 0 8px; }
+    .vacio p { margin: 0 auto; max-width: 42ch; color: var(--ink-soft); font-size: 14px; }
+
+    .cuenta-linea {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap;
+        margin-top: 26px; padding-top: 18px;
+        border-top: 1px solid var(--line);
+        font-size: 13px; color: var(--ink-soft);
+    }
+    .cuenta-linea strong { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+    .boton-mini {
+        min-height: 40px; padding: 0 16px;
+        border-radius: 999px; border: 1px solid var(--line);
+        background: var(--surface); color: var(--ink);
+        font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .boton-mini:hover { border-color: var(--gold); }
+    .boton-mini.copiado { border-color: var(--ok); color: var(--ok); }
+
+    .pie { padding: 24px 0 36px; text-align: center; color: var(--ink-faint); font-size: 12.5px; }
+    .pie a { color: var(--ink-soft); }
+
+    /* ── modal reseña ── */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(59, 47, 53, 0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 100;
+    }
+    .modal {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal h3 { font-family: var(--serif); font-size: 20px; margin: 0 0 16px; }
+    .estrellas-modal {
+        display: flex; gap: 4px; margin-bottom: 16px;
+    }
+    .estrella {
+        font-size: 28px; cursor: pointer;
+        color: var(--ink-faint);
+        transition: color .16s ease;
+    }
+    .estrella.seleccionada { color: var(--gold); }
+    .campo textarea {
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    /* I82 · modal detalle turno con canje */
+    .modal-detalle {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal-detalle h3 { font-family: var(--serif); font-size: 20px; margin: 0 0 16px; }
+    .detalle-item { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+    .detalle-label { color: var(--ink-soft); }
+    .detalle-valor { font-weight: 500; color: var(--ink); }
+    .canje-bloque { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .canje-bloque label { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 8px; display: block; }
+    .canje-input { width: 100%; max-width: 180px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 16px; text-align: center; }
+    .saldo-puntos-display { font-family: var(--serif); font-size: 16px; color: var(--ink); margin-bottom: 10px; }
+    .ayuda-canje { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+    .btn-canjear { min-width: 120px; }
+
+    @media (max-width: 420px) {
+        .acceso { padding: 24px 20px; }
+        .acceso h1 { font-size: 27px; }
+        .puntos-card { padding: 24px 20px; }
+    }
+</style>
+<style id="qa-preview-fix">
+/* SOLO PREVIEW QA: emula el fix mínimo para poder ver el diseno subyacente */
+.modal-overlay[hidden]{display:none!important}
+.hidden{display:none!important}
+</style></head>
+<body>
+
+<header class="cabecera">
+    <div class="envoltura cabecera-fila">
+        <a class="marca" href="marketplace.html" aria-label="ELIMA HUB, ir al directorio">
+            <img class="marca-logo" src="icon-192.png" alt="" width="34" height="34">
+            <span class="marca-texto">
+                <span class="marca-nombre">ELIMA HUB</span>
+                <span class="marca-sub">Mis puntos</span>
+            </span>
+        </a>
+        <div class="cabecera-acciones">
+            <a class="enlace-suave boton-volver" href="index.html">
+                <span aria-hidden="true">←</span> Volver a mi Salón
+            </a>
+            <a class="enlace-suave" href="marketplace.html">Ver salones</a>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="envoltura">
+
+        <!-- 1 · acceso -->
+        <section class="vista" id="vista-login">
+            <div class="acceso">
+                <h1>Entrá a tus Elima Points</h1>
+                <p>Te mandamos un código de 6 a 10 dígitos al email que le diste a tu salón. Sin contraseñas.</p>
+
+                <div class="alerta" id="login-alerta" role="alert" hidden></div>
+
+                <form id="login-form" novalidate>
+                    <div class="campo">
+                        <label for="email">Tu email</label>
+                        <input type="email" id="email" autocomplete="email" inputmode="email"
+                               placeholder="tunombre@email.com" maxlength="160" required>
+                    </div>
+                    <button type="submit" class="btn" id="login-btn">Enviarme el código</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 2 · código OTP -->
+        <section class="vista" id="vista-enviado" hidden>
+            <div class="acceso">
+                <h1>Ingresá tu código</h1>
+                <p id="enviado-texto">Te enviamos un código de 6 a 10 dígitos. Revisá spam si no llega.</p>
+
+                <div class="alerta" id="enviado-alerta" role="alert" hidden></div>
+
+                <form id="otp-form" novalidate>
+                    <div class="campo">
+                        <label for="otp">Código de 6 a 10 dígitos</label>
+                        <input type="text" id="otp" inputmode="numeric"
+                               autocomplete="one-time-code" pattern="[0-9]{6,10}"
+                               maxlength="10" placeholder="12345678" required
+                               style="text-align:center; letter-spacing:.35em; font-size:20px">
+                    </div>
+                    <button type="submit" class="btn" id="otp-btn">Ingresar</button>
+                </form>
+
+                <div class="puntos-pie">
+                    <button type="button" class="btn btn-secundario" id="reenviar-btn" disabled>
+                        Reenviar código en 60 s
+                    </button>
+                    <button type="button" class="btn btn-secundario" id="cambiar-email-btn">
+                        Usar otro email
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3 · panel -->
+        <section class="vista" id="vista-panel" hidden>
+            <div class="puntos-card">
+                <span class="puntos-etiqueta" id="saludo">Tus Elima Points</span>
+                <p class="puntos-titulo">Tu saldo disponible</p>
+                <div class="puntos-saldo" id="saldo">0</div>
+                <div class="puntos-unidad" id="saldo-unidad">Elima Points · 1 punto = $1</div>
+                <div class="puntos-pie">
+                    <button type="button" class="boton-mini" id="copiar-btn">Copiar mi email</button>
+                    <button type="button" class="boton-mini" id="salir-btn">Cerrar sesión</button>
+                </div>
+            </div>
+
+            <div class="alerta" id="panel-alerta" role="alert" hidden></div>
+
+            <h2 class="seccion-titulo">Mis Turnos</h2>
+            <div class="lista" id="mis-turnos" aria-live="polite"></div>
+            <div id="mis-turnos-vacio" hidden>
+                <div class="vacio">
+                    <h2>Aún no tenés turnos completados</h2>
+                    <p>Cuando tu salón marque un turno como realizado, podrás dejar tu reseña.</p>
+                </div>
+            </div>
+
+            <!-- I82 · Turnos futuros con opción de canje -->
+            <section id="turnos-futuros-seccion" hidden>
+                <h2 class="seccion-titulo">Turnos Futuros</h2>
+                <div id="turnos-futuros" class="lista" aria-live="polite"></div>
+                <div id="turnos-futuros-vacio" hidden>
+                    <div class="vacio">
+                        <h2>No tenés turnos futuros</h2>
+                        <p>Podés reservar un turno desde el app del salón para poder canjear tus puntos.</p>
+                    </div>
+                </div>
+            </section>
+
+            <h2 class="seccion-titulo">Movimientos</h2>
+            <div class="lista" id="historial" aria-live="polite"></div>
+            <div id="historial-vacio" hidden>
+                <div class="vacio">
+                    <h2>Todavía no tenés puntos</h2>
+                    <p>Cuando tu salón marque un turno como realizado, vas a ver acá los puntos que ganaste. Si ya tuviste turnos, pedile a tu salón que cargue tu email en tu ficha.</p>
+                </div>
+            </div>
+
+            <div class="cuenta-linea">
+                <span>Tu cuenta: <strong id="mi-email">—</strong></span>
+                <button type="button" class="boton-mini" id="copiar-btn-2">Copiar email</button>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<!-- Modal de Reseña -->
+<div id="modal-resena" class="modal-overlay" hidden>
+    <div class="modal">
+        <h3>Dejá tu reseña</h3>
+        <div class="campo">
+            <label>Servicio</label>
+            <div id="modal-servicio" style="font-weight:500; margin-bottom:12px;"></div>
+        </div>
+        <div class="campo">
+            <label>Calificación (1-5 estrellas)</label>
+            <div id="estrellas-modal" class="estrellas-modal"></div>
+        </div>
+        <div class="campo">
+            <label for="comentario-resena">Comentario (opcional)</label>
+            <textarea id="comentario-resena" rows="3" maxlength="1000" placeholder="Contá lo que pensás..."></textarea>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <button type="button" id="btn-cancelar-resena" class="btn btn-secundario">Cancelar</button>
+            <button type="button" id="btn-enviar-resena" class="btn">Enviar reseña</button>
+        </div>
+        <div id="alerta-resena" class="alerta" role="alert" hidden style="margin-top:12px;"></div>
+    </div>
+</div>
+
+<!-- I82 · Modal detalle turno con canje de puntos -->
+<div id="modal-turno-detalle" class="modal-overlay" hidden>
+    <div class="modal modal-detalle">
+        <h3>Detalles del Turno</h3>
+        <div class="campo">
+            <label>Salon</label>
+            <div id="detalle-salon" class="detalle-item">
+                <span class="detalle-label">Salón</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Servicio</label>
+            <div id="detalle-servicio" class="detalle-item">
+                <span class="detalle-label">Servicio</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Fecha y hora</label>
+            <div id="detalle-fecha" class="detalle-item">
+                <span class="detalle-label">Fecha</span>
+                <span class="detalle-valor"></span>
+            </div>
+            <div id="detalle-hora" class="detalle-item">
+                <span class="detalle-label">Hora</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Precio</label>
+            <div id="detalle-precio" class="detalle-item">
+                <span class="detalle-label">Precio</span>
+                <span class="detalle-valor"></span>
+            </div>
+        </div>
+        
+        <!-- I82 · Bloque de canje -->
+        <div class="canje-bloque hidden" id="bloque-canje">
+            <div class="saldo-puntos-display" id="saldo-canje">
+                Saldo disponible: <span id="saldo-puntos-cantidad">0</span> pts
+            </div>
+            <div class="campo">
+                <label>Usar Elima Points (máx. 30% del servicio)</label>
+                <input type="number" id="puntos-canjear-input" min="0" step="1" placeholder="0" class="canje-input">
+            </div>
+            <div class="ayuda-canje" id="ayuda-canje"></div>
+        </div>
+        
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+            <button type="button" id="btn-cancelar-detalle" class="btn btn-secundario">Cancelar</button>
+            <button type="button" id="btn-canjear" class="btn btn-canjear hidden">Canjear Puntos</button>
+        </div>
+        <div id="alerta-canje" class="alerta" role="alert" hidden style="margin-top:12px;"></div>
+    </div>
+</div>
+
+<footer class="pie">
+    <div class="envoltura">
+        1 Elima Point = $1 · se acreditan al marcar el turno como realizado.
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var SUPABASE_URL = 'https://wppleywdprvdlbajeubl.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_Y32sTccT1KPn_rKSgCzpOw_1F3RZvK1';
+
+    // Clave de sesión PROPIA: si se usara la de index.html, la clienta
+    // cerraría la sesión de la dueña en el mismo navegador.
+    var CLAVE_PORTAL = 'eli-portal-auth';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var cliente = null;
+    var cargando = false;
+    var emailOtp = '';
+    var reenvioTimer = null;
+
+    function mostrar(vista) {
+        if (vista !== 'vista-enviado') detenerReenvio();
+
+        ['vista-login', 'vista-enviado', 'vista-panel'].forEach(function (id) {
+            var el = $(id);
+            if (el) el.hidden = (id !== vista);
+        });
+    }
+
+    function aviso(id, texto, tipo) {
+        var el = $(id);
+        if (!el) return;
+        el.textContent = texto || '';
+        el.className = 'alerta' + (tipo === 'ok' ? ' ok' : '');
+        el.hidden = !texto;
+    }
+
+    function detenerReenvio() {
+        if (reenvioTimer) {
+            clearInterval(reenvioTimer);
+            reenvioTimer = null;
+        }
+    }
+
+    function iniciarReenvio() {
+        detenerReenvio();
+
+        var boton = $('reenviar-btn');
+        if (!boton) return;
+
+        var segundos = 60;
+        boton.disabled = true;
+        boton.textContent = 'Reenviar código en ' + segundos + ' s';
+
+        reenvioTimer = setInterval(function () {
+            segundos -= 1;
+
+            if (segundos <= 0) {
+                clearInterval(reenvioTimer);
+                reenvioTimer = null;
+                boton.disabled = false;
+                boton.textContent = 'Reenviar código';
+                return;
+            }
+
+            boton.textContent = 'Reenviar código en ' + segundos + ' s';
+        }, 1000);
+    }
+
+    function volverALogin() {
+        detenerReenvio();
+        emailOtp = '';
+
+        var otp = $('otp');
+        if (otp) otp.value = '';
+
+        aviso('enviado-alerta', '', 'ok');
+        aviso('login-alerta', '', 'ok');
+        mostrar('vista-login');
+
+        var email = $('email');
+        if (email) email.focus();
+    }
+
+    function formatearPuntos(valor) {
+        var n = Number(valor) || 0;
+        return n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    }
+
+    function fechaCorta(valor) {
+        if (!valor) return '';
+        var d = new Date(valor);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function crear(tag, clase, texto) {
+        var el = document.createElement(tag);
+        if (clase) el.className = clase;
+        if (texto !== undefined && texto !== null) el.textContent = String(texto);
+        return el;
+    }
+
+    // ── historial ────────────────────────────────────────────────────────
+    function pintarHistorial(movimientos) {
+        var caja = $('historial');
+        var vacio = $('historial-vacio');
+        caja.textContent = '';
+        var lista = Array.isArray(movimientos) ? movimientos : [];
+
+        if (!lista.length) {
+            vacio.hidden = false;
+            return;
+        }
+        vacio.hidden = true;
+
+        lista.forEach(function (m) {
+            var monto = Number(m.monto) || 0;
+            var fila = crear('div', 'mov');
+
+            var icono = crear('span', 'mov-icono');
+            if (monto < 0) icono.className = 'mov-icono negativo';
+            else if (m.tipo === 'ajuste' || m.tipo === 'reverso') icono.className = 'mov-icono neutro';
+            icono.textContent = monto < 0 ? '−' : '+';
+            fila.appendChild(icono);
+
+            var texto = crear('div', 'mov-texto');
+            var esAjuste = m.tipo === 'ajuste';
+            var titulo = m.tipo === 'ganado'
+                ? 'Ganaste ' + formatearPuntos(Math.abs(monto)) + ' pts en ' + (m.salon || 'tu salón')
+                : (m.tipo === 'canjeado'
+                    ? 'Canjeaste ' + formatearPuntos(Math.abs(monto)) + ' pts'
+                    : (esAjuste ? 'Ajuste de saldo' : (m.motivo || 'Ajuste de puntos')));
+            var subtitulo = esAjuste
+                ? [m.fecha ? fechaCorta(m.fecha) : '', m.salon || ''].filter(Boolean).join(' · ')
+                : (m.motivo || '') + (m.fecha ? ' · ' + fechaCorta(m.fecha) : '');
+            texto.appendChild(crear('span', 'mov-titulo', titulo));
+            texto.appendChild(crear('span', 'mov-sub', subtitulo));
+            fila.appendChild(texto);
+
+            var montoEl = crear('span', 'mov-monto' + (monto < 0 ? ' negativo' : ''), (monto > 0 ? '+' : '') + formatearPuntos(monto));
+            fila.appendChild(montoEl);
+
+            caja.appendChild(fila);
+        });
+    }
+
+    function pintarPanel(datos) {
+        var saldo = Number(datos && datos.saldo) || 0;
+        var clienta = (datos && datos.clienta) || '';
+
+        $('saludo').textContent = clienta ? 'Hola, ' + clienta : 'Tus Elima Points';
+        $('saldo').textContent = formatearPuntos(saldo);
+        $('saldo-unidad').textContent = saldo === 1
+            ? 'Elima Point · 1 punto = $1'
+            : 'Elima Points · 1 punto = $1';
+
+        pintarHistorial(datos && datos.movimientos);
+        mostrar('vista-panel');
+    }
+
+    // ── datos ────────────────────────────────────────────────────────────
+    async function cargarPuntos() {
+        if (cargando) return;
+        cargando = true;
+        aviso('panel-alerta', '', 'ok');
+        try {
+            var sesion = await cliente.auth.getSession();
+            var usuario = sesion && sesion.data && sesion.data.session ? sesion.data.session.user : null;
+            if (!usuario) { mostrar('vista-login'); return; }
+
+            var correo = $('mi-email');
+            if (correo) correo.textContent = usuario.email || '';
+
+            // vincula las fichas que tengan este email (una vez, silencioso)
+            try {
+                await cliente.rpc('vincular_mi_cuenta');
+            } catch (error) {
+                console.warn('portal: no se pudo vincular la cuenta', error);
+            }
+
+            var res = await cliente.rpc('obtener_mis_puntos');
+            if (res.error) throw res.error;
+
+            var datos = res.data;
+            if (typeof datos === 'string') {
+                try { datos = JSON.parse(datos); } catch (error) { datos = null; }
+            }
+            pintarPanel(datos || { saldo: 0, clienta: '', movimientos: [] });
+        } catch (error) {
+            console.error('portal:', error);
+            mostrar('vista-panel');
+            pintarHistorial([]);
+            aviso('panel-alerta', 'No pudimos cargar tus puntos ahora. Recargá la página en un momento.', '');
+        } finally {
+            cargando = false;
+        }
+    }
+
+    // I82 · cargar turnos futuros con opción de canje
+    async function cargarTurnosFuturos() {
+        if (!cliente) return;
+        
+        try {
+            var res = await cliente.rpc('cliente_turnos_canjeables', { p_limit: 10 });
+            if (res.error) {
+                console.warn('portal: error cargando turnos futuros:', res.error);
+                return;
+            }
+            
+            var turnos = Array.isArray(res.data) ? res.data : [];
+            var lista = $('turnos-futuros');
+            var vacio = $('turnos-futuros-vacio');
+            var seccion = $('turnos-futuros-seccion');
+            
+            if (lista) lista.innerHTML = '';
+            
+            if (!turnos || turnos.length === 0) {
+                if (vacio) vacio.hidden = false;
+                if (seccion) seccion.hidden = false;
+                return;
+            }
+            
+            if (vacio) vacio.hidden = true;
+            if (seccion) seccion.hidden = false;
+            
+            var saldoClienta = Number($('saldo')?.textContent?.replace(/\./g, '').replace(/,/g, '') || 0);
+            
+            turnos.forEach(function (t) {
+                var fila = document.createElement('div');
+                fila.className = 'mov';
+                var salon = t.salon_nombre || '';
+                var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                var precio = Number(t.precio || 0);
+                var tope = Number(t.tope_puntos || 0);
+                var saldoSalon = Number(t.saldo_puntos || 0);
+                var saldoClientaTurno = saldoClienta;
+                
+                var puedeCanjear = saldoClientaTurno > 0 && tope > 0 && precio > 0;
+                
+                var texto = document.createElement('div');
+                texto.className = 'mov-texto';
+                var titulo = document.createElement('span');
+                titulo.className = 'mov-titulo';
+                titulo.textContent = salon + ' - ' + (t.servicio || 'Servicio');
+                texto.appendChild(titulo);
+                var subtitulo = document.createElement('span');
+                subtitulo.className = 'mov-sub';
+                subtitulo.textContent = fecha + ' a las ' + (t.hora || '') + ' - $' + precio;
+                if (puedeCanjear) {
+                    subtitulo.textContent += ' · Puedés canjear hasta ' + Math.floor(tope) + ' pts';
+                }
+                texto.appendChild(subtitulo);
+                fila.appendChild(texto);
+                
+                if (puedeCanjear) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-sm';
+                    btn.style.marginLeft = '12px';
+                    btn.style.fontSize = '13px';
+                    btn.textContent = 'Canjear Puntos';
+                    btn.dataset.turnoId = t.id;
+                    btn.dataset.precio = precio;
+                    btn.dataset.salonId = t.salon_id;
+                    btn.dataset.salonNombre = salon;
+                    btn.dataset.fecha = fecha;
+                    btn.dataset.hora = t.hora;
+                    btn.dataset.servicio = t.servicio || 'Servicio';
+                    btn.dataset.tope = tope;
+                    btn.addEventListener('click', function () {
+                        abrirModalDetalleTurno(t.id, {
+                            salonId: t.salon_id,
+                            salonNombre: salon,
+                            fecha: fecha,
+                            hora: t.hora,
+                            servicio: t.servicio || 'Servicio',
+                            precio: precio,
+                            tope: tope,
+                            saldoClienta: saldoClientaTurno
+                        });
+                    });
+                    fila.appendChild(btn);
+                }
+                
+                lista.appendChild(fila);
+            });
+        } catch (error) {
+            console.error('portal: error cargando turnos futuros:', error);
+        }
+    }
+
+    // I82 · abrir modal detalle y manejar canje
+    async function abrirModalDetalleTurno(turnoId, datos) {
+        var modal = $('modal-turno-detalle');
+        var salonEl = $('detalle-salon').querySelector('.detalle-valor');
+        var servicioEl = $('detalle-servicio').querySelector('.detalle-valor');
+        var fechaEl = $('detalle-fecha').querySelector('.detalle-valor');
+        var horaEl = $('detalle-hora').querySelector('.detalle-valor');
+        var precioEl = $('detalle-precio').querySelector('.detalle-valor');
+        var bloqueCanje = $('bloque-canje');
+        var inputCanje = $('puntos-canjear-input');
+        var ayudaCanje = $('ayuda-canje');
+        var btnCanjear = $('btn-canjear');
+        var alertaCanje = $('alerta-canje');
+        
+        // Llenar datos
+        if (salonEl) salonEl.textContent = datos.salonNombre;
+        if (servicioEl) servicioEl.textContent = datos.servicio;
+        if (fechaEl) fechaEl.textContent = datos.fecha;
+        if (horaEl) horaEl.textContent = datos.hora;
+        if (precioEl) precioEl.textContent = '$' + datos.precio;
+        
+        // Mostrar bloque de canje
+        if (bloqueCanje) bloqueCanje.hidden = false;
+        if (inputCanje) {
+            inputCanje.value = '';
+            inputCanje.max = Math.floor(datos.tope);
+        }
+        if (ayudaCanje) ayudaCanje.textContent = 'Podés usar hasta ' + Math.floor(datos.tope) + ' puntos (30% de $' + datos.precio + ').';
+        if (btnCanjear) btnCanjear.hidden = false;
+        
+        // Calcular saldo disponible con RPC
+        try {
+            var saldoRes = await cliente.rpc('cliente_saldo_puntos_turno', { p_turno_id: turnoId });
+            if (!saldoRes.error && saldoRes.data) {
+                var saldoData = Array.isArray(saldoRes.data) ? saldoRes.data[0] : saldoRes.data;
+                var saldoDisp = Number(saldoData.saldo_disponible || 0);
+                var topeMax = Number(saldoData.tope_maximo || 0);
+                
+                var saldoCantidad = $('saldo-puntos-cantidad');
+                if (saldoCantidad) saldoCantidad.textContent = saldoDisp;
+                
+                if (inputCanje) inputCanje.max = Math.floor(topeMax);
+                if (ayudaCanje) ayudaCanje.textContent = 'Saldo: ' + saldoDisp + ' pts · Podés usar hasta ' + Math.floor(topeMax) + ' pts (30% de $' + datos.precio + ').';
+            }
+        } catch (error) {
+            console.warn('portal: error obteniendo saldo para turno:', error);
+        }
+        
+        // Event listener para actualizar ayuda
+        if (inputCanje) {
+            inputCanje.addEventListener('input', function () {
+                var puntos = Math.min(Math.max(0, parseInt(this.value) || 0), Math.floor(datos.tope));
+                var descuento = puntos;
+                var total = Math.max(0, datos.precio - descuento);
+                if (puntos > 0) {
+                    ayudaCanje.textContent = 'Descuento: $' + descuento + ' · Total a pagar: $' + total;
+                } else {
+                    if (saldoCantidad) {
+                        saldoCanje.textContent = 'Saldo disponible: ' + Number(saldoCantidad.textContent.replace(/[^0-9]/g, '') || 0) + ' pts · Podés usar hasta ' + Math.floor(datos.tope) + ' pts (30% de $' + datos.precio + ').';
+                    }
+                }
+            });
+        }
+        
+        // Guardar el turno actual para el canje
+        window.turnoDetalleActual = turnoId;
+        modal.hidden = false;
+    }
+
+    // ── copiar email ─────────────────────────────────────────────────────
+    function copiar(texto) {
+        if (!texto) return Promise.resolve(false);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(texto).then(function () { return true; }).catch(function () { return false; });
+        }
+        try {
+            var area = document.createElement('textarea');
+            area.value = texto;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(area);
+            return Promise.resolve(ok);
+        } catch (error) {
+            return Promise.resolve(false);
+        }
+    }
+
+    function conectarCopiar(id) {
+        var boton = $(id);
+        if (!boton) return;
+        boton.addEventListener('click', function () {
+            var texto = ($('mi-email') || {}).textContent || '';
+            copiar(texto).then(function (ok) {
+                var original = 'Copiar mi email';
+                boton.textContent = ok ? '¡Copiado!' : 'No se pudo copiar';
+                boton.classList.toggle('copiado', ok);
+                setTimeout(function () {
+                    boton.textContent = original;
+                    boton.classList.remove('copiado');
+                }, 2200);
+            });
+        });
+    }
+
+    // ── arranque ─────────────────────────────────────────────────────────
+    function iniciar() {
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            mostrar('vista-login');
+            aviso('login-alerta', 'No se pudo cargar el sistema de acceso. Revisá tu conexión y recargá.');
+            return;
+        }
+
+        cliente = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+                storageKey: CLAVE_PORTAL,
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                flowType: 'pkce'
+            }
+        });
+
+        mostrar('vista-login');
+
+        $('login-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+
+            var email = String($('email').value || '').trim();
+            if (!email || email.indexOf('@') < 1 || email.length < 5) {
+                aviso('login-alerta', 'Escribí un email válido.', '');
+                return;
+            }
+
+            var boton = $('login-btn');
+            boton.disabled = true;
+            boton.textContent = 'Enviando…';
+            aviso('login-alerta', '', 'ok');
+
+            try {
+                var res = await cliente.auth.signInWithOtp({ email: email });
+                if (res.error) throw res.error;
+
+                emailOtp = email;
+                $('enviado-texto').textContent =
+                    'Te enviamos un código de 6 a 10 dígitos a ' + email + '. Revisá spam si no llega.';
+
+                var otp = $('otp');
+                if (otp) otp.value = '';
+
+                aviso('enviado-alerta', '', 'ok');
+                mostrar('vista-enviado');
+                iniciarReenvio();
+
+                if (otp) otp.focus();
+            } catch (error) {
+                console.error(error);
+
+                var mensaje = (error && error.message) || 'error de conexión';
+                if (/rate limit|too many/i.test(mensaje)) {
+                    mensaje = 'Demasiados intentos. Esperá un minuto y volvé a probar.';
+                }
+
+                aviso('login-alerta', 'No pudimos enviar el código: ' + mensaje, '');
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Enviarme el código';
+            }
+        });
+
+        $('otp-form').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+
+            var codigo = String($('otp').value || '').replace(/\D/g, '').slice(0, 10);
+            var boton = $('otp-btn');
+
+            if (codigo.length < 6 || codigo.length > 10) {
+                aviso('enviado-alerta', 'Ingresá el código de 6 a 10 dígitos.', '');
+                $('otp').focus();
+                return;
+            }
+
+            if (!emailOtp) {
+                volverALogin();
+                aviso('login-alerta', 'Volvé a pedir un código.', '');
+                return;
+            }
+
+            boton.disabled = true;
+            boton.textContent = 'Verificando…';
+            aviso('enviado-alerta', '', 'ok');
+
+            try {
+                var res = await cliente.auth.verifyOtp({
+                    email: emailOtp,
+                    token: codigo,
+                    type: 'email'
+                });
+
+                if (res.error) throw res.error;
+
+                detenerReenvio();
+                await cargarPuntos();
+            } catch (error) {
+                console.error(error);
+                aviso('enviado-alerta', 'Código inválido o expirado', '');
+
+                var otp = $('otp');
+                if (otp) {
+                    otp.value = '';
+                    otp.focus();
+                }
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Ingresar';
+            }
+        });
+
+        $('reenviar-btn').addEventListener('click', async function () {
+            if (!emailOtp) {
+                volverALogin();
+                return;
+            }
+
+            var boton = $('reenviar-btn');
+            if (boton.disabled) return;
+
+            boton.disabled = true;
+            boton.textContent = 'Enviando…';
+            aviso('enviado-alerta', '', 'ok');
+
+            try {
+                var res = await cliente.auth.signInWithOtp({ email: emailOtp });
+                if (res.error) throw res.error;
+
+                aviso('enviado-alerta', 'Te enviamos un nuevo código.', 'ok');
+                iniciarReenvio();
+            } catch (error) {
+                console.error(error);
+
+                var mensaje = (error && error.message) || 'error de conexión';
+                if (/rate limit|too many/i.test(mensaje)) {
+                    mensaje = 'Demasiados intentos. Esperá un minuto y volvé a probar.';
+                }
+
+                aviso('enviado-alerta', 'No pudimos reenviar el código: ' + mensaje, '');
+                boton.disabled = false;
+                boton.textContent = 'Reenviar código';
+            }
+        });
+
+        $('cambiar-email-btn').addEventListener('click', volverALogin);
+
+        $('salir-btn').addEventListener('click', async function () {
+            try { await cliente.auth.signOut(); } catch (error) { console.warn(error); }
+            volverALogin();
+            aviso('login-alerta', 'Cerraste sesión.', 'ok');
+        });
+
+        conectarCopiar('copiar-btn');
+        conectarCopiar('copiar-btn-2');
+
+        // ── resena modal ────────────────────────────────────────────────────────
+        var turnoSeleccionado = null;
+
+        function renderizarEstrellas(contenedor) {
+            contenedor.innerHTML = '';
+            for (var i = 1; i <= 5; i++) {
+                var estrella = document.createElement('span');
+                estrella.className = 'estrella';
+                estrella.textContent = '☆';
+                estrella.dataset.valor = i;
+                estrella.addEventListener('click', function () {
+                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
+                    seleccionados.forEach(function (e) { e.classList.remove('estrellas'); });
+                    for (var j = 0; j <= this.dataset.valor; j++) {
+                        contenedor.children[j].classList.add('estrellas');
+                        contenedor.children[j].textContent = '★';
+                    }
+                });
+                estrella.addEventListener('mouseenter', function () {
+                    var valor = this.dataset.valor;
+                    var destino = contenedor.querySelectorAll('.estrella');
+                    for (var k = 0; k < destino.length; k++) {
+                        if (k < valor) {
+                            destino[k].textContent = '★';
+                            destino[k].classList.add('estrellas');
+                        } else {
+                            destino[k].textContent = '☆';
+                            destino[k].classList.remove('estrellas');
+                        }
+                    }
+                });
+                estrella.addEventListener('mouseleave', function () {
+                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
+                    Array.from(contenedor.children).forEach(function (e) {
+                        e.classList.remove('estrellas');
+                        e.textContent = e.classList.contains('estrellas') ? '★' : '☆';
+                    });
+                });
+                contenedor.appendChild(estrella);
+            }
+        }
+
+        function abrirModalResena(turno) {
+            turnoSeleccionado = turno;
+            var modal = $('modal-resena');
+            var servicio = $('modal-servicio');
+            var comentario = $('comentario-resena');
+            var alerta = $('alerta-resena');
+
+            if (servicio) servicio.textContent = escapeHTML(turno.servicio_nombre || 'Servicio');
+            if (comentario) comentario.value = '';
+            if (alerta) { alerta.hidden = true; alerta.textContent = ''; alerta.className = 'alerta'; }
+
+            var estrellasCont = $('estrellas-modal');
+            if (estrellasCont) renderizarEstrellas(estrellasCont);
+
+            if (modal) modal.hidden = false;
+        }
+
+        function cerrarModalResena() {
+            turnoSeleccionado = null;
+            var modal = $('modal-resena');
+            if (modal) modal.hidden = true;
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function cargarTurnos() {
+            if (!cliente) return;
+
+            cliente.rpc('turnos_de_cliente').then(function (res) {
+                var turnos = Array.isArray(res.data) ? res.data : [];
+                var caja = $('mis-turnos');
+                var vacio = $('mis-turnos-vacio');
+                caja.innerHTML = '';
+
+                if (turnos.length === 0) {
+                    vacio.hidden = false;
+                    return;
+                }
+                vacio.hidden = true;
+
+                turnos.forEach(function (t) {
+                    var fila = document.createElement('div');
+                    fila.className = 'mov';
+                    var salon = t.salon_nombre || '';
+                    var servicio = t.servicio_nombre || '';
+                    var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                    var hora = t.hora ? t.hora.toString().slice(0, 8) : '';
+
+                    var texto = document.createElement('div');
+                    texto.className = 'mov-texto';
+                    var titulo = document.createElement('span');
+                    titulo.className = 'mov-titulo';
+                    titulo.textContent = salon + ' - ' + servicio;
+                    texto.appendChild(titulo);
+                    var subtitulo = document.createElement('span');
+                    subtitulo.className = 'mov-sub';
+                    subtitulo.textContent = fecha + ' a las ' + hora;
+                    texto.appendChild(subtitulo);
+                    fila.appendChild(texto);
+
+                    if (!t.ya_resenado) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm';
+                        btn.style.marginLeft = '12px';
+                        btn.style.fontSize = '13px';
+                        btn.textContent = 'Dejar Reseña';
+                        btn.addEventListener('click', function () {
+                            abrirModalResena(t);
+                        });
+                        fila.appendChild(btn);
+                    }
+
+                    caja.appendChild(fila);
+                });
+            }).catch(function () {
+                // Silencioso, no importa si la RPC no existe aún
+            });
+        }
+
+        // ── respuesta del modal ─────────────────────────────────────────────────
+        $('btn-cancelar-resena')?.addEventListener('click', function () {
+            cerrarModalResena();
+        });
+
+        $('btn-enviar-resena')?.addEventListener('click', async function () {
+            if (!turnoSeleccionado) return;
+
+            var estrellas = $('estrellas-modal');
+            var estrellasSeleccionadas = Array.from(estrellas.children).filter(function (e) { return e.classList.contains('estrellas'); }).length;
+
+            if (estrellasSeleccionadas === 0) {
+                var alerta = $('alerta-resena');
+                if (alerta) {
+                    alerta.textContent = 'Seleccioná al menos una estrella.';
+                    alerta.hidden = false;
+                }
+                return;
+            }
+
+            var comentario = $('comentario-resena').value.trim();
+
+            try {
+                var res = await cliente.rpc('crear_resena', {
+                    p_salon_id: turnoSeleccionado.salon_id,
+                    p_turno_id: turnoSeleccionado.id,
+                    p_estrellas: estrellasSeleccionadas,
+                    p_comentario: comentario
+                });
+                if (res.error) throw res.error;
+
+                cerrarModalResena();
+                turnoSeleccionado = null;
+                cargarTurnos(); // refrescar para mostrar "Reseña enviada"
+            } catch (error) {
+                var alerta = $('alerta-resena');
+                if (alerta) {
+                    alerta.textContent = error.message || 'Error al enviar la reseña';
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+            }
+        });
+
+        // Cerrar modal al click fuera
+        document.addEventListener('click', function (e) {
+            if (e.target === $('modal-resena')) cerrarModalResena();
+            if (e.target === $('modal-turno-detalle')) cerrarModalDetalleTurno();
+        });
+
+        // I82 · cerrar modal detalle
+        function cerrarModalDetalleTurno() {
+            var modal = $('modal-turno-detalle');
+            if (modal) modal.hidden = true;
+            var input = $('puntos-canjear-input');
+            var alerta = $('alerta-canje');
+            
+            if (input) input.value = '';
+            if (alerta) {
+                alerta.hidden = true;
+                alerta.textContent = '';
+                alerta.className = 'alerta';
+            }
+            var btnCanjear = $('btn-canjear');
+            if (btnCanjear) btnCanjear.hidden = true;
+        }
+
+        // I82 · evento canjear puntos
+        $('btn-canjear')?.addEventListener('click', async function () {
+            var turnoId = window.turnoDetalleActual;
+            if (!turnoId) return;
+            
+            var input = $('puntos-canjear-input');
+            var puntos = parseInt(input && input.value) || 0;
+            var alerta = $('alerta-canje');
+            
+            if (alerta) alerta.hidden = true;
+            
+            if (puntos <= 0) {
+                if (alerta) {
+                    alerta.textContent = 'Ingrese una cantidad válida de puntos.';
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+                return;
+            }
+            
+            var btnCanjearElem = $('btn-canjear');
+            if (btnCanjearElem) {
+                btnCanjearElem.disabled = true;
+                btnCanjearElem.textContent = 'Procesando...';
+            }
+            
+            try {
+                var res = await cliente.rpc('cliente_canjear_puntos', {
+                    p_turno_id: turnoId,
+                    p_puntos: puntos
+                });
+                
+                var data = res.data && res.data[0] ? res.data[0] : res.data;
+                
+                if (res.error || !data || data.ok !== true) {
+                    var motivo = (data && data.motivo) ? data.motivo : (res.error && res.error.message ? res.error.message : 'Error desconocido');
+                    if (alerta) {
+                        alerta.textContent = 'No se pudo canjear: ' + motivo;
+                        alerta.className = 'alerta';
+                        alerta.hidden = false;
+                    }
+                    return;
+                }
+                
+                // Éxito
+                if (alerta) {
+                    alerta.textContent = '¡Canje exitoso! ' + puntos + ' puntos aplicados al turno.';
+                    alerta.className = 'alerta ok';
+                    alerta.hidden = false;
+                }
+                
+                // Recargar saldo y turnos
+                await cargarPuntos();
+                await cargarTurnosFuturos();
+                
+                // Cerrar modal
+                setTimeout(function () {
+                    cerrarModalDetalleTurno();
+                }, 1500);
+                
+            } catch (error) {
+                if (alerta) {
+                    alerta.textContent = 'Error al canjear: ' + (error.message || 'Intente más tarde');
+                    alerta.className = 'alerta';
+                    alerta.hidden = false;
+                }
+            } finally {
+                if (btnCanjearElem) {
+                    btnCanjearElem.disabled = false;
+                    btnCanjearElem.textContent = 'Canjear Puntos';
+                }
+            }
+        });
+
+        // También cerrar modal de detalle con Escape
+        document.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Escape') {
+                var modal = $('modal-turno-detalle');
+                if (modal && !modal.hidden) cerrarModalDetalleTurno();
+            }
+        });
+
+        cliente.auth.onAuthStateChange(function (evento, sesion) {
+            if (evento === 'SIGNED_IN' && sesion) {
+                detenerReenvio();
+                setTimeout(function () {
+                    cargarPuntos();
+                    setTimeout(cargarTurnos, 300);
+                    cargarTurnosFuturos();
+                }, 0);
+            } else if (evento === 'SIGNED_OUT') {
+                emailOtp = '';
+                detenerReenvio();
+                // Ocultar sección de turnos futuros
+                var seccion = $('turnos-futuros-seccion');
+                if (seccion) seccion.hidden = true;
+                mostrar('vista-login');
+            }
+        });
+
+        cliente.auth.getSession().then(function (res) {
+            if (res && res.data && res.data.session) {
+                cargarPuntos();
+                setTimeout(cargarTurnos, 300);
+                cargarTurnosFuturos();
+            }
+            else mostrar('vista-login');
+        }).catch(function () { mostrar('vista-login'); });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciar);
+    } else {
+        iniciar();
+    }
+})();
+</script>
+</body>
+</html>

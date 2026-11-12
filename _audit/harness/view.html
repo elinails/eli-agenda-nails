@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><title>QA view</title>
+<style>html,body{margin:0;background:#2b2b2b;font:12px monospace;color:#ccc} #wrap{position:absolute;left:0;top:0;background:#fff} iframe{border:0;display:block} #meta{padding:6px 8px}</style>
+</head>
+<body>
+<div id="meta"></div>
+<div id="wrap"><iframe id="f"></iframe></div>
+<script>
+var q=new URLSearchParams(location.search);
+var src=q.get('src')||'portal.html', w=+(q.get('w')||390), h=+(q.get('h')||900), y=+(q.get('y')||0);
+var f=document.getElementById('f');
+f.style.width=w+'px'; f.style.height=h+'px'; f.src=src;
+document.getElementById('wrap').style.width=w+'px';
+document.getElementById('meta').textContent=src+' @ '+w+'x'+h+' scroll='+y;
+f.onload=function(){ setTimeout(function(){ try{ f.contentWindow.scrollTo(0,y); }catch(e){} },1200); };
+</script>
+</body></html>

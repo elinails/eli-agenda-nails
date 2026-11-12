@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><title>QA measure</title>
+<style>body{font:13px/1.4 monospace;background:#111;color:#eee;margin:0;padding:16px} pre{white-space:pre-wrap}</style>
+</head>
+<body>
+<pre id="out">midiendo…</pre>
+<script>
+function rect(el){var r=el.getBoundingClientRect();return {x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height),right:Math.round(r.right)};}
+function measure(width, src){
+  return new Promise(function(resolve){
+    var f=document.createElement('iframe');
+    f.style.cssText='width:'+width+'px;height:1200px;border:0;position:absolute;left:-99999px;top:0';
+    f.src=src;
+    f.onload=function(){ setTimeout(function(){
+      try{
+        var d=f.contentDocument, w=f.contentWindow;
+        var out={src:src,width:width,innerWidth:w.innerWidth,docScrollWidth:d.documentElement.scrollWidth,bodyScrollWidth:d.body.scrollWidth};
+        out.overflowing=[].filter.call(d.querySelectorAll('body *'),function(el){
+          var r=el.getBoundingClientRect(); return r.width>0 && r.right>w.innerWidth+0.5;
+        }).slice(0,12).map(function(el){var r=rect(el);return {tag:el.tagName,cls:(el.className||'').toString().slice(0,40),id:el.id,right:r.right,w:r.w};});
+        out.hiddenEls=['modal-resena','modal-turno-detalle','bloque-canje','btn-canjear'].map(function(id){
+          var el=d.getElementById(id); if(!el) return {id:id,missing:true};
+          var cs=w.getComputedStyle(el); return {id:id,hiddenAttr:el.hidden,display:cs.display,visibility:cs.visibility,opacity:cs.opacity};
+        });
+        var sel=function(s){return d.querySelector(s);};
+        var styleOf=function(el,props){var cs=w.getComputedStyle(el);var o={};props.forEach(function(p){o[p]=cs[p];});return o;};
+        out.samples={};
+        [['btnGold','#login-btn'],['btnSec','#btn-cancelar-detalle'],['etiqueta','.puntos-etiqueta'],['saldo','#saldo'],['faint','.mov-sub'],['linkSuave','.enlace-suave'],['footer','.pie'],['h1','h1'],['h2','.seccion-titulo'],['body','body'],['card','.puntos-card'],['vacioP','.vacio p'],['ayuda','.ayuda-canje'],['markaSub','.marca-sub']].forEach(function(pair){
+          var el=sel(pair[1]); if(el) out.samples[pair[0]]=styleOf(el,['color','backgroundColor','fontSize','fontFamily','fontWeight','lineHeight','display','minHeight','width']);
+        });
+        out.headings=[].map.call(d.querySelectorAll('h1,h2,h3,h4,h5,h6'),function(h){return h.tagName+': '+h.textContent.trim().slice(0,60);});
+        out.tapTargets=[].map.call(d.querySelectorAll('a,button,input'),function(el){var r=rect(el);return {el:el.tagName+'#'+el.id+(el.className?'.'+el.className:''),w:r.w,h:r.h,text:(el.textContent||'').trim().slice(0,30)};}).filter(function(t){return t.h>0;});
+        out.modalLabels=[].map.call(d.querySelectorAll('.modal, .modal-detalle'),function(m){return {h3:(m.querySelector('h3')||{}).textContent||'',role:m.getAttribute('role'),ariaModal:m.getAttribute('aria-modal'),labelledby:m.getAttribute('aria-labelledby')};});
+        out.duplicatedLabels=[].map.call(d.querySelectorAll('#detalle-salon,#detalle-servicio,#detalle-fecha,#detalle-hora,#detalle-precio'),function(el){return el.textContent.trim().replace(/\s+/g,' ');});
+        out.iframesOk=true;
+        resolve(out);
+      }catch(e){resolve({src:src,width:width,error:String(e)});}
+    },2500); };
+    document.body.appendChild(f);
+  });
+}
+(async function(){
+  var results=[];
+  results.push(await measure(390,'portal-preview.html'));
+  results.push(await measure(390,'portal.html'));
+  results.push(await measure(1440,'portal-preview.html'));
+  document.getElementById('out').textContent=JSON.stringify(results,null,1);
+  document.title='QA measure done';
+})();
+</script>
+</body></html>
