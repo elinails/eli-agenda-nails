@@ -1058,12 +1058,9 @@
                 transform: translateX(0);
                 visibility: visible;
             }
-            /* Botón hamburguesa a la derecha del topbar */
+            /* Botón hamburguesa: participa del flex del header (ya no absolute). */
             .btn-menu-movil {
-                position: absolute;
-                top: 14px;
-                right: 14px;
-                left: auto;
+                position: relative;
                 z-index: 9999;
                 display: block;
                 min-width: 44px;
@@ -1882,7 +1879,14 @@
         .ads-icono { flex-shrink: 0; color: var(--gold, #C9A45F); }
 
         /* I93 · campana de notificaciones */
-        .acciones-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; position: relative; }
+        .header-acciones {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+            flex: 0 0 auto;
+            position: relative;
+        }
         .notif-btn {
             position: relative;
             display: inline-flex; align-items: center; justify-content: center;
@@ -2598,8 +2602,8 @@
                 <h1 class="section-title" id="section-title">Agenda</h1>
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
-            <!-- Campana + hamburguesa -->
-            <div class="acciones-top">
+            <!-- Campana + hamburguesa: mismo flex, sin superponerse -->
+            <div class="header-acciones">
                 <button type="button" id="notif-btn" class="notif-btn"
                         aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false" aria-controls="notif-panel">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -2619,7 +2623,7 @@
                 </div>
 
                 <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
-                <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-4 top-2 m-2 md:hidden">
+                <button type="button" id="btn-menu-movil" class="btn-menu-movil">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
                         <path d="M3 6h18M3 12h18M3 18h18"/>
                     </svg>
