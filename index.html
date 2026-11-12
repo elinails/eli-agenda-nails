@@ -1101,12 +1101,50 @@
         html, body { max-width: 100%; overflow-x: hidden; }
         .app-main, .section, .container { max-width: 100%; min-width: 0; }
 
-        /* I96 · gate de autenticación: login y app ocultos hasta resolver la
-           sesión. visibility no rompe el layout y el cambio es instantáneo. */
-        #app-shell { visibility: hidden; }
-        #auth-screen { visibility: hidden; }
-        body.app-lista #app-shell { visibility: visible; }
-        body.login-listo #auth-screen { visibility: visible; }
+        /* I97 · gate con display: login y app no se pintan hasta resolver la
+           sesión. El telón opaco cubre el primer paint, así no hay FOUC ni
+           siquiera antes de que corra el JS. */
+        #app-shell, #auth-screen { display: none !important; }
+        body.app-lista #app-shell { display: block !important; }
+        @media (min-width: 1024px) {
+            body.app-lista #app-shell { display: flex !important; }
+        }
+        body.login-listo #auth-screen { display: flex !important; }
+
+        /* I97 · telón de carga opaco: primer paint en oscuro, sin login ni app. */
+        #pantalla-carga {
+            position: fixed; inset: 0;
+            z-index: 99999;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 14px;
+            background: #1A1517;
+            color: #FBF7F3;
+        }
+        #pantalla-carga.oculto { display: none !important; }
+        .carga-spinner {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: 3px solid rgba(201, 164, 95, .25);
+            border-top-color: var(--gold, #C9A45F);
+            animation: carga-girar .8s linear infinite;
+        }
+        @keyframes carga-girar { to { transform: rotate(360deg); } }
+        .carga-marca {
+            margin: 0;
+            font-family: var(--serif, Georgia, serif);
+            font-size: 23px;
+            letter-spacing: .02em;
+        }
+        .carga-sub {
+            margin: 0;
+            font-size: 12px;
+            letter-spacing: .04em;
+            color: rgba(251, 247, 243, .62);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .carga-spinner { animation: none; }
+        }
 
         /* I96 · el login no se corta en pantallas bajas (iPhone SE, teclado). */
         #auth-screen { overflow-y: auto; padding: 16px 0; }
@@ -2757,6 +2795,12 @@
     </style>
 </head>
 <body class="min-h-screen">
+    <!-- I97 · telón opaco: el primer paint nunca muestra login ni app -->
+    <div id="pantalla-carga" role="status" aria-live="polite" aria-label="Cargando ELIMA HUB">
+        <div class="carga-spinner" aria-hidden="true"></div>
+        <p class="carga-marca">ELIMA HUB</p>
+        <p class="carga-sub">Cargando tu agenda…</p>
+    </div>
     <div id="soporte-banner" class="soporte-banner hidden" role="status"></div>
     <!-- I50 · actualización de la app -->
     <div id="sw-update" class="sw-update hidden" role="status" aria-live="polite">
@@ -7583,6 +7627,15 @@
             // I96 · la sesión todavía no se resolvió: no mostramos ni login ni app.
             let authResuelta = false;
 
+            // I97 · timeout de seguridad: si Supabase no responde en 3 s,
+            // ocultamos el telón y mostramos el login igual.
+            var timeoutCarga = null;
+
+            function ocultarPantallaCarga() {
+                var pantalla = document.getElementById('pantalla-carga');
+                if (pantalla) pantalla.classList.add('oculto');
+            }
+
             function mostrarLogin(mensaje) {
                 appIniciada = false;
                 authOcupado(false);
@@ -7596,18 +7649,22 @@
                 setAuthError(mensaje || '');
                 // I86 · la app vuelve a ocultarse mientras se muestra el login.
                 document.body.classList.remove('app-lista');
-                // I96 · no revelar el login hasta que la sesión esté resuelta.
+                // I96/I97 · no revelar el login hasta que la sesión esté resuelta.
                 if (authResuelta) {
+                    if (timeoutCarga) { clearTimeout(timeoutCarga); timeoutCarga = null; }
                     authScreen.classList.remove('hidden');
                     document.body.classList.add('login-listo');
+                    ocultarPantallaCarga();
                 }
             }
 
             function ocultarLogin() {
                 // I86 · app-lista es lo que revela #app-shell (ver CSS).
+                if (timeoutCarga) { clearTimeout(timeoutCarga); timeoutCarga = null; }
                 document.body.classList.remove('login-listo');
                 document.body.classList.add('app-lista');
                 authScreen.classList.add('hidden');
+                ocultarPantallaCarga();
             }
 
             async function arrancar() {
@@ -7627,8 +7684,10 @@
             async function iniciarApp(session) {
                 if (appIniciada) return;
                 appIniciada = true;
-                // I96 · hay sesión: la autenticación ya está resuelta.
+                // I96/I97 · hay sesión: autenticación resuelta. El telón queda
+                // visible hasta que la app termine de cargar.
                 authResuelta = true;
+                if (timeoutCarga) { clearTimeout(timeoutCarga); timeoutCarga = null; }
                 // I56: plan fresco en cada sesión (no arrastrar el de una cuenta previa).
                 planVigente.cargado = false;
                 // I52: cada sesión que entra en la app deja el respaldo al día.
@@ -7689,18 +7748,16 @@
                     await cargarPlanEfectivo();
                     // I90: paletas Premium regaladas por el SuperAdmin.
                     await cargarPaletasDesbloqueadas();
-                    // I86 · fin del parpadeo: los estilos y el calendario se
-                    // preparan con la app todavía invisible (visibility:hidden
-                    // conserva el layout, así el calendario mide bien) y recién
-                    // al final se muestra todo junto, ya con datos cargados.
+                    // I97 · mostramos el shell debajo del telón (display real)
+                    // para que FullCalendar mida bien; el telón sigue tapando
+                    // hasta que la app terminó de cargar.
                     aplicarRol();
                     aplicarLogo();
                     aplicarModoSoporte();
                     cargarFlagsApp();
+                    document.body.classList.add('app-lista');
                     await arrancar();
                     mostrarSeccion("agenda");
-                    // Ahora sí: app visible y login oculto en el mismo frame.
-                    document.body.classList.add('app-lista');
                     ocultarLogin();
                     cargarSaldoBilletera();
                     cargarPatrocinio();
@@ -7744,6 +7801,18 @@
             }
 
             async function iniciarAuth() {
+                // I97 · si Supabase no responde en 3 s, telón afuera y login.
+                if (timeoutCarga) clearTimeout(timeoutCarga);
+                timeoutCarga = setTimeout(function () {
+                    timeoutCarga = null;
+                    if (document.body.classList.contains('app-lista')) {
+                        ocultarPantallaCarga();
+                        return;
+                    }
+                    authResuelta = true;
+                    mostrarLogin('');
+                }, 3000);
+
                 if (!SUPABASE_LISTO) {
                     authResuelta = true;
                     mostrarLogin('Falta configurar SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en index.html.');
@@ -11566,6 +11635,24 @@
                        /slug|un_salones_slug/i.test(texto);
             }
 
+            // I95 · el trigger de la base rechaza publicar con el perfil incompleto.
+            function esPerfilIncompleto(error) {
+                if (!error) return false;
+                const texto = String(error.message || '') + ' ' + String(error.details || '');
+                return /perfil_incompleto/i.test(texto);
+            }
+
+            function avisarPerfilIncompleto(error) {
+                marcarFaltantesPerfil(faltantesDelPerfil(perfilDesdeFormulario()));
+                const detalle = String((error && error.details) || '').trim();
+                mostrarBanner(
+                    'No se puede publicar: faltan datos obligatorios del perfil' +
+                    (detalle ? ' (' + detalle + ')' : '') + '.',
+                    'error'
+                );
+                mostrarToast('Faltan datos obligatorios para publicar tu perfil.', 'error');
+            }
+
             // ══════════════════════════════════════════════════════════════
             // I95 · Mi Salón: campos obligatorios + vista previa en vivo
             // ══════════════════════════════════════════════════════════════
@@ -11900,6 +11987,10 @@
                         mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
                         return;
                     }
+                    if (guardado.error && esPerfilIncompleto(guardado.error)) {
+                        avisarPerfilIncompleto(guardado.error);
+                        return;
+                    }
                     if (guardado.error && guardado.error.code === '23514') {
                         mostrarBanner('Revisá el perfil: algún dato no cumple el formato (rubro, bio, slug, portada o dirección).', 'error');
                         return;
@@ -11912,6 +12003,10 @@
                         mostrarBanner('Ese slug ya está en uso. Probá con otro.', 'error');
                         return;
                     }
+                    if (guardado.error && esPerfilIncompleto(guardado.error)) {
+                        avisarPerfilIncompleto(guardado.error);
+                        return;
+                    }
                     if (guardado.error && guardado.error.code === '23514') {
                         mostrarBanner('Revisá el perfil: algún dato no cumple el formato (rubro, bio, slug o portada).', 'error');
                         return;
@@ -11919,6 +12014,10 @@
                     if (guardado.error && esFaltaColumna(guardado.error)) {
                         nivel = 'i54';
                         guardado = await supabase.from('salones').update(datosI54).eq('id', contexto.salonId);
+                    }
+                    if (guardado.error && esPerfilIncompleto(guardado.error)) {
+                        avisarPerfilIncompleto(guardado.error);
+                        return;
                     }
                     if (guardado.error && guardado.error.code === '23514') {
                         mostrarBanner('Revisá los datos del salón: teléfono, Instagram o frase corta no cumplen el formato.', 'error');
