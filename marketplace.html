@@ -498,6 +498,13 @@
         margin-top: auto;
         padding-top: 9px;
         border-top: 1px solid var(--line);
+    }    /* Precio mínimo real que devuelve la RPC (null si no hay servicios). */
+    .tarjeta-precio {
+        margin-top: 3px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--gold-ink);
+        letter-spacing: .01em;
     }
     .tarjeta-rubro {
         display: inline-flex; align-items: center; gap: 5px;
@@ -901,14 +908,6 @@
     .btn-limpiar-filtros { color: var(--ink-3); border-style: dashed; }
     .btn-limpiar-filtros:hover { border-color: var(--ink-3); color: var(--ink); }
 
-    .filtros-aviso {
-        margin: 8px 0 0;
-        font-size: 11.5px;
-        line-height: 1.35;
-        color: var(--ink-3);
-    }
-    .filtros-aviso[hidden] { display: none; }
-
     .contador-filtros {
         display: inline-flex;
         align-items: center;
@@ -1043,7 +1042,6 @@
             font-size: 14px;
             margin-top: 4px;
         }
-        .filtros-aviso { font-size: 11px; }
     }
 </style>
 </head>
@@ -1145,7 +1143,6 @@
                         <button type="button" class="btn-limpiar-filtros" id="limpiar-filtros">Limpiar</button>
                     </div>
 
-                    <p class="filtros-aviso" id="filtros-aviso" hidden></p>
                 </div>
             </div>
         </div>
@@ -1314,9 +1311,7 @@
         detalleActual: null,
         detallePedido: 0,
         // Filtros avanzados (se combinan con rubro + búsqueda de texto)
-        filtros: { zona: '', precio: '', estrellas4: false, ofertas: false },
-        // Qué datos trae realmente la base en esta carga (para avisar al usuario)
-        soporte: { zona: false, precio: false, oferta: false }
+        filtros: { zona: '', precio: '', estrellas4: false, ofertas: false }
     };
 
     var $ = function (id) { return document.getElementById(id); };
@@ -1440,38 +1435,27 @@
         var origen = Array.isArray(lista) ? lista : [];
         var f = estado.filtros;
 
-        // ¿La base aporta cada dato en esta carga?
-        estado.soporte.zona = origen.some(function (r) {
-            return normalizarTexto(r.zona || r.direccion || r.barrio) !== '';
-        });
-        estado.soporte.precio = origen.some(function (r) { return Number(r.precio_desde) > 0; });
-        estado.soporte.oferta = origen.some(function (r) {
-            return r.promo === true || r.tiene_promo === true || r.oferta === true;
-        });
-
         return origen.filter(function (fila) {
-            // Calificación: dato real que sí viene de la RPC.
+            // Calificación: promedio real de reseñas.
             if (f.estrellas4 && (Number(fila.promedio_estrellas) || 0) < 4) return false;
 
-            // Zona: filtra solo si hay dato.
-            if (f.zona && estado.soporte.zona) {
-                var texto = normalizarTexto(fila.zona || fila.direccion || fila.barrio);
-                if (texto.indexOf(normalizarTexto(f.zona)) === -1) return false;
+            // Zona: se busca sobre la dirección que publica el salón.
+            if (f.zona) {
+                var dir = normalizarTexto(fila.direccion);
+                if (dir === '' || dir.indexOf(normalizarTexto(f.zona)) === -1) return false;
             }
 
-            // Precio: filtra solo si hay dato.
-            if (f.precio && estado.soporte.precio) {
-                var p = Number(fila.precio_desde) || 0;
+            // Precio: precio_desde = MIN(precio_base) de sus servicios.
+            if (f.precio) {
+                var p = Number(fila.precio_desde);
+                if (!(p > 0)) return false;                       // sin servicios → no entra
                 if (f.precio === 'economico' && p > 8000) return false;
                 if (f.precio === 'medio' && !(p > 8000 && p <= 16000)) return false;
                 if (f.precio === 'premium' && p <= 16000) return false;
             }
 
-            // Ofertas: filtra solo si hay dato.
-            if (f.ofertas && estado.soporte.oferta) {
-                var tiene = fila.promo === true || fila.tiene_promo === true || fila.oferta === true;
-                if (!tiene) return false;
-            }
+            // Ofertas: flag que hoy entrega la RPC.
+            if (f.ofertas && fila.tiene_promo !== true) return false;
 
             return true;
         });
@@ -1501,24 +1485,11 @@
         }
     }
 
-    function actualizarAvisoFiltros() {
-        var el = $('filtros-aviso');
-        if (!el) return;
-        var f = estado.filtros, s = estado.soporte, faltan = [];
-        if (f.zona && !s.zona) faltan.push('zona');
-        if (f.precio && !s.precio) faltan.push('precio');
-        if (f.ofertas && !s.oferta) faltan.push('ofertas');
-        if (!faltan.length) { el.hidden = true; el.textContent = ''; return; }
-        el.hidden = false;
-        el.textContent = 'Todavía no hay datos de ' + faltan.join(' ni ') +
-            ' en la base, así que ese filtro no recorta resultados.';
-    }
 
     function refrescarVista() {
         leerFiltros();
         pintar();
         actualizarBotonFiltros();
-        actualizarAvisoFiltros();
     }
 
     function limpiarFiltrosAvanzados() {
@@ -1589,7 +1560,6 @@
         });
 
         actualizarBotonFiltros();
-        actualizarAvisoFiltros();
     }
 
     // ── planes (badge de confianza) ───────────────────────────────────────
@@ -1784,6 +1754,16 @@
         nombre.textContent = nombreSalon;
         cuerpo.appendChild(nombre);
         cuerpo.appendChild(bloqueEstrellas(fila));
+
+        // Precio mínimo real (MIN de servicios.precio_base). Si el salón no
+        // cargó servicios, la RPC devuelve null y no se muestra nada.
+        var precioDesde = Number(fila.precio_desde);
+        if (precioDesde > 0) {
+            var precioEl = document.createElement('span');
+            precioEl.className = 'tarjeta-precio';
+            precioEl.textContent = 'Desde ' + formatearPrecio(precioDesde);
+            cuerpo.appendChild(precioEl);
+        }
 
         if (fila.bio) {
             var bio = document.createElement('p');
@@ -1995,7 +1975,6 @@
         // Rubro + búsqueda llegan resueltos de la RPC; acá se suman los
         // filtros avanzados sobre el array ya cargado.
         var visibles = aplicarFiltros(estado.salones);
-        actualizarAvisoFiltros();
 
         if (!visibles.length) {
             grilla.textContent = '';
