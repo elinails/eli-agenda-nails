@@ -1047,6 +1047,19 @@
         .confirmar h2 { margin: 0 0 8px; font-size: 19px; letter-spacing: -.02em; }
         .confirmar p { margin: 0 0 18px; color: var(--ink-muted); font-size: 13.5px; }
         .confirmar-acciones { display: flex; gap: 8px; justify-content: flex-end; }
+        /* I90 · paletas Premium por salón */
+        .paletas-admin { display: grid; gap: 8px; margin: 14px 0 18px; }
+        .paleta-admin {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border: 1px solid var(--hairline);
+            border-radius: 10px; background: var(--paper);
+            font-size: 14px; cursor: pointer;
+        }
+        .paleta-admin input { width: 18px; height: 18px; accent-color: var(--gold); }
+        .paleta-admin .paleta-admin-id {
+            margin-left: auto; color: var(--ink-subtle);
+            font-size: 11.5px; font-family: monospace;
+        }
 
         .toasts { position: fixed; right: 18px; bottom: 18px; z-index: 120; display: flex; flex-direction: column; gap: 8px; max-width: min(360px, calc(100vw - 36px)); }
         .toast {
@@ -2210,6 +2223,19 @@
             <div class="confirmar-acciones">
                 <button type="button" id="perfil-cancelar" class="btn">Cancelar</button>
                 <button type="button" id="perfil-guardar" class="btn btn-primario">Guardar y aprobar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- I90 · PALETAS PREMIUM DEL SALÓN -->
+    <div id="paletas-overlay" class="overlay overlay-confirmar oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="paletas-titulo">
+            <h2 id="paletas-titulo">Paletas Premium</h2>
+            <p id="paletas-salon" class="nota"></p>
+            <div id="paletas-lista" class="paletas-admin">Cargando...</div>
+            <p id="paletas-error" class="alerta error oculto" role="alert"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="paletas-cerrar" class="btn">Cerrar</button>
             </div>
         </div>
     </div>
@@ -5196,6 +5222,7 @@
             var caja = $('drawer-acciones');
             caja.textContent = '';
             caja.appendChild(botonAccion('Entrar como este salón', 'btn btn-primario', function () { pedirImpersonacion(s); }));
+            caja.appendChild(botonAccion('Gestionar Paletas', 'btn', function () { abrirPaletas(s); }));
             var enlace = mailtoReenganche(s);
             if (enlace) {
                 var contacto = crear('a', 'btn', '✉ Contactar');
@@ -5221,6 +5248,91 @@
             caja.appendChild(botonAccion(s.activo ? 'Suspender' : 'Activar', 'btn ' + (s.activo ? 'btn-peligro' : 'btn-ok'), function () {
                 pedirCambioEstado(s, null);
             }));
+        }
+
+        // I90 · paletas Premium por salón
+        var PALETAS_PREMIUM_ADMIN = [
+            { id: 'salvia', nombre: 'Salvia Studio' },
+            { id: 'mauve', nombre: 'Mauve Luxe' },
+            { id: 'rose-gold', nombre: 'Rose Gold' },
+            { id: 'golden-glam', nombre: 'Golden Glam' },
+            { id: 'nude-gold', nombre: 'Nude Elegance' },
+            { id: 'mono-dark', nombre: 'Negro y Blanco' }
+        ];
+        var focoPaletas = null;
+
+        function abrirPaletas(s) {
+            if (!s || !s.id) return;
+            focoPaletas = document.activeElement;
+            $('paletas-titulo').textContent = 'Paletas de ' + s.nombre;
+            $('paletas-salon').textContent = 'Marcá las paletas Premium que este salón puede usar. Se aplican al recargar su app.';
+            $('paletas-error').classList.add('oculto');
+            $('paletas-lista').textContent = 'Cargando...';
+            $('paletas-overlay').classList.remove('oculto');
+            $('paletas-cerrar').focus();
+            cargarPaletasAdmin(s.id);
+        }
+
+        function cerrarPaletas() {
+            $('paletas-overlay').classList.add('oculto');
+            if (focoPaletas && focoPaletas.focus) focoPaletas.focus();
+            focoPaletas = null;
+        }
+
+        async function cargarPaletasAdmin(salonId) {
+            var cont = $('paletas-lista');
+            try {
+                var res = await supabase.rpc('admin_listar_paletas', { p_salon_id: salonId });
+                if (res.error) throw res.error;
+                var activas = new Set((res.data || []).map(String));
+                cont.textContent = '';
+                PALETAS_PREMIUM_ADMIN.forEach(function (p) {
+                    var fila = document.createElement('label');
+                    fila.className = 'paleta-admin';
+                    var check = document.createElement('input');
+                    check.type = 'checkbox';
+                    check.checked = activas.has(p.id);
+                    check.setAttribute('aria-label', 'Paleta ' + p.nombre);
+                    var texto = document.createElement('span');
+                    texto.textContent = p.nombre;
+                    var id = document.createElement('span');
+                    id.className = 'paleta-admin-id';
+                    id.textContent = p.id;
+                    fila.appendChild(check);
+                    fila.appendChild(texto);
+                    fila.appendChild(id);
+                    check.addEventListener('change', function () {
+                        togglePaletaAdmin(salonId, p, check);
+                    });
+                    cont.appendChild(fila);
+                });
+            } catch (error) {
+                cont.textContent = '';
+                $('paletas-error').textContent = 'No se pudieron cargar las paletas: ' + (error.message || 'error de conexión');
+                $('paletas-error').classList.remove('oculto');
+            }
+        }
+
+        async function togglePaletaAdmin(salonId, paleta, check) {
+            var otorgar = check.checked;
+            check.disabled = true;
+            $('paletas-error').classList.add('oculto');
+            try {
+                var res = await supabase.rpc('admin_toggle_paleta', {
+                    p_salon_id: salonId,
+                    p_paleta_id: paleta.id,
+                    p_otorgar: otorgar
+                });
+                if (res.error) throw res.error;
+                toast('Paleta ' + paleta.nombre + (otorgar ? ' activada.' : ' desactivada.'), 'ok');
+            } catch (error) {
+                check.checked = !otorgar;
+                $('paletas-error').textContent = 'No se pudo actualizar: ' + (error.message || 'sin_permisos');
+                $('paletas-error').classList.remove('oculto');
+                toast('No se pudo actualizar la paleta.', 'error');
+            } finally {
+                check.disabled = false;
+            }
         }
 
         async function enviarRecuperacion(s) {
@@ -6053,9 +6165,14 @@
         $('drawer-overlay').addEventListener('click', function (evento) {
             if (evento.target === $('drawer-overlay')) cerrarDetalle();
         });
+        $('paletas-cerrar').addEventListener('click', cerrarPaletas);
+        $('paletas-overlay').addEventListener('click', function (evento) {
+            if (evento.target === $('paletas-overlay')) cerrarPaletas();
+        });
 
         document.addEventListener('keydown', function (evento) {
             if (evento.key === 'Escape') {
+                if (!$('paletas-overlay').classList.contains('oculto')) { cerrarPaletas(); return; }
                 if (!$('confirm-overlay').classList.contains('oculto')) { cerrarConfirmar(false); return; }
                 if (!$('drawer-overlay').classList.contains('oculto')) { cerrarDetalle(); return; }
                 if (document.body.classList.contains('menu-abierto')) { cerrarMenu(); return; }
@@ -6063,7 +6180,8 @@
             if (evento.key !== 'Tab') return;
 
             var caja = null;
-            if (!$('confirm-overlay').classList.contains('oculto')) caja = $('confirm-overlay').querySelector('.confirmar');
+            if (!$('paletas-overlay').classList.contains('oculto')) caja = $('paletas-overlay').querySelector('.confirmar');
+            else if (!$('confirm-overlay').classList.contains('oculto')) caja = $('confirm-overlay').querySelector('.confirmar');
             else if (!$('drawer-overlay').classList.contains('oculto')) caja = $('drawer');
             if (!caja) return;
 

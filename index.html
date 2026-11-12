@@ -6828,6 +6828,8 @@
                     // I56: el plan efectivo se resuelve antes de pintar la UI, para
                     // que candados, patrocinador y límites arranquen correctos.
                     await cargarPlanEfectivo();
+                    // I90: paletas Premium regaladas por el SuperAdmin.
+                    await cargarPaletasDesbloqueadas();
                     // I86 · fin del parpadeo: los estilos y el calendario se
                     // preparan con la app todavía invisible (visibility:hidden
                     // conserva el layout, así el calendario mide bien) y recién
@@ -9650,6 +9652,35 @@
             // ─────────────────────────────────────────────────────────────
             const PALETAS_DISENO = ['blush', 'salvia', 'mauve', 'rose-gold', 'golden-glam', 'nude-gold', 'mono-light', 'mono-dark'];
             const CLAVE_PALETA = 'eli_design_theme';
+
+            // I90 · el SuperAdmin puede regalar paletas Premium a un salón.
+            // Las que llegan desde obtener_mis_paletas() se destraban en la UI.
+            function aplicarPaletasDesbloqueadas(ids) {
+                const desbloqueadas = new Set(
+                    (Array.isArray(ids) ? ids : []).map(function (p) {
+                        return typeof p === 'string' ? p : (p && p.paleta_id);
+                    }).filter(Boolean)
+                );
+                document.querySelectorAll('.paleta[data-paleta]').forEach(function (boton) {
+                    if (!desbloqueadas.has(boton.dataset.paleta)) return;
+                    boton.classList.remove('paleta-bloqueada');
+                    boton.removeAttribute('aria-disabled');
+                    const candado = boton.querySelector('.precio-candado');
+                    if (candado) candado.classList.add('oculto');
+                });
+            }
+
+            async function cargarPaletasDesbloqueadas() {
+                if (!supabase || !contexto.salonId) return;
+                try {
+                    const res = await supabase.rpc('obtener_mis_paletas');
+                    if (res.error) throw res.error;
+                    aplicarPaletasDesbloqueadas(res.data);
+                } catch (error) {
+                    // Si i90 todavía no está aplicado, la app sigue con los candados.
+                    console.warn('I90 · no se pudieron leer las paletas desbloqueadas:', error);
+                }
+            }
 
             function paletaActual() {
                 const actual = document.documentElement.dataset.tema;
