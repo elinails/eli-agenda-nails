@@ -5611,8 +5611,14 @@
                     })
                     .select('id')
                     .maybeSingle();
-                if (res.error) throw res.error;
-                if (!res.data) throw new Error('La base no confirmó la publicación (permisos RLS).');
+                if (res.error) {
+                    // I95: RLS denegado → mensaje claro al SuperAdmin
+                    if (res.error.code === '42501' || res.error.message?.includes('row-level security')) {
+                        throw new Error('No tenés permisos para publicar anuncios (se requiere SuperAdmin).');
+                    }
+                    throw res.error;
+                }
+                if (!res.data) throw new Error('La base no confirmó la publicación (respuesta vacía).');
 
                 // Solo el más reciente queda activo.
                 try {

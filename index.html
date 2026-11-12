@@ -1863,7 +1863,7 @@
 
         /* I48/I93 · anuncio del SuperAdmin: banda oscura bajo la barra superior */
         .ads-banner {
-            position: sticky; top: 0; z-index: 70;
+            position: sticky; top: 59px; z-index: 70;
             display: flex; align-items: center; gap: 10px;
             padding: 11px 16px; font-size: 13.5px; line-height: 1.4;
             background: #2A2024; color: #FBF7F3;
@@ -1875,6 +1875,7 @@
         .ads-texto { flex: 1; min-width: 0; }
         .ads-cerrar { border: 0; background: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; opacity: .75; }
         .ads-cerrar:hover { opacity: 1; }
+        .ads-icono { flex-shrink: 0; color: var(--gold, #C9A45F); }
 
         /* I93 · campana de notificaciones */
         .acciones-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; position: relative; }
@@ -2488,6 +2489,12 @@
 </head>
 <body class="min-h-screen">
     <div id="anuncio-banner" class="ads-banner hidden" role="status" aria-live="polite">
+        <svg class="ads-icono" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 11v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6"/>
+            <path d="M7 11V5a4 4 0 0 1 8 0v6"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
         <span class="ads-texto" id="anuncio-texto"></span>
         <button type="button" class="ads-cerrar" id="anuncio-cerrar" aria-label="Ocultar anuncio">×</button>
     </div>
@@ -6512,8 +6519,27 @@
                     const aviso = data[0];
                     if (!aviso.mensaje) return;
                     if (aviso.expira_en && new Date(aviso.expira_en).getTime() <= Date.now()) return;
-                    const oculto = localStorage.getItem("eli_anuncio_oculto_" + aviso.id) === "1";
-                    if (oculto) return;
+
+                    // I95: solo ocultar si el usuario cerró ESTE anuncio Y no hay uno MÁS NUEVO
+                    const ocultoId = localStorage.getItem("eli_anuncio_oculto");
+                    const ocultoIds = ocultoId ? JSON.parse(ocultoId) : [];
+                    if (ocultoIds.includes(aviso.id)) {
+                        // Si hay un anuncio más nuevo (id distinto al ocultado), mostrarlo igual
+                        const { data: masNuevo } = await supabase
+                            .from("anuncios_globales")
+                            .select("id")
+                            .eq("activo", true)
+                            .order("creado_en", { ascending: false })
+                            .limit(1);
+                        if (masNuevo && masNuevo.length && masNuevo[0].id !== aviso.id) {
+                            // Hay uno más nuevo → mostrar y limpiar ocultados viejos
+                            const nuevosOcultos = ocultoIds.filter(id => id === aviso.id);
+                            localStorage.setItem("eli_anuncio_oculto", JSON.stringify(nuevosOcultos));
+                        } else {
+                            return; // Mismo anuncio → respetar ocultado
+                        }
+                    }
+
                     const banner = document.getElementById("anuncio-banner");
                     const texto = document.getElementById("anuncio-texto");
                     if (!banner || !texto) return;
@@ -6522,7 +6548,12 @@
                     const cerrar = document.getElementById("anuncio-cerrar");
                     if (cerrar) {
                         cerrar.addEventListener("click", function () {
-                            localStorage.setItem("eli_anuncio_oculto_" + aviso.id, "1");
+                            const actuales = JSON.parse(localStorage.getItem("eli_anuncio_oculto") || "[]");
+                            if (!actuales.includes(aviso.id)) {
+                                actuales.push(aviso.id);
+                                // Mantener solo últimos 5 IDs para no saturar localStorage
+                                localStorage.setItem("eli_anuncio_oculto", JSON.stringify(actuales.slice(-5)));
+                            }
                             banner.classList.add("hidden");
                         });
                     }
