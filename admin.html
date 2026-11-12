@@ -477,7 +477,7 @@
 
         label { display: block; font-size: 12px; color: var(--ink-muted); margin-bottom: 6px; }
         input[type="text"], input[type="email"], input[type="password"], input[type="number"],
-        input[type="search"], input[type="url"], select, textarea {
+        input[type="search"], input[type="url"], input[type="tel"], input[type="date"], select, textarea {
             width: 100%;
             background: var(--canvas);
             border: 1px solid var(--hairline);
@@ -488,6 +488,9 @@
             padding: 10px 12px;
             min-height: 42px;
         }
+        /* I94 · que el ícono nativo del date picker combine con el tema */
+        :root[data-theme="dark"] input[type="date"] { color-scheme: dark; }
+        :root[data-theme="light"] input[type="date"] { color-scheme: light; }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--gold);
