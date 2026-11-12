@@ -7043,6 +7043,19 @@
                 cb.addEventListener('change', actualizarBotonAprobar);
             });
 
+            function nombreSalonDeId(id) {
+                var encontrado = (salones || []).filter(function (s) {
+                    return String(s.id) === String(id);
+                })[0];
+                if (encontrado && encontrado.nombre) return encontrado.nombre;
+                var cb = Array.from(document.querySelectorAll('.checkbox-salon')).filter(function (c) {
+                    return c.value === String(id);
+                })[0];
+                var fila = cb ? cb.closest('tr') : null;
+                var nodo = fila ? fila.querySelector('.salon-nombre') : null;
+                return nodo ? nodo.textContent : String(id);
+            }
+
             // Aprobar seleccionados
             var btnAprobar = document.getElementById('aprobar-seleccionados');
             if (btnAprobar) {
@@ -7056,32 +7069,67 @@
                     btnAprobar.disabled = true;
                     btnAprobar.textContent = 'Aprobando...';
 
-                    supabase.from('salones')
-                        .update({ publicado: true })
-                        .in('id', ids)
-                        .select('id, nombre, slug, rubro, publicado')
-                        .then(function(res) {
-                            btnAprobar.disabled = false;
-                            btnAprobar.textContent = 'Aprobar seleccionados';
+                    // I99 · una actualización individual por salón: si el
+                    // trigger de perfil incompleto rechaza uno, los demás siguen.
+                    var tareas = ids.map(function(id) {
+                        return supabase.from('salones')
+                            .update({ publicado: true })
+                            .eq('id', id)
+                            .select('id')
+                            .then(function(res) {
+                                if (res.error) throw res.error;
+                                if (!res.data || !res.data.length) throw new Error('El salón ya no existe.');
+                                return id;
+                            });
+                    });
 
-                            if (res.error) {
-                                console.error(res.error);
-                                alerta('error', 'Error al aprobar salones: ' + (res.error.message || 'error de conexión'));
-                                return;
-                            }
+                    Promise.allSettled(tareas).then(function(resultados) {
+                        btnAprobar.disabled = false;
+                        btnAprobar.textContent = 'Aprobar seleccionados';
 
-                            if (res.data && res.data.length) {
-                                toast('Se aprobaron ' + res.data.length + ' salones.', 'ok');
-                                // Recargar tabla
-                                cargarSalones().then(pintarSalones);
+                        var aprobados = [];
+                        var fallidos = [];
+                        resultados.forEach(function(resultado, indice) {
+                            if (resultado.status === 'fulfilled') {
+                                aprobados.push(ids[indice]);
+                            } else {
+                                fallidos.push(ids[indice]);
+                                console.error('I99 · no se pudo aprobar el salón', ids[indice], resultado.reason);
                             }
-                        })
-                        .catch(function(error) {
-                            btnAprobar.disabled = false;
-                            btnAprobar.textContent = 'Aprobar seleccionados';
-                            console.error(error);
-                            alerta('error', 'Error al aprobar: ' + (error.message || 'error de conexión'));
                         });
+
+                        if (aprobados.length) {
+                            // Recargar tabla con los que sí quedaron publicados.
+                            cargarSalones().then(pintarSalones);
+                        }
+
+                        var resumen = aprobados.length
+                            ? 'Se aprobaron ' + aprobados.length + (aprobados.length === 1 ? ' salón.' : ' salones.')
+                            : 'No se pudo aprobar ningún salón.';
+                        if (fallidos.length) {
+                            resumen += ' Y no se pudieron aprobar ' + fallidos.length + ' por perfil incompleto.';
+                        }
+                        toast(resumen, fallidos.length ? 'error' : 'ok');
+
+                        if (fallidos.length) {
+                            var nombres = fallidos.map(nombreSalonDeId).join(' · ');
+                            var cancelar = document.getElementById('confirm-cancelar');
+                            var displayAnterior = cancelar ? cancelar.style.display : '';
+                            if (cancelar) cancelar.style.display = 'none';
+                            confirmar(
+                                'Perfil incompleto',
+                                'No se pudieron aprobar: ' + nombres + '. Completá su perfil y volvé a intentar.',
+                                'Entendido'
+                            ).then(function() {
+                                if (cancelar) cancelar.style.display = displayAnterior;
+                            });
+                        }
+                    }).catch(function(error) {
+                        btnAprobar.disabled = false;
+                        btnAprobar.textContent = 'Aprobar seleccionados';
+                        console.error(error);
+                        alerta('error', 'Error al aprobar salones: ' + (error.message || 'error de conexión'));
+                    });
                 });
             }
         })();
