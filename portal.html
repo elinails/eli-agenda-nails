@@ -121,15 +121,30 @@
     .alerta.ok { background: var(--ok-soft); color: var(--ok); }
     .alerta[hidden] { display: none; }
 
-    /* ── tarjeta de puntos ── */
+    /* ── saludo personalizado ── */
+    .saludo-cliente {
+        font-family: var(--serif);
+        font-size: clamp(26px, 6vw, 34px);
+        font-weight: 600;
+        letter-spacing: -.01em;
+        margin: 22px 0 2px;
+        color: var(--ink);
+        line-height: 1.15;
+    }
+    .saludo-sub { margin: 0 0 16px; color: var(--ink-soft); font-size: 13.5px; }
+
+    /* ── tarjeta de puntos (estilo tarjeta bancaria) ── */
     .puntos-card {
         position: relative;
         border-radius: 22px;
-        padding: 28px 26px;
-        background: linear-gradient(135deg, var(--blush-2), var(--surface));
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow);
+        padding: 24px 22px;
+        background:
+            radial-gradient(circle at 88% 8%, rgba(255, 255, 255, .22), transparent 52%),
+            linear-gradient(135deg, #C9A45F 0%, #B38B48 52%, #8C6B3A 100%);
+        border: 1px solid rgba(255, 255, 255, .22);
+        box-shadow: 0 16px 40px rgba(140, 107, 58, .28);
         overflow: hidden;
+        color: #FFFFFF;
     }
     .puntos-card::after {
         content: '';
@@ -137,24 +152,81 @@
         right: -60px; top: -60px;
         width: 180px; height: 180px;
         border-radius: 50%;
-        background: var(--gold-soft);
+        background: rgba(255, 255, 255, .10);
     }
+    .puntos-card-fila {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+    }
+    .puntos-card-datos { min-width: 0; }
+    .puntos-logo {
+        flex: 0 0 auto;
+        width: 46px; height: 46px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+    }
+    .puntos-logo img { width: 30px; height: 30px; object-fit: contain; display: block; }
     .puntos-etiqueta {
         font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
-        color: var(--gold-ink); font-weight: 700;
+        color: rgba(255, 255, 255, .86); font-weight: 700;
     }
-    .puntos-titulo { font-family: var(--serif); font-size: 20px; margin: 6px 0 0; color: var(--ink); }
     .puntos-saldo {
         font-family: var(--serif);
-        font-size: clamp(52px, 14vw, 76px);
+        font-size: clamp(48px, 13vw, 68px);
         font-weight: 700;
         line-height: 1;
-        color: var(--ink);
-        margin: 10px 0 2px;
+        color: #FFFFFF;
+        margin: 8px 0 2px;
         font-variant-numeric: tabular-nums;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, .12);
     }
-    .puntos-unidad { font-size: 13px; color: var(--ink-soft); }
-    .puntos-pie { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .puntos-unidad { font-size: 13px; color: rgba(255, 255, 255, .84); }
+    .puntos-pie { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; position: relative; }
+
+    /* La tarjeta dorada necesita botones legibles sobre el fondo oscuro. */
+    .puntos-card .boton-mini {
+        border-color: rgba(255, 255, 255, .40);
+        background: rgba(255, 255, 255, .14);
+        color: #FFFFFF;
+    }
+    .puntos-card .boton-mini:hover {
+        background: rgba(255, 255, 255, .24);
+        border-color: rgba(255, 255, 255, .65);
+    }
+
+    /* ── barra de progreso / gamificación ── */
+    .puntos-progreso { position: relative; margin-top: 16px; }
+    .puntos-progreso-barra {
+        height: 9px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .26);
+        overflow: hidden;
+    }
+    .puntos-progreso-barra span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: #FFFFFF;
+        box-shadow: 0 0 10px rgba(255, 255, 255, .45);
+        transition: width .5s cubic-bezier(.22, .61, .36, 1);
+    }
+    .puntos-progreso-texto {
+        margin: 8px 0 0;
+        font-size: 12.5px;
+        line-height: 1.35;
+        color: rgba(255, 255, 255, .92);
+        font-weight: 500;
+    }
+    .puntos-progreso.completo .puntos-progreso-texto { font-weight: 700; }
 
     /* ── historial ── */
     .seccion-titulo {
@@ -182,6 +254,29 @@
     .mov-sub { font-size: 12px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .mov-monto { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14.5px; color: var(--ok); white-space: nowrap; }
     .mov-monto.negativo { color: var(--danger); }
+    /* Acciones de cada turno: reseña + reservar de nuevo.
+       .btn base es width:100%, así que acá lo pasamos a "auto" para que
+       los dos botones entren en la misma fila. */
+    .mov-acciones {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        margin-left: auto; flex: 0 0 auto;
+    }
+    .mov-acciones .btn {
+        width: auto;
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 0 14px;
+        font-size: 13px;
+        border-radius: 10px;
+        margin: 0;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    @media (max-width: 560px) {
+        .mov { flex-wrap: wrap; }
+        .mov-acciones { width: 100%; margin-left: 0; }
+        .mov-acciones .btn { flex: 1 1 auto; }
+    }
 
     /* ── vacío ── */
     .vacio {
@@ -355,11 +450,30 @@
 
         <!-- 3 · panel -->
         <section class="vista" id="vista-panel" hidden>
+            <h1 class="saludo-cliente" id="saludo">¡Hola! 👋</h1>
+            <p class="saludo-sub">Este es el resumen de tus Elima Points.</p>
+
             <div class="puntos-card">
-                <span class="puntos-etiqueta" id="saludo">Tus Elima Points</span>
-                <p class="puntos-titulo">Tu saldo disponible</p>
-                <div class="puntos-saldo" id="saldo">0</div>
-                <div class="puntos-unidad" id="saldo-unidad">Elima Points · 1 punto = $1</div>
+                <div class="puntos-card-fila">
+                    <div class="puntos-card-datos">
+                        <span class="puntos-etiqueta">Tus Elima Points</span>
+                        <div class="puntos-saldo" id="saldo">0</div>
+                        <div class="puntos-unidad" id="saldo-unidad">Elima Points · 1 punto = $1</div>
+                    </div>
+                    <span class="puntos-logo" aria-hidden="true">
+                        <img src="icon-192.png" alt="" width="30" height="30">
+                    </span>
+                </div>
+
+                <!-- Gamificación: progreso hacia el próximo beneficio -->
+                <div class="puntos-progreso">
+                    <div class="puntos-progreso-barra" id="puntos-barra"
+                         role="progressbar" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0">
+                        <span id="puntos-progreso-fill"></span>
+                    </div>
+                    <p class="puntos-progreso-texto" id="puntos-progreso-texto"></p>
+                </div>
+
                 <div class="puntos-pie">
                     <button type="button" class="boton-mini" id="copiar-btn">Copiar mi email</button>
                     <button type="button" class="boton-mini" id="salir-btn">Cerrar sesión</button>
@@ -654,15 +768,51 @@
         });
     }
 
+    var META_BENEFICIO = 1000;   // puntos para el próximo beneficio
+
+    function pintarSaludo(clienta) {
+        var saludo = $('saludo');
+        if (!saludo) return;
+        var nombre = String(clienta || '').trim();
+        saludo.textContent = nombre ? '¡Hola, ' + nombre + '! 👋' : '¡Hola! 👋';
+    }
+
+    function pintarProgreso(saldo) {
+        var barra = $('puntos-barra');
+        var relleno = $('puntos-progreso-fill');
+        var texto = $('puntos-progreso-texto');
+        var caja = document.querySelector('.puntos-progreso');
+        if (!barra || !relleno || !texto) return;
+
+        var valor = Math.max(0, Number(saldo) || 0);
+        var alcanzado = Math.min(valor, META_BENEFICIO);
+        var pct = Math.min(100, Math.round((alcanzado / META_BENEFICIO) * 100));
+        // Si todavía no llegó, la barra no se muestra completa (999 ≠ 100%).
+        if (valor < META_BENEFICIO && pct >= 100) pct = 99;
+
+        relleno.style.width = pct + '%';
+        barra.setAttribute('aria-valuenow', String(alcanzado));
+        if (caja) caja.classList.toggle('completo', valor >= META_BENEFICIO);
+
+        if (valor >= META_BENEFICIO) {
+            texto.textContent = '¡Tenés puntos suficientes para canjear!';
+        } else {
+            var falta = META_BENEFICIO - valor;
+            texto.textContent = 'Estás a ' + formatearPuntos(falta) +
+                (falta === 1 ? ' punto' : ' puntos') + ' de tu próximo beneficio';
+        }
+    }
+
     function pintarPanel(datos) {
         var saldo = Number(datos && datos.saldo) || 0;
         var clienta = (datos && datos.clienta) || '';
 
-        $('saludo').textContent = clienta ? 'Hola, ' + clienta : 'Tus Elima Points';
+        pintarSaludo(clienta);
         $('saldo').textContent = formatearPuntos(saldo);
         $('saldo-unidad').textContent = saldo === 1
             ? 'Elima Point · 1 punto = $1'
             : 'Elima Points · 1 punto = $1';
+        pintarProgreso(saldo);
 
         pintarHistorial(datos && datos.movimientos);
         mostrar('vista-panel');
@@ -1179,18 +1329,30 @@
                     texto.appendChild(subtitulo);
                     fila.appendChild(texto);
 
+                    var acciones = document.createElement('div');
+                    acciones.className = 'mov-acciones';
+
                     if (!t.ya_resenado) {
                         var btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'btn btn-sm';
-                        btn.style.marginLeft = '12px';
-                        btn.style.fontSize = '13px';
                         btn.textContent = 'Dejar Reseña';
                         btn.addEventListener('click', function () {
                             abrirModalResena(t);
                         });
-                        fila.appendChild(btn);
+                        acciones.appendChild(btn);
                     }
+
+                    // Quick rebook: vuelve al marketplace con el salón elegido.
+                    if (t.salon_slug) {
+                        var rebook = document.createElement('a');
+                        rebook.className = 'btn btn-sm btn-secundario';
+                        rebook.textContent = 'Reservar de nuevo';
+                        rebook.href = 'marketplace.html?slug=' + encodeURIComponent(t.salon_slug);
+                        acciones.appendChild(rebook);
+                    }
+
+                    if (acciones.children.length) fila.appendChild(acciones);
 
                     caja.appendChild(fila);
                 });
