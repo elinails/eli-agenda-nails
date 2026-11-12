@@ -1197,6 +1197,84 @@
         }
         #recarga-form input { min-height: 44px; }
 
+        /* ══════════════════════════════════════════════════════════════
+           I89 · historial de recargas del salón
+           ══════════════════════════════════════════════════════════════ */
+        .historial-card { margin-top: 16px; }
+        .historial-cabecera {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .historial-titulo { font-size: 20px; margin: 0; }
+        .historial-refrescar {
+            flex: 0 0 auto;
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--ink-soft);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .historial-refrescar:hover { color: var(--ink); border-color: var(--gold); }
+        .historial-refrescar:disabled { opacity: .6; cursor: default; }
+        .historial-lista { display: flex; flex-direction: column; }
+        .historial-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px 0;
+            border-top: 1px solid var(--line);
+            min-width: 0;
+        }
+        .historial-item:first-child { border-top: 0; }
+        .historial-datos { flex: 1 1 auto; min-width: 0; }
+        .historial-montos {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+            overflow-wrap: anywhere;
+        }
+        .historial-fecha { margin-top: 2px; font-size: 11.5px; color: var(--ink-soft); }
+        .historial-motivo {
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--danger-ink);
+            overflow-wrap: anywhere;
+        }
+        .historial-estado {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .historial-estado::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        /* pendiente = amarillo · aprobado = verde · rechazado = rojo */
+        .historial-estado.pendiente { background: rgba(190, 158, 111, .24); color: var(--gold-ink); }
+        .historial-estado.aprobado { background: var(--ok-bg); color: var(--ok-ink); }
+        .historial-estado.rechazado { background: var(--danger-bg); color: var(--danger-ink); }
+        .historial-vacio { margin: 12px 0 0; font-size: 13px; color: var(--ink-soft); }
+
         /* ── Clientes: nombre + badges (VIP, Frecuente) + precios ── */
         .data-title-crm {
             display: flex;
@@ -3082,6 +3160,17 @@
                         Comprar Puntos
                     </button>
                 </div>
+
+                <!-- I89 · historial de recargas -->
+                <div class="card historial-card">
+                    <div class="historial-cabecera">
+                        <h3 class="card-title historial-titulo">Historial de Recargas</h3>
+                        <button type="button" id="historial-actualizar" class="historial-refrescar">Actualizar</button>
+                    </div>
+                    <div id="historial-recargas" class="historial-lista"></div>
+                    <p id="historial-recargas-vacio" class="historial-vacio hidden">Todavía no pediste recargas.</p>
+                    <p id="historial-recargas-error" class="hidden rounded-lg px-3 py-2 text-sm banner-error" role="alert"></p>
+                </div>
             </div>
         </section>
         <!-- Tienda HUB -->
@@ -4446,6 +4535,7 @@
                         // Cuando se muestra la billetera, cargar el saldo real
                         if (destino === 'billetera') {
                             cargarSaldoBilletera();
+                            cargarHistorialRecargas();
                         }
                     } else if (seccion.id === 'vista-tienda') {
                         seccion.style.display = (destino === 'tienda') ? 'block' : 'none';
@@ -4877,6 +4967,8 @@
 
                         cerrarModal(recargaModal);
                         mostrarToast('Recarga solicitada. Tus puntos se acreditarán una vez validado el pago.', 'ok');
+                        // I89 · la nueva solicitud aparece ya en el historial.
+                        cargarHistorialRecargas();
                     } catch (error) {
                         console.warn('I87 · no se pudo solicitar la recarga:', error);
                         const codigo = String((error && (error.message || error.error_description)) || '')
@@ -4889,6 +4981,124 @@
                         }
                     }
                 });
+            }
+
+            // I89 · Historial de recargas del salón (pendientes, aprobadas y
+            // rechazadas con su motivo). Se carga al entrar a Mi Billetera.
+            const historialLista = document.getElementById('historial-recargas');
+            const historialVacio = document.getElementById('historial-recargas-vacio');
+            const historialError = document.getElementById('historial-recargas-error');
+
+            const ESTADOS_RECARGA = {
+                pendiente: { texto: 'Pendiente', clase: 'pendiente' },
+                aprobado: { texto: 'Aprobado', clase: 'aprobado' },
+                rechazado: { texto: 'Rechazado', clase: 'rechazado' }
+            };
+
+            function formatearFechaRecarga(valor) {
+                if (!valor) return '';
+                const fecha = new Date(valor);
+                if (isNaN(fecha.getTime())) return '';
+                return fecha.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }) +
+                    ' · ' + fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function mostrarErrorHistorial(texto) {
+                if (!historialError) return;
+                historialError.textContent = texto;
+                historialError.classList.remove('hidden');
+            }
+
+            function limpiarErrorHistorial() {
+                if (!historialError) return;
+                historialError.textContent = '';
+                historialError.classList.add('hidden');
+            }
+
+            function pintarHistorialRecargas(filas) {
+                if (!historialLista) return;
+                historialLista.textContent = '';
+
+                const hay = filas.length > 0;
+                if (historialVacio) historialVacio.classList.toggle('hidden', hay);
+                if (!hay) return;
+
+                filas.forEach(function (f) {
+                    const item = document.createElement('div');
+                    item.className = 'historial-item';
+
+                    const datos = document.createElement('div');
+                    datos.className = 'historial-datos';
+
+                    const montos = document.createElement('div');
+                    montos.className = 'historial-montos';
+                    const monto = (Number(f.monto_ars) || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 });
+                    const puntos = (Number(f.puntos_equivalentes) || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 });
+                    montos.textContent = '$' + monto + ' · +' + puntos + ' pts';
+
+                    const fecha = document.createElement('div');
+                    fecha.className = 'historial-fecha';
+                    fecha.textContent = formatearFechaRecarga(f.fecha);
+
+                    datos.appendChild(montos);
+                    datos.appendChild(fecha);
+
+                    const estado = String(f.estado || '').toLowerCase();
+                    if (estado === 'rechazado' && f.motivo_rechazo) {
+                        const motivo = document.createElement('div');
+                        motivo.className = 'historial-motivo';
+                        motivo.textContent = 'Motivo: ' + f.motivo_rechazo;
+                        datos.appendChild(motivo);
+                    }
+
+                    const info = ESTADOS_RECARGA[estado] || { texto: estado || '—', clase: '' };
+                    const badge = document.createElement('span');
+                    badge.className = 'historial-estado ' + info.clase;
+                    badge.textContent = info.texto;
+
+                    item.appendChild(datos);
+                    item.appendChild(badge);
+                    historialLista.appendChild(item);
+                });
+            }
+
+            async function cargarHistorialRecargas() {
+                if (!historialLista) return;
+                limpiarErrorHistorial();
+
+                if (!supabase) return;
+                if (!contexto || !contexto.salonId) {
+                    console.info('I89 · historial: todavía no hay salonId (sesión sin resolver).');
+                    return;
+                }
+
+                const boton = document.getElementById('historial-actualizar');
+                if (boton) boton.disabled = true;
+
+                try {
+                    const { data, error } = await supabase.rpc('obtener_mis_recargas', {
+                        p_salon_id: contexto.salonId
+                    });
+                    if (error) throw error;
+                    pintarHistorialRecargas(data || []);
+                } catch (error) {
+                    console.warn('I89 · historial de recargas:', error);
+                    const codigo = String((error && (error.message || error.error_description)) || '')
+                        .trim().toLowerCase();
+                    if (/could not find the function|does not exist/i.test(codigo)) {
+                        mostrarErrorHistorial('Falta aplicar la migración i89 en Supabase.');
+                    } else {
+                        mostrarErrorHistorial(RECARGA_ERRORES[codigo] || 'No se pudo cargar el historial de recargas.');
+                    }
+                    pintarHistorialRecargas([]);
+                } finally {
+                    if (boton) boton.disabled = false;
+                }
+            }
+
+            const historialRefrescar = document.getElementById('historial-actualizar');
+            if (historialRefrescar) {
+                historialRefrescar.addEventListener('click', cargarHistorialRecargas);
             }
 
             document.querySelectorAll('.btn-comprar').forEach(function(btn) {
