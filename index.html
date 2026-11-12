@@ -1098,7 +1098,7 @@
 
         /* Nada debe empujar la página de lado: el scroll vive en los
            contenedores internos, nunca en el documento. */
-        html, body { max-width: 100%; overflow-x: hidden; }
+        html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
         .app-main, .section, .container { max-width: 100%; min-width: 0; }
 
         /* I97 · gate con display: login y app no se pintan hasta resolver la
@@ -1923,6 +1923,25 @@
         .ads-cerrar:hover { opacity: 1; }
         .ads-icono { flex-shrink: 0; color: var(--gold, #C9A45F); }
 
+        /* I99 · perfil público incompleto: banda roja fija bajo el header.
+           Es un enlace directo a Mi Salón (Ajustes). */
+        .perfil-banner {
+            position: sticky; top: 0; z-index: 210;
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px;
+            background: var(--danger, #B4453C);
+            color: #FFFFFF;
+            font-size: 13.5px; line-height: 1.4; font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, .22);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
+        }
+        .perfil-banner:hover { background: #9E3A32; }
+        .perfil-banner:focus-visible { outline: 3px solid #FFFFFF; outline-offset: -3px; }
+        .perfil-banner.hidden { display: none !important; }
+        .perfil-banner-texto { flex: 1; min-width: 0; }
+        .perfil-banner-flecha { flex-shrink: 0; font-size: 18px; line-height: 1; }
+
         /* I93 · campana de notificaciones */
         .header-acciones {
             display: flex;
@@ -2155,6 +2174,7 @@
            ══════════════════════════════════════════════════════════════ */
         #panel-mi-salon {
             position: relative;
+            scroll-margin-top: 96px;
             margin: 4px 0 22px;
             padding: 20px 18px 22px;
             background: var(--surface-2);
@@ -2886,6 +2906,12 @@
                 </button>
             </div>
         </header>
+
+        <!-- I99 · perfil público incompleto: banda roja con acceso a Mi Salón -->
+        <a href="#panel-mi-salon" id="banner-perfil" class="perfil-banner hidden">
+            <span class="perfil-banner-texto">⚠️ Completá tu perfil público en Ajustes para que tus clientas vean tu marca y no la de ELIMA HUB</span>
+            <span class="perfil-banner-flecha" aria-hidden="true">→</span>
+        </a>
 
         <!-- I93 · anuncio del SuperAdmin: banda bajo la barra superior -->
         <div id="anuncio-banner" class="ads-banner hidden" role="status" aria-live="polite">
@@ -10948,6 +10974,7 @@
                     logoGrisCache = null;
                     logoGrisUrl = null;
                     aplicarLogo();
+                    actualizarBannerPerfil();
                     mostrarBanner('Logo actualizado.', 'ok');
                 } catch (error) {
                     console.error('No se pudo subir el logo:', error);
@@ -10976,6 +11003,7 @@
                     logoGrisCache = null;
                     logoGrisUrl = null;
                     aplicarLogo();
+                    actualizarBannerPerfil();
                     mostrarBanner('Logo quitado.', 'ok');
                 } catch (error) {
                     console.error('No se pudo quitar el logo:', error);
@@ -11649,6 +11677,32 @@
                 pintarEnlaceInstagram(contexto.instagram);
                 const estado = document.getElementById('salon-estado');
                 if (estado) estado.textContent = '';
+                actualizarBannerPerfil();
+            }
+
+            // I99 · perfil público incompleto (nombre comercial, rubro y logo).
+            // Solo la dueña puede completarlo, así que el aviso es para owner.
+            function actualizarBannerPerfil() {
+                const banner = document.getElementById('banner-perfil');
+                if (!banner) return;
+                const falta = !String(contexto.nombreSalon || '').trim() ||
+                              !String(contexto.rubro || '').trim() ||
+                              !String(contexto.logoUrl || '').trim();
+                banner.classList.toggle('hidden', !(falta && contexto.rol === 'owner'));
+            }
+
+            const bannerPerfil = document.getElementById('banner-perfil');
+            if (bannerPerfil) {
+                bannerPerfil.addEventListener('click', function(evento) {
+                    evento.preventDefault();
+                    mostrarSeccion('ajustes');
+                    const panel = document.getElementById('panel-mi-salon');
+                    if (!panel) return;
+                    panel.classList.remove('hidden');
+                    setTimeout(function() {
+                        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 60);
+                });
             }
 
             function valorCampo(id) {
@@ -12534,9 +12588,9 @@
             // ─────────────────────────────────────────────────────────────
             // I54 · identidad del salon (multi-tenant)
             // Cada salon tiene su nombre, logo, telefono e Instagram. Nunca se
-            // cae a datos de otro salon: si falta el nombre, es "Mi Salón".
+            // cae a datos de otro salon: si falta el nombre, es "Tu salón".
             // ─────────────────────────────────────────────────────────────
-            const NOMBRE_SALON_POR_DEFECTO = 'Mi Salón';
+            const NOMBRE_SALON_POR_DEFECTO = 'Tu salón';
 
             function nombreDelSalon() {
                 const nombre = String(contexto.nombreSalon || '').trim();
@@ -12569,7 +12623,9 @@
                 if (ig) return ig;
                 const desc = String(contexto.descripcion || '').trim();
                 if (desc) return desc.length > 32 ? desc.slice(0, 31).trim() + '…' : desc;
-                return 'N A I L   S T U D I O';
+                // Sin Instagram ni descripción no inventamos un handle ni un
+                // eslogan: la tarjeta simplemente no imprime subtítulo.
+                return '';
             }
 
             function firmaDelMensaje() {
