@@ -560,6 +560,23 @@
         .nav-item svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: 0 0 auto; }
         .nav-item:hover { background: var(--surface-2); color: var(--ink); }
         .nav-item.activo { background: var(--gold-soft); color: var(--gold-2); box-shadow: inset 2px 0 0 var(--gold); }
+        /* I88 · contador de recargas pendientes en el menú */
+        .nav-contador {
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: var(--gold);
+            color: #2B1F26;
+            font-size: 11px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            flex: 0 0 auto;
+        }
         .sidebar-pie { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hairline); }
         .admin-email { font-size: 11.5px; color: var(--ink-subtle); word-break: break-all; padding: 0 10px; }
 
@@ -1350,6 +1367,11 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6zm0 2h12v14H6V4z"/><path d="M10 12H6v2h4v4h2v-4h4v-2H12V6h2v4h4v2H12v4H10v-4H6v-2h4v4h4v2H10v4H6v-2h4z"/></svg>
                     Libro Contable
                 </button>
+                <button type="button" class="nav-item" data-vista="recargas">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18"/><path d="M5 10V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v4"/><path d="M4 10h16v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8Z"/><path d="M9 15h6"/></svg>
+                    Recargas de Puntos
+                    <span class="nav-contador oculto" id="recargas-contador">0</span>
+                </button>
             </nav>
             <div class="sidebar-pie">
                 <span class="admin-email" id="admin-email"></span>
@@ -1802,6 +1824,38 @@
                     </div>
                 </section>
 
+                <!-- I88 · RECARGAS DE PUNTOS POR TRANSFERENCIA -->
+                <section id="seccion-recargas" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <h2>Recargas de Puntos <span class="rf-badge-superadmin">God Mode</span></h2>
+                        <p class="sub">Transferencias notificadas por los salones. Aprobar acredita los puntos en la billetera; rechazar no acredita nada.</p>
+                    </div>
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+                        <button type="button" class="btn btn-sm" id="recargas-refrescar" title="Volver a cargar la lista">Actualizar</button>
+                        <span class="kpi-pie" id="recargas-resumen"></span>
+                    </div>
+
+                    <div id="recargas-alerta" class="alerta oculto" role="alert"></div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla rf-tabla-financiera">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Salón</th>
+                                    <th>Monto</th>
+                                    <th>Puntos</th>
+                                    <th style="min-width:160px">Comprobante</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recargas-tabla"></tbody>
+                        </table>
+                        <p id="recargas-vacio" class="vacio oculto">No hay recargas pendientes.</p>
+                    </div>
+                </section>
+
                 <!-- ANUNCIOS -->
                 <section id="seccion-anuncios" class="seccion oculto">
                     <div class="grid-anuncios">
@@ -2085,6 +2139,23 @@
         </div>
     </div>
 
+    <!-- I88 · motivo del rechazo de una recarga -->
+    <div id="motivo-overlay" class="overlay overlay-confirmar oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="motivo-titulo">
+            <h2 id="motivo-titulo">Rechazar recarga</h2>
+            <p id="motivo-texto">Contale al salón por qué no se acredita la transferencia.</p>
+            <div class="campo">
+                <label for="motivo-input">Motivo</label>
+                <textarea id="motivo-input" rows="3" maxlength="300" placeholder="Ej: no llegó la transferencia o el comprobante no coincide."></textarea>
+            </div>
+            <p id="motivo-error" class="alerta oculto" role="alert"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="motivo-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="motivo-aceptar" class="btn btn-peligro">Rechazar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
 
     <!-- I66 · NUEVO TICKET -->
@@ -2178,7 +2249,9 @@
             patrocinadores: { t: 'Patrocinadores', s: 'Marcas que financian el plan Gratis.' },
             auditoria: { t: 'Auditoría', s: 'Quién hizo qué, cuándo y sobre qué salón.' },
             soporte: { t: 'Soporte', s: 'Tickets y pedidos de las clientas.' },
-            ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' }
+            ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' },
+            recargas: { t: 'Recargas de Puntos', s: 'Transferencias pendientes de aprobación.' },
+            'libro-contable': { t: 'Libro Contable', s: 'Registro de todas las transacciones de Elima Points.' }
         };
 
         // I44 · A: blindaje de los formularios ANTES de cualquier dependencia.
@@ -4004,6 +4077,9 @@
                 cargarSalonesReserva();
                 cargarReservaFederal();
             }
+            if (nombre === 'recargas' && typeof cargarRecargasPendientes === 'function') {
+                cargarRecargasPendientes();
+            }
         }
 
         document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
@@ -4120,6 +4196,8 @@
             await cargarPatrocinadores();
             await refrescarCobros();
             await cargarAuditoria();
+            // I88 · deja el contador de recargas pendientes al día al entrar.
+            await cargarRecargasPendientes();
             pintarSalones();
             pintarSuscripciones();
             pintarAnuncios();
@@ -6696,6 +6774,307 @@
                 });
             } catch (e) { console.error('Error cargando salones:', e); }
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // I88 · Recargas de puntos por transferencia (aprobación manual)
+        // ═══════════════════════════════════════════════════════════════
+
+        var RECARGAS_ERRORES = {
+            sin_permisos: 'No tenés permisos de SuperAdmin para esta acción.',
+            recarga_no_encontrada: 'Esa recarga ya no existe. Actualizá la tabla.',
+            recarga_no_pendiente: 'Esa recarga ya fue aprobada o rechazada. Actualizá la tabla.',
+            admin_id_requerido: 'Falta identificar al administrador.',
+            admin_id_no_coincide: 'El administrador no coincide con tu sesión.',
+            motivo_requerido: 'Escribí un motivo de al menos 3 caracteres.'
+        };
+
+        function mensajeErrorRecarga(error) {
+            var crudo = String((error && (error.message || error.error_description)) || '').trim();
+            var clave = crudo.toLowerCase();
+            if (RECARGAS_ERRORES[clave]) return RECARGAS_ERRORES[clave];
+            // PostgREST cuando la migración todavía no se aplicó.
+            if (/could not find the function|does not exist/i.test(crudo)) {
+                return 'Falta aplicar la migración i88 en Supabase (admin_listar_recargas_pendientes).';
+            }
+            return crudo || 'No se pudo completar la operación.';
+        }
+
+        // El monto viene con centavos (numeric 12,2): no los redondeamos.
+        var FORMATO_ARS_RECARGA = (function () {
+            try {
+                return new Intl.NumberFormat('es-AR', {
+                    style: 'currency',
+                    currency: 'ARS',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                });
+            } catch (error) {
+                return null;
+            }
+        })();
+
+        function formatearMontoRecarga(valor) {
+            var n = Number(valor) || 0;
+            if (FORMATO_ARS_RECARGA) return FORMATO_ARS_RECARGA.format(n);
+            return '$ ' + n.toFixed(2);
+        }
+
+        async function cargarRecargasPendientes() {
+            var tbody = $('recargas-tabla');
+            if (!tbody) return;
+            if (typeof supabase === 'undefined' || !supabase) return;
+
+            var alertaEl = $('recargas-alerta');
+            if (alertaEl) {
+                alertaEl.textContent = '';
+                alertaEl.classList.add('oculto');
+            }
+
+            try {
+                var res = await supabase.rpc('admin_listar_recargas_pendientes');
+                if (res.error) throw res.error;
+                pintarRecargas(res.data || []);
+            } catch (error) {
+                console.error('I88 · recargas:', error);
+                pintarRecargas([]);
+                if (alertaEl) {
+                    alertaEl.textContent = mensajeErrorRecarga(error);
+                    alertaEl.classList.remove('oculto');
+                }
+            }
+        }
+
+        function pintarRecargas(filas) {
+            var tbody = $('recargas-tabla');
+            if (!tbody) return;
+
+            var vacio = $('recargas-vacio');
+            var resumen = $('recargas-resumen');
+            var contador = $('recargas-contador');
+
+            tbody.textContent = '';
+
+            if (contador) {
+                contador.textContent = String(filas.length);
+                contador.classList.toggle('oculto', filas.length === 0);
+            }
+
+            if (resumen) {
+                if (!filas.length) {
+                    resumen.textContent = '';
+                } else {
+                    var totalPuntos = filas.reduce(function (suma, f) {
+                        return suma + (Number(f.puntos_equivalentes) || 0);
+                    }, 0);
+                    resumen.textContent = filas.length +
+                        (filas.length === 1 ? ' recarga pendiente' : ' recargas pendientes') +
+                        ' · ' + formatearPuntos(totalPuntos) + ' puntos en total';
+                }
+            }
+
+            if (vacio) vacio.classList.toggle('oculto', filas.length > 0);
+            if (!filas.length) return;
+
+            filas.forEach(function (f) {
+                var tr = document.createElement('tr');
+
+                var tdFecha = document.createElement('td');
+                tdFecha.style.fontSize = '13px';
+                tdFecha.textContent = fechaHora(f.creado_en);
+
+                var tdSalon = document.createElement('td');
+                var nombre = document.createElement('strong');
+                nombre.textContent = f.salon_nombre || '—';
+                tdSalon.appendChild(nombre);
+                if (f.email) {
+                    var mail = document.createElement('div');
+                    mail.style.fontSize = '11px';
+                    mail.style.color = 'var(--ink-subtle)';
+                    mail.textContent = f.email;
+                    tdSalon.appendChild(mail);
+                }
+
+                var tdMonto = document.createElement('td');
+                tdMonto.style.fontWeight = '600';
+                tdMonto.style.fontVariantNumeric = 'tabular-nums';
+                tdMonto.textContent = formatearMontoRecarga(f.monto_ars);
+
+                var tdPuntos = document.createElement('td');
+                tdPuntos.style.fontWeight = '600';
+                tdPuntos.style.fontVariantNumeric = 'tabular-nums';
+                tdPuntos.style.color = 'var(--ok)';
+                tdPuntos.textContent = '+' + formatearPuntos(f.puntos_equivalentes);
+
+                var tdComprobante = document.createElement('td');
+                tdComprobante.style.fontSize = '12.5px';
+                tdComprobante.textContent = f.comprobante || '—';
+
+                var tdAcciones = document.createElement('td');
+                var acciones = document.createElement('div');
+                acciones.style.display = 'flex';
+                acciones.style.gap = '6px';
+                acciones.style.flexWrap = 'wrap';
+
+                var btnAprobar = document.createElement('button');
+                btnAprobar.type = 'button';
+                btnAprobar.className = 'btn btn-sm btn-ok';
+                btnAprobar.textContent = 'Aprobar';
+                btnAprobar.addEventListener('click', function () { aprobarRecarga(f.id, btnAprobar); });
+
+                var btnRechazar = document.createElement('button');
+                btnRechazar.type = 'button';
+                btnRechazar.className = 'btn btn-sm btn-peligro';
+                btnRechazar.textContent = 'Rechazar';
+                btnRechazar.addEventListener('click', function () { rechazarRecarga(f.id, btnRechazar); });
+
+                acciones.appendChild(btnAprobar);
+                acciones.appendChild(btnRechazar);
+                tdAcciones.appendChild(acciones);
+
+                tr.appendChild(tdFecha);
+                tr.appendChild(tdSalon);
+                tr.appendChild(tdMonto);
+                tr.appendChild(tdPuntos);
+                tr.appendChild(tdComprobante);
+                tr.appendChild(tdAcciones);
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function aprobarRecarga(id, boton) {
+            if (!id) return;
+            var ok = await confirmar(
+                'Aprobar recarga',
+                'Se van a acreditar los puntos en la billetera del salón. Esta acción no se puede deshacer.',
+                'Aprobar',
+                false
+            );
+            if (!ok) return;
+
+            ocupado(boton, 'Aprobando…');
+            try {
+                // p_admin_id null: la base usa auth.uid() y valida que sea SuperAdmin.
+                var res = await supabase.rpc('aprobar_recarga_puntos', {
+                    p_recarga_id: id,
+                    p_admin_id: null
+                });
+                if (res.error) throw res.error;
+
+                var fila = Array.isArray(res.data) ? res.data[0] : res.data;
+                var puntos = fila && fila.puntos != null ? formatearPuntos(fila.puntos) : 'los';
+                toast('Recarga aprobada: ' + puntos + ' puntos acreditados.', 'ok');
+                cargarRecargasPendientes();
+            } catch (error) {
+                console.error('I88 · aprobar recarga:', error);
+                toast(mensajeErrorRecarga(error), 'error');
+                cargarRecargasPendientes();
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        async function rechazarRecarga(id, boton) {
+            if (!id) return;
+            var motivo = await pedirMotivoRecarga();
+            if (motivo === null) return;
+
+            ocupado(boton, 'Rechazando…');
+            try {
+                var res = await supabase.rpc('rechazar_recarga_puntos', {
+                    p_recarga_id: id,
+                    p_admin_id: null,
+                    p_motivo: motivo
+                });
+                if (res.error) throw res.error;
+
+                toast('Recarga rechazada. No se acreditaron puntos.', 'ok');
+                cargarRecargasPendientes();
+            } catch (error) {
+                console.error('I88 · rechazar recarga:', error);
+                toast(mensajeErrorRecarga(error), 'error');
+                cargarRecargasPendientes();
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        // Modal para pedir el motivo del rechazo. Resuelve string | null.
+        var pedirMotivoResolver = null;
+
+        function pedirMotivoRecarga() {
+            return new Promise(function (resolve) {
+                var overlay = $('motivo-overlay');
+                var input = $('motivo-input');
+                var error = $('motivo-error');
+                if (!overlay || !input) { resolve(null); return; }
+
+                pedirMotivoResolver = resolve;
+                input.value = '';
+                if (error) {
+                    error.textContent = '';
+                    error.classList.add('oculto');
+                }
+                overlay.classList.remove('oculto');
+                setTimeout(function () { input.focus(); }, 30);
+            });
+        }
+
+        function cerrarPedirMotivo(valor) {
+            var overlay = $('motivo-overlay');
+            if (overlay) overlay.classList.add('oculto');
+            var resolver = pedirMotivoResolver;
+            pedirMotivoResolver = null;
+            if (resolver) resolver(valor);
+        }
+
+        (function () {
+            var overlay = $('motivo-overlay');
+            if (!overlay) return;
+            var input = $('motivo-input');
+            var error = $('motivo-error');
+
+            function aceptar() {
+                var texto = String((input && input.value) || '').trim();
+                if (texto.length < 3) {
+                    if (error) {
+                        error.textContent = 'Escribí un motivo de al menos 3 caracteres.';
+                        error.classList.remove('oculto');
+                    }
+                    if (input) input.focus();
+                    return;
+                }
+                cerrarPedirMotivo(texto);
+            }
+
+            var aceptarBtn = $('motivo-aceptar');
+            var cancelarBtn = $('motivo-cancelar');
+            if (aceptarBtn) aceptarBtn.addEventListener('click', aceptar);
+            if (cancelarBtn) cancelarBtn.addEventListener('click', function () { cerrarPedirMotivo(null); });
+
+            overlay.addEventListener('click', function (evento) {
+                if (evento.target === overlay) cerrarPedirMotivo(null);
+            });
+
+            if (input) {
+                input.addEventListener('keydown', function (evento) {
+                    if (evento.key === 'Enter' && !evento.shiftKey) {
+                        evento.preventDefault();
+                        aceptar();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Escape' && !overlay.classList.contains('oculto')) {
+                    cerrarPedirMotivo(null);
+                }
+            });
+        })();
+
+        (function () {
+            var boton = $('recargas-refrescar');
+            if (boton) boton.addEventListener('click', cargarRecargasPendientes);
+        })();
 
         async function cargarLibroContable() {
             var buscar = $('lc-buscar').value.trim();
