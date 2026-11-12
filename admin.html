@@ -279,6 +279,15 @@
             --gold-soft: rgba(190, 158, 111, .14);
             --gold-soft: color-mix(in srgb, var(--gold) 14%, transparent);
 
+            /* I94 · estados ok/danger. El panel usaba var(--ok-bg), var(--ok-ink),
+               var(--danger-bg) y var(--danger-ink) sin definirlas: cualquier
+               chip o botón de estado quedaba sin fondo y con el color heredado.
+               Se definen acá (base oscura) y en el bloque claro más abajo. */
+            --ok-ink: #9FD8A6;
+            --ok-bg: rgba(127, 176, 138, .20);
+            --danger-ink: #F3A5A5;
+            --danger-bg: rgba(224, 121, 110, .20);
+
             --btn-ink: #221A20;
 
             --topbar: rgba(43, 31, 38, .90);
@@ -291,6 +300,11 @@
             --info-soft: rgba(47, 94, 143, .10);
             --btn-ink: #FFFFFF;
             --sombra: 0 18px 40px rgba(59, 47, 53, .12);
+            /* I94 · estados en claro */
+            --ok-ink: #2F6B2F;
+            --ok-bg: #E9F5E9;
+            --danger-ink: #9B2C2C;
+            --danger-bg: #FDECEC;
         }
         /* mono-dark fuerza chrome oscuro aun en modo día */
         :root[data-tema="mono-dark"][data-theme="light"] {
@@ -627,6 +641,46 @@
         .nav-item svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: 0 0 auto; }
         .nav-item:hover { background: var(--surface-2); color: var(--ink); }
         .nav-item.activo { background: var(--gold-soft); color: var(--gold-2); box-shadow: inset 2px 0 0 var(--gold); }
+        /* I94 · marcas aliadas */
+        .marca-estado {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .marca-estado.activa { background: var(--ok-soft); color: var(--ok); }
+        .marca-estado.inactiva { background: var(--surface-2); color: var(--ink-subtle); }
+        .marca-estado.vencida { background: var(--danger-soft); color: var(--danger); }
+        .marca-foto-mini {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            display: block;
+        }
+        .marca-foto-vacia {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-subtle);
+            font-size: 15px;
+        }
+        .marcas-acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+        /* Formularios largos (6+ campos) no deben salirse del viewport. */
+        .confirmar-alto { max-height: 90dvh; overflow-y: auto; }
         /* I88 · contador de recargas pendientes en el menú */
         .nav-contador {
             margin-left: auto;
@@ -1065,6 +1119,24 @@
         .pat-nombre { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
         .pat-url { font-size: 11.5px; color: var(--ink-subtle); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
         .pat-preview-fila { display: flex; align-items: center; gap: 10px; }
+        /* I56 · marco del logo en la vista previa (con placeholder si falla) */
+        .pat-preview-logo {
+            width: 34px; height: 34px; flex: 0 0 34px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; overflow: hidden;
+        }
+        .pat-preview-logo.sin-imagen {
+            border: 1px dashed var(--hairline-2);
+            background: var(--surface-2);
+            color: var(--ink-subtle);
+            font-size: 14px; font-weight: 700;
+        }
+        .pat-preview-aviso {
+            margin-top: 2px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--danger);
+        }
         .pat-preview-etiqueta { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-subtle); }
         .pat-preview-nombre { font-size: 14px; font-weight: 600; }
 
@@ -1451,6 +1523,10 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18"/><path d="M5 10V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v4"/><path d="M4 10h16v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8Z"/><path d="M9 15h6"/></svg>
                     Recargas de Puntos
                     <span class="nav-contador oculto" id="recargas-contador">0</span>
+                </button>
+                <button type="button" class="nav-item" data-vista="marcas">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 8.4 12 3 3.4 8.4"/><path d="M4 9.5h16v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-9Z"/><path d="M9 20v-6h6v6"/></svg>
+                    Marcas Aliadas
                 </button>
             </nav>
             <div class="sidebar-pie">
@@ -1962,6 +2038,40 @@
                     </div>
                 </section>
 
+                <!-- I94 · MARCAS ALIADAS -->
+                <section id="seccion-marcas" class="seccion oculto">
+                    <div class="cabecera-seccion">
+                        <h2>Marcas Aliadas <span class="rf-badge-superadmin">God Mode</span></h2>
+                        <p class="sub">Pauta paga de productos e insumos. Aparecen en el Marketplace mientras estén activas y vigentes.</p>
+                    </div>
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+                        <button type="button" class="btn btn-sm btn-primario" id="marcas-nueva">Nueva Marca</button>
+                        <button type="button" class="btn btn-sm" id="marcas-refrescar" title="Volver a cargar la lista">Actualizar</button>
+                        <span class="kpi-pie" id="marcas-resumen"></span>
+                    </div>
+
+                    <div id="marcas-alerta" class="alerta oculto" role="alert"></div>
+
+                    <div class="panel tabla-panel">
+                        <table class="tabla rf-tabla-financiera">
+                            <thead>
+                                <tr>
+                                    <th style="width:56px"></th>
+                                    <th>Marca</th>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Vence</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marcas-tabla"></tbody>
+                        </table>
+                        <p id="marcas-vacio" class="vacio oculto">Todavía no cargaste marcas aliadas.</p>
+                    </div>
+                </section>
+
                 <!-- ANUNCIOS -->
                 <section id="seccion-anuncios" class="seccion oculto">
                     <div class="grid-anuncios">
@@ -2262,6 +2372,47 @@
         </div>
     </div>
 
+    <!-- I94 · nueva / editar marca aliada -->
+    <div id="marca-overlay" class="overlay overlay-confirmar oculto">
+        <div class="confirmar confirmar-alto" role="dialog" aria-modal="true" aria-labelledby="marca-titulo">
+            <h2 id="marca-titulo">Nueva marca aliada</h2>
+            <input type="hidden" id="marca-id">
+            <div class="campo">
+                <label for="marca-nombre">Nombre de la marca</label>
+                <input type="text" id="marca-nombre" maxlength="80" placeholder="Ej: Nail Pro Argentina">
+            </div>
+            <div class="campo">
+                <label for="marca-producto">Producto</label>
+                <input type="text" id="marca-producto" maxlength="120" placeholder="Ej: Esmalte semipermanente 15 ml">
+            </div>
+            <div class="campo">
+                <label for="marca-descripcion">Descripción (opcional)</label>
+                <input type="text" id="marca-descripcion" maxlength="160" placeholder="Ej: Línea profesional, 60 colores">
+            </div>
+            <div class="campo">
+                <label for="marca-precio">Precio (texto)</label>
+                <input type="text" id="marca-precio" maxlength="40" placeholder="Ej: $4.500">
+            </div>
+            <div class="campo">
+                <label for="marca-foto">URL de la foto</label>
+                <input type="url" id="marca-foto" maxlength="400" placeholder="https://...">
+            </div>
+            <div class="campo">
+                <label for="marca-whatsapp">WhatsApp (con código de país, sin 0 ni 15)</label>
+                <input type="tel" id="marca-whatsapp" maxlength="25" placeholder="Ej: 5491155554444">
+            </div>
+            <div class="campo">
+                <label for="marca-fecha">Fin de la pauta</label>
+                <input type="date" id="marca-fecha">
+            </div>
+            <p id="marca-error" class="alerta oculto" role="alert"></p>
+            <div class="confirmar-acciones">
+                <button type="button" id="marca-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="marca-guardar" class="btn btn-primario">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
 
     <!-- I66 · NUEVO TICKET -->
@@ -2376,6 +2527,7 @@
             soporte: { t: 'Soporte', s: 'Tickets y pedidos de las clientas.' },
             ajustes: { t: 'Ajustes', s: 'Flags de la plataforma.' },
             recargas: { t: 'Recargas de Puntos', s: 'Transferencias pendientes de aprobación.' },
+            marcas: { t: 'Marcas Aliadas', s: 'Publicidad de productos e insumos en el Marketplace.' },
             'libro-contable': { t: 'Libro Contable', s: 'Registro de todas las transacciones de Elima Points.' }
         };
 
@@ -4206,6 +4358,9 @@
             if (nombre === 'recargas' && typeof cargarRecargasPendientes === 'function') {
                 cargarRecargasPendientes();
             }
+            if (nombre === 'marcas' && typeof cargarMarcasAdmin === 'function') {
+                cargarMarcasAdmin();
+            }
         }
 
         document.querySelectorAll('.nav-item[data-vista]').forEach(function (boton) {
@@ -4324,6 +4479,8 @@
             await cargarAuditoria();
             // I88 · deja el contador de recargas pendientes al día al entrar.
             await cargarRecargasPendientes();
+            // I94 · marcas aliadas del Marketplace.
+            await cargarMarcasAdmin();
             pintarSalones();
             pintarSuscripciones();
             pintarAnuncios();
@@ -5768,24 +5925,66 @@
             var caja = $('pat-preview');
             if (!caja) return;
             caja.textContent = '';
+
             var nombre = ($('pat-nombre') && $('pat-nombre').value.trim()) || 'Nombre de la marca';
             var mensaje = ($('pat-mensaje') && $('pat-mensaje').value.trim()) || 'Patrocinado por';
-            var fila = crear('div', 'pat-preview-fila');
             var logoUrl = ($('pat-logo') && $('pat-logo').value.trim()) || '';
-            if (/^https:\/\//i.test(logoUrl)) {
-                var img = document.createElement('img');
-                img.src = logoUrl;
-                img.alt = '';
-                img.className = 'pat-logo';
-                img.addEventListener('error', function () { img.remove(); });
-                fila.appendChild(img);
-            }
+
+            var fila = crear('div', 'pat-preview-fila');
+
+            // Marco del logo: se actualiza en vivo mientras se escribe la URL.
+            var marco = crear('div', 'pat-preview-logo');
+            fila.appendChild(marco);
+
             var textos = crear('div', '', '');
             textos.style.minWidth = '0';
             textos.appendChild(crear('div', 'pat-preview-etiqueta', mensaje));
             textos.appendChild(crear('div', 'pat-preview-nombre', nombre));
+            var aviso = crear('div', 'pat-preview-aviso', '');
+            aviso.style.display = 'none';
+            textos.appendChild(aviso);
+
+            function marcarAviso(texto) {
+                marco.classList.add('sin-imagen');
+                marco.textContent = '!';
+                if (texto) {
+                    aviso.textContent = texto;
+                    aviso.style.display = '';
+                } else {
+                    aviso.textContent = '';
+                    aviso.style.display = 'none';
+                }
+            }
+
+            if (/^https?:\/\//i.test(logoUrl)) {
+                var img = document.createElement('img');
+                img.alt = '';
+                img.className = 'pat-logo';
+                img.addEventListener('load', function () {
+                    marco.classList.remove('sin-imagen');
+                    marco.textContent = '';
+                    aviso.textContent = '';
+                    aviso.style.display = 'none';
+                });
+                img.addEventListener('error', function () {
+                    img.remove();
+                    marcarAviso('Imagen no encontrada');
+                });
+                marco.appendChild(img);
+                img.src = logoUrl;
+            } else if (logoUrl) {
+                marcarAviso('La URL del logo tiene que empezar con http:// o https://');
+            } else {
+                marcarAviso('Falta el logo');
+            }
+
             fila.appendChild(textos);
             caja.appendChild(fila);
+        }
+
+        // Acepta sólo http(s) absolutas.
+        function urlHttpValida(valor) {
+            return /^https?:\/\/[^\s]+$/i.test(String(valor || '').trim());
         }
 
         async function guardarPatrocinador() {
@@ -5797,9 +5996,21 @@
             var boton = $('pat-guardar');
             var editando = !!patrocinadorEditando;
 
-            if (nombre.length < 2) { alerta('pat-alerta', 'Escribí el nombre de la marca.', 'error'); return; }
-            if (logo && !/^https:\/\//i.test(logo)) { alerta('pat-alerta', 'El logo tiene que empezar con https://', 'error'); return; }
-            if (url && !/^https:\/\//i.test(url)) { alerta('pat-alerta', 'El link tiene que empezar con https://', 'error'); return; }
+            function fallo(campo, texto) {
+                alerta('pat-alerta', texto, 'error');
+                toast(texto, 'error');
+                try { $(campo).focus(); } catch (error) { /* noop */ }
+                pintarPreviewPatrocinador();
+            }
+
+            if (nombre.length < 2) { fallo('pat-nombre', 'Escribí el nombre de la marca.'); return; }
+
+            // I56 · logo y destino son obligatorios: sin ellos la tarjeta se ve rota.
+            if (!logo) { fallo('pat-logo', 'Falta la URL del logo.'); return; }
+            if (!urlHttpValida(logo)) { fallo('pat-logo', 'La URL del logo tiene que empezar con http:// o https://'); return; }
+
+            if (!url) { fallo('pat-url', 'Falta la URL de destino.'); return; }
+            if (!urlHttpValida(url)) { fallo('pat-url', 'La URL de destino tiene que empezar con http:// o https://'); return; }
 
             alerta('pat-alerta', '');
             ocupado(boton, 'Guardando…');
@@ -7298,6 +7509,357 @@
         (function () {
             var boton = $('recargas-refrescar');
             if (boton) boton.addEventListener('click', cargarRecargasPendientes);
+        })();
+
+        // ═══════════════════════════════════════════════════════════════
+        // I94 · Marcas aliadas (publicidad paga en el Marketplace)
+        // ═══════════════════════════════════════════════════════════════
+
+        var MARCAS_ERRORES = {
+            sin_permisos: 'No tenés permisos de SuperAdmin.',
+            nombre_marca_requerido: 'Completá el nombre de la marca.',
+            nombre_producto_requerido: 'Completá el nombre del producto.',
+            whatsapp_invalido: 'El WhatsApp debe tener entre 8 y 15 dígitos (con código de país, sin 0 ni 15).',
+            foto_url_invalida: 'La URL de la foto debe empezar con http:// o https://.',
+            fecha_fin_requerida: 'Elegí la fecha de fin de la pauta.',
+            marca_no_encontrada: 'Esa marca ya no existe. Actualizá la tabla.'
+        };
+
+        function mensajeErrorMarca(error) {
+            var crudo = String((error && (error.message || error.error_description)) || '').trim();
+            var clave = crudo.toLowerCase();
+            if (MARCAS_ERRORES[clave]) return MARCAS_ERRORES[clave];
+            if (/could not find the function|does not exist/i.test(crudo)) {
+                return 'Falta aplicar la migración i94 en Supabase.';
+            }
+            return crudo || 'No se pudo completar la operación.';
+        }
+
+        function fechaLocalISO(d) {
+            var mes = String(d.getMonth() + 1).padStart(2, '0');
+            var dia = String(d.getDate()).padStart(2, '0');
+            return d.getFullYear() + '-' + mes + '-' + dia;
+        }
+
+        function formatearFechaMarca(valor) {
+            if (!valor) return '—';
+            var texto = String(valor);
+            var d = new Date(texto.length === 10 ? texto + 'T00:00:00' : texto);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        async function cargarMarcasAdmin() {
+            var tbody = $('marcas-tabla');
+            if (!tbody) return;
+            if (typeof supabase === 'undefined' || !supabase) return;
+
+            var alertaEl = $('marcas-alerta');
+            if (alertaEl) {
+                alertaEl.textContent = '';
+                alertaEl.classList.add('oculto');
+            }
+
+            try {
+                var res = await supabase.rpc('admin_listar_marcas');
+                if (res.error) throw res.error;
+                pintarMarcasAdmin(res.data || []);
+            } catch (error) {
+                console.error('I94 · marcas:', error);
+                pintarMarcasAdmin([]);
+                if (alertaEl) {
+                    alertaEl.textContent = mensajeErrorMarca(error);
+                    alertaEl.classList.remove('oculto');
+                }
+            }
+        }
+
+        function pintarMarcasAdmin(filas) {
+            var tbody = $('marcas-tabla');
+            if (!tbody) return;
+
+            var vacio = $('marcas-vacio');
+            var resumen = $('marcas-resumen');
+
+            tbody.textContent = '';
+
+            if (resumen) {
+                if (!filas.length) {
+                    resumen.textContent = '';
+                } else {
+                    var activas = filas.filter(function (f) { return f.activo && !f.vencida; }).length;
+                    var vencidas = filas.filter(function (f) { return f.vencida; }).length;
+                    var partes = [filas.length + (filas.length === 1 ? ' marca' : ' marcas')];
+                    partes.push(activas + ' visible' + (activas === 1 ? '' : 's') + ' en el Marketplace');
+                    if (vencidas) partes.push(vencidas + ' vencida' + (vencidas === 1 ? '' : 's'));
+                    resumen.textContent = partes.join(' · ');
+                }
+            }
+
+            if (vacio) vacio.classList.toggle('oculto', filas.length > 0);
+            if (!filas.length) return;
+
+            filas.forEach(function (f) {
+                var tr = document.createElement('tr');
+
+                // foto
+                var tdFoto = document.createElement('td');
+                if (f.foto_url) {
+                    var img = document.createElement('img');
+                    img.className = 'marca-foto-mini';
+                    img.alt = '';
+                    img.loading = 'lazy';
+                    img.src = f.foto_url;
+                    img.addEventListener('error', function () {
+                        var reemplazo = document.createElement('div');
+                        reemplazo.className = 'marca-foto-vacia';
+                        reemplazo.textContent = '—';
+                        if (img.parentNode) img.parentNode.replaceChild(reemplazo, img);
+                    });
+                    tdFoto.appendChild(img);
+                } else {
+                    var sinFoto = document.createElement('div');
+                    sinFoto.className = 'marca-foto-vacia';
+                    sinFoto.textContent = '—';
+                    tdFoto.appendChild(sinFoto);
+                }
+
+                // marca + whatsapp
+                var tdMarca = document.createElement('td');
+                var marcaNombre = document.createElement('strong');
+                marcaNombre.textContent = f.nombre_marca || '—';
+                tdMarca.appendChild(marcaNombre);
+                var wa = document.createElement('div');
+                wa.style.fontSize = '11px';
+                wa.style.color = 'var(--ink-subtle)';
+                wa.textContent = f.whatsapp_contacto || '';
+                tdMarca.appendChild(wa);
+
+                // producto + descripción
+                var tdProducto = document.createElement('td');
+                tdProducto.textContent = f.nombre_producto || '—';
+                if (f.descripcion) {
+                    var desc = document.createElement('div');
+                    desc.style.fontSize = '11px';
+                    desc.style.color = 'var(--ink-subtle)';
+                    desc.textContent = f.descripcion;
+                    tdProducto.appendChild(desc);
+                }
+
+                // precio
+                var tdPrecio = document.createElement('td');
+                tdPrecio.style.fontWeight = '600';
+                tdPrecio.textContent = f.precio_texto || '—';
+
+                // vencimiento
+                var tdVence = document.createElement('td');
+                tdVence.style.fontSize = '13px';
+                tdVence.textContent = formatearFechaMarca(f.fecha_fin);
+
+                // estado
+                var tdEstado = document.createElement('td');
+                var chip = document.createElement('span');
+                if (f.vencida) {
+                    chip.className = 'marca-estado vencida';
+                    chip.textContent = 'Vencida';
+                } else if (f.activo) {
+                    chip.className = 'marca-estado activa';
+                    chip.textContent = 'Activa';
+                } else {
+                    chip.className = 'marca-estado inactiva';
+                    chip.textContent = 'Inactiva';
+                }
+                tdEstado.appendChild(chip);
+
+                // acciones
+                var tdAcciones = document.createElement('td');
+                var acciones = document.createElement('div');
+                acciones.className = 'marcas-acciones';
+
+                var btnEditar = document.createElement('button');
+                btnEditar.type = 'button';
+                btnEditar.className = 'btn btn-sm';
+                btnEditar.textContent = 'Editar';
+                btnEditar.addEventListener('click', function () { abrirMarcaModal(f); });
+
+                var btnToggle = document.createElement('button');
+                btnToggle.type = 'button';
+                btnToggle.className = 'btn btn-sm ' + (f.activo ? 'btn-peligro' : 'btn-ok');
+                btnToggle.textContent = f.activo ? 'Desactivar' : 'Activar';
+                btnToggle.addEventListener('click', function () { toggleMarca(f, btnToggle); });
+
+                acciones.appendChild(btnEditar);
+                acciones.appendChild(btnToggle);
+                tdAcciones.appendChild(acciones);
+
+                tr.appendChild(tdFoto);
+                tr.appendChild(tdMarca);
+                tr.appendChild(tdProducto);
+                tr.appendChild(tdPrecio);
+                tr.appendChild(tdVence);
+                tr.appendChild(tdEstado);
+                tr.appendChild(tdAcciones);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function limpiarErrorMarca() {
+            var error = $('marca-error');
+            if (!error) return;
+            error.textContent = '';
+            error.classList.add('oculto');
+        }
+
+        function mostrarErrorMarca(texto) {
+            var error = $('marca-error');
+            if (!error) return;
+            error.textContent = texto;
+            error.classList.remove('oculto');
+        }
+
+        function abrirMarcaModal(marca) {
+            var overlay = $('marca-overlay');
+            if (!overlay) return;
+
+            limpiarErrorMarca();
+
+            var esEdicion = !!(marca && marca.id);
+            $('marca-titulo').textContent = esEdicion ? 'Editar marca aliada' : 'Nueva marca aliada';
+            $('marca-id').value = esEdicion ? marca.id : '';
+            $('marca-nombre').value = esEdicion ? (marca.nombre_marca || '') : '';
+            $('marca-producto').value = esEdicion ? (marca.nombre_producto || '') : '';
+            $('marca-descripcion').value = esEdicion ? (marca.descripcion || '') : '';
+            $('marca-precio').value = esEdicion ? (marca.precio_texto || '') : '';
+            $('marca-foto').value = esEdicion ? (marca.foto_url || '') : '';
+            $('marca-whatsapp').value = esEdicion ? (marca.whatsapp_contacto || '') : '';
+
+            if (esEdicion && marca.fecha_fin) {
+                $('marca-fecha').value = String(marca.fecha_fin).slice(0, 10);
+            } else {
+                var dentroDe30 = new Date();
+                dentroDe30.setDate(dentroDe30.getDate() + 30);
+                $('marca-fecha').value = fechaLocalISO(dentroDe30);
+            }
+
+            overlay.classList.remove('oculto');
+            setTimeout(function () { $('marca-nombre').focus(); }, 40);
+        }
+
+        function cerrarMarcaModal() {
+            var overlay = $('marca-overlay');
+            if (overlay) overlay.classList.add('oculto');
+        }
+
+        async function guardarMarca() {
+            limpiarErrorMarca();
+
+            var id = $('marca-id').value || null;
+            var nombreMarca = $('marca-nombre').value.trim();
+            var producto = $('marca-producto').value.trim();
+            var descripcion = $('marca-descripcion').value.trim();
+            var precio = $('marca-precio').value.trim();
+            var foto = $('marca-foto').value.trim();
+            var whatsapp = $('marca-whatsapp').value.replace(/\D/g, '');
+            var fecha = $('marca-fecha').value;
+
+            if (!nombreMarca) { mostrarErrorMarca('Completá el nombre de la marca.'); $('marca-nombre').focus(); return; }
+            if (!producto) { mostrarErrorMarca('Completá el nombre del producto.'); $('marca-producto').focus(); return; }
+            if (whatsapp.length < 8 || whatsapp.length > 15) {
+                mostrarErrorMarca('El WhatsApp debe tener entre 8 y 15 dígitos (con código de país, sin 0 ni 15).');
+                $('marca-whatsapp').focus();
+                return;
+            }
+            if (foto && !/^https?:\/\//i.test(foto)) {
+                mostrarErrorMarca('La URL de la foto debe empezar con http:// o https://.');
+                $('marca-foto').focus();
+                return;
+            }
+            if (!fecha) { mostrarErrorMarca('Elegí la fecha de fin de la pauta.'); $('marca-fecha').focus(); return; }
+
+            var boton = $('marca-guardar');
+            ocupado(boton, 'Guardando…');
+            try {
+                var res = await supabase.rpc('admin_guardar_marca', {
+                    p_id: id,
+                    p_nombre_marca: nombreMarca,
+                    p_nombre_producto: producto,
+                    p_descripcion: descripcion,
+                    p_precio_texto: precio,
+                    p_foto_url: foto,
+                    p_whatsapp: whatsapp,
+                    p_fecha_fin: fecha,
+                    p_activo: true
+                });
+                if (res.error) throw res.error;
+
+                var fila = Array.isArray(res.data) ? res.data[0] : res.data;
+                toast((fila && fila.mensaje) || 'Marca guardada.', 'ok');
+                cerrarMarcaModal();
+                cargarMarcasAdmin();
+            } catch (error) {
+                console.error('I94 · guardar marca:', error);
+                mostrarErrorMarca(mensajeErrorMarca(error));
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        async function toggleMarca(marca, boton) {
+            if (!marca || !marca.id) return;
+            var nuevoEstado = !marca.activo;
+            var ok = await confirmar(
+                nuevoEstado ? 'Activar marca' : 'Desactivar marca',
+                nuevoEstado
+                    ? 'La marca vuelve a mostrarse en el Marketplace (si no está vencida).'
+                    : 'La marca deja de mostrarse en el Marketplace hasta que la reactives.',
+                nuevoEstado ? 'Activar' : 'Desactivar',
+                !nuevoEstado
+            );
+            if (!ok) return;
+
+            ocupado(boton, '…');
+            try {
+                var res = await supabase.rpc('admin_toggle_marca_aliada', {
+                    p_id: marca.id,
+                    p_activo: nuevoEstado
+                });
+                if (res.error) throw res.error;
+                var fila = Array.isArray(res.data) ? res.data[0] : res.data;
+                toast((fila && fila.mensaje) || 'Estado actualizado.', 'ok');
+                cargarMarcasAdmin();
+            } catch (error) {
+                console.error('I94 · toggle marca:', error);
+                toast(mensajeErrorMarca(error), 'error');
+                cargarMarcasAdmin();
+            } finally {
+                ocupado(boton, '');
+            }
+        }
+
+        (function () {
+            var nueva = $('marcas-nueva');
+            if (nueva) nueva.addEventListener('click', function () { abrirMarcaModal(null); });
+
+            var refrescar = $('marcas-refrescar');
+            if (refrescar) refrescar.addEventListener('click', cargarMarcasAdmin);
+
+            var cancelar = $('marca-cancelar');
+            if (cancelar) cancelar.addEventListener('click', cerrarMarcaModal);
+
+            var guardar = $('marca-guardar');
+            if (guardar) guardar.addEventListener('click', guardarMarca);
+
+            var overlay = $('marca-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', function (evento) {
+                    if (evento.target === overlay) cerrarMarcaModal();
+                });
+                document.addEventListener('keydown', function (evento) {
+                    if (evento.key === 'Escape' && !overlay.classList.contains('oculto')) {
+                        cerrarMarcaModal();
+                    }
+                });
+            }
         })();
 
         async function cargarLibroContable() {

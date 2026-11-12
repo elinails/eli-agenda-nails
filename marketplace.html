@@ -330,6 +330,106 @@
     .promo-plan:hover .promo-pie svg { transform: translateX(3px); }
     .promo-plan .promo-pie svg { transition: transform .18s var(--ease); }
 
+    /* ── I94 · marcas y productos aliados (publicidad) ─────────────────── */
+    .aliados {
+        background: var(--surface-2);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        padding: 26px 0 30px;
+    }
+    .aliados-cab {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 12px; margin-bottom: 16px;
+    }
+    .aliados-titulo {
+        margin: 0;
+        font-family: var(--serif); font-size: 22px; font-weight: 600;
+        letter-spacing: -.01em; color: var(--ink);
+    }
+    .aliados-nota {
+        font-size: 10px; font-weight: 600; letter-spacing: .16em;
+        text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+    }
+    .aliados-carrusel {
+        display: flex; gap: 14px;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+    .aliados-carrusel::-webkit-scrollbar { display: none; }
+    .aliados-carrusel > * { scroll-snap-align: start; }
+
+    .aliado {
+        flex: 0 0 210px;
+        display: flex; flex-direction: column;
+        min-width: 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    .aliado-media {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        background: var(--surface-3);
+        overflow: hidden;
+    }
+    .aliado-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .aliado-media-vacia {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--ink-3);
+    }
+    .aliado-media-vacia svg { width: 30px; height: 30px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    .aliado-badge {
+        position: absolute; left: 10px; top: 10px;
+        display: inline-flex; align-items: center;
+        max-width: calc(100% - 20px);
+        padding: 4px 8px; border-radius: 5px;
+        background: var(--gold-badge); color: #3A2A12;
+        font-size: 8.5px; font-weight: 800; letter-spacing: .12em;
+        text-transform: uppercase; line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .aliado-cuerpo { display: flex; flex-direction: column; gap: 4px; padding: 12px 13px 13px; flex: 1; }
+    .aliado-marca {
+        margin: 0;
+        font-size: 9.5px; font-weight: 700; letter-spacing: .14em;
+        text-transform: uppercase; color: var(--gold-ink);
+    }
+    .aliado-producto {
+        margin: 0;
+        font-family: var(--serif); font-size: 18px; font-weight: 600;
+        line-height: 1.15; color: var(--ink);
+        overflow-wrap: anywhere;
+    }
+    .aliado-desc {
+        margin: 0;
+        font-size: 11.5px; line-height: 1.4; color: var(--ink-2);
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .aliado-precio {
+        margin: 2px 0 10px;
+        font-size: 13px; font-weight: 700; color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .aliado-wa {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        min-height: 40px; margin-top: auto; padding: 8px 10px;
+        border-radius: 9px;
+        background: #128C4A; color: #FFFFFF;
+        font-size: 11.5px; font-weight: 700; line-height: 1.15;
+        text-align: center; text-decoration: none;
+        transition: background-color .16s ease;
+    }
+    .aliado-wa:hover { background: #0F7440; }
+    .aliado-wa:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .aliado-wa svg { width: 14px; height: 14px; fill: currentColor; flex: 0 0 auto; }
+
     /* ── resultados ──────────────────────────────────────────────────────── */
     .resultados { padding-top: 34px; padding-bottom: 72px; }
     .resultados-barra {
@@ -802,6 +902,20 @@
         .promo-media { aspect-ratio: 2 / 1; }
         .promo-titulo { font-size: 17px; }
         .promo-texto { display: none; }
+
+        /* I94 · aliados en móvil */
+        .aliados { padding-top: 16px; padding-bottom: 20px; }
+        .aliados-titulo { font-size: 20px; }
+        .aliados-nota { display: none; }
+        .aliados-cab { margin-bottom: 12px; }
+        .aliados-carrusel {
+            padding-right: 20px;
+            -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+        }
+        .aliado { flex: 0 0 186px; }
+        .aliado-producto { font-size: 16.5px; }
+        .aliado-desc { display: none; }
         .promo-plan .promo-titulo { font-size: 19px; }
         .resultados { padding-top: 12px; padding-bottom: 56px; }
         .resultados-barra { margin-bottom: 12px; }
@@ -1222,6 +1336,17 @@
                     </div>
                 </a>
             </div>
+        </div>
+    </section>
+
+    <!-- I94 · Marcas y productos aliados (publicidad paga) -->
+    <section class="aliados" id="aliados" aria-labelledby="aliados-titulo" hidden>
+        <div class="envoltura">
+            <div class="aliados-cab">
+                <h2 class="aliados-titulo" id="aliados-titulo">Marcas y Productos Aliados</h2>
+                <span class="aliados-nota">Insumos y productos de belleza</span>
+            </div>
+            <div class="aliados-carrusel" id="aliados-carrusel"></div>
         </div>
     </section>
 
@@ -2086,6 +2211,136 @@
         });
     }
 
+    // ── I94 · marcas y productos aliados (publicidad) ─────────────────────
+
+    var RPC_MARCAS = SUPABASE_URL + '/rest/v1/rpc/obtener_marcas_aliadas';
+    var ICONO_WA = 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z';
+
+    function whatsappAliado(numero, marca, producto) {
+        var limpio = String(numero || '').replace(/\D/g, '');
+        if (!limpio) return null;
+        var texto = 'Hola ' + marca + ', vi tu producto ' + producto +
+            ' en ELIMA HUB y quiero más información';
+        return 'https://wa.me/' + limpio + '?text=' + encodeURIComponent(texto);
+    }
+
+    function medioAliadoVacio() {
+        var caja = document.createElement('div');
+        caja.className = 'aliado-media-vacia';
+        caja.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M4 5h16v14H4z"/><path d="m7 15 3-3 2.5 2.5L15 12l3 3"/>' +
+            '<circle cx="9" cy="9" r="1.2"/></svg>';
+        return caja;
+    }
+
+    function crearTarjetaAliado(fila) {
+        var articulo = document.createElement('article');
+        articulo.className = 'aliado';
+
+        var media = document.createElement('div');
+        media.className = 'aliado-media';
+
+        var foto = String(fila.foto_url || '');
+        if (/^https?:\/\//i.test(foto)) {
+            var img = document.createElement('img');
+            img.src = foto;
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.alt = (fila.nombre_producto || 'Producto') + ' de ' + (fila.nombre_marca || 'marca aliada');
+            img.addEventListener('error', function () {
+                if (img.parentNode) img.parentNode.replaceChild(medioAliadoVacio(), img);
+            });
+            media.appendChild(img);
+        } else {
+            media.appendChild(medioAliadoVacio());
+        }
+
+        var badge = document.createElement('span');
+        badge.className = 'aliado-badge';
+        badge.textContent = fila.nombre_marca || 'Aliado';
+        media.appendChild(badge);
+
+        var cuerpo = document.createElement('div');
+        cuerpo.className = 'aliado-cuerpo';
+
+        var marca = document.createElement('p');
+        marca.className = 'aliado-marca';
+        marca.textContent = fila.nombre_marca || '';
+
+        var producto = document.createElement('h3');
+        producto.className = 'aliado-producto';
+        producto.textContent = fila.nombre_producto || '';
+
+        cuerpo.appendChild(marca);
+        cuerpo.appendChild(producto);
+
+        if (fila.descripcion) {
+            var desc = document.createElement('p');
+            desc.className = 'aliado-desc';
+            desc.textContent = fila.descripcion;
+            cuerpo.appendChild(desc);
+        }
+
+        if (fila.precio_texto) {
+            var precio = document.createElement('p');
+            precio.className = 'aliado-precio';
+            precio.textContent = fila.precio_texto;
+            cuerpo.appendChild(precio);
+        }
+
+        var url = whatsappAliado(fila.whatsapp_contacto, fila.nombre_marca || '', fila.nombre_producto || '');
+        if (url) {
+            var enlace = document.createElement('a');
+            enlace.className = 'aliado-wa';
+            enlace.href = url;
+            enlace.target = '_blank';
+            enlace.rel = 'noopener noreferrer';
+            enlace.setAttribute('aria-label', 'Consultar por WhatsApp: ' + (fila.nombre_producto || 'producto'));
+            var icono = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icono.setAttribute('viewBox', '0 0 24 24');
+            icono.setAttribute('aria-hidden', 'true');
+            var camino = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            camino.setAttribute('d', ICONO_WA);
+            icono.appendChild(camino);
+            var etiqueta = document.createElement('span');
+            etiqueta.textContent = 'Consultar por WhatsApp';
+            enlace.appendChild(icono);
+            enlace.appendChild(etiqueta);
+            cuerpo.appendChild(enlace);
+        }
+
+        articulo.appendChild(media);
+        articulo.appendChild(cuerpo);
+        return articulo;
+    }
+
+    async function cargarMarcasAliadas() {
+        var seccion = $('aliados');
+        var carrusel = $('aliados-carrusel');
+        if (!seccion || !carrusel) return;
+
+        try {
+            var respuesta = await postRpc(RPC_MARCAS, {});
+            if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status);
+            var filas = await respuesta.json();
+
+            if (!Array.isArray(filas) || !filas.length) {
+                seccion.hidden = true;
+                return;
+            }
+
+            carrusel.textContent = '';
+            filas.forEach(function (fila) {
+                carrusel.appendChild(crearTarjetaAliado(fila));
+            });
+            seccion.hidden = false;
+        } catch (error) {
+            // Es publicidad: si falla, el Marketplace sigue funcionando igual.
+            console.warn('I94 · marcas aliadas:', error);
+            seccion.hidden = true;
+        }
+    }
+
     function limpiarDetalleModal() {
         var direccion = $('modal-direccion');
         if (direccion) {
@@ -2622,6 +2877,8 @@
     inicializarFiltrosAvanzados();
     cargar();
     checkAuthLogic();
+    // I94 · publicidad de marcas aliadas (se oculta sola si no hay ninguna).
+    cargarMarcasAliadas();
 })();
 </script>
 </body>
