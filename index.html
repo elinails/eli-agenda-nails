@@ -1855,7 +1855,8 @@
         /* I49 · feature flags */
         body.sin-whatsapp .whatsapp-btn,
         body.sin-whatsapp #modal-whatsapp-btn,
-        body.sin-whatsapp #whatsapp-btn { display: none !important; }
+        body.sin-whatsapp #whatsapp-btn,
+        body.sin-whatsapp .solicitud-wa-bloque { display: none !important; }
         .aviso-registro {
             margin-top: 10px; font-size: 12.5px; line-height: 1.4;
             color: var(--ink-soft); text-align: center;
@@ -2133,6 +2134,55 @@
         .solicitud-acciones .btn-primary,
         .solicitud-acciones .btn-danger { width: auto; }
         .solicitud-telefono { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+        /* I93 · respuesta rápida por WhatsApp desde solicitudes */
+        .solicitud-wa-bloque { margin-top: 8px; }
+        .solicitud-wa-toggle { display: inline-flex; align-items: center; gap: 7px; }
+        .solicitud-wa-toggle .fab { font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", sans-serif; }
+        .solicitud-wa {
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--paper);
+        }
+        .solicitud-wa.hidden { display: none; }
+        .solicitud-wa-ayuda { margin: 0 0 8px; font-size: 12px; color: var(--ink-soft); }
+        .solicitud-wa-texto {
+            width: 100%;
+            min-height: 92px;
+            padding: 10px 12px;
+            resize: vertical;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--ink);
+            font: inherit;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .solicitud-wa-texto:focus { outline: 2px solid var(--gold-ink); outline-offset: 1px; }
+        .solicitud-wa-rapidas { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+        .solicitud-wa-rapida {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--blush-2);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .solicitud-wa-rapida:hover { border-color: var(--gold); }
+        .solicitud-wa-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .solicitud-wa-enviar {
+            display: inline-flex; align-items: center; gap: 7px;
+            min-height: 44px;
+            border: 0;
+            background: #25D366;
+            color: #0B3D1E;
+        }
+        .solicitud-wa-enviar:hover { background: #1FA855; }
 
         /* I62 · perfil público (ELIMA HUB) */
         .mi-salon-perfil {
@@ -3784,7 +3834,7 @@
             <div class="flex items-start justify-between gap-4 mb-2">
                 <div>
                     <h3 id="solicitudes-modal-titulo" class="text-xl font-bold text-eli-dark">Solicitudes pendientes</h3>
-                    <p class="setting-note mt-1">Aprobá para crear el turno o rechazá la solicitud.</p>
+                    <p class="setting-note mt-1">Aprobá para crear el turno, rechazá la solicitud o respondé por WhatsApp.</p>
                 </div>
                 <button type="button" id="solicitudes-cerrar" class="btn" style="width:38px;height:38px;padding:0" aria-label="Cerrar solicitudes">×</button>
             </div>
@@ -4440,6 +4490,56 @@
                 return nodo;
             }
 
+            // I93 · respuestas por WhatsApp para solicitudes de reserva.
+            function nombrePilaSolicitud(sol) {
+                const nombre = String((sol && sol.cliente_nombre) || '').trim().split(/\s+/)[0];
+                return nombre || 'clienta';
+            }
+
+            function telefonoSolicitudWhatsApp(sol) {
+                return telefonoWhatsApp(sol && sol.cliente_telefono);
+            }
+
+            function mensajeWhatsAppSolicitud(sol, tipo) {
+                const nombre = nombrePilaSolicitud(sol);
+                const fecha = formatDate(sol.fecha);
+                const hora = String(sol.hora || '').slice(0, 5);
+                if (tipo === 'sin-horario') {
+                    return 'Hola ' + nombre + ', lamentablemente el horario del ' + fecha + ' a las ' + hora +
+                        ' no está disponible. ¿Te sirve otro horario?';
+                }
+                if (tipo === 'otro-horario') {
+                    return 'Hola ' + nombre + ', ¿te sirve otro horario? Contame qué día y horario te vienen bien y lo coordinamos.';
+                }
+                if (tipo === 'sena') {
+                    return 'Hola ' + nombre + ', para reservar ese horario necesitamos una seña. ¿Te paso los datos de pago?';
+                }
+                if (tipo === 'rechazo') {
+                    return 'Hola ' + nombre + ', lamentablemente no tenemos disponibilidad para el ' + fecha +
+                        ' a las ' + hora + '. ¿Te sirve otro día?';
+                }
+                return 'Hola ' + nombre + ', te escribo por tu solicitud de turno para el ' + fecha +
+                    ' a las ' + hora + '.';
+            }
+
+            function abrirWhatsAppSolicitud(sol, mensaje) {
+                if (flagsApp && flagsApp.whatsapp_habilitado === false) {
+                    mostrarBanner('El envío por WhatsApp está deshabilitado por el administrador.', 'error');
+                    return;
+                }
+                const telefono = telefonoSolicitudWhatsApp(sol);
+                const texto = String(mensaje || '').trim();
+                if (!telefono) {
+                    mostrarBanner('La solicitud no tiene un teléfono válido para WhatsApp.', 'error');
+                    return;
+                }
+                if (!texto) {
+                    mostrarBanner('Escribí un mensaje antes de enviar.', 'error');
+                    return;
+                }
+                window.open('https://wa.me/' + telefono + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+            }
+
             function pintarPanelSolicitudes() {
                 const panel = document.getElementById('solicitudes-panel');
                 const contador = document.getElementById('solicitudes-count');
@@ -4534,6 +4634,99 @@
                     acciones.appendChild(rechazar);
                     tarjeta.appendChild(acciones);
 
+                    // I93 · responder por WhatsApp sin perder el contacto.
+                    const telefonoWa = telefonoSolicitudWhatsApp(sol);
+                    if (telefonoWa && (!flagsApp || flagsApp.whatsapp_habilitado !== false)) {
+                        const bloqueWa = crearNodoSolicitud('div', 'solicitud-wa-bloque');
+                        const panelWa = crearNodoSolicitud('div', 'solicitud-wa hidden');
+                        panelWa.id = 'solicitud-wa-' + sol.id;
+                        panelWa.setAttribute('role', 'group');
+                        panelWa.setAttribute('aria-label', 'Responder por WhatsApp a ' + (sol.cliente_nombre || 'la clienta'));
+
+                        const toggleWa = document.createElement('button');
+                        toggleWa.type = 'button';
+                        toggleWa.className = 'btn-secondary px-4 py-2 rounded-lg font-medium text-sm solicitud-wa-toggle';
+                        toggleWa.setAttribute('aria-expanded', 'false');
+                        toggleWa.setAttribute('aria-controls', panelWa.id);
+                        const iconoWa = document.createElement('i');
+                        iconoWa.className = 'fab fa-whatsapp';
+                        iconoWa.setAttribute('aria-hidden', 'true');
+                        toggleWa.appendChild(iconoWa);
+                        toggleWa.appendChild(document.createTextNode(' Responder por WhatsApp'));
+
+                        const ayuda = crearNodoSolicitud('p', 'solicitud-wa-ayuda',
+                            'Escribí o elegí una respuesta rápida. Podés editarla antes de enviarla.');
+                        const textoWa = document.createElement('textarea');
+                        textoWa.className = 'solicitud-wa-texto';
+                        textoWa.rows = 3;
+                        textoWa.maxLength = 800;
+                        textoWa.value = mensajeWhatsAppSolicitud(sol, 'base');
+                        textoWa.setAttribute('aria-label', 'Mensaje para ' + (sol.cliente_nombre || 'la clienta'));
+
+                        const rapidas = crearNodoSolicitud('div', 'solicitud-wa-rapidas');
+                        [
+                            { tipo: 'sin-horario', texto: 'El horario no está disponible' },
+                            { tipo: 'otro-horario', texto: 'Te ofrezco otro horario' },
+                            { tipo: 'sena', texto: 'Requiere seña' }
+                        ].forEach(function (opcion) {
+                            const botonRapido = crearNodoSolicitud('button', 'solicitud-wa-rapida', opcion.texto);
+                            botonRapido.type = 'button';
+                            botonRapido.addEventListener('click', function () {
+                                textoWa.value = mensajeWhatsAppSolicitud(sol, opcion.tipo);
+                                textoWa.focus();
+                            });
+                            rapidas.appendChild(botonRapido);
+                        });
+
+                        const accionesWa = crearNodoSolicitud('div', 'solicitud-wa-acciones');
+                        const enviarWa = document.createElement('button');
+                        enviarWa.type = 'button';
+                        enviarWa.className = 'rounded-lg font-medium text-sm solicitud-wa-enviar px-4 py-2';
+                        const iconoEnviar = document.createElement('i');
+                        iconoEnviar.className = 'fab fa-whatsapp';
+                        iconoEnviar.setAttribute('aria-hidden', 'true');
+                        enviarWa.appendChild(iconoEnviar);
+                        enviarWa.appendChild(document.createTextNode(' Enviar por WhatsApp'));
+                        const cancelarWa = crearNodoSolicitud('button',
+                            'btn-secondary px-4 py-2 rounded-lg font-medium text-sm', 'Cancelar');
+                        cancelarWa.type = 'button';
+
+                        enviarWa.addEventListener('click', function () {
+                            abrirWhatsAppSolicitud(sol, textoWa.value);
+                        });
+                        cancelarWa.addEventListener('click', function () {
+                            panelWa.classList.add('hidden');
+                            toggleWa.setAttribute('aria-expanded', 'false');
+                            toggleWa.focus();
+                        });
+                        toggleWa.addEventListener('click', function () {
+                            const estabaAbierto = !panelWa.classList.contains('hidden');
+                            document.querySelectorAll('.solicitud-wa').forEach(function (p) {
+                                p.classList.add('hidden');
+                            });
+                            document.querySelectorAll('.solicitud-wa-toggle').forEach(function (b) {
+                                b.setAttribute('aria-expanded', 'false');
+                            });
+                            if (estabaAbierto) {
+                                toggleWa.focus();
+                                return;
+                            }
+                            panelWa.classList.remove('hidden');
+                            toggleWa.setAttribute('aria-expanded', 'true');
+                            textoWa.focus();
+                        });
+
+                        accionesWa.appendChild(enviarWa);
+                        accionesWa.appendChild(cancelarWa);
+                        panelWa.appendChild(ayuda);
+                        panelWa.appendChild(textoWa);
+                        panelWa.appendChild(rapidas);
+                        panelWa.appendChild(accionesWa);
+                        bloqueWa.appendChild(toggleWa);
+                        bloqueWa.appendChild(panelWa);
+                        tarjeta.appendChild(bloqueWa);
+                    }
+
                     lista.appendChild(tarjeta);
                 });
             }
@@ -4618,9 +4811,21 @@
                         try {
                             const res = await supabase.rpc('rechazar_solicitud', { p_solicitud: sol.id });
                             if (res.error) throw res.error;
-                            mostrarBanner('Solicitud rechazada.', 'ok');
                             await cargarSolicitudes();
                             renderSolicitudesModal();
+                            if (telefonoSolicitudWhatsApp(sol) && (!flagsApp || flagsApp.whatsapp_habilitado !== false)) {
+                                mostrarBanner('Solicitud rechazada. ¿Querés avisarle por WhatsApp?', 'ok', {
+                                    duracion: 15000,
+                                    acciones: [{
+                                        texto: 'Avisar por WhatsApp',
+                                        alTocar: function () {
+                                            abrirWhatsAppSolicitud(sol, mensajeWhatsAppSolicitud(sol, 'rechazo'));
+                                        }
+                                    }]
+                                });
+                            } else {
+                                mostrarBanner('Solicitud rechazada.', 'ok');
+                            }
                         } catch (error) {
                             console.error('I69 · rechazar solicitud:', error);
                             mostrarBanner(mensajeErrorSolicitud(error), 'error');
@@ -6608,44 +6813,74 @@
             // ══════════════════════════════════════════════════════════════
             // I93 · Notificaciones in-app (campana + badge + sonido)
             // ══════════════════════════════════════════════════════════════
-            const NOTIF_SONIDO = 'https://actions.google.com/sounds/v1/alarms/notification_high_pitch.ogg';
+            // I93 · Sonido con Web Audio API. Funciona en iOS/Safari; el .ogg no.
             var notifEstado = { lista: [], noLeidas: 0, timer: null, ultimaNueva: null };
-            var notifAudio = null;
-            var notifAudioArmado = false;
+            var notifCtx = null;
 
-            // Los navegadores bloquean el audio sin gesto del usuario. En el
-            // primer clic armamos el <audio> y lo "tocamos" en silencio para
-            // dejar el permiso concedido; después sonará solo.
-            function armarAudioNotif() {
-                if (notifAudioArmado) return;
-                notifAudioArmado = true;
+            function asegurarAudioCtx() {
                 try {
-                    notifAudio = new Audio(NOTIF_SONIDO);
-                    notifAudio.preload = 'auto';
-                    notifAudio.volume = 0.55;
-                } catch (error) { notifAudio = null; }
+                    var AC = window.AudioContext || window.webkitAudioContext;
+                    if (!AC) return null;
+                    if (!notifCtx) notifCtx = new AC();
+                    if (notifCtx.state === 'suspended') {
+                        try { notifCtx.resume(); } catch (error) { /* noop */ }
+                    }
+                    return notifCtx;
+                } catch (error) { return null; }
             }
 
-            document.addEventListener('click', function desbloquearAudio() {
-                armarAudioNotif();
-                if (notifAudio) {
-                    var p = notifAudio.play();
-                    if (p && p.catch) p.catch(function () { /* aún bloqueado */ });
-                    setTimeout(function () {
-                        try { notifAudio.pause(); notifAudio.currentTime = 0; } catch (error) { /* noop */ }
-                    }, 0);
+            // Beep agudo de 0.2 s (dos tonos), sin archivos externos.
+            function reproducirBeep() {
+                var ctx = asegurarAudioCtx();
+                if (!ctx) return;
+
+                function programar() {
+                    try {
+                        var t0 = ctx.currentTime + 0.01;
+                        var osc = ctx.createOscillator();
+                        var gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1046.5, t0);          // C6
+                        osc.frequency.setValueAtTime(1318.5, t0 + 0.1);    // E6
+                        gain.gain.setValueAtTime(0.0001, t0);
+                        gain.gain.exponentialRampToValueAtTime(0.16, t0 + 0.015);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(t0);
+                        osc.stop(t0 + 0.21);
+                    } catch (error) { /* noop */ }
                 }
-                document.removeEventListener('click', desbloquearAudio);
-            });
+
+                if (ctx.state === 'suspended') {
+                    try {
+                        ctx.resume().then(programar).catch(function () { /* noop */ });
+                    } catch (error) { /* noop */ }
+                } else {
+                    programar();
+                }
+            }
+
+            // iOS exige crear/reanudar el AudioContext dentro de un gesto.
+            function desbloquearAudioNotif() {
+                var ctx = asegurarAudioCtx();
+                if (ctx) {
+                    try {
+                        var buffer = ctx.createBuffer(1, 1, 22050);
+                        var src = ctx.createBufferSource();
+                        src.buffer = buffer;
+                        src.connect(ctx.destination);
+                        src.start(0);
+                    } catch (error) { /* noop */ }
+                }
+                document.removeEventListener('click', desbloquearAudioNotif);
+                document.removeEventListener('keydown', desbloquearAudioNotif);
+            }
+            document.addEventListener('click', desbloquearAudioNotif);
+            document.addEventListener('keydown', desbloquearAudioNotif);
 
             function sonarNotificacion() {
-                if (!notifAudio) armarAudioNotif();
-                if (!notifAudio) return;
-                try {
-                    notifAudio.currentTime = 0;
-                    var p = notifAudio.play();
-                    if (p && p.catch) p.catch(function () { /* bloqueado */ });
-                } catch (error) { /* noop */ }
+                reproducirBeep();
             }
 
             function fechaNotif(iso) {
