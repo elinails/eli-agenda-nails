@@ -3,39 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#FAF6F3">
-<meta name="description" content="ELIMA HUB: descubrí salones de uñas, peluquería, maquillaje y barbería cerca tuyo.">
-<meta property="og:title" content="ELIMA HUB · Salones de belleza">
-<meta property="og:description" content="Descubrí salones de uñas, peluquería, maquillaje y barbería. Reseñas reales de clientas.">
+<meta name="theme-color" content="#FAF6F2">
+<meta name="description" content="ELIMA HUB: encontrá salones de uñas, peluquería, maquillaje y barbería. Reservá online sin cuenta y leé reseñas de clientas reales.">
+<meta property="og:title" content="ELIMA HUB · Marketplace de belleza">
+<meta property="og:description" content="Encontrá tu salón ideal y reservá online sin cuenta. Uñas, pelo, maquillaje y barbería con reseñas de clientas.">
 <meta property="og:type" content="website">
-<title>ELIMA HUB · Salones de belleza</title>
+<title>ELIMA HUB · Marketplace de belleza</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+    /* ==========================================================================
+       ELIMA HUB · Marketplace
+       Dirección: bazar editorial cálido, denso y transaccional.
+       Tokens → base → header → hero/buscador → promos → tarjetas → estados
+       → modal → pie → responsive.
+       ========================================================================== */
+
     :root {
-        --paper: #FAF6F3;
+        --paper: #FAF6F2;
         --surface: #FFFFFF;
-        --surface-2: #F7EFEC;
-        --blush: #E9D3DC;
-        --blush-2: #F4E7EC;
-        --ink: #3B2F35;
-        --ink-soft: #776569;
-        --ink-faint: #9C8B90;
-        --line: #EADFDB;
-        --gold: #BE9E6F;
-        --gold-ink: #8C6B3A;
-        --gold-soft: rgba(190, 158, 111, .16);
-        --shadow: 0 1px 2px rgba(59, 47, 53, .04), 0 8px 24px rgba(59, 47, 53, .06);
-        --shadow-lg: 0 24px 60px rgba(59, 47, 53, .18);
+        --surface-2: #F5EDE7;
+        --surface-3: #EFE4DC;
+        --ink: #2A2024;
+        --ink-2: #5B4A4F;
+        --ink-3: #7E6C71;
+        --line: #E8DED7;
+        --line-strong: #D8C9C0;
+        --gold: #C9A45F;
+        --gold-badge: #E7C583;
+        --gold-ink: #7A5A24;
+        --gold-soft: #F4E8D2;
+        --cta: #A94A22;
+        --cta-hover: #8E3A18;
+        --band: #251C20;
+        --band-2: #33252A;
+        --cream: #F9F1E8;
+        --shadow-sm: 0 1px 2px rgba(42, 32, 36, .05);
+        --shadow: 0 2px 4px rgba(42, 32, 36, .04), 0 10px 26px rgba(42, 32, 36, .07);
+        --shadow-lg: 0 24px 56px rgba(42, 32, 36, .18);
         --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
         --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        --radio: 16px;
+        --radius-sm: 8px;
+        --radius: 14px;
+        --radius-lg: 18px;
+        --max: 1200px;
+        --gutter: 24px;
+        --ease: cubic-bezier(.22, .61, .36, 1);
     }
 
+    /* ── base ────────────────────────────────────────────────────────────── */
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     html, body { margin: 0; padding: 0; }
     body {
         background: var(--paper);
@@ -47,18 +68,25 @@
         min-height: 100dvh;
     }
     img { max-width: 100%; display: block; }
-    a { color: var(--gold-ink); }
+    a { color: var(--gold-ink); text-underline-offset: 3px; }
     button { font-family: inherit; }
+    ::selection { background: var(--gold-soft); color: var(--ink); }
+    :focus-visible { outline: 2px solid var(--cta); outline-offset: 2px; }
 
-    .envoltura { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    .envoltura { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+    .sr-solo {
+        position: absolute; width: 1px; height: 1px;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
 
-    /* ── header ── */
+    /* ── header ──────────────────────────────────────────────────────────── */
     .cabecera {
         position: sticky;
         top: 0;
-        z-index: 30;
-        background: rgba(250, 246, 243, .92);
-        backdrop-filter: blur(12px);
+        z-index: 40;
+        background: rgba(250, 246, 242, .9);
+        backdrop-filter: blur(14px) saturate(1.1);
+        -webkit-backdrop-filter: blur(14px) saturate(1.1);
         border-bottom: 1px solid var(--line);
     }
     .cabecera-fila {
@@ -66,340 +94,557 @@
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        min-height: 64px;
+        min-height: 62px;
     }
     .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
     .marca-logo {
-        width: 34px; height: 34px; border-radius: 50%;
-        border: 1px solid var(--line); background: var(--surface);
-    }
-
-    /* I63 · contenedor de logo de salón 1:1 estricto */
-    .salon-logo-container {
-        width: 80px;
-        height: 80px;
-        aspect-ratio: 1 / 1;
+        width: 32px; height: 32px;
         border-radius: 50%;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .salon-logo-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    /* Variante tarjeta: el logo se ubica DENTRO de la portada, nunca suelto
-       entre la portada y el título (eso lo dejaba cortado por el overflow). */
-    .salon-logo-container.tarjeta-logo-badge {
-        position: absolute;
-        left: 12px;
-        bottom: 12px;
-        z-index: 2;
-        border: 2px solid rgba(255, 255, 255, .92);
-        box-shadow: 0 2px 10px rgba(59, 47, 53, .18);
-        background: var(--surface);
-        color: var(--gold-ink);
-        font-family: var(--serif);
-        font-size: 30px;
-        font-weight: 600;
-    }
-    .salon-logo-container.tarjeta-logo-centro {
-        position: absolute;
-        inset: 0;
-        margin: auto;
-        background: var(--surface);
-        color: var(--gold-ink);
-        font-family: var(--serif);
-        font-size: 30px;
-        font-weight: 600;
-    }
-    .marca-texto { display: grid; line-height: 1.05; }
-    .marca-nombre { font-family: var(--serif); font-size: 20px; font-weight: 600; letter-spacing: .01em; }
-    .marca-sub { font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
-    .cabecera-acciones { display: flex; align-items: center; gap: 8px; }
-    .btn-app {
-        display: inline-flex; align-items: center; gap: 8px;
-        min-height: 40px; padding: 0 16px;
-        border-radius: 999px;
         border: 1px solid var(--line);
         background: var(--surface);
-        color: var(--ink);
-        font-size: 13px; font-weight: 500;
+        object-fit: cover;
+    }
+    .marca-texto { display: grid; gap: 3px; line-height: 1; }
+    .marca-nombre { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: .01em; }
+    .marca-sub { font-size: 8.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+    .cabecera-acciones { display: flex; align-items: center; gap: 16px; }
+    .cabecera-link {
+        font-size: 12.5px; font-weight: 600; color: var(--ink-2);
         text-decoration: none;
-        transition: border-color .16s ease, background-color .16s ease;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 2px;
+        transition: color .16s ease, border-color .16s ease;
     }
-    .btn-app:hover { border-color: var(--gold); background: var(--surface-2); }
+    .cabecera-link:hover { color: var(--ink); border-bottom-color: var(--gold); }
+    .btn-app {
+        display: inline-flex; align-items: center; gap: 7px;
+        min-height: 38px; padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 12.5px; font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+    }
+    .btn-app:hover { background: var(--surface-2); border-color: var(--gold); }
+    .btn-app:active { transform: translateY(1px); }
 
-    /* ── hero ── */
-    .hero { padding-top: 56px; padding-bottom: 28px; text-align: center; }
-    .hero-etiqueta {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
-        color: var(--gold-ink);
-        background: var(--gold-soft);
-        border-radius: 999px;
-        padding: 6px 14px;
-        margin-bottom: 18px;
+    /* ── hero + buscador integrado ───────────────────────────────────────── */
+    .hero { padding-top: 38px; padding-bottom: 34px; }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(380px, .88fr);
+        align-items: end;
+        gap: 40px;
     }
+    .hero-etiqueta {
+        display: inline-flex; align-items: center; gap: 9px;
+        margin-bottom: 14px;
+        font-size: 9.5px; font-weight: 600; letter-spacing: .19em;
+        text-transform: uppercase;
+        color: var(--gold-ink);
+    }
+    .hero-etiqueta::before { content: ""; width: 22px; height: 1px; background: var(--gold); }
     .hero h1 {
         font-family: var(--serif);
-        font-size: clamp(34px, 6vw, 56px);
+        font-size: clamp(30px, 3.7vw, 46px);
         font-weight: 600;
-        line-height: 1.08;
-        letter-spacing: -.01em;
-        margin: 0 auto 12px;
-        max-width: 18ch;
+        line-height: 1.02;
+        letter-spacing: -.02em;
+        margin: 0 0 12px;
+        max-width: 16ch;
+        text-wrap: balance;
     }
-    .hero h1 em { font-style: italic; color: var(--gold-ink); }
-    .hero p { margin: 0 auto; max-width: 52ch; color: var(--ink-soft); font-size: 15.5px; }
+    .hero h1 em { font-style: italic; color: var(--cta); white-space: nowrap; }
+    .hero p { margin: 0; max-width: 46ch; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
 
-    /* ── buscador ── */
-    .buscador { margin: 28px auto 0; max-width: 620px; position: relative; }
+    .buscador-panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        padding: 6px;
+    }
+    .buscador { position: relative; display: flex; align-items: center; }
     .buscador-icono {
-        position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-        width: 18px; height: 18px; color: var(--ink-faint); pointer-events: none;
+        position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+        width: 18px; height: 18px; color: var(--ink-3); pointer-events: none;
     }
     .buscador input {
         width: 100%;
-        min-height: 54px;
-        padding: 0 52px 0 48px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--surface);
+        min-height: 52px;
+        padding: 0 46px 0 44px;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
         color: var(--ink);
         font-size: 15px;
         font-family: inherit;
-        box-shadow: var(--shadow);
         outline: none;
-        transition: border-color .16s ease, box-shadow .16s ease;
     }
-    .buscador input::placeholder { color: var(--ink-faint); }
-    .buscador input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+    .buscador input::placeholder { color: var(--ink-3); }
+    .buscador input:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
     .buscador-limpiar {
-        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-        width: 34px; height: 34px; border-radius: 50%;
-        border: 0; background: var(--surface-2); color: var(--ink-soft);
-        font-size: 16px; line-height: 1; cursor: pointer;
+        position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+        display: grid; place-items: center;
+        width: 32px; height: 32px; border-radius: 50%;
+        border: 0; background: var(--surface-2); color: var(--ink-2);
+        font-size: 18px; line-height: 1; cursor: pointer;
+        transition: background-color .16s ease, color .16s ease;
     }
+    .buscador-limpiar:hover { background: var(--surface-3); color: var(--ink); }
     .buscador-limpiar[hidden] { display: none; }
-
-    /* ── filtros ── */
+    .buscador-filtros { border-top: 1px solid var(--line); margin-top: 2px; padding: 8px 4px 2px; }
     .filtros {
-        display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-        margin: 22px auto 0;
+        display: flex; gap: 6px;
+        overflow-x: auto;
+        padding: 1px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
+    .filtros::-webkit-scrollbar { display: none; }
     .chip {
+        flex: 0 0 auto;
         display: inline-flex; align-items: center;
-        min-height: 40px; padding: 0 16px;
+        min-height: 32px; padding: 0 12px;
         border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--surface);
-        color: var(--ink-soft);
-        font-size: 13px; font-weight: 500;
+        border: 1px solid transparent;
+        background: var(--surface-2);
+        color: var(--ink-2);
+        font-size: 12px; font-weight: 600;
+        white-space: nowrap;
         cursor: pointer;
-        transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+        transition: background-color .14s ease, color .14s ease, border-color .14s ease;
     }
-    .chip:hover { border-color: var(--gold); color: var(--ink); }
-    .chip[aria-pressed="true"] {
-        background: var(--ink);
-        border-color: var(--ink);
-        color: var(--paper);
-    }
+    .chip:hover { background: var(--surface-3); color: var(--ink); }
+    .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+    .chip[aria-pressed="true"]:hover { background: var(--band-2); }
 
-    /* ── resultados ── */
-    .resultados { padding-top: 34px; padding-bottom: 80px; }
-    .resultados-barra {
-        display: flex; align-items: baseline; justify-content: space-between;
-        gap: 12px; margin-bottom: 18px;
+    /* ── promociones destacadas (franja comercial) ───────────────────────── */
+    .destacados {
+        background: var(--band);
+        border-top: 1px solid rgba(201, 164, 95, .38);
+        padding: 26px 0 30px;
+        margin-top: 6px;
+        color: var(--cream);
     }
-    .resultados-titulo { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0; }
-    .resultados-cuenta { font-size: 13px; color: var(--ink-soft); }
+    .destacados-cab {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 12px; margin-bottom: 16px;
+    }
+    .destacados-titulo {
+        font-family: var(--serif); font-size: 22px; font-weight: 600;
+        letter-spacing: -.01em; margin: 0; color: var(--cream);
+    }
+    .destacados-nota {
+        font-size: 10px; font-weight: 500; letter-spacing: .16em;
+        text-transform: uppercase; color: rgba(249, 241, 232, .64);
+        white-space: nowrap;
+    }
+    .destacados-carrusel {
+        display: flex; gap: 14px;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+    .destacados-carrusel::-webkit-scrollbar { display: none; }
+    .destacados-carrusel > * { scroll-snap-align: start; }
+
+    .promo {
+        flex: 0 0 250px;
+        display: flex; flex-direction: column;
+        min-width: 0;
+        background: var(--band-2);
+        border: 1px solid rgba(249, 241, 232, .1);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+    .promo-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--band); }
+    .promo-media img { width: 100%; height: 100%; object-fit: cover; }
+    .promo-media::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(20, 13, 15, .04) 30%, rgba(20, 13, 15, .45) 100%);
+    }
+    .promo-badge {
+        position: absolute; top: 10px; left: 10px; z-index: 1;
+        display: inline-flex; align-items: center;
+        padding: 4px 8px;
+        border-radius: 5px;
+        background: var(--gold-badge);
+        color: #3A2A12;
+        font-size: 8.5px; font-weight: 800; letter-spacing: .14em;
+        text-transform: uppercase; line-height: 1.2;
+    }
+    .promo-cuerpo { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px 13px; flex: 1; }
+    .promo-titulo {
+        margin: 0;
+        font-family: var(--serif); font-size: 19px; font-weight: 600;
+        line-height: 1.1; letter-spacing: -.01em; color: var(--cream);
+    }
+    .promo-texto { margin: 0; font-size: 11.5px; line-height: 1.4; color: rgba(249, 241, 232, .7); }
+    .promo-pie {
+        display: inline-flex; align-items: center; gap: 5px;
+        margin-top: auto; padding-top: 7px;
+        font-size: 9px; font-weight: 600; letter-spacing: .13em;
+        text-transform: uppercase; color: rgba(249, 241, 232, .62);
+    }
+    .promo-pie svg { width: 11px; height: 11px; }
+
+    .promo-plan {
+        background: #E6C486;
+        border-color: rgba(120, 86, 34, .22);
+        text-decoration: none;
+        color: #2A1E0E;
+        transition: background-color .18s ease;
+    }
+    .promo-plan:hover { background: #EED09A; }
+    .promo-plan .promo-cuerpo { padding: 16px 16px 15px; gap: 7px; justify-content: space-between; }
+    .promo-plan .promo-badge {
+        position: static; align-self: flex-start;
+        background: #2A2024; color: #F4E8D2;
+    }
+    .promo-plan .promo-titulo { color: #2A1E0E; font-size: 22px; line-height: 1.04; }
+    .promo-plan .promo-texto { color: rgba(42, 30, 14, .8); font-size: 12px; }
+    .promo-plan .promo-pie {
+        color: #2A1E0E; font-size: 10px; letter-spacing: .1em;
+        border-top: 1px solid rgba(42, 30, 14, .18);
+        padding-top: 9px;
+        margin-top: 0;
+    }
+    .promo-plan:hover .promo-pie svg { transform: translateX(3px); }
+    .promo-plan .promo-pie svg { transition: transform .18s var(--ease); }
+
+    /* ── resultados ──────────────────────────────────────────────────────── */
+    .resultados { padding-top: 34px; padding-bottom: 72px; }
+    .resultados-barra {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        gap: 12px; margin-bottom: 18px; padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+    }
+    .resultados-titulo {
+        font-family: var(--serif); font-size: 23px; font-weight: 600;
+        letter-spacing: -.01em; margin: 0;
+    }
+    .resultados-orden { display: block; margin-top: 2px; font-size: 10.5px; color: var(--ink-3); }
+    .resultados-cuenta {
+        flex: 0 0 auto;
+        font-size: 11.5px; font-weight: 600; color: var(--ink-2);
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
 
     .grilla {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 22px;
+        grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+        gap: 20px;
     }
+    .grilla[hidden] { display: none; }
 
+    /* ── tarjeta de salón ────────────────────────────────────────────────── */
     .tarjeta {
+        position: relative;
         display: flex; flex-direction: column;
         text-align: left;
-        padding: 0;
-        border: 1px solid var(--line);
-        border-radius: var(--radio);
         background: var(--surface);
-        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
         overflow: hidden;
-        cursor: pointer;
-        font-family: inherit;
+        box-shadow: var(--shadow-sm);
         color: var(--ink);
-        transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+        transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
     }
-    .tarjeta:hover { transform: translateY(-2px); border-color: var(--gold); box-shadow: var(--shadow-lg); }
-    .tarjeta:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 2px; }
+    .tarjeta:hover { transform: translateY(-2px); border-color: var(--line-strong); box-shadow: var(--shadow); }
+    .tarjeta:active { transform: translateY(0); }
+
+    /* Un solo control accesible cubre toda la tarjeta; "Reservar" queda por
+       encima (z-index 3) y no anida botones. */
+    .tarjeta-abrir {
+        position: absolute; inset: 0; z-index: 2;
+        width: 100%; padding: 0; border: 0;
+        background: transparent;
+        border-radius: inherit;
+        cursor: pointer;
+    }
+    .tarjeta-abrir:focus-visible { outline: 2px solid var(--cta); outline-offset: -3px; }
 
     .tarjeta-portada {
         position: relative;
-        aspect-ratio: 16 / 9;
-        max-height: 132px;
-        background: linear-gradient(135deg, var(--blush-2), var(--surface-2));
-        /* El logo sobresale hacia el cuerpo: no se puede recortar acá. */
-        overflow: visible;
+        aspect-ratio: 4 / 3;
+        background: linear-gradient(140deg, var(--surface-3), var(--surface-2));
     }
-    .tarjeta-portada img { width: 100%; height: 100%; object-fit: cover; }
+    .tarjeta-media { position: absolute; inset: 0; overflow: hidden; }
+    .tarjeta-media img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform .55s var(--ease);
+    }
+    .tarjeta:hover .tarjeta-media img { transform: scale(1.035); }
+    .tarjeta-media::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(24, 15, 18, .26) 0%,
+            rgba(24, 15, 18, 0) 34%,
+            rgba(24, 15, 18, 0) 64%,
+            rgba(24, 15, 18, .32) 100%
+        );
+        pointer-events: none;
+    }
     .tarjeta-inicial {
         position: absolute; inset: 0;
         display: flex; align-items: center; justify-content: center;
-        font-family: var(--serif); font-size: 64px; font-weight: 600;
-        color: var(--gold-ink); opacity: .55;
+        font-family: var(--serif); font-size: 52px; font-weight: 600;
+        color: var(--gold-ink); opacity: .5;
     }
-    .tarjeta-rubro {
-        position: absolute; left: 12px; top: 12px;
-        background: rgba(255, 255, 255, .94);
-        color: var(--gold-ink);
-        font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-        border-radius: 999px; padding: 5px 11px;
+    .tarjeta-badge {
+        position: absolute; top: 9px; left: 9px; z-index: 3;
+        display: inline-flex; align-items: center;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 9.5px; font-weight: 800; letter-spacing: .1em;
+        text-transform: uppercase; line-height: 1.15;
+        pointer-events: none;
     }
-    /* Logo compacto (40px) superpuesto al borde inferior de la portada */
-    .tarjeta .salon-logo-container {
-        position: absolute;
-        inset: auto;
-        margin: 0;
-        left: 16px;
-        bottom: -20px;
-        width: 40px;
-        height: 40px;
-        aspect-ratio: 1 / 1;
-        border: 2px solid var(--surface);
-        background: var(--surface);
-        box-shadow: 0 3px 10px rgba(59, 47, 53, .16);
-        font-size: 16px;
-        z-index: 3;
+    .tarjeta-badge.top {
+        background: var(--gold-badge);
+        color: #3A2A12;
+        box-shadow: 0 0 0 1px rgba(58, 42, 18, .18), 0 1px 2px rgba(0, 0, 0, .2);
+    }
+    .tarjeta-badge.verificado {
+        background: rgba(255, 255, 255, .95);
+        color: var(--ink);
+        box-shadow: 0 0 0 1px rgba(42, 32, 36, .1), 0 1px 2px rgba(0, 0, 0, .2);
     }
 
-    .tarjeta-cuerpo { display: flex; flex-direction: column; gap: 4px; padding: 2px 16px 12px; flex: 1; }
-    /* Título + estrellas al lado del logo (no debajo) */
-    .tarjeta-cabecera { display: grid; gap: 2px; padding-left: 48px; min-width: 0; }
-    /* Sin logo no hay nada que esquivar: el título va a la izquierda. */
-    .tarjeta.sin-logo .tarjeta-cabecera { padding-left: 0; }
+    /* Logo 1:1 de 40px, montado sobre el borde inferior izquierdo de la foto. */
+    .salon-logo-container {
+        width: 40px; height: 40px;
+        aspect-ratio: 1 / 1;
+        border-radius: 11px;
+        overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .salon-logo-container img {
+        width: 100%; height: 100%;
+        object-fit: contain;
+        padding: 3px;
+        background: var(--surface);
+    }
+    .tarjeta-portada .salon-logo-container {
+        position: absolute;
+        left: 10px;
+        bottom: -18px;
+        z-index: 3;
+        border: 2px solid var(--surface);
+        background: var(--surface);
+        box-shadow: 0 3px 10px rgba(42, 32, 36, .22);
+        color: var(--gold-ink);
+        font-family: var(--serif);
+        font-size: 16px;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    .tarjeta-cuerpo {
+        display: flex; flex-direction: column; gap: 2px;
+        padding: 23px 12px 12px;
+        flex: 1;
+        min-width: 0;
+    }
     .tarjeta-nombre {
-        font-family: var(--serif); font-size: 17px; font-weight: 600;
-        line-height: 1.2; margin: 0;
+        font-family: var(--sans);
+        font-size: 15px; font-weight: 600;
+        line-height: 1.25; letter-spacing: -.01em;
+        margin: 0;
+        color: var(--ink);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .estrellas { display: flex; align-items: center; gap: 5px; min-width: 0; }
+    .estrellas-iconos {
+        flex: 0 0 auto;
+        color: #B48A4A;
+        font-size: 11px; line-height: 1; letter-spacing: .02em;
+    }
+    .estrellas-iconos.vacio { color: var(--line-strong); }
+    .estrellas-texto {
+        min-width: 0;
+        font-size: 10.5px; font-weight: 500; color: var(--ink-2);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .tarjeta-bio {
-        margin: 0;
-        color: var(--ink-soft);
-        font-size: 12.5px;
-        line-height: 1.35;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
+        display: none;
+        margin: 2px 0 0;
+        color: var(--ink-3);
+        font-size: 11.5px; line-height: 1.35;
         overflow: hidden;
     }
-    .estrellas { display: flex; align-items: center; gap: 5px; margin-top: 0; padding-top: 0; }
-    .estrellas-iconos { color: var(--gold); font-size: 12px; letter-spacing: .06em; }
-    .estrellas-texto { font-size: 11.5px; color: var(--ink-soft); }
-    .tarjeta-ver {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 6px;
+    .tarjeta-pie {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 8px;
         margin-top: auto;
-        padding-top: 8px;
+        padding-top: 9px;
         border-top: 1px solid var(--line);
-        color: var(--ink);
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: .12em;
-        text-transform: uppercase;
     }
-    .tarjeta-ver span { font-size: 13px; transition: transform .2s; }
-    .tarjeta:hover .tarjeta-ver span { transform: translateX(3px); }
+    .tarjeta-rubro {
+        display: inline-flex; align-items: center; gap: 5px;
+        min-width: 0;
+        font-size: 9px; font-weight: 700; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--ink-3);
+        white-space: nowrap; overflow: hidden;
+    }
+    .tarjeta-rubro-texto {
+        min-width: 0;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .tarjeta-rubro::before {
+        content: ""; flex: 0 0 auto;
+        width: 5px; height: 5px; border-radius: 50%;
+        background: var(--gold);
+    }
+    .tarjeta-reservar {
+        position: relative; z-index: 3;
+        display: inline-flex; align-items: center; gap: 5px;
+        min-height: 36px; padding: 0 12px;
+        border: 0; border-radius: 9px;
+        background: var(--cta);
+        color: #FFF8F3;
+        font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+        white-space: nowrap;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(120, 52, 26, .28);
+        transition: background-color .15s ease, transform .15s ease;
+    }
+    .tarjeta-reservar:hover { background: var(--cta-hover); }
+    .tarjeta-reservar:active { transform: translateY(1px); }
+    .tarjeta-reservar:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .tarjeta-reservar svg { width: 12px; height: 12px; }
 
-    /* ── esqueletos ── */
+    /* ── esqueletos ──────────────────────────────────────────────────────── */
     .esqueleto { pointer-events: none; }
-    .esqueleto .tarjeta-portada,
-    .esqueleto .barra { background: linear-gradient(90deg, var(--surface-2), var(--blush-2), var(--surface-2)); background-size: 200% 100%; animation: brillo 1.3s ease-in-out infinite; }
-    .esqueleto .barra { height: 12px; border-radius: 6px; margin-top: 8px; }
-    .esqueleto .barra.corta { width: 55%; }
-    @keyframes brillo { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+    .esqueleto .tarjeta-media,
+    .esqueleto .barra {
+        background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+        background-size: 200% 100%;
+        animation: brillo 1.4s ease-in-out infinite;
+    }
+    .esqueleto .barra { height: 11px; border-radius: 5px; }
+    .esqueleto .barra.corta { width: 52%; }
+    .esqueleto .barra-boton {
+        width: 82px; height: 32px; border-radius: 9px;
+        margin-left: auto; margin-top: 10px;
+        background: var(--surface-3);
+    }
+    @keyframes brillo {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
 
-    /* ── vacío / error ── */
+    /* ── vacío / error ───────────────────────────────────────────────────── */
     .aviso {
         text-align: center;
-        padding: 56px 24px;
-        border: 1px dashed var(--line);
-        border-radius: var(--radio);
+        padding: 52px 24px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--radius-lg);
         background: var(--surface);
-        color: var(--ink-soft);
+        color: var(--ink-2);
     }
-    .aviso h2 { font-family: var(--serif); font-size: 24px; color: var(--ink); margin: 0 0 8px; }
-    .aviso p { margin: 0 0 16px; }
+    .aviso h2 { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+    .aviso p { margin: 0 auto 18px; max-width: 44ch; font-size: 13.5px; }
     .aviso button {
-        min-height: 42px; padding: 0 18px;
-        border-radius: 999px; border: 1px solid var(--gold);
-        background: var(--gold); color: #fff; font-weight: 600; font-size: 13.5px;
+        min-height: 40px; padding: 0 18px;
+        border-radius: 9px; border: 1px solid var(--cta);
+        background: var(--cta); color: #FFF8F3;
+        font-weight: 700; font-size: 12.5px;
         cursor: pointer;
+        transition: background-color .15s ease;
     }
+    .aviso button:hover { background: var(--cta-hover); }
 
-    /* ── modal ── */
+    /* ── modal ───────────────────────────────────────────────────────────── */
     .modal-fondo {
-        position: fixed; inset: 0; z-index: 80;
-        background: rgba(59, 47, 53, .55);
-        backdrop-filter: blur(3px);
+        position: fixed; inset: 0; z-index: 90;
+        background: rgba(30, 20, 24, .58);
+        backdrop-filter: blur(4px);
         display: flex; align-items: center; justify-content: center;
-        padding: 20px;
+        padding: 16px;
     }
     .modal-fondo[hidden] { display: none; }
     .modal {
-        width: min(620px, 100%);
-        max-height: min(90dvh, 780px);
+        width: min(600px, 100%);
+        max-height: min(90dvh, 800px);
         overflow-y: auto;
+        overscroll-behavior: contain;
         background: var(--surface);
-        border-radius: 20px;
+        border-radius: var(--radius-lg);
         box-shadow: var(--shadow-lg);
-        animation: subir .18s ease;
+        animation: subir .2s var(--ease);
     }
-    @keyframes subir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-    .modal-portada { aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--blush-2), var(--surface-2)); position: relative; }
+    @keyframes subir {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: none; }
+    }
+    .modal-portada {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: linear-gradient(140deg, var(--surface-3), var(--surface-2));
+    }
     .modal-portada img { width: 100%; height: 100%; object-fit: cover; }
-    /* Si el salón solo tiene logo (sin foto de portada), lo mostramos entero
-       en lugar de recortarlo con cover. */
-    .modal-portada img.es-logo { object-fit: contain; padding: 26px; background: var(--surface-2); }
+    /* Cuando el salón no tiene foto de portada, el modal muestra una cabecera
+       compacta con el logo en lugar de estirarlo a 16:9. */
+    .modal-portada:has(img.es-logo) {
+        aspect-ratio: auto;
+        height: 128px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(140deg, var(--surface-2), var(--surface-3));
+    }
+    .modal-portada img.es-logo {
+        width: 76px; height: 76px;
+        object-fit: contain;
+        padding: 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+    }
     .modal-cerrar {
         position: absolute; right: 12px; top: 12px;
-        width: 38px; height: 38px; border-radius: 50%;
-        border: 0; background: rgba(255, 255, 255, .92); color: var(--ink);
-        font-size: 18px; line-height: 1; cursor: pointer;
+        width: 40px; height: 40px; border-radius: 50%;
+        border: 0; background: rgba(255, 255, 255, .94); color: var(--ink);
+        font-size: 20px; line-height: 1; cursor: pointer;
+        box-shadow: var(--shadow-sm);
     }
     .modal-cuerpo { padding: 20px 22px 24px; display: grid; gap: 12px; }
-    .modal-rubro { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-ink); font-weight: 600; }
-    .modal-nombre { font-family: var(--serif); font-size: 28px; margin: 0; line-height: 1.15; }
-    .modal-bio { margin: 0; color: var(--ink-soft); white-space: pre-line; }
-    .modal-direccion { margin: 0; color: var(--ink-soft); font-size: 13px; }
-    .modal-direccion[hidden] { display: none; }
-    .modal-seccion {
-        margin-top: 4px;
-        padding-top: 16px;
-        border-top: 1px solid var(--line);
+    .modal-rubro {
+        font-size: 10px; font-weight: 700; letter-spacing: .13em;
+        text-transform: uppercase; color: var(--gold-ink);
     }
+    .modal-nombre { font-family: var(--serif); font-size: 28px; font-weight: 600; margin: 0; line-height: 1.12; }
+    .modal-cuerpo .estrellas-iconos { font-size: 13px; }
+    .modal-cuerpo .estrellas-texto { font-size: 12px; }
+    .modal-bio { margin: 0; color: var(--ink-2); white-space: pre-line; }
+    .modal-direccion { margin: 0; color: var(--ink-2); font-size: 13px; }
+    .modal-direccion[hidden] { display: none; }
+    .modal-seccion { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--line); }
     .modal-seccion[hidden] { display: none; }
     .modal-seccion-titulo {
         margin: 0 0 10px;
-        font-family: var(--serif);
-        font-size: 22px;
-        font-weight: 600;
+        font-family: var(--serif); font-size: 20px; font-weight: 600;
         color: var(--ink);
     }
-    .modal-nota { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
+    .modal-nota { margin: 0; color: var(--ink-3); font-size: 12.5px; }
     .modal-servicios { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .servicio-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between;
         gap: 10px;
         padding: 10px 12px;
         border: 1px solid var(--line);
@@ -407,26 +652,23 @@
         background: var(--surface-2);
     }
     .servicio-nombre { display: block; font-size: 13px; font-weight: 600; color: var(--ink); }
-    .servicio-meta { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-soft); }
+    .servicio-meta { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
     .servicio-precio { font-size: 12.5px; font-weight: 600; color: var(--gold-ink); white-space: nowrap; }
     .reserva-form { margin-top: 12px; }
     .reserva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .reserva-campo { display: grid; gap: 4px; }
     .reserva-campo-full { grid-column: 1 / -1; }
     .reserva-campo > span {
-        font-size: 10.5px;
-        font-weight: 600;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: var(--ink-soft);
+        font-size: 10px; font-weight: 700; letter-spacing: .1em;
+        text-transform: uppercase; color: var(--ink-2);
     }
     .reserva-campo input,
     .reserva-campo select {
         width: 100%;
         min-height: 42px;
         padding: 8px 10px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-sm);
         background: var(--surface);
         color: var(--ink);
         font: inherit;
@@ -439,158 +681,120 @@
         min-height: 46px;
         margin-top: 12px;
         border: 0;
-        border-radius: 999px;
-        background: var(--ink);
-        color: var(--paper);
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: .03em;
+        border-radius: 10px;
+        background: var(--cta);
+        color: #FFF8F3;
+        font-size: 13px; font-weight: 700; letter-spacing: .03em;
         cursor: pointer;
+        transition: background-color .15s ease;
     }
-    .reserva-btn:disabled { opacity: .55; cursor: wait; }
-    .reserva-aviso { min-height: 18px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-soft); }
-    .reserva-aviso.exito { color: var(--gold-ink); font-weight: 600; }
+    .reserva-btn:hover { background: var(--cta-hover); }
+    .reserva-btn:disabled { opacity: .6; cursor: wait; }
+    .reserva-aviso { min-height: 18px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-2); }
+    .reserva-aviso.exito { color: #6C7A3E; font-weight: 600; }
     .reserva-aviso.error { color: #A33B32; }
     .modal-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-    .modal-acciones a, .modal-acciones button {
+    .modal-acciones a,
+    .modal-acciones button {
         display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        min-height: 46px; padding: 0 20px;
-        border-radius: 999px;
-        font-size: 14px; font-weight: 600;
+        min-height: 44px; padding: 0 18px;
+        border-radius: 10px;
+        font-size: 13px; font-weight: 600;
         text-decoration: none;
-        border: 1px solid var(--line);
+        border: 1px solid var(--line-strong);
         background: var(--surface);
         color: var(--ink);
         cursor: pointer;
     }
-    .modal-acciones a.principal { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .modal-acciones a.principal { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+    .modal-acciones a.principal:hover { background: var(--band-2); }
 
-    /* ── pie ── */
-    .pie {
-        border-top: 1px solid var(--line);
-        padding: 28px 0 40px;
-        color: var(--ink-faint);
-        font-size: 12.5px;
-        text-align: center;
+    /* ── pie ─────────────────────────────────────────────────────────────── */
+    .pie { border-top: 1px solid var(--line); padding: 26px 0 34px; color: var(--ink-3); font-size: 12px; }
+    .pie-fila { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; flex-wrap: wrap; }
+    .pie p { margin: 0; }
+    .pie a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--line-strong); }
+    .pie a:hover { color: var(--ink); border-bottom-color: var(--gold); }
+
+    /* ── responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 1000px) {
+        .promo { flex-basis: 250px; }
     }
-    .pie a { color: var(--ink-soft); }
-
-    .sr-solo {
-        position: absolute; width: 1px; height: 1px;
-        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    @media (min-width: 1000px) {
+        .promo { flex: 0 0 calc((100% - 28px) / 3); }
     }
-
-    @media (max-width: 560px) {
-        .hero { padding-top: 38px; padding-bottom: 20px; }
-        .hero p { font-size: 14.5px; }
-        /* El grid lo gobierna auto-fit/minmax(280px): no forzamos columnas. */
-        .grilla { gap: 14px; }
-        .tarjeta-nombre { font-size: 17px; }
-        .tarjeta-bio { display: none; }
-        .tarjeta-cuerpo { padding: 12px 12px 14px; }
+    @media (max-width: 940px) {
+        .hero-grid { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 22px; }
+        .hero h1 { max-width: 20ch; }
+        .buscador-panel { max-width: 560px; }
+    }
+    @media (min-width: 700px) {
+        .tarjeta-bio {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+    }
+    @media (max-width: 720px) {
+        :root { --gutter: 16px; }
+        .cabecera-fila { min-height: 56px; }
+        .btn-app { min-height: 40px; }
+        .marca-sub { display: none; }
+        .cabecera-link { display: none; }
+        .hero { padding-top: 26px; padding-bottom: 22px; }
+        .hero h1 { font-size: clamp(28px, 8vw, 36px); max-width: 17ch; }
+        .hero p { font-size: 13.5px; }
+        .destacados { padding-top: 20px; padding-bottom: 24px; }
+        .destacados-titulo { font-size: 20px; }
+        .destacados-nota { display: none; }
+        .destacados-carrusel {
+            padding-right: 20px;
+            -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+        }
+        .promo { flex-basis: 212px; }
+        .promo-media { aspect-ratio: 2 / 1; }
+        .promo-titulo { font-size: 17px; }
+        .promo-texto { display: none; }
+        .promo-plan .promo-titulo { font-size: 19px; }
+        .resultados { padding-top: 16px; padding-bottom: 56px; }
+        .resultados-barra { margin-bottom: 12px; }
+        .resultados-orden { display: none; }
+        .grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .tarjeta-cuerpo { padding: 22px 10px 10px; }
+        .tarjeta-nombre { font-size: 14px; }
+        .tarjeta-pie { gap: 6px; padding-top: 8px; }
+        .tarjeta-rubro { font-size: 8px; letter-spacing: .05em; }
+        .tarjeta-rubro::before { display: none; }
+        .tarjeta-reservar { min-height: 36px; padding: 0 10px; font-size: 11px; border-radius: 8px; }
+        .tarjeta-reservar svg { width: 11px; height: 11px; }
         .modal-servicios { grid-template-columns: 1fr; }
         .reserva-grid { grid-template-columns: 1fr; }
-        .btn-app span { display: none; }
-        .btn-app { padding: 0 12px; }
     }
-    @media (max-width: 400px) {
-        .tarjeta-bio { display: -webkit-box; }
+    @media (max-width: 420px) {
+        .marca-nombre { font-size: 18px; }
+        .btn-app { padding: 0 11px; }
+        .hero-etiqueta { font-size: 9px; letter-spacing: .15em; }
+        .buscador input { font-size: 14px; }
+        .chip { min-height: 30px; font-size: 11px; padding: 0 8px; }
+        .filtros { gap: 4px; }
+        .estrellas-texto { font-size: 10px; }
+        .resultados-titulo { font-size: 21px; }
     }
-
-    /* ── Móvil: tarjeta ultra compacta ───────────────────────────────────
-       Portada en banda de 112px, logo de 40px superpuesto y título/estrellas
-       al costado. Así entran 3-4 salones por pantalla. */
-    @media (max-width: 768px) {
-        .grilla { gap: 10px; }
-
-        .tarjeta-portada {
-            aspect-ratio: auto;
-            height: 112px;
-            overflow: visible;
+    @media (max-width: 359px) {
+        .grilla { grid-template-columns: 1fr; }
+    }
+    @media (hover: none) {
+        .tarjeta:hover { transform: none; }
+        .tarjeta:hover .tarjeta-media img { transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
+            animation-duration: .001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .001ms !important;
         }
-        .tarjeta-inicial { font-size: 34px; }
-        .tarjeta-rubro { left: 10px; top: 10px; font-size: 9px; padding: 3px 8px; }
-
-        .tarjeta .salon-logo-container {
-            left: 12px;
-            bottom: -20px;
-            width: 40px;
-            height: 40px;
-            border-width: 2px;
-            font-size: 15px;
-        }
-
-        .tarjeta-cuerpo { padding: 2px 12px 10px; gap: 3px; }
-        .tarjeta-cabecera { padding-left: 46px; }
-        .tarjeta-nombre { font-size: 15px; }
-        .tarjeta-bio { font-size: 11.5px; line-height: 1.3; -webkit-line-clamp: 1; }
-
-        .estrellas { gap: 4px; }
-        .estrellas-iconos { font-size: 11px; }
-        .estrellas-texto { font-size: 10.5px; }
-
-        .tarjeta-ver { gap: 6px; margin-top: 4px; padding-top: 7px; font-size: 9px; }
-        .tarjeta-ver span { font-size: 12px; }
-
-        .resultados { padding-top: 20px; }
-        .resultados-barra { margin-bottom: 12px; }
-        .destacados { padding-top: 18px; }
-        .destacado { flex-basis: 168px; }
-    }
-
-    /* ── Destacados: carrusel horizontal (placeholder comercial) ───────── */
-    .destacados { padding-top: 30px; }
-    .destacados-barra {
-        display: flex; align-items: baseline; justify-content: space-between;
-        gap: 12px; margin-bottom: 12px;
-    }
-    .destacados-titulo {
-        font-family: var(--serif); font-size: 19px; font-weight: 600;
-        margin: 0; letter-spacing: -.005em;
-    }
-    .destacados-etiqueta {
-        font-size: 9.5px; font-weight: 600; letter-spacing: .14em;
-        text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
-    }
-    .destacados-carrusel {
-        display: flex; gap: 16px;
-        overflow-x: auto; overflow-y: hidden;
-        padding-bottom: 8px;
-        scroll-snap-type: x proximity;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-    .destacado {
-        flex: 0 0 208px;
-        scroll-snap-align: start;
-        display: flex; flex-direction: column; gap: 4px;
-        padding: 14px;
-        border: 1px dashed var(--blush);
-        border-radius: 14px;
-        background: var(--surface);
-        box-shadow: var(--shadow);
-        min-width: 0;
-    }
-    .destacado-tag {
-        align-self: flex-start;
-        font-size: 9px; font-weight: 700; letter-spacing: .1em;
-        text-transform: uppercase;
-        color: var(--gold-ink); background: var(--gold-soft);
-        border-radius: 999px; padding: 3px 8px;
-    }
-    .destacado-titulo {
-        font-family: var(--serif); font-size: 16px; font-weight: 600;
-        line-height: 1.2; margin: 2px 0 0;
-        overflow-wrap: anywhere;
-    }
-    .destacado-texto {
-        margin: 0; font-size: 11.5px; line-height: 1.35;
-        color: var(--ink-soft);
-    }
-    .destacado-nota {
-        margin-top: auto; padding-top: 8px;
-        font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
-        color: var(--ink-faint);
     }
 </style>
 </head>
@@ -599,15 +803,16 @@
 <header class="cabecera">
     <div class="envoltura cabecera-fila">
         <a class="marca" href="https://eli-agenda-nails.vercel.app/marketplace.html" aria-label="ELIMA HUB, ir al inicio">
-            <img class="marca-logo" src="logo elima negro marketplace.png" alt="ELIMA HUB" width="34" height="34">
+            <img class="marca-logo" src="logo elima negro marketplace.png" alt="" width="32" height="32">
             <span class="marca-texto">
                 <span class="marca-nombre">ELIMA HUB</span>
-                <span class="marca-sub">Directorio</span>
+                <span class="marca-sub">Marketplace de belleza</span>
             </span>
         </a>
         <div class="cabecera-acciones">
+            <a class="cabecera-link" href="index.html">Sumá tu salón</a>
             <button class="btn-app" id="btn-agenda" aria-label="Mi agenda">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
                     <rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 3v3M16 3v3M3 10h18"/>
                 </svg>
                 <span id="btn-agenda-text">Mi agenda</span>
@@ -618,53 +823,80 @@
 
 <main>
     <section class="hero envoltura">
-        <span class="hero-etiqueta">ELIMA HUB</span>
-        <h1>Encontrá tu <em>salón de belleza</em> ideal</h1>
-        <p>Uñas, pelo, maquillaje y barbería. Perfiles verificados y reseñas de clientas reales.</p>
+        <div class="hero-grid">
+            <div class="hero-texto">
+                <span class="hero-etiqueta">Uñas · Pelo · Maquillaje · Barbería</span>
+                <h1>Tu salón ideal, <em>a un clic</em>.</h1>
+                <p>Reservá online sin cuenta y leé reseñas de clientas reales.</p>
+            </div>
 
-        <div class="buscador">
-            <svg class="buscador-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
-            </svg>
-            <label class="sr-solo" for="buscador">Buscar salón</label>
-            <input id="buscador" type="search" placeholder="Buscar por nombre del salón…" autocomplete="off" spellcheck="false">
-            <button type="button" id="buscador-limpiar" class="buscador-limpiar" aria-label="Borrar búsqueda" hidden>×</button>
+            <div class="buscador-panel">
+                <div class="buscador">
+                    <svg class="buscador-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
+                    </svg>
+                    <label class="sr-solo" for="buscador">Buscar salón</label>
+                    <input id="buscador" type="search" placeholder="Buscá tu salón por nombre…" autocomplete="off" spellcheck="false">
+                    <button type="button" id="buscador-limpiar" class="buscador-limpiar" aria-label="Borrar búsqueda" hidden>×</button>
+                </div>
+                <div class="buscador-filtros">
+                    <div class="filtros" id="filtros" role="group" aria-label="Filtrar por rubro"></div>
+                </div>
+            </div>
         </div>
-
-        <div class="filtros" id="filtros" role="group" aria-label="Filtrar por rubro"></div>
     </section>
 
-    <!-- Destacados: carrusel horizontal (espacio comercial / placeholder) -->
-    <section class="destacados envoltura" aria-labelledby="destacados-titulo">
-        <div class="destacados-barra">
-            <h2 class="destacados-titulo" id="destacados-titulo">Promociones Destacadas</h2>
-            <span class="destacados-etiqueta">Espacio publicitario</span>
-        </div>
-        <div class="destacados-carrusel" role="list" aria-label="Promociones destacadas">
-            <article class="destacado" role="listitem">
-                <span class="destacado-tag">Promo</span>
-                <h3 class="destacado-titulo">20% OFF en tu primera visita</h3>
-                <p class="destacado-texto">Ejemplo de espacio para una promo del salón destacado.</p>
-                <span class="destacado-nota">Contenido de muestra</span>
-            </article>
-            <article class="destacado" role="listitem">
-                <span class="destacado-tag">Combo</span>
-                <h3 class="destacado-titulo">Esculpidas + Kapping</h3>
-                <p class="destacado-texto">Acá iría una promo estacional o un combo del mes.</p>
-                <span class="destacado-nota">Contenido de muestra</span>
-            </article>
-            <article class="destacado" role="listitem">
-                <span class="destacado-tag">Tu marca</span>
-                <h3 class="destacado-titulo">Sumá tu salón acá</h3>
-                <p class="destacado-texto">Lugar reservado para patrocinadores y marcas aliadas.</p>
-                <span class="destacado-nota">Contenido de muestra</span>
-            </article>
+    <!-- Promociones destacadas: carrusel horizontal con espacio comercial -->
+    <section class="destacados" aria-labelledby="destacados-titulo">
+        <div class="envoltura">
+            <div class="destacados-cab">
+                <h2 class="destacados-titulo" id="destacados-titulo">Promociones destacadas</h2>
+                <span class="destacados-nota">Promos de salones adheridos</span>
+            </div>
+            <div class="destacados-carrusel">
+                <article class="promo">
+                    <div class="promo-media">
+                        <img src="https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&amp;fit=crop&amp;w=560&amp;q=72" alt="" loading="lazy" decoding="async">
+                        <span class="promo-badge">Promo</span>
+                    </div>
+                    <div class="promo-cuerpo">
+                        <h3 class="promo-titulo">¡20% OFF en tu primera visita!</h3>
+                        <p class="promo-texto">En tu primer turno con salones adheridos de uñas y kapping.</p>
+                        <span class="promo-pie">Salones adheridos</span>
+                    </div>
+                </article>
+                <article class="promo">
+                    <div class="promo-media">
+                        <img src="https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&amp;fit=crop&amp;w=560&amp;q=72" alt="" loading="lazy" decoding="async">
+                        <span class="promo-badge">Combo</span>
+                    </div>
+                    <div class="promo-cuerpo">
+                        <h3 class="promo-titulo">Combo Esculpidas + Kapping</h3>
+                        <p class="promo-texto">Dos servicios en un mismo turno, con precio combinado.</p>
+                        <span class="promo-pie">Turno combinado</span>
+                    </div>
+                </article>
+                <a class="promo promo-plan" href="index.html">
+                    <div class="promo-cuerpo">
+                        <span class="promo-badge">Plan Pro</span>
+                        <h3 class="promo-titulo">Tu salón, en primera fila</h3>
+                        <p class="promo-texto">Sumate y aparecé en Promociones destacadas frente a todas las clientas.</p>
+                        <span class="promo-pie">
+                            Conocer planes
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="m12 5 7 7-7 7"/></svg>
+                        </span>
+                    </div>
+                </a>
+            </div>
         </div>
     </section>
 
     <section class="resultados envoltura" aria-labelledby="resultados-titulo">
         <div class="resultados-barra">
-            <h2 class="resultados-titulo" id="resultados-titulo">Salones</h2>
+            <div>
+                <h2 class="resultados-titulo" id="resultados-titulo">Salones</h2>
+                <span class="resultados-orden">Perfiles publicados</span>
+            </div>
             <span class="resultados-cuenta" id="resultados-cuenta" role="status" aria-live="polite"></span>
         </div>
         <div class="grilla" id="grilla" aria-busy="true"></div>
@@ -673,9 +905,9 @@
 </main>
 
 <footer class="pie">
-    <div class="envoltura">
-        <p>ELIMA HUB · La plataforma que conecta salones y clientes</p>
-        <p>¿Tenés un salón? <a href="index.html">Sumate</a>.</p>
+    <div class="envoltura pie-fila">
+        <p>ELIMA HUB · Marketplace de belleza</p>
+        <p>¿Tenés un salón? <a href="index.html">Sumalo gratis</a></p>
     </div>
 </footer>
 
@@ -869,35 +1101,174 @@
         });
     }
 
-    function tarjeta(fila) {
-        var boton = document.createElement('button');
-        boton.type = 'button';
-        boton.className = 'tarjeta';
-        boton.setAttribute('aria-label', 'Ver ' + String(fila.nombre == null ? 'salón' : fila.nombre));
+    // ── planes (badge de confianza) ───────────────────────────────────────
+    // La RPC pública no expone el plan. Para el badge leemos (solo lectura)
+    // plan_id/estado_suscripcion de los salones publicados. Si la lectura
+    // falla, la tarjeta degrada al badge por puntuación sin romper nada.
+    var RPC_PLANES = SUPABASE_URL + '/rest/v1/salones?select=slug,plan_id,estado_suscripcion&slug=in.';
+    var planesCache = { clave: '', mapa: null, cuando: 0 };
+
+    async function planesPorSlug(salones) {
+        var slugs = [];
+        (Array.isArray(salones) ? salones : []).forEach(function (fila) {
+            var slug = String(fila && fila.slug ? fila.slug : '').trim();
+            if (slug && slugs.indexOf(slug) === -1) slugs.push(slug);
+        });
+        if (!slugs.length) return {};
+
+        var clave = slugs.slice().sort().join('|');
+        if (planesCache.clave === clave && planesCache.mapa && Date.now() - planesCache.cuando < 300000) {
+            return planesCache.mapa;
+        }
+
+        var mapa = {};
+        try {
+            var respuesta = await fetch(RPC_PLANES + '(' + slugs.map(encodeURIComponent).join(',') + ')', {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY
+                }
+            });
+            if (respuesta.ok) {
+                var datos = await respuesta.json();
+                if (Array.isArray(datos)) {
+                    datos.forEach(function (fila) {
+                        if (!fila || !fila.slug) return;
+                        mapa[String(fila.slug)] = {
+                            plan_id: String(fila.plan_id || ''),
+                            estado_suscripcion: String(fila.estado_suscripcion || '')
+                        };
+                    });
+                }
+            }
+        } catch (error) { /* sin planes: se usa el fallback por reseñas */ }
+        planesCache = { clave: clave, mapa: mapa, cuando: Date.now() };
+        return mapa;
+    }
+
+    async function conPlanes(salones) {
+        var lista = Array.isArray(salones) ? salones : [];
+        var mapa = await planesPorSlug(lista);
+        return lista.map(function (fila) {
+            var plan = mapa[String(fila.slug || '')];
+            if (plan) {
+                fila.plan_id = plan.plan_id;
+                fila.estado_suscripcion = plan.estado_suscripcion;
+            }
+            return fila;
+        });
+    }
+
+    function badgeSalon(fila) {
+        var plan = String(fila.plan_id || fila.plan || '').toLowerCase();
+        var estado = String(fila.estado_suscripcion || '').toLowerCase();
+        var activo = !estado || estado === 'active';
+        if (activo && plan === 'premium') return { texto: 'TOP', clase: 'top' };
+        if (activo && plan === 'pro') return { texto: 'Verificado', clase: 'verificado' };
+        var resenas = Number(fila.count_resenas) || 0;
+        var promedio = Number(fila.promedio_estrellas) || 0;
+        if (resenas >= 3 && promedio >= 4.5) return { texto: 'TOP', clase: 'top' };
+        return null;
+    }
+
+    // ── portadas ──────────────────────────────────────────────────────────
+    // Unsplash (licencia libre, uso comercial) como respaldo por rubro: la
+    // grilla nunca queda con un bloque de color vacío. Si el salón sube su
+    // propia portada, esa gana siempre.
+    var FOTO_BASE = 'https://images.unsplash.com/';
+    var FOTO_QUERY = '?auto=format&fit=crop&w=640&q=72';
+    var FOTOS_RUBRO = {
+        nails: [
+            'photo-1522337660859-02fbefca4702',
+            'photo-1604654894610-df63bc536371',
+            'photo-1610992015732-2449b76344bc'
+        ],
+        peluqueria: [
+            'photo-1560066984-138dadb4c035',
+            'photo-1521590832167-7bcbfaa6381f',
+            'photo-1562322140-8baeececf3df'
+        ],
+        maquillaje: [
+            'photo-1596462502278-27bfdc403348'
+        ],
+        barberia: [
+            'photo-1503951914875-452162b0f3f1',
+            'photo-1585747860715-2ba37e788b70'
+        ]
+    };
+    var FOTOS_FALLBACK = [
+        'photo-1633681926022-84c23e8cb2d6',
+        'photo-1522337660859-02fbefca4702'
+    ];
+
+    function portadaDe(fila, usadas) {
+        var propia = urlSegura(fila.foto_portada_url);
+        if (propia) return propia;
+        var lista = FOTOS_RUBRO[fila.rubro] || FOTOS_FALLBACK;
+        var clave = String(fila.rubro || 'otros');
+        var indice = usadas && usadas[clave] ? usadas[clave] : 0;
+        if (usadas) usadas[clave] = indice + 1;
+        return FOTO_BASE + lista[indice % lista.length] + FOTO_QUERY;
+    }
+
+    function textoResenasTarjeta(fila) {
+        var cantidad = Number(fila.count_resenas) || 0;
+        if (!cantidad) return 'Sin reseñas';
+        var promedio = Number(fila.promedio_estrellas) || 0;
+        return promedio.toFixed(1) + ' · ' + cantidad + (cantidad === 1 ? ' reseña' : ' reseñas');
+    }
+
+    function tarjeta(fila, usadas) {
+        var articulo = document.createElement('article');
+        articulo.className = 'tarjeta';
+
+        var nombreSalon = String(fila.nombre == null ? 'Salón' : fila.nombre);
+
+        // Un control principal cubre la tarjeta (ver perfil). "Reservar" se
+        // apoya encima y abre el mismo modal, directo al formulario.
+        var abrir = document.createElement('button');
+        abrir.type = 'button';
+        abrir.className = 'tarjeta-abrir';
+        abrir.setAttribute('aria-label', 'Ver perfil de ' + nombreSalon);
+        abrir.addEventListener('click', function () { abrirPerfil(fila); });
+        articulo.appendChild(abrir);
 
         var portada = document.createElement('div');
         portada.className = 'tarjeta-portada';
-        var fotoPortada = urlSegura(fila.foto_portada_url);
-        var logoSalon = urlSegura(fila.logo_url);
-        if (!logoSalon) boton.classList.add('sin-logo');
 
-        if (fotoPortada) {
+        var media = document.createElement('div');
+        media.className = 'tarjeta-media';
+
+        var foto = portadaDe(fila, usadas);
+        if (foto) {
             var img = document.createElement('img');
-            img.src = fotoPortada;
+            img.src = foto;
             img.alt = '';
             img.loading = 'lazy';
             img.decoding = 'async';
-            img.addEventListener('error', function () { img.remove(); portada.appendChild(inicial(fila)); });
-            portada.appendChild(img);
+            img.addEventListener('error', function () {
+                img.remove();
+                media.appendChild(inicial(fila));
+            });
+            media.appendChild(img);
+        } else {
+            media.appendChild(inicial(fila));
+        }
+        portada.appendChild(media);
+
+        var badge = badgeSalon(fila);
+        if (badge) {
+            var chip = document.createElement('span');
+            chip.className = 'tarjeta-badge ' + badge.clase;
+            chip.textContent = badge.texto;
+            portada.appendChild(chip);
         }
 
-        // El logo va SIEMPRE dentro de un contenedor 1:1: así nunca se deforma
-        // ni se recorta para encajar en la portada 4:3.
+        // Logo 1:1 de 40px sobre el borde inferior izquierdo de la foto.
+        var logoSalon = urlSegura(fila.logo_url);
+        var logoContainer = document.createElement('div');
+        logoContainer.className = 'salon-logo-container';
         if (logoSalon) {
-            var logoContainer = document.createElement('div');
-            logoContainer.className = 'salon-logo-container ' +
-                (fotoPortada ? 'tarjeta-logo-badge' : 'tarjeta-logo-centro');
-
             var logoImg = document.createElement('img');
             logoImg.src = logoSalon;
             logoImg.alt = '';
@@ -908,30 +1279,20 @@
                 logoContainer.textContent = inicialDe(fila.nombre);
             });
             logoContainer.appendChild(logoImg);
-            portada.appendChild(logoContainer);
-        } else if (!fotoPortada) {
-            portada.appendChild(inicial(fila));
+        } else {
+            logoContainer.textContent = inicialDe(fila.nombre);
         }
-
-        var rubro = document.createElement('span');
-        rubro.className = 'tarjeta-rubro';
-        rubro.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
-        portada.appendChild(rubro);
-        boton.appendChild(portada);
+        portada.appendChild(logoContainer);
+        articulo.appendChild(portada);
 
         var cuerpo = document.createElement('div');
         cuerpo.className = 'tarjeta-cuerpo';
 
-        // Cabecera: nombre + estrellas al costado del logo superpuesto.
-        var cabecera = document.createElement('div');
-        cabecera.className = 'tarjeta-cabecera';
-
         var nombre = document.createElement('h3');
         nombre.className = 'tarjeta-nombre';
-        nombre.textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
-        cabecera.appendChild(nombre);
-        cabecera.appendChild(bloqueEstrellas(fila));
-        cuerpo.appendChild(cabecera);
+        nombre.textContent = nombreSalon;
+        cuerpo.appendChild(nombre);
+        cuerpo.appendChild(bloqueEstrellas(fila));
 
         if (fila.bio) {
             var bio = document.createElement('p');
@@ -940,19 +1301,79 @@
             cuerpo.appendChild(bio);
         }
 
-        var ver = document.createElement('span');
-        ver.className = 'tarjeta-ver';
-        ver.appendChild(document.createTextNode('Ver perfil'));
-        var flecha = document.createElement('span');
-        flecha.textContent = '→';
-        flecha.setAttribute('aria-hidden', 'true');
-        ver.appendChild(flecha);
-        cuerpo.appendChild(ver);
+        var pie = document.createElement('div');
+        pie.className = 'tarjeta-pie';
 
-        boton.appendChild(cuerpo);
+        var rubro = document.createElement('span');
+        rubro.className = 'tarjeta-rubro';
+        var rubroTexto = document.createElement('span');
+        rubroTexto.className = 'tarjeta-rubro-texto';
+        rubroTexto.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
+        rubro.appendChild(rubroTexto);
+        pie.appendChild(rubro);
 
-        boton.addEventListener('click', function () { abrirModal(fila); });
-        return boton;
+        var reservar = document.createElement('button');
+        reservar.type = 'button';
+        reservar.className = 'tarjeta-reservar';
+        reservar.setAttribute('aria-label', 'Reservar en ' + nombreSalon);
+        reservar.appendChild(document.createTextNode('Reservar'));
+        reservar.insertAdjacentHTML('beforeend',
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+            'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="M5 12h13"/><path d="m12 5 7 7-7 7"/></svg>');
+        reservar.addEventListener('click', function (evento) {
+            evento.stopPropagation();
+            abrirReserva(fila);
+        });
+        pie.appendChild(reservar);
+
+        cuerpo.appendChild(pie);
+        articulo.appendChild(cuerpo);
+        return articulo;
+    }
+
+    // Abrir perfil: el modal se reutiliza, así que siempre arranca arriba.
+    function abrirPerfil(fila) {
+        abrirModal(fila);
+        var modal = $('modal');
+        if (modal) modal.scrollTop = 0;
+    }
+
+    // Reservar: abre el modal existente y lo lleva al formulario de turno
+    // cuando el detalle del salón termina de cargar.
+    function abrirReserva(fila) {
+        abrirModal(fila);
+        esperarSeccionReserva(0);
+    }
+
+    function esperarSeccionReserva(intento) {
+        var seccion = $('modal-reserva-seccion');
+        var abierto = !modalFondo.hidden;
+        if (abierto && seccion && !seccion.hidden) {
+            // El modal es el contenedor que scrollea: calculamos el destino
+            // sobre su propio scrollTop para no depender de scrollIntoView.
+            var contenedor = $('modal');
+            if (contenedor) {
+                var caja = contenedor.getBoundingClientRect();
+                var destino = seccion.getBoundingClientRect();
+                var scroll = contenedor.scrollTop + (destino.top - caja.top) - 6;
+                var sinMovimiento = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                try {
+                    contenedor.scrollTo({ top: scroll, behavior: sinMovimiento ? 'auto' : 'smooth' });
+                } catch (error) {
+                    contenedor.scrollTop = scroll;
+                }
+            }
+            if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
+                setTimeout(function () {
+                    var campo = $('reserva-nombre');
+                    if (campo) campo.focus({ preventScroll: true });
+                }, 420);
+            }
+            return;
+        }
+        if (!abierto || intento > 40) return;
+        setTimeout(function () { esperarSeccionReserva(intento + 1); }, 150);
     }
 
     function inicial(fila) {
@@ -966,13 +1387,23 @@
     function bloqueEstrellas(fila) {
         var caja = document.createElement('div');
         caja.className = 'estrellas';
+        caja.setAttribute('role', 'img');
+
+        var cantidad = Number(fila.count_resenas) || 0;
+        var promedio = Number(fila.promedio_estrellas) || 0;
+        caja.setAttribute('aria-label', cantidad
+            ? promedio.toFixed(1) + ' de 5 estrellas, ' + cantidad + (cantidad === 1 ? ' reseña' : ' reseñas')
+            : 'Sin reseñas todavía');
+
         var iconos = document.createElement('span');
-        iconos.className = 'estrellas-iconos';
+        iconos.className = 'estrellas-iconos' + (cantidad ? '' : ' vacio');
         iconos.setAttribute('aria-hidden', 'true');
         iconos.textContent = estrellasDe(fila.promedio_estrellas);
+
         var texto = document.createElement('span');
         texto.className = 'estrellas-texto';
-        texto.textContent = textoResenas(fila);
+        texto.textContent = textoResenasTarjeta(fila);
+
         caja.appendChild(iconos);
         caja.appendChild(texto);
         return caja;
@@ -985,6 +1416,9 @@
             caja.className = 'tarjeta esqueleto';
             var portada = document.createElement('div');
             portada.className = 'tarjeta-portada';
+            var media = document.createElement('div');
+            media.className = 'tarjeta-media';
+            portada.appendChild(media);
             caja.appendChild(portada);
             var cuerpo = document.createElement('div');
             cuerpo.className = 'tarjeta-cuerpo';
@@ -992,8 +1426,11 @@
             b1.className = 'barra';
             var b2 = document.createElement('div');
             b2.className = 'barra corta';
+            var b3 = document.createElement('div');
+            b3.className = 'barra-boton';
             cuerpo.appendChild(b1);
             cuerpo.appendChild(b2);
+            cuerpo.appendChild(b3);
             caja.appendChild(cuerpo);
             grilla.appendChild(caja);
         }
@@ -1025,7 +1462,7 @@
             grilla.hidden = false;
             aviso.hidden = true;
             grilla.setAttribute('aria-busy', 'true');
-            esqueletos(6);
+            esqueletos(4);
             cuenta.textContent = 'Buscando…';
             return;
         }
@@ -1060,7 +1497,8 @@
         aviso.hidden = true;
         grilla.hidden = false;
         grilla.textContent = '';
-        estado.salones.forEach(function (fila) { grilla.appendChild(tarjeta(fila)); });
+        var usadas = {};
+        estado.salones.forEach(function (fila) { grilla.appendChild(tarjeta(fila, usadas)); });
         cuenta.textContent = estado.salones.length + (estado.salones.length === 1 ? ' salón' : ' salones');
         titulo.textContent = estado.rubro ? 'Salones de ' + (NOMBRE_RUBRO[estado.rubro] || estado.rubro) : 'Salones';
     }
@@ -1513,7 +1951,8 @@
         try {
             var datos = await consultar(estado.rubro, estado.busqueda);
             if (mio !== pedido) return;           // respuesta vieja: se descarta
-            estado.salones = datos;
+            estado.salones = await conPlanes(datos);
+            if (mio !== pedido) return;
             estado.cargando = false;
         } catch (error) {
             if (mio !== pedido) return;
