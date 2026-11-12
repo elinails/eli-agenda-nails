@@ -5,7 +5,7 @@
 // I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de version
 // es lo que dispara la purga de la cache vieja en 'activate'. Subir esta
 // constante siempre que cambie el shell. Ahora v11 para PWA.
-const CACHE = 'eli-nails-v11';
+const CACHE = 'elima-hub-v12';
 const SHELL = [
     './',
     'index.html',

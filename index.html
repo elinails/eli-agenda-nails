@@ -16,6 +16,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="application-name" content="ELIMA HUB">
     <meta name="apple-mobile-web-app-title" content="ELIMA HUB">
     <script>
         // A1b/I10: fijar modo y paleta antes del primer render (evita el flash)
@@ -13592,7 +13593,18 @@
                     return;
                 }
 
-                window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+                const tel = telefonoDelSalon();
+                const telefonoWA = tel ? 'https://wa.me/' + String(tel).replace(/\D/g, '') + '?text=' + encodeURIComponent(texto) : '';
+                if (telefonoWA) {
+                    window.open(telefonoWA, '_blank');
+                } else {
+                    // Fallback: copy to clipboard if no salon phone configured
+                    navigator.clipboard.writeText(texto).then(function() {
+                        mostrarBanner('No hay teléfono del salón configurado. Mensaje copiado al portapapeles.', 'ok');
+                    }).catch(function() {
+                        mostrarBanner('No hay teléfono del salón configurado.', 'error');
+                    });
+                }
             }
             
             // Helper functions
