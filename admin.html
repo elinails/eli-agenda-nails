@@ -2917,7 +2917,12 @@
         async function continuar() {
             var esAdmin = await verificarSuperAdmin();
             if (!esAdmin) {
-                await supabase.auth.signOut();
+                // Best-effort: si el signOut falla (sin red), igual mostramos el login.
+                try {
+                    await supabase.auth.signOut();
+                } catch (error) {
+                    console.warn('No se pudo cerrar la sesión:', error);
+                }
                 mostrar('vista-login');
                 alerta('login-alerta', 'No tenés permisos de administrador.');
                 return;
@@ -2957,33 +2962,43 @@
 
         // â”€â”€ 2FA â”€â”€
         async function resolverDosFactores() {
-            var lista = await supabase.auth.mfa.listFactors();
-            if (lista.error) {
-                alerta('login-alerta', 'No se pudo leer el estado del 2FA: ' + lista.error.message);
+            // I96 · sin red, listFactors()/getAAL() rechazan: sin este catch el
+            // arranque quedaba colgado sin mensaje (pantalla en blanco).
+            try {
+                var lista = await supabase.auth.mfa.listFactors();
+                if (lista.error) {
+                    alerta('login-alerta', 'No se pudo leer el estado del 2FA: ' + lista.error.message);
+                    mostrar('vista-login');
+                    return false;
+                }
+                var factores = (lista.data && lista.data.totp) || [];
+                var verificado = factores.filter(function (f) { return f.status === 'verified'; })[0];
+
+                if (!verificado) {
+                    await iniciarEnrolamiento();
+                    return false;
+                }
+
+                var aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+                if (aal && aal.error) throw aal.error;
+                var nivel = aal && aal.data ? aal.data.currentLevel : 'aal1';
+                if (nivel === 'aal2') return true;
+
+                factorPendiente = { id: verificado.id, modo: 'verificar' };
+                $('dosfa-titulo').textContent = 'Verificación en dos pasos';
+                $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
+                $('dosfa-qr-caja').classList.add('oculto');
+                $('dosfa-codigo').value = '';
+                alerta('dosfa-alerta', '', 'error');
+                mostrar('vista-2fa');
+                setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
+                return false;
+            } catch (error) {
+                console.error('2FA:', error);
+                alerta('login-alerta', 'No se pudo comprobar el 2FA: ' + (error && error.message ? error.message : 'error de conexión'));
                 mostrar('vista-login');
                 return false;
             }
-            var factores = (lista.data && lista.data.totp) || [];
-            var verificado = factores.filter(function (f) { return f.status === 'verified'; })[0];
-
-            if (!verificado) {
-                await iniciarEnrolamiento();
-                return false;
-            }
-
-            var aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-            var nivel = aal && aal.data ? aal.data.currentLevel : 'aal1';
-            if (nivel === 'aal2') return true;
-
-            factorPendiente = { id: verificado.id, modo: 'verificar' };
-            $('dosfa-titulo').textContent = 'Verificación en dos pasos';
-            $('dosfa-sub').textContent = 'Ingresá el código de 6 dígitos de tu aplicación de autenticación.';
-            $('dosfa-qr-caja').classList.add('oculto');
-            $('dosfa-codigo').value = '';
-            alerta('dosfa-alerta', '', 'error');
-            mostrar('vista-2fa');
-            setTimeout(function () { $('dosfa-codigo').focus(); }, 80);
-            return false;
         }
 
         async function iniciarEnrolamiento() {
