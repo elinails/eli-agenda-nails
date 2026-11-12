@@ -525,6 +525,54 @@
         }
         .paleta:hover { border-color: var(--gold); transform: translateY(-1px); }
         .paleta.active { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+
+        /* Paletas Premium: bloqueadas hasta comprarlas en la Tienda HUB.
+           El gris se aplica a las muestras y al nombre (no al botón entero)
+           para que el candado conserve su color dorado. */
+        .paleta-bloqueada {
+            position: relative;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .paleta-bloqueada .paleta-muestras,
+        .paleta-bloqueada .paleta-nombre { filter: grayscale(100%); }
+        .paleta-bloqueada:hover { border-color: var(--line); transform: none; }
+        .precio-candado {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--gold);
+            background: var(--surface);
+            color: var(--gold-ink);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            line-height: 1.2;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* Toast flotante. Tailwind no está cargado, así que sus clases de
+           posición no hacían nada y el toast quedaba invisible: acá se
+           posiciona y se pinta. */
+        .toast-notif {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 120;
+            max-width: min(420px, calc(100vw - 32px));
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.35;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .18);
+        }
         .paleta-muestras { display: flex; gap: 4px; }
         .paleta-muestras i {
             display: block;
@@ -2768,33 +2816,39 @@
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Blush Atelier</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="salvia" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="salvia" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Salvia Studio</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="mauve" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="mauve" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Mauve Luxe</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="rose-gold" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="rose-gold" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Rosé Gold</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="golden-glam" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="golden-glam" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Golden Glam</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="nude-gold" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="nude-gold" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Nude Elegance</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
                             <button type="button" class="paleta" data-paleta="mono-light" role="radio" aria-checked="false">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Blanco y Negro</span>
                             </button>
-                            <button type="button" class="paleta" data-paleta="mono-dark" role="radio" aria-checked="false">
+                            <button type="button" class="paleta paleta-bloqueada" data-paleta="mono-dark" role="radio" aria-checked="false" aria-disabled="true">
                                 <span class="paleta-muestras" aria-hidden="true"><i></i><i></i><i></i></span>
                                 <span class="paleta-nombre">Negro y Blanco</span>
+                                <span class="precio-candado">🔒 1.000 Pts</span>
                             </button>
                         </div>
                     </div>                <div id="panel-datos">
@@ -9412,7 +9466,14 @@
             }
 
             document.querySelectorAll('.paleta[data-paleta]').forEach(function(boton) {
-                boton.addEventListener('click', function() {
+                boton.addEventListener('click', function(evento) {
+                    // Paletas Premium: no se aplican hasta comprarlas en la Tienda HUB.
+                    if (boton.classList.contains('paleta-bloqueada')) {
+                        evento.preventDefault();
+                        evento.stopPropagation();
+                        mostrarToast('¡Esta paleta es Premium! Podés desbloquearla en la Tienda HUB usando tus Elima Points.', 'error');
+                        return;
+                    }
                     const nombre = boton.dataset.paleta;
                     try { localStorage.setItem(CLAVE_PALETA, nombre); } catch (error) { /* modo privado */ }
                     aplicarPaleta(nombre);
