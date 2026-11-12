@@ -10978,7 +10978,8 @@
                     mostrarBanner('Logo actualizado.', 'ok');
                 } catch (error) {
                     console.error('No se pudo subir el logo:', error);
-                    mostrarBanner(mensajeError(error), 'error');
+                    if (esPerfilIncompleto(error)) avisarPerfilIncompleto(error);
+                    else mostrarBanner(mensajeError(error), 'error');
                 } finally {
                     subiendoLogo = false;
                     if (boton) { boton.textContent = textoBoton; boton.disabled = false; }
@@ -11007,7 +11008,8 @@
                     mostrarBanner('Logo quitado.', 'ok');
                 } catch (error) {
                     console.error('No se pudo quitar el logo:', error);
-                    mostrarBanner(mensajeError(error), 'error');
+                    if (esPerfilIncompleto(error)) avisarPerfilIncompleto(error);
+                    else mostrarBanner(mensajeError(error), 'error');
                 } finally {
                     subiendoLogo = false;
                     if (boton) boton.disabled = false;
@@ -11091,12 +11093,14 @@
                     if (campo) campo.value = contexto.fotoPortadaUrl;
                     actualizarPreviewPortada();
                     actualizarBotonQuitarPortada();
+                    actualizarBannerPerfil();
                     mostrarBanner('Foto de portada actualizada.', 'ok');
                 } catch (error) {
                     // Si falló, no dejamos un preview que no existe en la base.
                     if (preview) { preview.classList.add('hidden'); preview.removeAttribute('src'); }
                     console.error('No se pudo subir la portada:', error);
-                    mostrarBanner(mensajeError(error), 'error');
+                    if (esPerfilIncompleto(error)) avisarPerfilIncompleto(error);
+                    else mostrarBanner(mensajeError(error), 'error');
                 } finally {
                     if (objetoUrl) { try { URL.revokeObjectURL(objetoUrl); } catch (error) { /* noop */ } }
                     subiendoPortada = false;
@@ -11129,10 +11133,12 @@
                     if (campo) campo.value = '';
                     actualizarPreviewPortada();
                     actualizarBotonQuitarPortada();
+                    actualizarBannerPerfil();
                     mostrarBanner('Foto de portada quitada.', 'ok');
                 } catch (error) {
                     console.error('No se pudo quitar la portada:', error);
-                    mostrarBanner(mensajeError(error), 'error');
+                    if (esPerfilIncompleto(error)) avisarPerfilIncompleto(error);
+                    else mostrarBanner(mensajeError(error), 'error');
                 } finally {
                     subiendoPortada = false;
                     if (boton) boton.disabled = false;
@@ -11685,10 +11691,10 @@
             function actualizarBannerPerfil() {
                 const banner = document.getElementById('banner-perfil');
                 if (!banner) return;
-                const falta = !String(contexto.nombreSalon || '').trim() ||
-                              !String(contexto.rubro || '').trim() ||
-                              !String(contexto.logoUrl || '').trim();
-                banner.classList.toggle('hidden', !(falta && contexto.rol === 'owner'));
+                // I99 · el banner evalúa los mismos 7 campos que exige el
+                // guardado y la publicación (no solo nombre/rubro/logo).
+                const faltantes = faltantesDelPerfil(perfilDesdeFormulario());
+                banner.classList.toggle('hidden', !(faltantes.length && contexto.rol === 'owner'));
             }
 
             const bannerPerfil = document.getElementById('banner-perfil');
@@ -11732,14 +11738,25 @@
             }
 
             function avisarPerfilIncompleto(error) {
-                marcarFaltantesPerfil(faltantesDelPerfil(perfilDesdeFormulario()));
-                const detalle = String((error && error.details) || '').trim();
-                mostrarBanner(
-                    'No se puede publicar: faltan datos obligatorios del perfil' +
-                    (detalle ? ' (' + detalle + ')' : '') + '.',
-                    'error'
-                );
-                mostrarToast('Faltan datos obligatorios para publicar tu perfil.', 'error');
+                const faltantes = faltantesDelPerfil(perfilDesdeFormulario());
+                marcarFaltantesPerfil(faltantes);
+                const lista = faltantes.map(function (f) { return f.texto; }).join(', ');
+                if (contexto.publicado === true) {
+                    // El salón ya está en el Marketplace: el UPDATE lo frena el
+                    // trigger I95 hasta completar el perfil.
+                    mostrarBanner(
+                        'Tu perfil está publicado, pero faltan datos. Completalos para que los cambios se vean en el Marketplace.' +
+                        (lista ? ' Faltan: ' + lista + '.' : ''),
+                        'error'
+                    );
+                } else {
+                    mostrarBanner(
+                        'No se pudo publicar: faltan datos obligatorios.' +
+                        (lista ? ' ' + lista + '.' : ''),
+                        'error'
+                    );
+                }
+                mostrarToast('No se pudo publicar: faltan datos obligatorios.' + (lista ? ' ' + lista : ''), 'error');
             }
 
             // ══════════════════════════════════════════════════════════════
@@ -11987,26 +12004,12 @@
                 const direccion = valorCampo('salon-direccion').slice(0, 200);
                 const estado = document.getElementById('salon-estado');
 
-                // I95 · el perfil público exige TODOS los datos. Si falta uno,
-                // no se guarda: la tarjeta del Marketplace saldría incompleta.
+                // I99 · guardado parcial: se marcan los faltantes, pero no se
+                // aborta. Se persisten los campos completos (borrador).
                 const faltantesPerfil = faltantesDelPerfil(perfilDesdeFormulario());
-                if (faltantesPerfil.length) {
-                    marcarFaltantesPerfil(faltantesPerfil);
-                    const lista = faltantesPerfil.map(function (f) { return f.texto; }).join(', ');
-                    mostrarToast('Faltan datos obligatorios: ' + lista + '.', 'error');
-                    mostrarBanner('Completá todos los datos de Mi Salón: ' + lista + '.', 'error');
-                    const primero = document.getElementById(faltantesPerfil[0].id);
-                    if (primero && primero.focus) {
-                        try { primero.focus({ preventScroll: false }); } catch (error) { primero.focus(); }
-                    }
-                    return;
-                }
-                limpiarFaltantesPerfil();
+                if (faltantesPerfil.length) marcarFaltantesPerfil(faltantesPerfil);
+                else limpiarFaltantesPerfil();
 
-                if (!nombre) {
-                    mostrarBanner('El nombre del negocio no puede quedar vacío.', 'error');
-                    return;
-                }
                 if (instagramCrudo && !instagram) {
                     mostrarBanner('El Instagram no es válido. Escribí solo el usuario, por ejemplo @elinails.', 'error');
                     const campoInstagram = document.getElementById('salon-instagram');
@@ -12027,12 +12030,6 @@
                 }
                 if (slug && (slug.length < 3 || slug.length > 60)) {
                     mostrarBanner('El slug debe tener entre 3 y 60 caracteres: minúsculas, números y guiones.', 'error');
-                    const campo = document.getElementById('salon-slug');
-                    if (campo) campo.focus();
-                    return;
-                }
-                if (contexto.publicado === true && !slug) {
-                    mostrarBanner('Tu perfil ya está publicado: no podés dejar el slug vacío.', 'error');
                     const campo = document.getElementById('salon-slug');
                     if (campo) campo.focus();
                     return;
@@ -12142,23 +12139,31 @@
                         contexto.descripcion = descripcion;
                     }
 
-                    document.title = nombre + ' - Agenda de Turnos';
-                    document.querySelectorAll('img[data-logo]').forEach(function (img) {
-                        img.setAttribute('alt', nombre);
-                    });
+                    if (nombre) {
+                        document.title = nombre + ' - Agenda de Turnos';
+                        document.querySelectorAll('img[data-logo]').forEach(function (img) {
+                            img.setAttribute('alt', nombre);
+                        });
+                    }
                     pintarBranding();
-                    const completo = nivel === 'i69';
-                    if (estado) estado.textContent = completo ? 'Guardado ✓' : 'Guardado parcial';
-                    mostrarBanner(
-                        completo
-                            ? 'Datos del salón y perfil público actualizados.'
-                            : nivel === 'i62'
-                                ? 'Se guardaron los datos del perfil. Corré i69_solicitudes.sql para guardar la dirección.'
-                                : nivel === 'i54'
-                                    ? 'Se guardaron los datos del salón. Corré i62_elima_belleza.sql para el perfil público.'
-                                    : 'Se guardó el nombre. Corré i54_branding.sql para teléfono e Instagram.',
-                        completo ? 'ok' : 'error'
-                    );
+                    // I99 · la completitud se mide con los 7 campos del perfil,
+                    // no con el nivel de esquema al que se pudo guardar.
+                    const faltantesDespues = faltantesDelPerfil(perfilDesdeFormulario());
+                    if (faltantesDespues.length) {
+                        marcarFaltantesPerfil(faltantesDespues);
+                        const lista = faltantesDespues.map(function (f) { return f.texto; }).join(', ');
+                        if (estado) estado.textContent = 'Guardado parcial';
+                        mostrarBanner(
+                            'Se guardaron tus cambios, pero aún faltan datos para publicar: ' + lista + '.',
+                            'error'
+                        );
+                        mostrarToast('Se guardaron tus cambios. Faltan datos para publicar: ' + lista + '.', 'error');
+                    } else {
+                        limpiarFaltantesPerfil();
+                        if (estado) estado.textContent = 'Guardado ✓';
+                        mostrarBanner('Perfil actualizado.', 'ok');
+                        mostrarToast('Perfil actualizado.', 'ok');
+                    }
                 } catch (error) {
                     console.error('No se pudieron guardar los datos del salón:', error);
                     mostrarBanner(mensajeError(error), 'error');
