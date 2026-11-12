@@ -559,10 +559,13 @@
            posiciona y se pinta. */
         .toast-notif {
             position: fixed;
-            top: 16px;
+            /* Abajo y por encima de banners y modales: antes estaba en top:16px
+               con z-index 120 y el banner de perfil (z 210) lo tapaba. */
+            top: auto;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
-            z-index: 120;
+            z-index: 999999 !important;
             max-width: min(420px, calc(100vw - 32px));
             padding: 12px 18px;
             border-radius: 12px;
@@ -1939,8 +1942,27 @@
         .perfil-banner:hover { background: #9E3A32; }
         .perfil-banner:focus-visible { outline: 3px solid #FFFFFF; outline-offset: -3px; }
         .perfil-banner.hidden { display: none !important; }
+        .perfil-banner-link {
+            display: flex; align-items: center; gap: 10px;
+            flex: 1; min-width: 0;
+            color: inherit; text-decoration: none;
+        }
         .perfil-banner-texto { flex: 1; min-width: 0; }
         .perfil-banner-flecha { flex-shrink: 0; font-size: 18px; line-height: 1; }
+        /* X para cerrar: el aviso estorba mientras se edita el perfil. */
+        .perfil-banner-cerrar {
+            flex: 0 0 auto;
+            width: 28px; height: 28px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 0; border-radius: 50%;
+            background: rgba(255, 255, 255, .18);
+            color: #FFFFFF;
+            font-size: 17px; line-height: 1;
+            cursor: pointer;
+            transition: background-color .15s ease;
+        }
+        .perfil-banner-cerrar:hover { background: rgba(255, 255, 255, .34); }
+        .perfil-banner-cerrar:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
 
         /* I93 · campana de notificaciones */
         .header-acciones {
@@ -2908,10 +2930,14 @@
         </header>
 
         <!-- I99 · perfil público incompleto: banda roja con acceso a Mi Salón -->
-        <a href="#panel-mi-salon" id="banner-perfil" class="perfil-banner hidden">
-            <span class="perfil-banner-texto">⚠️ Completá tu perfil público en Ajustes para que tus clientas vean tu marca y no la de ELIMA HUB</span>
-            <span class="perfil-banner-flecha" aria-hidden="true">→</span>
-        </a>
+        <div id="banner-perfil" class="perfil-banner hidden" role="status">
+            <a href="#panel-mi-salon" id="banner-perfil-link" class="perfil-banner-link">
+                <span class="perfil-banner-texto">⚠️ Completá tu perfil público en Ajustes para que tus clientas vean tu marca y no la de ELIMA HUB</span>
+                <span class="perfil-banner-flecha" aria-hidden="true">→</span>
+            </a>
+            <button type="button" id="banner-perfil-cerrar" class="perfil-banner-cerrar"
+                    aria-label="Ocultar aviso de perfil incompleto">×</button>
+        </div>
 
         <!-- I93 · anuncio del SuperAdmin: banda bajo la barra superior -->
         <div id="anuncio-banner" class="ads-banner hidden" role="status" aria-live="polite">
@@ -5210,6 +5236,8 @@
                 if (destino === 'agenda' && contexto.salonId) cargarSolicitudes();
                 // Ocultar FAB también al entrar a las nuevas vistas
                 if (fabNuevo) fabNuevo.classList.toggle('hidden', destino !== 'agenda' && destino !== 'billetera' && destino !== 'tienda');
+                // I99 · el aviso de perfil no debe tapar el formulario en Ajustes.
+                try { actualizarBannerPerfil(); } catch (error) { /* aún sin contexto */ }
                 window.scrollTo({ top: 0, behavior: 'auto' });
             }
 
@@ -11763,18 +11791,33 @@
 
             // I99 · perfil público incompleto (nombre comercial, rubro y logo).
             // Solo la dueña puede completarlo, así que el aviso es para owner.
+            var bannerPerfilOculto = false;   // lo cerró a mano en esta sesión
+
+            function seccionAjustesVisible() {
+                const seccion = document.querySelector('.section[data-section="ajustes"]');
+                if (!seccion) return false;
+                if (seccion.classList.contains('hidden')) return false;
+                return seccion.style.display !== 'none';
+            }
+
             function actualizarBannerPerfil() {
                 const banner = document.getElementById('banner-perfil');
                 if (!banner) return;
                 // I99 · el banner evalúa los mismos 7 campos que exige el
                 // guardado y la publicación (no solo nombre/rubro/logo).
                 const faltantes = faltantesDelPerfil(perfilDesdeFormulario());
-                banner.classList.toggle('hidden', !(faltantes.length && contexto.rol === 'owner'));
+                const corresponde = !!faltantes.length && contexto.rol === 'owner';
+                // No molesta mientras se edita el perfil ni si la dueña lo cerró.
+                const visible = corresponde && !bannerPerfilOculto && !seccionAjustesVisible();
+                banner.classList.toggle('hidden', !visible);
             }
 
             const bannerPerfil = document.getElementById('banner-perfil');
-            if (bannerPerfil) {
-                bannerPerfil.addEventListener('click', function(evento) {
+            const bannerPerfilLink = document.getElementById('banner-perfil-link');
+            const bannerPerfilCerrar = document.getElementById('banner-perfil-cerrar');
+
+            if (bannerPerfilLink) {
+                bannerPerfilLink.addEventListener('click', function(evento) {
                     evento.preventDefault();
                     mostrarSeccion('ajustes');
                     const panel = document.getElementById('panel-mi-salon');
@@ -11783,6 +11826,15 @@
                     setTimeout(function() {
                         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 60);
+                });
+            }
+
+            if (bannerPerfilCerrar) {
+                bannerPerfilCerrar.addEventListener('click', function(evento) {
+                    evento.preventDefault();
+                    evento.stopPropagation();
+                    bannerPerfilOculto = true;
+                    if (bannerPerfil) bannerPerfil.classList.add('hidden');
                 });
             }
 
