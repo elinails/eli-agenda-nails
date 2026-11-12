@@ -641,18 +641,33 @@
         }
         .footer-link:hover { text-decoration: underline; }
 
+        /* Logos 1:1 estrictos.
+           Antes: width:auto + max-height, así que la caja adoptaba la
+           proporción de la imagen y border-radius:50% la volvía un óvalo.
+           Ahora: caja cuadrada fija + object-fit, recorte real. */
         .brand-logo {
             display: block;
-            width: auto;
-            max-height: 56px;
-            max-width: 100%;
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            aspect-ratio: 1 / 1;
+            flex: 0 0 auto;
+            object-fit: cover;
+            object-position: center;
             border-radius: 50%;
             background: #FFFFFF;
             padding: 2px;
+            overflow: hidden;
             box-shadow: 0 1px 3px rgba(59, 47, 53, .10);
         }
-        .brand-logo-sm { max-height: 34px; margin-bottom: 6px; }
-        .brand-logo-login { max-height: 124px; margin: 0 auto 4px; }
+        .brand-logo-sm {
+            width: 34px; height: 34px; min-width: 34px;
+            margin-bottom: 6px;
+        }
+        .brand-logo-login {
+            width: 124px; height: 124px; min-width: 124px;
+            margin: 0 auto 4px;
+        }
         .sidebar-brand { gap: 0; padding-bottom: 14px; }
         .brand-sub { color: var(--ink-soft); font-size: 13px; margin: 6px 0 0; }
 
@@ -1965,8 +1980,11 @@
         .salon-logo-preview {
             width: 72px;
             height: 72px;
+            min-width: 72px;
+            aspect-ratio: 1 / 1;
             border-radius: 50%;
             object-fit: cover;
+            object-position: center;
             border: 1px solid var(--line);
             background: var(--surface);
             flex: 0 0 auto;
