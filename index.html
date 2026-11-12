@@ -1359,7 +1359,11 @@
             width: 100%;
         }
 
-        .fab {
+        /* OJO: Font Awesome también usa la clase .fab para los iconos de marca
+           (Instagram, WhatsApp, Google). Por eso el FAB de la app se limita a
+           button.fab: si no, esos <i class="fab ..."> se posicionan fijos y
+           aparecen flotando sobre la interfaz. */
+        button.fab {
             position: fixed;
             right: 16px;
             bottom: 80px;
@@ -1377,12 +1381,12 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
             cursor: pointer;
         }
-        .fab:hover { background: var(--btn-primary-hover); }
-        /* I23: .hidden debe ganarle a .fab (misma especificidad, nuestro <style> va despues) */
-        .fab.hidden { display: none; }
+        button.fab:hover { background: var(--btn-primary-hover); }
+        /* I23: .hidden debe ganarle a button.fab (misma especificidad, nuestro <style> va despues) */
+        button.fab.hidden { display: none; }
         /* I23: por vista, aunque el JS lo muestre */
-        body:has(#new-appointment-view:not(.hidden)) .fab { display: none; }
-        @media (min-width: 1024px) { .fab { display: none !important; } }
+        body:has(#new-appointment-view:not(.hidden)) button.fab { display: none; }
+        @media (min-width: 1024px) { button.fab { display: none !important; } }
 
         /* ── secciones y paneles ── */
         .section { animation: fade-in .18s ease; }
@@ -1606,7 +1610,7 @@
         }
         /* ── I16 · FAB, sticky y acciones del modal ── */
         /* El FAB no tapa ningún modal abierto */
-        body:has(.modal-overlay:not(.hidden)) .fab { display: none; }
+        body:has(.modal-overlay:not(.hidden)) button.fab { display: none; }
 
         /* La barra de acciones del formulario flota por encima del bottom-nav */
         @media (max-width: 1023px) {
@@ -3040,7 +3044,6 @@
                         <p class="setting-note">Así te van a ver en ELIMA HUB. La publicación la aprueba el equipo.</p>
                         <span id="salon-publicado-estado" class="salon-publicado-badge">Pendiente de aprobación</span>
                         <p class="mi-salon-ayuda salon-instagram-linea">
-                            <i class="fab fa-instagram" aria-hidden="true"></i>
                             <a id="salon-instagram-link" class="salon-instagram-link hidden" href="#" target="_blank" rel="noopener noreferrer">@usuario</a>
                             <span id="salon-instagram-vacio">Todavía no cargaste tu Instagram.</span>
                         </p>
