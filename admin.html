@@ -1188,6 +1188,7 @@
         .confirmar { width: 100%; max-width: 420px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 14px; padding: 24px; box-shadow: var(--sombra); }
         .confirmar h2 { margin: 0 0 8px; font-size: 19px; letter-spacing: -.02em; }
         .confirmar p { margin: 0 0 18px; color: var(--ink-muted); font-size: 13.5px; }
+        .confirmar .rol-nota { font-size: 12px; line-height: 1.45; margin: -6px 0 16px; color: var(--ink-muted); }
         .confirmar-acciones { display: flex; gap: 8px; justify-content: flex-end; }
         /* I90 · paletas Premium por salón */
         .paletas-admin { display: grid; gap: 8px; margin: 14px 0 18px; }
@@ -2358,6 +2359,20 @@
         </div>
     </div>
 
+    <!-- I98 · CAMBIAR ROL OWNER/STAFF (solo SuperAdmin) -->
+    <div id="rol-overlay" class="overlay overlay-confirmar oculto">
+        <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="rol-titulo">
+            <h2 id="rol-titulo">Cambiar rol</h2>
+            <p id="rol-texto"></p>
+            <p class="rol-nota">Owner puede editar el perfil del salón. Staff no puede editar el perfil ni Finanzas.</p>
+            <div class="confirmar-acciones">
+                <button type="button" id="rol-cancelar" class="btn">Cancelar</button>
+                <button type="button" id="rol-staff" class="btn">Staff</button>
+                <button type="button" id="rol-owner" class="btn btn-primario">Owner</button>
+            </div>
+        </div>
+    </div>
+
     <!-- I88 · motivo del rechazo de una recarga -->
     <div id="motivo-overlay" class="overlay overlay-confirmar oculto">
         <div class="confirmar" role="dialog" aria-modal="true" aria-labelledby="motivo-titulo">
@@ -3420,7 +3435,17 @@
                 var fila = document.createElement('tr');
                 fila.appendChild(celda('Email', u.email || '—'));
                 fila.appendChild(celda('Salón', u.salon_nombre || '—'));
-                fila.appendChild(celda('Rol', pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral'))));
+                var tdRol = document.createElement('td');
+                tdRol.setAttribute('data-label', 'Rol');
+                tdRol.appendChild(pill(u.rol || 'sin salón', u.rol === 'owner' ? 'pill-ok' : (u.rol ? 'pill-info' : 'pill-neutral')));
+                if (u.miembro_id && (u.rol === 'owner' || u.rol === 'staff')) {
+                    var botonRol = crear('button', 'btn btn-sm', 'Cambiar Rol');
+                    botonRol.type = 'button';
+                    botonRol.title = 'Cambiar el rol de ' + (u.email || 'este usuario');
+                    botonRol.addEventListener('click', function () { abrirModalRol(u); });
+                    tdRol.appendChild(botonRol);
+                }
+                fila.appendChild(tdRol);
                 fila.appendChild(celda('Alta', fechaCorta(u.creado_en)));
                 var tdUltimo = document.createElement('td');
                 tdUltimo.setAttribute('data-label', 'Último acceso');
@@ -3452,6 +3477,62 @@
                 tbody.appendChild(fila);
             });
         }
+
+        var rolMiembro = null;
+
+        function abrirModalRol(u) {
+            if (!u || !u.miembro_id) return;
+            rolMiembro = u;
+            $('rol-texto').textContent = 'Usuario: ' + (u.email || '—') +
+                ' · Salón: ' + (u.salon_nombre || '—') +
+                '. Rol actual: ' + (u.rol || '—') + '.';
+            $('rol-owner').disabled = u.rol === 'owner';
+            $('rol-staff').disabled = u.rol === 'staff';
+            $('rol-overlay').classList.remove('oculto');
+            var foco = u.rol === 'owner' ? $('rol-staff') : $('rol-owner');
+            if (foco) foco.focus();
+        }
+
+        function cerrarModalRol() {
+            var overlay = $('rol-overlay');
+            if (overlay) overlay.classList.add('oculto');
+            rolMiembro = null;
+        }
+
+        async function cambiarRol(nuevoRol) {
+            var u = rolMiembro;
+            if (!u || !u.miembro_id) return;
+            [$('rol-owner'), $('rol-staff')].forEach(function (b) { if (b) b.disabled = true; });
+            try {
+                var res = await supabase.rpc('admin_cambiar_rol', {
+                    p_miembro_id: u.miembro_id,
+                    p_nuevo_rol: nuevoRol
+                });
+                if (res.error) throw res.error;
+                toast('Rol actualizado a ' + nuevoRol + ' para ' + (u.email || 'el usuario') + '.', 'ok');
+                cerrarModalRol();
+                await cargarUsuarios();
+            } catch (error) {
+                console.warn('cambiar rol:', error);
+                toast('No se pudo cambiar el rol: ' + (error.message || 'error'), 'error');
+                if ($('rol-owner')) $('rol-owner').disabled = u.rol === 'owner';
+                if ($('rol-staff')) $('rol-staff').disabled = u.rol === 'staff';
+            }
+        }
+
+        (function conectarModalRol() {
+            var overlay = $('rol-overlay');
+            if (!overlay) return;
+            $('rol-cancelar').addEventListener('click', cerrarModalRol);
+            $('rol-owner').addEventListener('click', function () { cambiarRol('owner'); });
+            $('rol-staff').addEventListener('click', function () { cambiarRol('staff'); });
+            overlay.addEventListener('click', function (evento) {
+                if (evento.target === overlay) cerrarModalRol();
+            });
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Escape' && !overlay.classList.contains('oculto')) cerrarModalRol();
+            });
+        })();
 
         async function impersonarUsuario(u, boton) {
             if (!u || !u.salon_id || !u.id) return;
