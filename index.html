@@ -1861,9 +1861,12 @@
             color: var(--ink-soft); text-align: center;
         }
 
-        /* I48/I93 · anuncio del SuperAdmin: banda oscura bajo la barra superior */
+        /* I48/I93 · anuncio del SuperAdmin: banda oscura bajo la barra superior.
+           z-index alto a propósito: tiene que quedar por encima del overlay del
+           login (#auth-screen) y del sidebar, si no el anuncio se carga pero
+           queda tapado y parece que "no aparece". */
         .ads-banner {
-            position: sticky; top: 59px; z-index: 70;
+            position: sticky; top: 0; z-index: 200;
             display: flex; align-items: center; gap: 10px;
             padding: 11px 16px; font-size: 13.5px; line-height: 1.4;
             background: #2A2024; color: #FBF7F3;
@@ -2488,16 +2491,6 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <div id="anuncio-banner" class="ads-banner hidden" role="status" aria-live="polite">
-        <svg class="ads-icono" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 11v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6"/>
-            <path d="M7 11V5a4 4 0 0 1 8 0v6"/>
-            <line x1="12" y1="19" x2="12" y2="22"/>
-            <line x1="8" y1="22" x2="16" y2="22"/>
-        </svg>
-        <span class="ads-texto" id="anuncio-texto"></span>
-        <button type="button" class="ads-cerrar" id="anuncio-cerrar" aria-label="Ocultar anuncio">×</button>
-    </div>
     <div id="soporte-banner" class="soporte-banner hidden" role="status"></div>
     <!-- I50 · actualización de la app -->
     <div id="sw-update" class="sw-update hidden" role="status" aria-live="polite">
@@ -2583,6 +2576,18 @@
                 </button>
             </div>
         </header>
+
+        <!-- I93 · anuncio del SuperAdmin: banda bajo la barra superior -->
+        <div id="anuncio-banner" class="ads-banner hidden" role="status" aria-live="polite">
+            <svg class="ads-icono" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <path d="M3 11v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6"/>
+                <path d="M7 11V5a4 4 0 0 1 8 0v6"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+            <span class="ads-texto" id="anuncio-texto"></span>
+            <button type="button" class="ads-cerrar" id="anuncio-cerrar" aria-label="Ocultar anuncio">×</button>
+        </div>
         
         <!-- Agenda: Calendario / Listado -->
         <section class="section" data-section="agenda">
@@ -6506,8 +6511,42 @@
                 return false;
             }
 
+            // I95 · Banner de anuncios del SuperAdmin.
+            // Guardamos SOLO { id, ts } del último anuncio cerrado:
+            //   · anuncio nuevo (id distinto) → se muestra igual
+            //   · mismo anuncio re-publicado (creado_en > ts) → se vuelve a mostrar
+            //   · valor viejo o corrupto → se descarta para no bloquear el banner
+            const CLAVE_ANUNCIO = "eli_anuncio_oculto";
+
+            function leerAnuncioOculto() {
+                try {
+                    const crudo = localStorage.getItem(CLAVE_ANUNCIO);
+                    if (!crudo) return null;
+                    const dato = JSON.parse(crudo);
+                    if (dato && typeof dato === "object" && dato.id) return dato;
+                    localStorage.removeItem(CLAVE_ANUNCIO);
+                    return null;
+                } catch (error) {
+                    try { localStorage.removeItem(CLAVE_ANUNCIO); } catch (e) { /* modo privado */ }
+                    return null;
+                }
+            }
+
+            function anuncioFueCerrado(aviso) {
+                const guardado = leerAnuncioOculto();
+                if (!guardado) return false;
+                if (guardado.id !== aviso.id) return false;      // otro anuncio → mostrar
+                const creado = aviso.creado_en ? new Date(aviso.creado_en).getTime() : 0;
+                const cerrado = Number(guardado.ts) || 0;
+                return creado <= cerrado;                        // re-publicado → mostrar
+            }
+
             async function cargarAnuncio() {
                 if (!supabase) return;
+                const banner = document.getElementById("anuncio-banner");
+                const texto = document.getElementById("anuncio-texto");
+                if (!banner || !texto) return;
+
                 try {
                     const { data, error } = await supabase
                         .from("anuncios_globales")
@@ -6515,50 +6554,56 @@
                         .eq("activo", true)
                         .order("creado_en", { ascending: false })
                         .limit(1);
-                    if (error || !data || !data.length) return;
-                    const aviso = data[0];
-                    if (!aviso.mensaje) return;
-                    if (aviso.expira_en && new Date(aviso.expira_en).getTime() <= Date.now()) return;
 
-                    // I95: solo ocultar si el usuario cerró ESTE anuncio Y no hay uno MÁS NUEVO
-                    const ocultoId = localStorage.getItem("eli_anuncio_oculto");
-                    const ocultoIds = ocultoId ? JSON.parse(ocultoId) : [];
-                    if (ocultoIds.includes(aviso.id)) {
-                        // Si hay un anuncio más nuevo (id distinto al ocultado), mostrarlo igual
-                        const { data: masNuevo } = await supabase
-                            .from("anuncios_globales")
-                            .select("id")
-                            .eq("activo", true)
-                            .order("creado_en", { ascending: false })
-                            .limit(1);
-                        if (masNuevo && masNuevo.length && masNuevo[0].id !== aviso.id) {
-                            // Hay uno más nuevo → mostrar y limpiar ocultados viejos
-                            const nuevosOcultos = ocultoIds.filter(id => id === aviso.id);
-                            localStorage.setItem("eli_anuncio_oculto", JSON.stringify(nuevosOcultos));
-                        } else {
-                            return; // Mismo anuncio → respetar ocultado
-                        }
+                    if (error) {
+                        console.warn("I95 · anuncio:", error.message);
+                        return;
                     }
 
-                    const banner = document.getElementById("anuncio-banner");
-                    const texto = document.getElementById("anuncio-texto");
-                    if (!banner || !texto) return;
+                    const aviso = data && data.length ? data[0] : null;
+                    const vigente = aviso && aviso.mensaje &&
+                        (!aviso.expira_en || new Date(aviso.expira_en).getTime() > Date.now());
+
+                    if (!vigente || anuncioFueCerrado(aviso)) {
+                        banner.classList.add("hidden");
+                        return;
+                    }
+
                     texto.textContent = aviso.mensaje;
+                    banner.dataset.anuncioId = aviso.id;
                     banner.classList.remove("hidden");
+
+                    // Un único listener: lee el id vigente del dataset, así sirve
+                    // aunque el anuncio cambie sin recargar la página.
                     const cerrar = document.getElementById("anuncio-cerrar");
-                    if (cerrar) {
+                    if (cerrar && !cerrar.dataset.enganchado) {
+                        cerrar.dataset.enganchado = "1";
                         cerrar.addEventListener("click", function () {
-                            const actuales = JSON.parse(localStorage.getItem("eli_anuncio_oculto") || "[]");
-                            if (!actuales.includes(aviso.id)) {
-                                actuales.push(aviso.id);
-                                // Mantener solo últimos 5 IDs para no saturar localStorage
-                                localStorage.setItem("eli_anuncio_oculto", JSON.stringify(actuales.slice(-5)));
-                            }
+                            const id = banner.dataset.anuncioId || "";
+                            try {
+                                localStorage.setItem(CLAVE_ANUNCIO, JSON.stringify({ id: id, ts: Date.now() }));
+                            } catch (error) { /* modo privado */ }
                             banner.classList.add("hidden");
                         });
                     }
-                } catch (error) { /* sin anuncios: seguimos */ }
+                } catch (error) {
+                    console.warn("I95 · anuncio:", error);
+                }
             }
+
+            // Si el SuperAdmin publica mientras la app está abierta, el banner
+            // aparece al volver a la pestaña sin necesidad de recargar.
+            var ultimoChequeoAnuncio = 0;
+            function reChequearAnuncio() {
+                const ahora = Date.now();
+                if (ahora - ultimoChequeoAnuncio < 15000) return;
+                ultimoChequeoAnuncio = ahora;
+                cargarAnuncio();
+            }
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) reChequearAnuncio();
+            });
+            window.addEventListener("focus", reChequearAnuncio);
 
             // ══════════════════════════════════════════════════════════════
             // I93 · Notificaciones in-app (campana + badge + sonido)
