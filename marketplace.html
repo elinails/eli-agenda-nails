@@ -330,7 +330,6 @@
         font-family: var(--serif); font-size: 23px; font-weight: 600;
         letter-spacing: -.01em; margin: 0;
     }
-    .resultados-orden { display: block; margin-top: 2px; font-size: 10.5px; color: var(--ink-3); }
     .resultados-cuenta {
         flex: 0 0 auto;
         font-size: 11.5px; font-weight: 600; color: var(--ink-2);
@@ -423,6 +422,13 @@
         color: var(--ink);
         box-shadow: 0 0 0 1px rgba(42, 32, 36, .1), 0 1px 2px rgba(0, 0, 0, .2);
     }
+    .tarjeta-badge.verificado::before {
+        content: "";
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--gold);
+        margin-right: 5px;
+    }
 
     /* Logo 1:1 de 40px, montado sobre el borde inferior izquierdo de la foto. */
     .salon-logo-container {
@@ -435,7 +441,7 @@
     .salon-logo-container img {
         width: 100%; height: 100%;
         object-fit: contain;
-        padding: 3px;
+        padding: 2px;
         background: var(--surface);
     }
     .tarjeta-portada .salon-logo-container {
@@ -504,6 +510,7 @@
         min-width: 0;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .tarjeta-rubro-corto { display: none; }
     .tarjeta-rubro::before {
         content: ""; flex: 0 0 auto;
         width: 5px; height: 5px; border-radius: 50%;
@@ -741,12 +748,14 @@
         .btn-app { min-height: 40px; }
         .marca-sub { display: none; }
         .cabecera-link { display: none; }
-        .hero { padding-top: 26px; padding-bottom: 22px; }
+        .hero { padding-top: 20px; padding-bottom: 18px; }
+        .hero-etiqueta { display: none; }
         .hero h1 { font-size: clamp(28px, 8vw, 36px); max-width: 17ch; }
         .hero p { font-size: 13.5px; }
-        .destacados { padding-top: 20px; padding-bottom: 24px; }
+        .destacados { padding-top: 16px; padding-bottom: 20px; }
         .destacados-titulo { font-size: 20px; }
         .destacados-nota { display: none; }
+        .destacados-cab { margin-bottom: 12px; }
         .destacados-carrusel {
             padding-right: 20px;
             -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
@@ -757,15 +766,15 @@
         .promo-titulo { font-size: 17px; }
         .promo-texto { display: none; }
         .promo-plan .promo-titulo { font-size: 19px; }
-        .resultados { padding-top: 16px; padding-bottom: 56px; }
+        .resultados { padding-top: 12px; padding-bottom: 56px; }
         .resultados-barra { margin-bottom: 12px; }
-        .resultados-orden { display: none; }
         .grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         .tarjeta-cuerpo { padding: 22px 10px 10px; }
         .tarjeta-nombre { font-size: 14px; }
         .tarjeta-pie { gap: 6px; padding-top: 8px; }
-        .tarjeta-rubro { font-size: 8px; letter-spacing: .05em; }
-        .tarjeta-rubro::before { display: none; }
+        .tarjeta-rubro { font-size: 10px; letter-spacing: .03em; }
+        .tarjeta-rubro-largo { display: none; }
+        .tarjeta-rubro-corto { display: inline; }
         .tarjeta-reservar { min-height: 36px; padding: 0 10px; font-size: 11px; border-radius: 8px; }
         .tarjeta-reservar svg { width: 11px; height: 11px; }
         .modal-servicios { grid-template-columns: 1fr; }
@@ -826,7 +835,7 @@
         <div class="hero-grid">
             <div class="hero-texto">
                 <span class="hero-etiqueta">Uñas · Pelo · Maquillaje · Barbería</span>
-                <h1>Tu salón ideal, <em>a un clic</em>.</h1>
+                <h1>Tu salón ideal, <br><em>a un clic</em>.</h1>
                 <p>Reservá online sin cuenta y leé reseñas de clientas reales.</p>
             </div>
 
@@ -895,7 +904,6 @@
         <div class="resultados-barra">
             <div>
                 <h2 class="resultados-titulo" id="resultados-titulo">Salones</h2>
-                <span class="resultados-orden">Perfiles publicados</span>
             </div>
             <span class="resultados-cuenta" id="resultados-cuenta" role="status" aria-live="polite"></span>
         </div>
@@ -992,6 +1000,8 @@
         { id: 'barberia',   nombre: 'Barbería' }
     ];
     var NOMBRE_RUBRO = { nails: 'Nails', peluqueria: 'Peluquería', maquillaje: 'Maquillaje', barberia: 'Barbería' };
+    // Etiqueta corta para el pie de la tarjeta en mobile (10px, sin cortes).
+    var RUBRO_CORTO = { nails: 'Nails', peluqueria: 'Pelo', maquillaje: 'Makeup', barberia: 'Barber' };
 
     var estado = {
         rubro: '',
@@ -1308,7 +1318,14 @@
         rubro.className = 'tarjeta-rubro';
         var rubroTexto = document.createElement('span');
         rubroTexto.className = 'tarjeta-rubro-texto';
-        rubroTexto.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
+        var rubroLargo = document.createElement('span');
+        rubroLargo.className = 'tarjeta-rubro-largo';
+        rubroLargo.textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
+        var rubroCorto = document.createElement('span');
+        rubroCorto.className = 'tarjeta-rubro-corto';
+        rubroCorto.textContent = RUBRO_CORTO[fila.rubro] || 'Salón';
+        rubroTexto.appendChild(rubroLargo);
+        rubroTexto.appendChild(rubroCorto);
         rubro.appendChild(rubroTexto);
         pie.appendChild(rubro);
 
