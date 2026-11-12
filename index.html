@@ -10940,12 +10940,14 @@
                     return;
                 }
                 const boton = document.getElementById('logo-btn');
-                if (['image/png', 'image/jpeg'].indexOf(archivo.type) === -1) {
-                    mostrarBanner('Elegí una imagen PNG o JPG.', 'error');
+                // Aceptamos cualquier imagen que el navegador pueda decodificar:
+                // las fotos de celular llegan en HEIC/WebP o pesando varios MB.
+                if (!/^image\//i.test(archivo.type || '')) {
+                    mostrarBanner('Elegí un archivo de imagen (JPG, PNG o similar).', 'error');
                     return;
                 }
-                if (archivo.size > 2 * 1024 * 1024) {
-                    mostrarBanner('La imagen supera los 2 MB. Achicála y probá de nuevo.', 'error');
+                if (archivo.size > 20 * 1024 * 1024) {
+                    mostrarBanner('La imagen es demasiado grande (máximo 20 MB).', 'error');
                     return;
                 }
                 let probada = null;
@@ -10954,15 +10956,22 @@
                     mostrarBanner('No pudimos leer esa imagen.', 'error');
                     return;
                 }
+                // I96 · se comprime antes de subir: un logo de celular de 4 MB
+                // queda en unos pocos KB. Se conserva la transparencia del PNG.
+                const logoOptimizado = await optimizarImagen(archivo, 800, 0.9, true);
+                if (!logoOptimizado) {
+                    mostrarBanner('No pudimos procesar esa imagen. Probá con un JPG o PNG.', 'error');
+                    return;
+                }
                 subiendoLogo = true;
                 const textoBoton = boton ? boton.textContent : '';
                 if (boton) { boton.textContent = 'Subiendo…'; boton.disabled = true; }
                 try {
-                    const extension = archivo.type === 'image/png' ? 'png' : 'jpg';
+                    const extension = logoOptimizado.tipo === 'image/png' ? 'png' : 'jpg';
                     const ruta = contexto.salonId + '/logo.' + extension;
-                    const subida = await supabase.storage.from('logos').upload(ruta, archivo, {
+                    const subida = await supabase.storage.from('logos').upload(ruta, logoOptimizado.blob, {
                         upsert: true,
-                        contentType: archivo.type,
+                        contentType: logoOptimizado.tipo,
                         cacheControl: '3600'
                     });
                     if (subida.error) throw subida.error;
@@ -11029,6 +11038,60 @@
                 quitar.classList.toggle('hidden', !hay);
             }
 
+            // I96 · Comprime y redimensiona antes de subir. Las fotos de celular
+            // pesan 3-8 MB y el límite del bucket las rechazaba; acá quedan en
+            // ~200-400 KB sin que la dueña tenga que achicarlas a mano.
+            async function optimizarImagen(archivo, maxLado, calidad, conservarAlpha) {
+                const limite = Number(maxLado) || 1600;
+                const q = typeof calidad === 'number' ? calidad : 0.85;
+                let url = null;
+                try {
+                    url = URL.createObjectURL(archivo);
+                    const img = await cargarImagen(url);
+                    if (!img) return null;
+
+                    const ancho = img.naturalWidth || img.width || 0;
+                    const alto = img.naturalHeight || img.height || 0;
+                    if (!ancho || !alto) return null;
+
+                    const escala = Math.min(1, limite / Math.max(ancho, alto));
+                    const liviana = archivo.size <= 900 * 1024;
+                    // Si ya es chica y es PNG/JPG, se sube tal cual.
+                    if (escala === 1 && liviana && /^image\/(png|jpeg)$/i.test(archivo.type || '')) {
+                        return { blob: archivo, tipo: archivo.type, ancho: ancho, alto: alto };
+                    }
+
+                    const w = Math.max(1, Math.round(ancho * escala));
+                    const h = Math.max(1, Math.round(alto * escala));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return null;
+                    // Un logo PNG puede tener transparencia: no se aplasta a JPEG.
+                    const conAlpha = !!conservarAlpha && /^image\/(png|webp)$/i.test(archivo.type || '');
+                    if (!conAlpha) {
+                        // Fondo blanco: si el original tiene transparencia no queda negro.
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, w, h);
+                    }
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    const tipoSalida = conAlpha ? 'image/png' : 'image/jpeg';
+                    const blob = await new Promise(function (resolve) {
+                        try {
+                            canvas.toBlob(resolve, tipoSalida, conAlpha ? undefined : q);
+                        } catch (error) { resolve(null); }
+                    });
+                    if (!blob) return null;
+                    return { blob: blob, tipo: tipoSalida, ancho: w, alto: h };
+                } catch (error) {
+                    return null;
+                } finally {
+                    if (url) { try { URL.revokeObjectURL(url); } catch (error) { /* noop */ } }
+                }
+            }
+
             async function subirPortada(archivo) {
                 if (subiendoPortada || !archivo) return;
                 if (!esOwner()) {
@@ -11039,12 +11102,14 @@
                     mostrarBanner('No pudimos identificar tu salón.', 'error');
                     return;
                 }
-                if (['image/png', 'image/jpeg'].indexOf(archivo.type) === -1) {
-                    mostrarBanner('Elegí una imagen PNG o JPG.', 'error');
+                // Aceptamos cualquier imagen que el navegador pueda decodificar:
+                // las fotos de celular llegan en HEIC/WebP o pesando varios MB.
+                if (!/^image\//i.test(archivo.type || '')) {
+                    mostrarBanner('Elegí un archivo de imagen (JPG, PNG o similar).', 'error');
                     return;
                 }
-                if (archivo.size > 2 * 1024 * 1024) {
-                    mostrarBanner('La imagen supera los 2 MB. Achicála y probá de nuevo.', 'error');
+                if (archivo.size > 20 * 1024 * 1024) {
+                    mostrarBanner('La imagen es demasiado grande (máximo 20 MB).', 'error');
                     return;
                 }
 
@@ -11068,16 +11133,26 @@
                     return;
                 }
 
+                // I96 · se comprime/redimensiona antes de subir: una foto de
+                // celular de 5 MB queda en ~300 KB y entra sin problemas.
+                const optimizada = await optimizarImagen(archivo, 1600, 0.85);
+                if (!optimizada) {
+                    if (preview) { preview.classList.add('hidden'); preview.removeAttribute('src'); }
+                    if (objetoUrl) { try { URL.revokeObjectURL(objetoUrl); } catch (error) { /* noop */ } }
+                    mostrarBanner('No pudimos procesar esa imagen. Probá con un JPG o PNG.', 'error');
+                    return;
+                }
+
                 const boton = document.getElementById('portada-btn');
                 const textoBoton = boton ? boton.textContent : '';
                 subiendoPortada = true;
                 if (boton) { boton.disabled = true; boton.textContent = 'Subiendo…'; }
                 try {
-                    const extension = archivo.type === 'image/png' ? 'png' : 'jpg';
+                    const extension = optimizada.tipo === 'image/png' ? 'png' : 'jpg';
                     const ruta = contexto.salonId + '/portada.' + extension;
-                    const subida = await supabase.storage.from('logos').upload(ruta, archivo, {
+                    const subida = await supabase.storage.from('logos').upload(ruta, optimizada.blob, {
                         upsert: true,
-                        contentType: archivo.type,
+                        contentType: optimizada.tipo,
                         cacheControl: '3600'
                     });
                     if (subida.error) throw subida.error;
