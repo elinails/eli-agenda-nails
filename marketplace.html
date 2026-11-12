@@ -330,6 +330,179 @@
     .promo-plan:hover .promo-pie svg { transform: translateX(3px); }
     .promo-plan .promo-pie svg { transition: transform .18s var(--ease); }
 
+    /* ── I100 · turnos liberados (ofertas de último minuto) ─────────────── */
+    .liberados {
+        position: relative;
+        overflow: hidden;
+        padding: 27px 0 31px;
+        background:
+            radial-gradient(circle at 91% 8%, rgba(201, 164, 95, .27), transparent 37%),
+            radial-gradient(circle at 7% 105%, rgba(233, 211, 220, .72), transparent 42%),
+            linear-gradient(112deg, #F9EEE3 0%, #F4E8D2 56%, #EADCC4 100%);
+        border-top: 1px solid rgba(122, 90, 36, .18);
+        border-bottom: 1px solid rgba(122, 90, 36, .2);
+    }
+    .liberados[hidden] { display: none; }
+    .liberados::after {
+        content: "";
+        position: absolute;
+        right: -84px; top: -96px;
+        width: 258px; height: 258px;
+        border: 1px solid rgba(122, 90, 36, .12);
+        border-radius: 50%;
+        box-shadow: 0 0 0 43px rgba(122, 90, 36, .025);
+        pointer-events: none;
+    }
+    .liberados-cab {
+        position: relative; z-index: 1;
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 16px; margin-bottom: 7px;
+    }
+    .liberados-eyebrow {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 8px;
+        color: #8A6433;
+        font-family: var(--sans);
+        font-size: 8.5px; font-weight: 700; letter-spacing: .15em;
+        text-transform: uppercase;
+    }
+    .liberados-eyebrow::before { content: ""; width: 20px; height: 1px; background: #B79B6C; }
+    .liberados-titulo {
+        display: flex; align-items: center; gap: 10px;
+        margin: 0;
+        color: var(--ink);
+        font-family: var(--serif); font-size: 29px; font-weight: 600;
+        line-height: 1; letter-spacing: -.02em;
+    }
+    .liberados-titulo .rayo {
+        display: grid; place-items: center;
+        width: 32px; height: 32px;
+        border-radius: 9px;
+        background: var(--ink); color: var(--gold-badge);
+        font-size: 16px; line-height: 1;
+        box-shadow: 0 4px 12px rgba(42, 32, 36, .2);
+    }
+    .liberados-cuenta {
+        flex: none;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: var(--ink); color: var(--cream);
+        font-size: 10px; font-weight: 600;
+        white-space: nowrap;
+    }
+    .liberados-sub {
+        position: relative; z-index: 1;
+        max-width: 63ch;
+        margin: 0 0 16px;
+        color: #74604F;
+        font-size: 12px; line-height: 1.5;
+    }
+    .liberados-carrusel {
+        position: relative; z-index: 1;
+        display: flex; gap: 12px;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 2px 2px 5px;
+        scrollbar-width: none;
+    }
+    .liberados-carrusel::-webkit-scrollbar { display: none; }
+    .liberados-carrusel > * { scroll-snap-align: start; }
+    .liberado {
+        position: relative;
+        flex: 0 0 274px;
+        display: flex; flex-direction: column;
+        min-height: 233px;
+        padding: 15px 16px 13px;
+        overflow: hidden;
+        border: 1px solid rgba(107, 90, 76, .25);
+        border-radius: var(--radius);
+        background: rgba(255, 252, 248, .86);
+        box-shadow: 0 8px 22px rgba(80, 55, 34, .08);
+        color: var(--ink);
+        transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+    }
+    .liberado::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 14px; bottom: 14px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: linear-gradient(180deg, var(--gold), var(--cta));
+    }
+    .liberado:hover {
+        transform: translateY(-2px);
+        border-color: rgba(169, 74, 34, .42);
+        box-shadow: 0 14px 30px rgba(80, 55, 34, .13);
+    }
+    .liberado-abrir {
+        position: absolute; inset: 0; z-index: 2;
+        width: 100%;
+        padding: 0; border: 0; border-radius: inherit;
+        background: transparent;
+        cursor: pointer;
+    }
+    .liberado-abrir:focus-visible { outline: 2px solid var(--cta); outline-offset: -3px; }
+    .liberado-top { display: flex; align-items: center; gap: 8px; padding-left: 5px; }
+    .liberado-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 7px;
+        border-radius: 4px;
+        background: var(--ink); color: var(--gold-soft);
+        font-size: 7.5px; font-weight: 800; letter-spacing: .1em;
+        line-height: 1.2; text-transform: uppercase;
+    }
+    .liberado-descuento {
+        margin-left: auto;
+        color: var(--cta);
+        font-size: 13px; font-weight: 800; letter-spacing: -.01em;
+    }
+    .liberado-hora { display: flex; align-items: baseline; gap: 8px; margin-top: 13px; padding-left: 5px; }
+    .liberado-hora strong {
+        color: var(--ink);
+        font-family: var(--serif); font-size: 35px; font-weight: 600;
+        line-height: .8; letter-spacing: -.04em;
+        font-variant-numeric: tabular-nums;
+    }
+    .liberado-hora span {
+        color: #8A6433;
+        font-family: var(--sans); font-size: 8px; font-weight: 700;
+        letter-spacing: .08em; text-transform: uppercase;
+    }
+    .liberado-servicio {
+        margin: 10px 0 2px; padding-left: 5px;
+        color: var(--ink);
+        font-family: var(--serif); font-size: 20px; font-weight: 600;
+        line-height: 1.05; letter-spacing: -.01em;
+        overflow-wrap: anywhere;
+    }
+    .liberado-salon {
+        padding-left: 5px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        color: #74604F;
+        font-size: 10.5px; line-height: 1.4;
+    }
+    .liberado-precios {
+        display: flex; align-items: baseline; gap: 7px;
+        margin-top: auto; padding: 10px 0 9px 5px;
+        border-top: 1px solid rgba(107, 90, 76, .14);
+    }
+    .liberado-precios s { color: #9B8778; font-size: 11px; }
+    .liberado-precios strong {
+        color: var(--cta);
+        font-size: 18px; font-weight: 800; letter-spacing: -.02em;
+        font-variant-numeric: tabular-nums;
+    }
+    .liberado-pie {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 8px; padding-left: 5px;
+        color: #4E3C31;
+        font-size: 9px; font-weight: 700; letter-spacing: .09em;
+        text-transform: uppercase;
+    }
+    .liberado-pie svg { width: 12px; height: 12px; transition: transform .18s var(--ease); }
+    .liberado:hover .liberado-pie svg { transform: translateX(3px); }
+
     /* ── I94 · marcas y productos aliados (publicidad) ─────────────────── */
     .aliados {
         background: var(--surface-2);
@@ -815,6 +988,7 @@
     .reserva-form { margin-top: 12px; }
     .reserva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .reserva-campo { display: grid; gap: 4px; }
+    .reserva-campo[hidden] { display: none; }
     .reserva-campo-full { grid-column: 1 / -1; }
     .reserva-campo > span {
         font-size: 10px; font-weight: 700; letter-spacing: .1em;
@@ -834,6 +1008,47 @@
     }
     .reserva-campo input:focus-visible,
     .reserva-campo select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .reserva-campo input:disabled,
+    .reserva-campo select:disabled {
+        background: var(--surface-2);
+        color: var(--ink-2);
+        opacity: 1;
+        cursor: not-allowed;
+    }
+    .reserva-oferta {
+        margin-top: 13px;
+        padding: 13px 14px;
+        border: 1px solid rgba(169, 74, 34, .26);
+        border-radius: 12px;
+        background:
+            radial-gradient(circle at 94% 5%, rgba(201, 164, 95, .24), transparent 40%),
+            var(--surface-2);
+    }
+    .reserva-oferta[hidden] { display: none; }
+    .reserva-oferta-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .reserva-oferta-top span {
+        color: var(--cta);
+        font-size: 8.5px; font-weight: 800; letter-spacing: .1em;
+        text-transform: uppercase;
+    }
+    .reserva-oferta-top strong {
+        color: var(--cta);
+        font-size: 14px; font-weight: 800;
+    }
+    .reserva-oferta-servicio {
+        margin: 7px 0 2px;
+        color: var(--ink);
+        font-family: var(--serif); font-size: 21px; font-weight: 600;
+        line-height: 1.05;
+    }
+    .reserva-oferta-meta { margin: 0; color: var(--ink-2); font-size: 11.5px; line-height: 1.45; }
+    .reserva-oferta-precios {
+        display: flex; align-items: baseline; gap: 8px;
+        margin-top: 8px; padding-top: 8px;
+        border-top: 1px solid rgba(169, 74, 34, .14);
+    }
+    .reserva-oferta-precios s { color: var(--ink-3); font-size: 12px; }
+    .reserva-oferta-precios strong { color: var(--cta); font-size: 19px; font-weight: 800; }
     .reserva-btn {
         width: 100%;
         min-height: 46px;
@@ -933,6 +1148,25 @@
         .promo-media { aspect-ratio: 2 / 1; }
         .promo-titulo { font-size: 17px; }
         .promo-texto { display: none; }
+
+        /* I100 · turnos liberados en móvil */
+        .liberados { padding-top: 18px; padding-bottom: 21px; }
+        .liberados-cab { gap: 9px; margin-bottom: 5px; }
+        .liberados-eyebrow { font-size: 7.5px; margin-bottom: 6px; letter-spacing: .1em; }
+        .liberados-titulo { gap: 8px; font-size: 23px; }
+        .liberados-titulo .rayo { width: 27px; height: 27px; font-size: 14px; border-radius: 8px; }
+        .liberados-cuenta { padding: 4px 8px; font-size: 8.5px; }
+        .liberados-sub { margin-bottom: 12px; font-size: 11px; line-height: 1.45; }
+        .liberados-carrusel {
+            gap: 10px;
+            padding-right: 16px;
+            -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+        }
+        .liberado { flex-basis: 229px; min-height: 222px; padding: 13px 13px 12px; }
+        .liberado-hora strong { font-size: 30px; }
+        .liberado-servicio { font-size: 18px; }
+        .liberado-badge { font-size: 7px; }
 
         /* I94 · aliados en móvil */
         .aliados { padding-top: 16px; padding-bottom: 20px; }
@@ -1325,6 +1559,23 @@
         </div>
     </section>
 
+    <!-- I100 · Turnos liberados: cancelaciones reales con precio de oferta -->
+    <section class="liberados" id="liberados" aria-labelledby="liberados-titulo" hidden>
+        <div class="envoltura">
+            <div class="liberados-cab">
+                <div>
+                    <span class="liberados-eyebrow">Ofertas de último minuto</span>
+                    <h2 class="liberados-titulo" id="liberados-titulo">
+                        <span class="rayo" aria-hidden="true">⚡</span> Turnos Liberados
+                    </h2>
+                </div>
+                <span class="liberados-cuenta" id="liberados-cuenta">0 disponibles</span>
+            </div>
+            <p class="liberados-sub">Cancelaciones reales de salones de belleza. Si el horario te sirve, reservalo antes de que otra clienta lo tome.</p>
+            <div class="liberados-carrusel" id="liberados-carrusel" aria-live="polite"></div>
+        </div>
+    </section>
+
     <!-- Promociones destacadas: carrusel horizontal con espacio comercial -->
     <section class="destacados" aria-labelledby="destacados-titulo">
         <div class="envoltura">
@@ -1424,17 +1675,35 @@
             </section>
 
             <section class="modal-seccion" id="modal-reserva-seccion" hidden>
-                <h3 class="modal-seccion-titulo">Solicitar turno</h3>
-                <p class="modal-nota">Sin cuenta. El salón te va a contactar para confirmar.</p>
+                <h3 class="modal-seccion-titulo" id="reserva-titulo">Solicitar turno</h3>
+                <p class="modal-nota" id="reserva-nota">Sin cuenta. El salón te va a contactar para confirmar.</p>
+
+                <div class="reserva-oferta" id="reserva-oferta" hidden>
+                    <div class="reserva-oferta-top">
+                        <span>⚡ Turno liberado</span>
+                        <strong id="reserva-oferta-descuento">−0%</strong>
+                    </div>
+                    <p class="reserva-oferta-servicio" id="reserva-oferta-servicio"></p>
+                    <p class="reserva-oferta-meta" id="reserva-oferta-meta"></p>
+                    <div class="reserva-oferta-precios">
+                        <s id="reserva-oferta-original"></s>
+                        <strong id="reserva-oferta-precio"></strong>
+                    </div>
+                </div>
+
                 <form id="reserva-form" class="reserva-form" novalidate>
                     <div class="reserva-grid">
                         <label class="reserva-campo">
                             <span>Nombre</span>
                             <input id="reserva-nombre" name="nombre" type="text" maxlength="80" autocomplete="name" required placeholder="Tu nombre">
                         </label>
-                        <label class="reserva-campo">
+                        <label class="reserva-campo" id="reserva-telefono-campo">
                             <span>WhatsApp</span>
                             <input id="reserva-telefono" name="telefono" type="tel" maxlength="30" autocomplete="tel" required placeholder="+54 9 11 …">
+                        </label>
+                        <label class="reserva-campo reserva-campo-full" id="reserva-email-campo" hidden>
+                            <span>Email</span>
+                            <input id="reserva-email" name="email" type="email" maxlength="160" autocomplete="email" inputmode="email" placeholder="vos@email.com">
                         </label>
                         <label class="reserva-campo">
                             <span>Fecha</span>
@@ -1476,6 +1745,8 @@
     var RPC = SUPABASE_URL + '/rest/v1/rpc/public_marketplace_salones';
     var RPC_DETALLE = SUPABASE_URL + '/rest/v1/rpc/public_salon_detalle';
     var RPC_SOLICITUD = SUPABASE_URL + '/rest/v1/rpc/public_crear_solicitud';
+    var RPC_LIBERADOS = SUPABASE_URL + '/rest/v1/rpc/obtener_turnos_liberados';
+    var RPC_RESERVAR_LIBERADO = SUPABASE_URL + '/rest/v1/rpc/reservar_turno_liberado';
 
     var RUBROS = [
         { id: '',           nombre: 'Todos' },
@@ -1526,6 +1797,8 @@
         error: '',
         detalleActual: null,
         detallePedido: 0,
+        oferta: null,
+        ofertaReservada: false,
         // Filtros avanzados (se combinan con rubro + búsqueda de texto)
         filtros: { zona: '', precio: '', estrellas4: false, ofertas: false }
     };
@@ -2367,7 +2640,299 @@
         }
     }
 
+    // ── I100 · turnos liberados ───────────────────────────────────────────
+    function mananaLocalISO() {
+        var d = new Date();
+        d.setDate(d.getDate() + 1);
+        var mes = String(d.getMonth() + 1).padStart(2, '0');
+        var dia = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mes + '-' + dia;
+    }
+
+    function etiquetaDiaOferta(fecha) {
+        if (fecha === fechaLocalISO()) return 'Hoy';
+        if (fecha === mananaLocalISO()) return 'Mañana';
+        var partes = String(fecha || '').split('-');
+        if (partes.length !== 3) return '';
+        var fechaObj = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+        try {
+            return fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+                .replace(/\./g, '');
+        } catch (error) {
+            return String(fecha || '');
+        }
+    }
+
+    function horaOferta(hora) {
+        return String(hora || '').slice(0, 5);
+    }
+
+    function crearTarjetaLiberado(oferta) {
+        var articulo = document.createElement('article');
+        articulo.className = 'liberado';
+
+        var top = document.createElement('div');
+        top.className = 'liberado-top';
+        var badge = document.createElement('span');
+        badge.className = 'liberado-badge';
+        badge.textContent = '⚡ Último minuto';
+        var descuento = document.createElement('span');
+        descuento.className = 'liberado-descuento';
+        descuento.textContent = '−' + (Number(oferta.descuento_pct) || 0) + '%';
+        top.appendChild(badge);
+        top.appendChild(descuento);
+
+        var hora = document.createElement('div');
+        hora.className = 'liberado-hora';
+        var horaFuerte = document.createElement('strong');
+        horaFuerte.textContent = horaOferta(oferta.hora);
+        var dia = document.createElement('span');
+        dia.textContent = etiquetaDiaOferta(oferta.fecha);
+        hora.appendChild(horaFuerte);
+        hora.appendChild(dia);
+
+        var servicio = document.createElement('h3');
+        servicio.className = 'liberado-servicio';
+        servicio.textContent = oferta.servicio_nombre || 'Servicio';
+
+        var salon = document.createElement('p');
+        salon.className = 'liberado-salon';
+        salon.textContent = (oferta.salon_nombre || 'Salón') +
+            (oferta.salon_direccion ? ' · ' + oferta.salon_direccion : '');
+
+        var precios = document.createElement('div');
+        precios.className = 'liberado-precios';
+        var antes = document.createElement('s');
+        antes.textContent = formatearPrecio(oferta.precio_original);
+        var ahora = document.createElement('strong');
+        ahora.textContent = formatearPrecio(oferta.precio_oferta);
+        precios.appendChild(antes);
+        precios.appendChild(ahora);
+
+        var pie = document.createElement('div');
+        pie.className = 'liberado-pie';
+        var cta = document.createElement('span');
+        cta.textContent = 'Reservar oferta';
+        pie.appendChild(cta);
+        var flecha = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        flecha.setAttribute('viewBox', '0 0 24 24');
+        flecha.setAttribute('fill', 'none');
+        flecha.setAttribute('stroke', 'currentColor');
+        flecha.setAttribute('stroke-width', '2');
+        flecha.setAttribute('stroke-linecap', 'round');
+        flecha.setAttribute('stroke-linejoin', 'round');
+        flecha.setAttribute('aria-hidden', 'true');
+        var camino = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        camino.setAttribute('d', 'M5 12h13M12 5l7 7-7 7');
+        flecha.appendChild(camino);
+        pie.appendChild(flecha);
+
+        var abrir = document.createElement('button');
+        abrir.type = 'button';
+        abrir.className = 'liberado-abrir';
+        abrir.setAttribute('aria-label',
+            'Reservar oferta de ' + (oferta.servicio_nombre || 'servicio') +
+            ' en ' + (oferta.salon_nombre || 'el salón') +
+            ', ' + etiquetaDiaOferta(oferta.fecha) + ' a las ' + horaOferta(oferta.hora));
+        abrir.addEventListener('click', function () { abrirOfertaLiberada(oferta); });
+
+        articulo.appendChild(abrir);
+        articulo.appendChild(top);
+        articulo.appendChild(hora);
+        articulo.appendChild(servicio);
+        articulo.appendChild(salon);
+        articulo.appendChild(precios);
+        articulo.appendChild(pie);
+        return articulo;
+    }
+
+    function pintarTurnosLiberados(filas) {
+        var seccion = $('liberados');
+        var carrusel = $('liberados-carrusel');
+        var cuenta = $('liberados-cuenta');
+        if (!seccion || !carrusel) return;
+
+        if (!Array.isArray(filas) || !filas.length) {
+            seccion.hidden = true;
+            carrusel.textContent = '';
+            return;
+        }
+
+        carrusel.textContent = '';
+        filas.forEach(function (fila) {
+            carrusel.appendChild(crearTarjetaLiberado(fila));
+        });
+        if (cuenta) {
+            cuenta.textContent = filas.length + (filas.length === 1 ? ' disponible' : ' disponibles');
+        }
+        seccion.hidden = false;
+    }
+
+    async function cargarTurnosLiberados() {
+        var seccion = $('liberados');
+        try {
+            var respuesta = await postRpc(RPC_LIBERADOS, {});
+            if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status);
+            var filas = await respuesta.json();
+            pintarTurnosLiberados(filas);
+        } catch (error) {
+            // La sección es un extra: si la RPC aún no está aplicada,
+            // el Marketplace debe seguir funcionando normalmente.
+            console.warn('I100 · turnos liberados:', error);
+            if (seccion) seccion.hidden = true;
+        }
+    }
+
+    function abrirOfertaLiberada(oferta) {
+        var fila = {
+            slug: oferta.salon_slug,
+            nombre: oferta.salon_nombre,
+            rubro: oferta.salon_rubro,
+            bio: oferta.salon_bio,
+            foto_portada_url: oferta.salon_foto_portada_url,
+            logo_url: oferta.salon_logo_url,
+            instagram: oferta.salon_instagram,
+            promedio_estrellas: oferta.promedio_estrellas,
+            count_resenas: oferta.count_resenas
+        };
+        abrirModal(fila, { oferta: oferta });
+        esperarSeccionReserva(0);
+    }
+
+    function restablecerModoOferta() {
+        var banner = $('reserva-oferta');
+        if (banner) banner.hidden = true;
+
+        var formulario = $('reserva-form');
+        if (formulario) {
+            Array.prototype.slice.call(formulario.querySelectorAll('input, select')).forEach(function (campo) {
+                campo.disabled = false;
+            });
+        }
+
+        var titulo = $('reserva-titulo');
+        if (titulo) titulo.textContent = 'Solicitar turno';
+        var nota = $('reserva-nota');
+        if (nota) nota.textContent = 'Sin cuenta. El salón te va a contactar para confirmar.';
+
+        var telefonoCampo = $('reserva-telefono-campo');
+        if (telefonoCampo) telefonoCampo.hidden = false;
+        var telefono = $('reserva-telefono');
+        if (telefono) telefono.required = true;
+
+        var emailCampo = $('reserva-email-campo');
+        if (emailCampo) emailCampo.hidden = true;
+        var email = $('reserva-email');
+        if (email) {
+            email.required = false;
+            email.value = '';
+        }
+
+        var fecha = $('reserva-fecha');
+        var hora = $('reserva-hora');
+        var servicio = $('reserva-servicio');
+        if (fecha) {
+            fecha.disabled = false;
+            fecha.required = true;
+        }
+        if (hora) {
+            hora.disabled = false;
+            hora.required = true;
+        }
+        if (servicio) {
+            servicio.disabled = false;
+            servicio.required = true;
+        }
+
+        var boton = $('reserva-btn');
+        if (boton) {
+            boton.disabled = false;
+            boton.textContent = 'Enviar solicitud';
+        }
+        estado.ofertaReservada = false;
+    }
+
+    function aplicarOfertaFormulario() {
+        var oferta = estado.oferta;
+        if (!oferta) return;
+
+        var seccion = $('modal-reserva-seccion');
+        if (seccion) seccion.hidden = false;
+        var gate = $('modal-reservas-gate');
+        if (gate) gate.hidden = true;
+
+        var banner = $('reserva-oferta');
+        if (banner) banner.hidden = false;
+        var descuento = $('reserva-oferta-descuento');
+        if (descuento) descuento.textContent = '−' + (Number(oferta.descuento_pct) || 0) + '%';
+        var servicioOferta = $('reserva-oferta-servicio');
+        if (servicioOferta) servicioOferta.textContent = oferta.servicio_nombre || 'Servicio';
+        var meta = $('reserva-oferta-meta');
+        if (meta) {
+            meta.textContent = (oferta.salon_nombre || 'Salón') +
+                ' · ' + etiquetaDiaOferta(oferta.fecha) +
+                ' a las ' + horaOferta(oferta.hora);
+        }
+        var original = $('reserva-oferta-original');
+        if (original) original.textContent = formatearPrecio(oferta.precio_original);
+        var precio = $('reserva-oferta-precio');
+        if (precio) precio.textContent = formatearPrecio(oferta.precio_oferta);
+
+        var titulo = $('reserva-titulo');
+        if (titulo) titulo.textContent = 'Reservar turno liberado';
+        var nota = $('reserva-nota');
+        if (nota) nota.textContent = 'La oferta queda reservada a tu nombre. El salón se contacta para confirmar.';
+
+        var telefonoCampo = $('reserva-telefono-campo');
+        if (telefonoCampo) telefonoCampo.hidden = true;
+        var telefono = $('reserva-telefono');
+        if (telefono) {
+            telefono.required = false;
+            telefono.value = '';
+        }
+
+        var emailCampo = $('reserva-email-campo');
+        if (emailCampo) emailCampo.hidden = false;
+        var email = $('reserva-email');
+        if (email) email.required = true;
+
+        var fecha = $('reserva-fecha');
+        if (fecha) {
+            fecha.value = String(oferta.fecha || '');
+            fecha.disabled = true;
+        }
+        var hora = $('reserva-hora');
+        if (hora) {
+            hora.value = horaOferta(oferta.hora);
+            hora.disabled = true;
+        }
+
+        var select = $('reserva-servicio');
+        if (select) {
+            var valor = String(oferta.servicio_id);
+            var existe = Array.prototype.some.call(select.options, function (opcion) {
+                return opcion.value === valor;
+            });
+            if (!existe) {
+                var opcionNueva = document.createElement('option');
+                opcionNueva.value = valor;
+                opcionNueva.textContent = oferta.servicio_nombre || 'Servicio de la oferta';
+                select.appendChild(opcionNueva);
+            }
+            select.value = valor;
+            select.disabled = true;
+        }
+
+        var boton = $('reserva-btn');
+        if (boton) {
+            boton.disabled = false;
+            boton.textContent = 'Reservar oferta';
+        }
+        estado.ofertaReservada = false;
+    }
+
     function limpiarDetalleModal() {
+        restablecerModoOferta();
         var direccion = $('modal-direccion');
         if (direccion) {
             direccion.hidden = true;
@@ -2533,6 +3098,15 @@
             if (reservaSeccion && datos.reservas_habilitadas !== true) {
                 reservaSeccion.hidden = true;
             }
+
+            // I100 · Una oferta publicada por el salón se puede reservar
+            // aunque el formulario normal esté gateado: la oferta ya nació
+            // de un turno real y el salón la habilitó explícitamente.
+            if (estado.oferta && estado.oferta.salon_slug === fila.slug) {
+                if (gate) gate.hidden = true;
+                if (reservaSeccion) reservaSeccion.hidden = false;
+                aplicarOfertaFormulario();
+            }
         } catch (error) {
             if (pedido !== estado.detallePedido) return;
             console.error('Detalle del salón:', error);
@@ -2572,8 +3146,125 @@
         return 'No pudimos enviar la solicitud. Revisá los datos e intentá de nuevo.';
     }
 
+    function mensajeOferta(datos) {
+        var texto = String((datos && (datos.message || datos.details || datos.hint)) || '');
+        if (/turno_liberado_no_disponible/.test(texto)) {
+            return 'Otra clienta tomó esta oferta. Probá con otra disponibilidad.';
+        }
+        if (/turno_liberado_vencido/.test(texto)) {
+            return 'Esta oferta ya venció. Mirá las demás disponibles.';
+        }
+        if (/email_invalido/.test(texto)) {
+            return 'Revisá tu email.';
+        }
+        if (/nombre_invalido/.test(texto)) {
+            return 'Revisá tu nombre.';
+        }
+        if (/salon_no_disponible/.test(texto)) {
+            return 'Ese salón ya no está disponible.';
+        }
+        if (/servicio_invalido/.test(texto)) {
+            return 'El servicio de la oferta ya no está disponible.';
+        }
+        if (/telefono_invalido/.test(texto)) {
+            return 'Revisá el WhatsApp.';
+        }
+        return 'No pudimos reservar la oferta. Revisá los datos e intentá de nuevo.';
+    }
+
+    async function enviarSolicitudOferta(evento) {
+        evento.preventDefault();
+        if (estado.ofertaReservada) return;
+
+        var aviso = $('reserva-aviso');
+        var boton = $('reserva-btn');
+        var nombreEl = $('reserva-nombre');
+        var emailEl = $('reserva-email');
+
+        function mostrarError(mensaje) {
+            if (!aviso) return;
+            aviso.className = 'reserva-aviso error';
+            aviso.textContent = mensaje;
+        }
+
+        var nombre = String(nombreEl && nombreEl.value ? nombreEl.value : '').trim();
+        var email = String(emailEl && emailEl.value ? emailEl.value : '').trim().toLowerCase();
+
+        if (!estado.oferta) {
+            mostrarError('No pudimos cargar la oferta. Cerrá y volvé a intentar.');
+            return;
+        }
+        if (nombre.length < 2) {
+            mostrarError('Ingresá tu nombre.');
+            if (nombreEl) nombreEl.focus();
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+            mostrarError('Ingresá un email válido.');
+            if (emailEl) emailEl.focus();
+            return;
+        }
+
+        if (boton) {
+            boton.disabled = true;
+            boton.textContent = 'Reservando…';
+        }
+        if (aviso) {
+            aviso.className = 'reserva-aviso';
+            aviso.textContent = '';
+        }
+
+        try {
+            var respuesta = await postRpc(RPC_RESERVAR_LIBERADO, {
+                p_turno_liberado_id: estado.oferta.id,
+                p_cliente_email: email,
+                p_cliente_nombre: nombre,
+                p_cliente_telefono: null
+            });
+
+            if (!respuesta.ok) {
+                var datos = null;
+                try { datos = await respuesta.json(); } catch (error) { datos = null; }
+                throw new Error(mensajeOferta(datos));
+            }
+
+            estado.ofertaReservada = true;
+            if (aviso) {
+                aviso.className = 'reserva-aviso exito';
+                aviso.textContent = '¡Oferta reservada! El salón se va a contactar para confirmar.';
+            }
+            if (boton) {
+                boton.disabled = true;
+                boton.textContent = 'Oferta reservada';
+            }
+            var campos = $('reserva-form');
+            if (campos) {
+                Array.prototype.slice.call(campos.querySelectorAll('input, select')).forEach(function (campo) {
+                    campo.disabled = true;
+                });
+            }
+            cargarTurnosLiberados();
+        } catch (error) {
+            console.error('I100 · reserva de oferta:', error);
+            var mensaje = error && error.message ? error.message : '';
+            if (!/^(Otra clienta|Esta oferta|Revisá|Ese salón|El servicio|No pudimos)/.test(mensaje)) {
+                mensaje = 'No pudimos reservar la oferta. Revisá tu conexión e intentá de nuevo.';
+            }
+            mostrarError(mensaje);
+            if (/Otra clienta|Esta oferta/.test(mensaje)) cargarTurnosLiberados();
+            if (boton) {
+                boton.disabled = false;
+                boton.textContent = 'Reservar oferta';
+            }
+        }
+    }
+
     async function enviarSolicitud(evento) {
         evento.preventDefault();
+        if (estado.oferta) {
+            enviarSolicitudOferta(evento);
+            return;
+        }
 
         var aviso = $('reserva-aviso');
         var boton = $('reserva-btn');
@@ -2675,10 +3366,12 @@
     }
 
     // ── modal ────────────────────────────────────────────────────────────
-    function abrirModal(fila) {
+    function abrirModal(fila, opciones) {
         focoPrevio = document.activeElement;
         estado.detalleActual = null;
         estado.detallePedido++;
+        estado.oferta = opciones && opciones.oferta ? opciones.oferta : null;
+        estado.ofertaReservada = false;
 
         $('modal-nombre').textContent = String(fila.nombre == null ? 'Salón' : fila.nombre);
         $('modal-rubro').textContent = NOMBRE_RUBRO[fila.rubro] || 'Salón';
@@ -2732,6 +3425,8 @@
     function cerrarModal() {
         estado.detallePedido++;
         estado.detalleActual = null;
+        estado.oferta = null;
+        estado.ofertaReservada = false;
         modalFondo.hidden = true;
         document.body.style.overflow = '';
         if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
@@ -2905,6 +3600,8 @@
     checkAuthLogic();
     // I94 · publicidad de marcas aliadas (se oculta sola si no hay ninguna).
     cargarMarcasAliadas();
+    // I100 · ofertas de último minuto (se oculta sola si no hay ninguna).
+    cargarTurnosLiberados();
 })();
 </script>
 </body>

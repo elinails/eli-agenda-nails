@@ -1708,6 +1708,171 @@
         }
         .btn-complete:hover { filter: brightness(1.06); }
         .btn-complete:disabled { opacity: .6; cursor: not-allowed; }
+
+        /* ── I100 · Liberar turno / oferta de último minuto ── */
+        #modal-liberar-btn {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--gold), var(--gold-ink));
+            color: #1A1517;
+            border: 1px solid rgba(255, 255, 255, .16);
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(140, 107, 58, .18);
+        }
+        #modal-liberar-btn:hover { filter: brightness(1.06); }
+        .btn-liberar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 46px;
+            padding: 0 18px;
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-ink));
+            color: #1A1517;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter .16s ease, transform .12s ease;
+        }
+        .btn-liberar:hover { filter: brightness(1.06); }
+        .btn-liberar:active { transform: scale(.985); }
+        .btn-liberar:disabled { opacity: .6; cursor: wait; }
+        .liberar-resumen {
+            display: grid;
+            gap: 3px;
+            margin-bottom: 18px;
+            padding: 15px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface-2);
+        }
+        .liberar-kicker {
+            color: var(--gold-ink);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+        #liberar-servicio {
+            font-family: var(--serif);
+            font-size: 21px;
+            font-weight: 600;
+            line-height: 1.08;
+            color: var(--ink);
+        }
+        .liberar-cuando, .liberar-cliente {
+            color: var(--ink-soft);
+            font-size: 11.5px;
+            line-height: 1.4;
+        }
+        .liberar-cliente { color: var(--ink-soft); opacity: .78; }
+        .liberar-campo { display: grid; gap: 7px; margin-bottom: 12px; }
+        .liberar-campo label {
+            color: var(--ink-soft);
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+        .liberar-precio-wrap {
+            display: flex;
+            align-items: center;
+            min-height: 48px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--paper);
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+        .liberar-precio-wrap:focus-within {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-soft);
+        }
+        .liberar-precio-wrap > span {
+            padding-left: 14px;
+            color: var(--gold-ink);
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .liberar-precio-wrap input {
+            width: 100%;
+            min-width: 0;
+            min-height: 46px;
+            padding: 0 14px 0 5px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--ink);
+            font: inherit;
+            font-size: 18px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        .liberar-porcentajes { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0 14px; }
+        .liberar-pct {
+            min-height: 32px;
+            padding: 0 11px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--ink-soft);
+            font-size: 10.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+        }
+        .liberar-pct:hover, .liberar-pct.activo {
+            border-color: var(--gold);
+            background: var(--gold-soft);
+            color: var(--gold-ink);
+        }
+        .liberar-preview {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--line);
+        }
+        .liberar-preview > div { padding: 10px 11px; background: var(--surface-2); }
+        .liberar-preview span {
+            display: block;
+            color: var(--ink-soft);
+            opacity: .8;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 6.5px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .liberar-preview strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .liberar-preview > div:nth-child(2) strong { color: var(--gold-ink); }
+        .liberar-error {
+            margin: 11px 0 0;
+            padding: 9px 11px;
+            border-radius: 8px;
+            background: var(--danger-bg);
+            color: var(--danger-ink);
+            font-size: 11.5px;
+            line-height: 1.4;
+        }
+        .liberar-error.hidden { display: none; }
+        .liberar-acciones {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 9px;
+            margin-top: 17px;
+        }
+        .liberar-acciones .btn-secondary { min-height: 46px; border-radius: 10px; }
+        .liberar-acciones .btn-liberar { width: 100%; }
+
         /* ── I19 · A1 · feedback táctil ── */
         .appt-row, .btn-primary, .btn-secondary, .export-btn, .paleta, .icon-btn, .nav-item, .seg .nav-tab {
             transition: transform .12s ease, box-shadow .12s ease, background-color .16s ease, color .16s ease;
@@ -2456,7 +2621,8 @@
         .solicitud-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .solicitud-acciones .btn-primary,
         .solicitud-acciones .btn-danger { width: auto; }
-        .solicitud-telefono { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 2px; }
+        .solicitud-telefono,
+        .solicitud-email { color: var(--gold-ink); text-decoration: underline; text-underline-offset: 2px; }
 
         /* I93 · respuesta rápida por WhatsApp desde solicitudes */
         .solicitud-wa-bloque { margin-top: 8px; }
@@ -3964,6 +4130,9 @@
                     <button type="button" id="modal-cancel-btn" class="btn-danger text-sm hidden">
                         <i class="fas fa-ban mr-2" aria-hidden="true"></i> Cancelar turno
                     </button>
+                    <button type="button" id="modal-liberar-btn" class="text-sm hidden">
+                        <i class="fas fa-bolt" aria-hidden="true"></i> Liberar Turno
+                    </button>
                     <button type="button" id="modal-edit-btn" class="btn-primary px-4 py-2 rounded-lg font-medium text-sm">
                         <i class="fas fa-edit mr-2"></i> Editar
                     </button>
@@ -3977,7 +4146,57 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- I100 · Liberar turno como oferta de último minuto -->
+    <div id="liberar-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center modal-overlay">
+        <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="liberar-kicker">Oferta de último minuto</p>
+                        <h3 class="text-xl font-bold text-eli-dark mt-1" id="liberar-titulo">Liberar Turno</h3>
+                    </div>
+                    <button type="button" id="liberar-cerrar" class="text-ink-soft hover:text-ink" aria-label="Cerrar">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="liberar-resumen">
+                    <span class="liberar-kicker">Turno original</span>
+                    <strong id="liberar-servicio">Servicio</strong>
+                    <span class="liberar-cuando" id="liberar-cuando"></span>
+                    <span class="liberar-cliente" id="liberar-cliente"></span>
+                </div>
+
+                <form id="liberar-form" novalidate>
+                    <p class="setting-note mb-3">El turno se va a cancelar y va a aparecer destacado en el Marketplace, sólo para hoy o mañana.</p>
+                    <div class="liberar-campo">
+                        <label for="liberar-precio">Precio de oferta</label>
+                        <div class="liberar-precio-wrap">
+                            <span>$</span>
+                            <input id="liberar-precio" type="number" min="1" step="1" inputmode="numeric" required>
+                        </div>
+                    </div>
+                    <div class="liberar-porcentajes" role="group" aria-label="Descuentos rápidos">
+                        <button type="button" class="liberar-pct" data-pct="10">−10%</button>
+                        <button type="button" class="liberar-pct" data-pct="20">−20%</button>
+                        <button type="button" class="liberar-pct activo" data-pct="30">−30%</button>
+                    </div>
+                    <div class="liberar-preview" aria-live="polite">
+                        <div><span>Antes</span><strong id="liberar-original">$ --</strong></div>
+                        <div><span>Oferta</span><strong id="liberar-final">$ --</strong></div>
+                        <div><span>Descuento</span><strong id="liberar-descuento">--%</strong></div>
+                    </div>
+                    <p class="liberar-error hidden" id="liberar-error" role="alert"></p>
+                    <div class="liberar-acciones">
+                        <button type="button" id="liberar-cancelar" class="btn-secondary font-medium">Volver</button>
+                        <button type="submit" id="liberar-confirmar" class="btn-liberar">Publicar oferta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- I22 · Nuevo gasto -->
     <div id="gasto-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay">
         <div class="modal-content bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
@@ -4436,6 +4655,7 @@
             const appointmentsList = document.getElementById('appointments-list');
             
             const appointmentModal = document.getElementById('appointment-modal');
+            const liberarModal = document.getElementById('liberar-modal');
             const confirmModal = document.getElementById('confirm-modal');
             
             // Tab Navigation
@@ -4929,7 +5149,7 @@
                 try {
                     const res = await supabase
                         .from('solicitudes_reserva')
-                        .select('id, cliente_nombre, cliente_telefono, fecha, hora, servicio_id, servicio_nombre, servicio_precio, servicio_duracion, estado, creado_en, servicio:servicios(nombre,precio_base,duracion_minutos)')
+                        .select('id, cliente_nombre, cliente_telefono, cliente_email, fecha, hora, servicio_id, servicio_nombre, servicio_precio, servicio_duracion, estado, creado_en, servicio:servicios(nombre,precio_base,duracion_minutos)')
                         .eq('salon_id', contexto.salonId)
                         .eq('estado', 'pendiente')
                         .order('creado_en', { ascending: true })
@@ -4966,6 +5186,7 @@
                     info.appendChild(crearNodoSolicitud('div', 'solicitud-nombre', sol.cliente_nombre || 'Clienta'));
 
                     const telefono = String(sol.cliente_telefono || '').trim();
+                    const email = String(sol.cliente_email || '').trim();
                     const meta = crearNodoSolicitud('div', 'solicitud-meta');
                     if (telefono) {
                         const digitos = telefono.replace(/[^0-9+]/g, '');
@@ -4978,8 +5199,17 @@
                         } else {
                             meta.appendChild(document.createTextNode(telefono));
                         }
-                    } else {
-                        meta.appendChild(document.createTextNode('Sin teléfono'));
+                    }
+                    if (email) {
+                        if (telefono) meta.appendChild(document.createTextNode(' · '));
+                        const enlaceEmail = document.createElement('a');
+                        enlaceEmail.href = 'mailto:' + email;
+                        enlaceEmail.className = 'solicitud-email';
+                        enlaceEmail.textContent = email;
+                        meta.appendChild(enlaceEmail);
+                    }
+                    if (!telefono && !email) {
+                        meta.appendChild(document.createTextNode('Sin contacto'));
                     }
                     meta.appendChild(document.createTextNode(' · ' + formatDate(sol.fecha) + ' · ' + String(sol.hora || '').slice(0, 5)));
                     info.appendChild(meta);
@@ -8929,7 +9159,8 @@
             clienteModal.addEventListener('click', function(evento) { if (evento.target === clienteModal) cerrarCliente(); });
 
             document.addEventListener('keydown', function(evento) {
-                const abierto = document.querySelector('.modal-overlay:not(.hidden)');
+                const abiertos = document.querySelectorAll('.modal-overlay:not(.hidden)');
+                const abierto = abiertos.length ? abiertos[abiertos.length - 1] : null;
                 if (!abierto) return;
 
                 if (evento.key === 'Escape') {
@@ -12577,6 +12808,217 @@
                 );
             }
 
+            // ─────────────────────────────────────────────────────────────
+            // I100 · Liberar un turno como oferta de último minuto
+            // ─────────────────────────────────────────────────────────────
+            let turnoALiberar = null;
+            let liberandoTurno = false;
+
+            function mananaISO() {
+                const fecha = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(fecha);
+            }
+
+            function minutosAhoraBuenosAires() {
+                const partes = new Intl.DateTimeFormat('en-GB', {
+                    timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false
+                }).formatToParts(new Date());
+                const h = Number((partes.find(function (p) { return p.type === 'hour'; }) || {}).value);
+                const m = Number((partes.find(function (p) { return p.type === 'minute'; }) || {}).value);
+                return (isFinite(h) ? h : 0) * 60 + (isFinite(m) ? m : 0);
+            }
+
+            function puedeLiberarTurno(turno) {
+                if (!turno) return false;
+                const estado = normalizarEstado(turno.status);
+                if (estado !== 'pending' && estado !== 'confirmed') return false;
+                if (turno.servicioId == null) return false;
+                if (!(Number(turno.price) > 0)) return false;
+                const fecha = String(turno.date || '');
+                if (fecha !== todayISO() && fecha !== mananaISO()) return false;
+                if (fecha === todayISO()) {
+                    const partes = String(turno.time || '').split(':').map(Number);
+                    if (partes.length < 2 || !isFinite(partes[0]) || !isFinite(partes[1])) return false;
+                    return (partes[0] * 60 + partes[1]) > minutosAhoraBuenosAires();
+                }
+                return true;
+            }
+
+            function precioOfertaLiberar() {
+                const input = document.getElementById('liberar-precio');
+                return Math.max(0, Math.round(Number(input && input.value) || 0));
+            }
+
+            function actualizarPreviewLiberar() {
+                const original = Number(turnoALiberar && turnoALiberar.price) || 0;
+                const oferta = precioOfertaLiberar();
+                const valido = original > 0 && oferta > 0 && oferta < original;
+                const descuento = valido ? Math.round((1 - (oferta / original)) * 100) : 0;
+                const finalEl = document.getElementById('liberar-final');
+                const descuentoEl = document.getElementById('liberar-descuento');
+                const originalEl = document.getElementById('liberar-original');
+                if (originalEl) originalEl.textContent = original > 0 ? money(original) : '$ --';
+                if (finalEl) finalEl.textContent = oferta > 0 ? money(oferta) : '$ --';
+                if (descuentoEl) descuentoEl.textContent = valido ? '−' + descuento + '%' : '--%';
+            }
+
+            function abrirLiberarTurno(turno) {
+                if (!puedeLiberarTurno(turno)) {
+                    mostrarBanner('Sólo podés liberar turnos pendientes o confirmados de hoy o mañana, con servicio y precio.', 'error');
+                    return;
+                }
+                turnoALiberar = turno;
+                const original = Math.round(Number(turno.price) || 0);
+                const input = document.getElementById('liberar-precio');
+                const errorEl = document.getElementById('liberar-error');
+                const confirmar = document.getElementById('liberar-confirmar');
+                document.getElementById('liberar-servicio').textContent = turno.serviceType || 'Servicio';
+                document.getElementById('liberar-cuando').textContent =
+                    formatDate(turno.date) + ' · ' + String(turno.time || '').slice(0, 5) + ' h';
+                document.getElementById('liberar-cliente').textContent =
+                    turno.clientName ? 'Clienta original: ' + turno.clientName : 'Turno sin clienta asignada';
+                if (input) {
+                    input.max = String(Math.max(1, original - 1));
+                    input.value = String(Math.max(1, Math.round(original * 0.7)));
+                }
+                if (errorEl) {
+                    errorEl.textContent = '';
+                    errorEl.classList.add('hidden');
+                }
+                if (confirmar) {
+                    confirmar.disabled = false;
+                    confirmar.textContent = 'Publicar oferta';
+                }
+                document.querySelectorAll('.liberar-pct').forEach(function (boton) {
+                    boton.classList.toggle('activo', boton.dataset.pct === '30');
+                });
+                actualizarPreviewLiberar();
+                abrirModal(liberarModal);
+            }
+
+            async function confirmarLiberarTurno(evento) {
+                if (evento) evento.preventDefault();
+                if (liberandoTurno || !turnoALiberar) return;
+
+                const errorEl = document.getElementById('liberar-error');
+                const input = document.getElementById('liberar-precio');
+                const boton = document.getElementById('liberar-confirmar');
+                const original = Math.round(Number(turnoALiberar.price) || 0);
+                const oferta = precioOfertaLiberar();
+
+                function fallo(mensaje) {
+                    if (errorEl) {
+                        errorEl.textContent = mensaje;
+                        errorEl.classList.remove('hidden');
+                    }
+                    if (input) input.focus();
+                }
+
+                if (!puedeLiberarTurno(turnoALiberar)) {
+                    fallo('Ese turno ya no se puede liberar.');
+                    return;
+                }
+                if (!(oferta > 0) || oferta >= original) {
+                    fallo('El precio de oferta tiene que ser mayor a 0 y menor al precio original.');
+                    return;
+                }
+
+                liberandoTurno = true;
+                if (boton) {
+                    boton.disabled = true;
+                    boton.textContent = 'Publicando…';
+                }
+                if (errorEl) {
+                    errorEl.textContent = '';
+                    errorEl.classList.add('hidden');
+                }
+
+                try {
+                    const { error } = await supabase.rpc('publicar_turno_liberado', {
+                        p_turno_id: Number(turnoALiberar.id),
+                        p_precio_oferta: oferta
+                    });
+                    if (error) throw error;
+
+                    cerrarModal(liberarModal);
+                    cerrarModal(appointmentModal);
+                    turnoALiberar = null;
+                    await loadAppointments();
+                    await recargar('turnos');
+                    mostrarBanner(
+                        '⚡ Turno liberado por ' + money(oferta) + '. Ya está visible en el Marketplace.',
+                        'ok',
+                        { duracion: 9000 }
+                    );
+                } catch (error) {
+                    const texto = String(error && (error.message || error.details || error.code) || '');
+                    if (/turno_ya_liberado/.test(texto)) {
+                        fallo('Ese turno ya tiene una oferta publicada.');
+                    } else if (/solo_hoy_o_manana/.test(texto)) {
+                        fallo('Sólo podés liberar turnos de hoy o mañana.');
+                    } else if (/turno_vencido/.test(texto)) {
+                        fallo('El horario de ese turno ya pasó.');
+                    } else if (/precio_oferta_invalido/.test(texto)) {
+                        fallo('El precio de oferta debe ser mayor a 0 y menor al original.');
+                    } else if (/precio_original_invalido/.test(texto)) {
+                        fallo('El turno no tiene un precio válido para ofrecer.');
+                    } else if (/servicio_requerido|servicio_invalido/.test(texto)) {
+                        fallo('Asociá un servicio válido al turno antes de liberarlo.');
+                    } else if (/sin_permisos/.test(texto)) {
+                        fallo('Sólo la dueña del salón puede liberar turnos.');
+                    } else if (/turno_no_liberable/.test(texto)) {
+                        fallo('Ese turno ya está cancelado o realizado.');
+                    } else {
+                        console.error('I100 · no se pudo liberar el turno:', error);
+                        fallo('No se pudo publicar la oferta. Revisá la conexión e intentá de nuevo.');
+                    }
+                } finally {
+                    liberandoTurno = false;
+                    if (boton) {
+                        boton.disabled = false;
+                        boton.textContent = 'Publicar oferta';
+                    }
+                }
+            }
+
+            (function conectarLiberarTurno() {
+                const form = document.getElementById('liberar-form');
+                const precio = document.getElementById('liberar-precio');
+                if (!form || !liberarModal) return;
+
+                form.addEventListener('submit', confirmarLiberarTurno);
+                document.getElementById('liberar-cerrar').addEventListener('click', function () {
+                    cerrarModal(liberarModal);
+                });
+                document.getElementById('liberar-cancelar').addEventListener('click', function () {
+                    cerrarModal(liberarModal);
+                });
+                liberarModal.addEventListener('click', function (evento) {
+                    if (evento.target === liberarModal) cerrarModal(liberarModal);
+                });
+                if (precio) {
+                    precio.addEventListener('input', function () {
+                        document.querySelectorAll('.liberar-pct').forEach(function (boton) {
+                            boton.classList.remove('activo');
+                        });
+                        actualizarPreviewLiberar();
+                    });
+                }
+                document.querySelectorAll('.liberar-pct').forEach(function (boton) {
+                    boton.addEventListener('click', function () {
+                        if (!turnoALiberar) return;
+                        const original = Number(turnoALiberar.price) || 0;
+                        const porcentaje = Number(boton.dataset.pct) || 0;
+                        const nuevo = Math.max(1, Math.min(original - 1, Math.round(original * (1 - porcentaje / 100))));
+                        if (precio) precio.value = String(nuevo);
+                        document.querySelectorAll('.liberar-pct').forEach(function (otro) {
+                            otro.classList.toggle('activo', otro === boton);
+                        });
+                        actualizarPreviewLiberar();
+                    });
+                });
+            })();
+
             // I67 · puntos del turno: el otorgamiento lo hace el trigger de I66,
             // acá solo se lee el ledger para mostrarlo en el detalle.
             async function pintarPuntosTurno(turno) {
@@ -12678,6 +13120,15 @@
                     const puedeCancelar = appointment.status === 'pending' || appointment.status === 'confirmed';
                     cancelarBtn.classList.toggle('hidden', !puedeCancelar);
                     cancelarBtn.onclick = function() { cancelarTurno(appointment); };
+                }
+
+                const liberarBtn = document.getElementById('modal-liberar-btn');
+                if (liberarBtn) {
+                    const puedeLiberar = puedeLiberarTurno(appointment);
+                    liberarBtn.classList.toggle('hidden', !puedeLiberar);
+                    liberarBtn.onclick = puedeLiberar
+                        ? function() { abrirLiberarTurno(appointment); }
+                        : null;
                 }
                 
                 document.getElementById('modal-close-btn').onclick = function() {
