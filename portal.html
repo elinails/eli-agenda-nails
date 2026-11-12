@@ -1348,14 +1348,19 @@
             }
         });
 
+        // I89 · primero vincular la cuenta y pintar el saldo; recién después
+        // pedir turnos (turnos_de_cliente depende de _mis_clientes()).
+        function cargarPortal() {
+            return cargarPuntos().then(function () {
+                cargarTurnos();
+                return cargarTurnosFuturos();
+            });
+        }
+
         cliente.auth.onAuthStateChange(function (evento, sesion) {
             if (evento === 'SIGNED_IN' && sesion) {
                 detenerReenvio();
-                setTimeout(function () {
-                    cargarPuntos();
-                    setTimeout(cargarTurnos, 300);
-                    cargarTurnosFuturos();
-                }, 0);
+                setTimeout(function () { cargarPortal(); }, 0);
             } else if (evento === 'SIGNED_OUT') {
                 emailOtp = '';
                 detenerReenvio();
@@ -1368,9 +1373,7 @@
 
         cliente.auth.getSession().then(function (res) {
             if (res && res.data && res.data.session) {
-                cargarPuntos();
-                setTimeout(cargarTurnos, 300);
-                cargarTurnosFuturos();
+                cargarPortal();
             }
             else mostrar('vista-login');
         }).catch(function () { mostrar('vista-login'); });
