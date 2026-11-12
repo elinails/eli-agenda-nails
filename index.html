@@ -1861,17 +1861,85 @@
             color: var(--ink-soft); text-align: center;
         }
 
-        /* I48 · anuncios y modo soporte */
+        /* I48/I93 · anuncio del SuperAdmin: banda oscura bajo la barra superior */
         .ads-banner {
             position: sticky; top: 0; z-index: 70;
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 16px; font-size: 13.5px; line-height: 1.4;
-            background: var(--surface-2); border-bottom: 1px solid var(--line); color: var(--ink);
+            padding: 11px 16px; font-size: 13.5px; line-height: 1.4;
+            background: #2A2024; color: #FBF7F3;
+            border-bottom: 1px solid rgba(255, 255, 255, .10);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
         }
-        .ads-banner.ads-aviso { background: rgba(190, 158, 111, .18); border-bottom-color: var(--gold); }
-        .ads-banner.ads-urgente { background: rgba(224, 121, 110, .18); border-bottom-color: var(--danger); color: var(--danger); }
+        .ads-banner.ads-aviso { background: #3A2A1E; border-bottom-color: var(--gold); }
+        .ads-banner.ads-urgente { background: #3A1F1D; border-bottom-color: var(--danger, #E0796E); color: #FFE9E6; }
         .ads-texto { flex: 1; min-width: 0; }
-        .ads-cerrar { border: 0; background: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; }
+        .ads-cerrar { border: 0; background: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; opacity: .75; }
+        .ads-cerrar:hover { opacity: 1; }
+
+        /* I93 · campana de notificaciones */
+        .acciones-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; position: relative; }
+        .notif-btn {
+            position: relative;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--line, #E8DED7);
+            background: var(--surface, #FFFFFF);
+            color: var(--ink, #3B2F35);
+            cursor: pointer;
+            transition: border-color .16s ease, background-color .16s ease;
+        }
+        .notif-btn:hover { border-color: var(--gold, #C9A45F); }
+        .notif-btn svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+        .notif-badge {
+            position: absolute; top: -3px; right: -3px;
+            min-width: 18px; height: 18px; padding: 0 5px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 999px;
+            background: #C0392B; color: #fff;
+            font-size: 10.5px; font-weight: 700; line-height: 1;
+            box-shadow: 0 0 0 2px var(--surface, #fff);
+        }
+        .notif-badge[hidden] { display: none; }
+
+        .notif-panel {
+            position: absolute; right: 0; top: calc(100% + 10px);
+            z-index: 90;
+            width: min(340px, calc(100vw - 28px));
+            max-height: min(70vh, 420px);
+            display: flex; flex-direction: column;
+            background: var(--surface, #fff);
+            border: 1px solid var(--line, #E8DED7);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, .18);
+            overflow: hidden;
+        }
+        .notif-panel[hidden] { display: none; }
+        .notif-cab {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; border-bottom: 1px solid var(--line, #E8DED7);
+            font-size: 13px; font-weight: 700; color: var(--ink, #3B2F35);
+        }
+        .notif-lista { overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+        .notif-item {
+            display: flex; flex-direction: column; gap: 2px;
+            width: 100%; text-align: left;
+            padding: 10px 11px; border: 0; border-radius: 10px;
+            background: transparent; color: var(--ink, #3B2F35);
+            font-family: inherit; cursor: pointer;
+        }
+        .notif-item:hover { background: var(--surface-2, #F7EFEC); }
+        .notif-item:not(.leida) { background: rgba(201, 164, 95, .10); }
+        .notif-item:not(.leida) .notif-titulo::after {
+            content: ""; display: inline-block;
+            width: 6px; height: 6px; margin-left: 6px; border-radius: 50%;
+            background: #C0392B; vertical-align: middle;
+        }
+        .notif-titulo { font-size: 13px; font-weight: 600; }
+        .notif-msg { font-size: 12px; color: var(--ink-2, #5B4A4F); line-height: 1.35; overflow-wrap: anywhere; }
+        .notif-fecha { font-size: 10.5px; color: var(--ink-3, #7E6C71); margin-top: 2px; }
+        .notif-vacio { margin: 0; padding: 18px 14px; font-size: 12.5px; color: var(--ink-3, #7E6C71); text-align: center; }
+        .notif-vacio[hidden] { display: none; }
         .soporte-banner {
             position: sticky; top: 0; z-index: 71;
             padding: 10px 16px; font-size: 13px; font-weight: 600;
@@ -2480,12 +2548,33 @@
                 <h1 class="section-title" id="section-title">Agenda</h1>
                 <p class="brand-sub" id="section-sub">Calendario y turnos</p>
             </div>
-            <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
-            <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-4 top-2 m-2 md:hidden">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
-                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                </svg>
-            </button>
+            <!-- Campana + hamburguesa -->
+            <div class="acciones-top">
+                <button type="button" id="notif-btn" class="notif-btn"
+                        aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false" aria-controls="notif-panel">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>
+                        <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+                    </svg>
+                    <span class="notif-badge" id="notif-badge" hidden>0</span>
+                </button>
+
+                <div class="notif-panel" id="notif-panel" hidden>
+                    <div class="notif-cab">
+                        <span>Notificaciones</span>
+                        <button type="button" id="notif-cerrar" class="ads-cerrar" aria-label="Cerrar notificaciones">×</button>
+                    </div>
+                    <div class="notif-lista" id="notif-lista" role="list"></div>
+                    <p class="notif-vacio" id="notif-vacio" hidden>No tenés notificaciones.</p>
+                </div>
+
+                <!-- Botón hamburguesa para móviles (oculto por defecto en desktop) -->
+                <button type="button" id="btn-menu-movil" class="btn-menu-movil absolute right-4 top-2 m-2 md:hidden">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Abrir menú lateral">
+                        <path d="M3 6h18M3 12h18M3 18h18"/>
+                    </svg>
+                </button>
+            </div>
         </header>
         
         <!-- Agenda: Calendario / Listado -->
@@ -6440,6 +6529,185 @@
                 } catch (error) { /* sin anuncios: seguimos */ }
             }
 
+            // ══════════════════════════════════════════════════════════════
+            // I93 · Notificaciones in-app (campana + badge + sonido)
+            // ══════════════════════════════════════════════════════════════
+            const NOTIF_SONIDO = 'https://actions.google.com/sounds/v1/alarms/notification_high_pitch.ogg';
+            var notifEstado = { lista: [], noLeidas: 0, timer: null, ultimaNueva: null };
+            var notifAudio = null;
+            var notifAudioArmado = false;
+
+            // Los navegadores bloquean el audio sin gesto del usuario. En el
+            // primer clic armamos el <audio> y lo "tocamos" en silencio para
+            // dejar el permiso concedido; después sonará solo.
+            function armarAudioNotif() {
+                if (notifAudioArmado) return;
+                notifAudioArmado = true;
+                try {
+                    notifAudio = new Audio(NOTIF_SONIDO);
+                    notifAudio.preload = 'auto';
+                    notifAudio.volume = 0.55;
+                } catch (error) { notifAudio = null; }
+            }
+
+            document.addEventListener('click', function desbloquearAudio() {
+                armarAudioNotif();
+                if (notifAudio) {
+                    var p = notifAudio.play();
+                    if (p && p.catch) p.catch(function () { /* aún bloqueado */ });
+                    setTimeout(function () {
+                        try { notifAudio.pause(); notifAudio.currentTime = 0; } catch (error) { /* noop */ }
+                    }, 0);
+                }
+                document.removeEventListener('click', desbloquearAudio);
+            });
+
+            function sonarNotificacion() {
+                if (!notifAudio) armarAudioNotif();
+                if (!notifAudio) return;
+                try {
+                    notifAudio.currentTime = 0;
+                    var p = notifAudio.play();
+                    if (p && p.catch) p.catch(function () { /* bloqueado */ });
+                } catch (error) { /* noop */ }
+            }
+
+            function fechaNotif(iso) {
+                try {
+                    const d = new Date(iso);
+                    if (isNaN(d.getTime())) return '';
+                    const dif = (Date.now() - d.getTime()) / 1000;
+                    if (dif < 60) return 'Ahora';
+                    if (dif < 3600) return Math.floor(dif / 60) + ' min';
+                    if (dif < 86400) return Math.floor(dif / 3600) + ' h';
+                    return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+                } catch (error) { return ''; }
+            }
+
+            function pintarNotificaciones() {
+                const badge = document.getElementById('notif-badge');
+                const lista = document.getElementById('notif-lista');
+                const vacio = document.getElementById('notif-vacio');
+
+                if (badge) {
+                    const n = notifEstado.noLeidas;
+                    badge.textContent = n > 9 ? '9+' : String(n);
+                    badge.hidden = n === 0;
+                }
+                if (!lista) return;
+
+                lista.textContent = '';
+                if (!notifEstado.lista.length) {
+                    if (vacio) vacio.hidden = false;
+                    return;
+                }
+                if (vacio) vacio.hidden = true;
+
+                notifEstado.lista.forEach(function (notif) {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'notif-item' + (notif.leida ? ' leida' : '');
+                    item.setAttribute('role', 'listitem');
+                    item.dataset.id = notif.id;
+
+                    const titulo = document.createElement('span');
+                    titulo.className = 'notif-titulo';
+                    titulo.textContent = String(notif.titulo || 'Notificación');
+                    item.appendChild(titulo);
+
+                    if (notif.mensaje) {
+                        const msg = document.createElement('span');
+                        msg.className = 'notif-msg';
+                        msg.textContent = String(notif.mensaje);
+                        item.appendChild(msg);
+                    }
+
+                    const fecha = document.createElement('span');
+                    fecha.className = 'notif-fecha';
+                    fecha.textContent = fechaNotif(notif.creado_en);
+                    item.appendChild(fecha);
+
+                    item.addEventListener('click', function () { marcarNotificacionLeida(notif.id); });
+                    lista.appendChild(item);
+                });
+            }
+
+            async function marcarNotificacionLeida(id) {
+                if (!supabase || !id) return;
+                try { await supabase.rpc('marcar_notificacion_leida', { p_id: id }); }
+                catch (error) { /* seguimos: actualizamos igual la UI */ }
+
+                notifEstado.lista = notifEstado.lista.map(function (n) {
+                    if (n.id !== id) return n;
+                    const copia = Object.assign({}, n);
+                    copia.leida = true;
+                    return copia;
+                });
+                notifEstado.noLeidas = notifEstado.lista.filter(function (n) { return !n.leida; }).length;
+                pintarNotificaciones();
+            }
+
+            async function cargarNotificaciones(silencioso) {
+                if (!supabase) return;
+                try {
+                    const { data, error } = await supabase.rpc('obtener_notificaciones', { p_limit: 25 });
+                    if (error) {
+                        if (!silencioso) console.warn('I93 · notificaciones:', error.message);
+                        return;
+                    }
+                    const lista = Array.isArray(data) ? data : [];
+                    const nueva = lista.length ? lista[0] : null;
+                    const antes = notifEstado.ultimaNueva;
+
+                    notifEstado.lista = lista;
+                    notifEstado.noLeidas = lista.filter(function (n) { return !n.leida; }).length;
+                    pintarNotificaciones();
+
+                    // Suena sólo si aparece una notificación nueva y sin leer.
+                    if (!silencioso && nueva && antes && nueva.id !== antes && !nueva.leida) {
+                        sonarNotificacion();
+                    }
+                    notifEstado.ultimaNueva = nueva ? nueva.id : null;
+                } catch (error) {
+                    if (!silencioso) console.warn('I93 · notificaciones:', error);
+                }
+            }
+
+            function alternarPanelNotif(abrir) {
+                const panel = document.getElementById('notif-panel');
+                const btn = document.getElementById('notif-btn');
+                if (!panel) return;
+                const mostrar = typeof abrir === 'boolean' ? abrir : panel.hidden;
+                panel.hidden = !mostrar;
+                if (btn) btn.setAttribute('aria-expanded', mostrar ? 'true' : 'false');
+                if (mostrar) cargarNotificaciones(true);
+            }
+
+            function iniciarNotificaciones() {
+                const btn = document.getElementById('notif-btn');
+                if (!btn || notifEstado.timer) return;
+
+                btn.addEventListener('click', function (evento) {
+                    evento.stopPropagation();
+                    alternarPanelNotif();
+                });
+                const cerrar = document.getElementById('notif-cerrar');
+                if (cerrar) cerrar.addEventListener('click', function () { alternarPanelNotif(false); });
+
+                document.addEventListener('click', function (evento) {
+                    const panel = document.getElementById('notif-panel');
+                    if (!panel || panel.hidden) return;
+                    if (evento.target.closest('#notif-panel') || evento.target.closest('#notif-btn')) return;
+                    alternarPanelNotif(false);
+                });
+                document.addEventListener('keydown', function (evento) {
+                    if (evento.key === 'Escape') alternarPanelNotif(false);
+                });
+
+                cargarNotificaciones(true);
+                notifEstado.timer = setInterval(function () { cargarNotificaciones(false); }, 30000);
+            }
+
             // I49 · feature flags públicas (se leen antes del login)
             var flagsApp = { registro_abierto: true, whatsapp_habilitado: true };
 
@@ -6952,6 +7220,7 @@
                 // El megáfono y los flags se leen al arrancar: también aplican en el login.
                 cargarAnuncio();
                 cargarFlagsApp();
+                iniciarNotificaciones();
                 supabase.auth.onAuthStateChange(function(evento, session) {
                     if (evento === 'SIGNED_OUT') {
                         // I52: no expulsar en silencio. Si el logout lo pidió la
