@@ -805,6 +805,246 @@
             transition-duration: .001ms !important;
         }
     }
+
+    /* ── Filtros avanzados ─────────────────────────────────────────────── */
+    .barra-avanzada { margin-top: 12px; }
+
+    .btn-filtros { display: none; }
+
+    .panel-filtros {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px 12px;
+    }
+
+    .panel-filtros-cabecera { display: none; }
+
+    .filtro-campo {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .filtro-label {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+    }
+    .filtro-campo select {
+        min-height: 38px;
+        padding: 0 30px 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+                          linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+        background-position: calc(100% - 15px) 16px, calc(100% - 10px) 16px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .filtro-campo select:focus-visible {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(201, 164, 95, .18);
+    }
+
+    .filtro-checks {
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        min-height: 38px;
+    }
+    .filtro-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .filtro-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--gold);
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .btn-cerca,
+    .btn-limpiar-filtros {
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color .16s ease, background-color .16s ease;
+    }
+    .btn-cerca:hover { border-color: var(--gold); background: rgba(201, 164, 95, .10); }
+    .btn-limpiar-filtros { color: var(--ink-3); border-style: dashed; }
+    .btn-limpiar-filtros:hover { border-color: var(--ink-3); color: var(--ink); }
+
+    .filtros-aviso {
+        margin: 8px 0 0;
+        font-size: 11.5px;
+        line-height: 1.35;
+        color: var(--ink-3);
+    }
+    .filtros-aviso[hidden] { display: none; }
+
+    .contador-filtros {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: #fff;
+        font-size: 10.5px;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .contador-filtros[hidden] { display: none; }
+
+    /* Overlay y toast (compartidos con el drawer móvil) */
+    .overlay-filtros {
+        position: fixed;
+        inset: 0;
+        z-index: 88;
+        background: rgba(42, 32, 36, .52);
+        border: 0;
+    }
+    .overlay-filtros[hidden] { display: none; }
+
+    .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        z-index: 100;
+        max-width: min(420px, calc(100vw - 32px));
+        padding: 11px 18px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        text-align: center;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .28);
+    }
+    .toast[hidden] { display: none; }
+
+    @media (max-width: 768px) {
+        .barra-avanzada { margin-top: 10px; }
+
+        /* El botón reemplaza a la barra en mobile */
+        .btn-filtros {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+        }
+        .btn-filtros:active { transform: translateY(1px); }
+
+        /* Drawer desde abajo */
+        .panel-filtros {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 90;
+            display: block;
+            max-height: 82dvh;
+            overflow-y: auto;
+            padding: 8px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+            background: var(--surface);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -14px 40px rgba(0, 0, 0, .22);
+            transform: translateY(100%);
+            visibility: hidden;
+            transition: transform .26s cubic-bezier(.22, .61, .36, 1), visibility .26s;
+        }
+        body.filtros-abiertos .panel-filtros { transform: translateY(0); visibility: visible; }
+        body.filtros-abiertos { overflow: hidden; }
+
+        .panel-filtros-cabecera {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            margin: 0 -18px 12px;
+            padding: 14px 18px 12px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            font-family: var(--serif);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .btn-cerrar-filtros {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .filtro-campo { margin-bottom: 12px; }
+        .filtro-campo select { width: 100%; min-height: 44px; font-size: 14px; }
+        .filtro-checks {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .filtro-check { font-size: 14px; min-height: 32px; }
+        .filtro-check input { width: 20px; height: 20px; }
+
+        .btn-cerca,
+        .btn-limpiar-filtros {
+            width: 100%;
+            min-height: 46px;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .filtros-aviso { font-size: 11px; }
+    }
 </style>
 </head>
 <body>
@@ -850,6 +1090,62 @@
                 </div>
                 <div class="buscador-filtros">
                     <div class="filtros" id="filtros" role="group" aria-label="Filtrar por rubro"></div>
+                </div>
+
+                <!-- Filtros avanzados: barra inline en desktop, drawer en móvil -->
+                <div class="barra-avanzada">
+                    <button type="button" class="btn-filtros" id="btn-filtros"
+                            aria-expanded="false" aria-controls="panel-filtros">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <path d="M4 6h16M7 12h10M10 18h4"/>
+                        </svg>
+                        Filtros
+                        <span class="contador-filtros" id="contador-filtros" hidden>0</span>
+                    </button>
+
+                    <div class="panel-filtros" id="panel-filtros" role="group" aria-label="Filtros avanzados">
+                        <div class="panel-filtros-cabecera">
+                            <span>Filtros</span>
+                            <button type="button" class="btn-cerrar-filtros" id="cerrar-filtros" aria-label="Cerrar filtros">×</button>
+                        </div>
+
+                        <label class="filtro-campo">
+                            <span class="filtro-label">Zona</span>
+                            <select id="filtro-zona">
+                                <option value="">Todas</option>
+                                <option value="Altagracia">Altagracia</option>
+                                <option value="Córdoba">Córdoba</option>
+                                <option value="Villa María">Villa María</option>
+                            </select>
+                        </label>
+
+                        <label class="filtro-campo">
+                            <span class="filtro-label">Precio</span>
+                            <select id="filtro-precio">
+                                <option value="">Todos</option>
+                                <option value="economico">Económico</option>
+                                <option value="medio">Medio</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </label>
+
+                        <div class="filtro-campo filtro-checks">
+                            <label class="filtro-check">
+                                <input type="checkbox" id="filtro-estrellas">
+                                <span>4+ estrellas</span>
+                            </label>
+                            <label class="filtro-check">
+                                <input type="checkbox" id="filtro-ofertas">
+                                <span>Solo con Ofertas</span>
+                            </label>
+                        </div>
+
+                        <button type="button" class="btn-cerca" id="btn-cerca">📍 Cerca de mí</button>
+                        <button type="button" class="btn-limpiar-filtros" id="limpiar-filtros">Limpiar</button>
+                    </div>
+
+                    <p class="filtros-aviso" id="filtros-aviso" hidden></p>
                 </div>
             </div>
         </div>
@@ -980,6 +1276,10 @@
     </div>
 </div>
 
+<!-- Filtros móviles: fondo oscuro + aviso flotante -->
+<div class="overlay-filtros" id="overlay-filtros" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
 <script>
 (function () {
     'use strict';
@@ -1012,7 +1312,11 @@
         cargando: true,
         error: '',
         detalleActual: null,
-        detallePedido: 0
+        detallePedido: 0,
+        // Filtros avanzados (se combinan con rubro + búsqueda de texto)
+        filtros: { zona: '', precio: '', estrellas4: false, ofertas: false },
+        // Qué datos trae realmente la base en esta carga (para avisar al usuario)
+        soporte: { zona: false, precio: false, oferta: false }
     };
 
     var $ = function (id) { return document.getElementById(id); };
@@ -1109,6 +1413,183 @@
             });
             filtros.appendChild(boton);
         });
+    }
+
+    // ── filtros avanzados ────────────────────────────────────────────────
+    // Se combinan con el rubro y la búsqueda de texto. La RPC pública hoy
+    // solo entrega calificación/reseñas, así que zona/precio/oferta se
+    // aplican cuando el dato exista y se avisa cuando no.
+    function normalizarTexto(valor) {
+        return String(valor == null ? '' : valor)
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase().trim();
+    }
+
+    function leerFiltros() {
+        var zona = $('filtro-zona');
+        var precio = $('filtro-precio');
+        var estrellas = $('filtro-estrellas');
+        var ofertas = $('filtro-ofertas');
+        estado.filtros.zona = zona ? zona.value : '';
+        estado.filtros.precio = precio ? precio.value : '';
+        estado.filtros.estrellas4 = !!(estrellas && estrellas.checked);
+        estado.filtros.ofertas = !!(ofertas && ofertas.checked);
+    }
+
+    function aplicarFiltros(lista) {
+        var origen = Array.isArray(lista) ? lista : [];
+        var f = estado.filtros;
+
+        // ¿La base aporta cada dato en esta carga?
+        estado.soporte.zona = origen.some(function (r) {
+            return normalizarTexto(r.zona || r.direccion || r.barrio) !== '';
+        });
+        estado.soporte.precio = origen.some(function (r) { return Number(r.precio_desde) > 0; });
+        estado.soporte.oferta = origen.some(function (r) {
+            return r.promo === true || r.tiene_promo === true || r.oferta === true;
+        });
+
+        return origen.filter(function (fila) {
+            // Calificación: dato real que sí viene de la RPC.
+            if (f.estrellas4 && (Number(fila.promedio_estrellas) || 0) < 4) return false;
+
+            // Zona: filtra solo si hay dato.
+            if (f.zona && estado.soporte.zona) {
+                var texto = normalizarTexto(fila.zona || fila.direccion || fila.barrio);
+                if (texto.indexOf(normalizarTexto(f.zona)) === -1) return false;
+            }
+
+            // Precio: filtra solo si hay dato.
+            if (f.precio && estado.soporte.precio) {
+                var p = Number(fila.precio_desde) || 0;
+                if (f.precio === 'economico' && p > 8000) return false;
+                if (f.precio === 'medio' && !(p > 8000 && p <= 16000)) return false;
+                if (f.precio === 'premium' && p <= 16000) return false;
+            }
+
+            // Ofertas: filtra solo si hay dato.
+            if (f.ofertas && estado.soporte.oferta) {
+                var tiene = fila.promo === true || fila.tiene_promo === true || fila.oferta === true;
+                if (!tiene) return false;
+            }
+
+            return true;
+        });
+    }
+
+    function filtrosActivos() {
+        var f = estado.filtros;
+        var n = 0;
+        if (f.zona) n++;
+        if (f.precio) n++;
+        if (f.estrellas4) n++;
+        if (f.ofertas) n++;
+        return n;
+    }
+
+    function actualizarBotonFiltros() {
+        var btn = $('btn-filtros');
+        var cont = $('contador-filtros');
+        var n = filtrosActivos();
+        if (cont) {
+            cont.textContent = String(n);
+            cont.hidden = n === 0;
+        }
+        if (btn) {
+            btn.setAttribute('aria-expanded',
+                document.body.classList.contains('filtros-abiertos') ? 'true' : 'false');
+        }
+    }
+
+    function actualizarAvisoFiltros() {
+        var el = $('filtros-aviso');
+        if (!el) return;
+        var f = estado.filtros, s = estado.soporte, faltan = [];
+        if (f.zona && !s.zona) faltan.push('zona');
+        if (f.precio && !s.precio) faltan.push('precio');
+        if (f.ofertas && !s.oferta) faltan.push('ofertas');
+        if (!faltan.length) { el.hidden = true; el.textContent = ''; return; }
+        el.hidden = false;
+        el.textContent = 'Todavía no hay datos de ' + faltan.join(' ni ') +
+            ' en la base, así que ese filtro no recorta resultados.';
+    }
+
+    function refrescarVista() {
+        leerFiltros();
+        pintar();
+        actualizarBotonFiltros();
+        actualizarAvisoFiltros();
+    }
+
+    function limpiarFiltrosAvanzados() {
+        var z = $('filtro-zona'), p = $('filtro-precio');
+        var e = $('filtro-estrellas'), o = $('filtro-ofertas');
+        if (z) z.value = '';
+        if (p) p.value = '';
+        if (e) e.checked = false;
+        if (o) o.checked = false;
+        estado.filtros = { zona: '', precio: '', estrellas4: false, ofertas: false };
+        refrescarVista();
+    }
+
+    function abrirPanelFiltros() {
+        document.body.classList.add('filtros-abiertos');
+        var ov = $('overlay-filtros');
+        if (ov) ov.hidden = false;
+        actualizarBotonFiltros();
+    }
+
+    function cerrarPanelFiltros() {
+        document.body.classList.remove('filtros-abiertos');
+        var ov = $('overlay-filtros');
+        if (ov) ov.hidden = true;
+        actualizarBotonFiltros();
+    }
+
+    var toastTimer = null;
+    function mostrarToast(texto) {
+        var t = $('toast');
+        if (!t) return;
+        t.textContent = texto;
+        t.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
+    }
+
+    function cercaDeMi() {
+        mostrarToast('Usando ubicación actual…');
+        var z = $('filtro-zona');
+        if (z) z.value = 'Altagracia';
+        refrescarVista();
+        cerrarPanelFiltros();
+    }
+
+    function inicializarFiltrosAvanzados() {
+        var zona = $('filtro-zona'), precio = $('filtro-precio');
+        var estrellas = $('filtro-estrellas'), ofertas = $('filtro-ofertas');
+        var btn = $('btn-filtros'), cerrar = $('cerrar-filtros');
+        var ov = $('overlay-filtros'), limpiarBtn = $('limpiar-filtros'), cerca = $('btn-cerca');
+
+        [zona, precio, estrellas, ofertas].forEach(function (el) {
+            if (el) el.addEventListener('change', refrescarVista);
+        });
+        if (btn) {
+            btn.addEventListener('click', function () {
+                if (document.body.classList.contains('filtros-abiertos')) cerrarPanelFiltros();
+                else abrirPanelFiltros();
+            });
+        }
+        if (cerrar) cerrar.addEventListener('click', cerrarPanelFiltros);
+        if (ov) ov.addEventListener('click', cerrarPanelFiltros);
+        if (limpiarBtn) limpiarBtn.addEventListener('click', limpiarFiltrosAvanzados);
+        if (cerca) cerca.addEventListener('click', cercaDeMi);
+
+        document.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Escape') cerrarPanelFiltros();
+        });
+
+        actualizarBotonFiltros();
+        actualizarAvisoFiltros();
     }
 
     // ── planes (badge de confianza) ───────────────────────────────────────
@@ -1511,12 +1992,29 @@
             return;
         }
 
+        // Rubro + búsqueda llegan resueltos de la RPC; acá se suman los
+        // filtros avanzados sobre el array ya cargado.
+        var visibles = aplicarFiltros(estado.salones);
+        actualizarAvisoFiltros();
+
+        if (!visibles.length) {
+            grilla.textContent = '';
+            grilla.hidden = true;
+            mostrarAviso(
+                'Ningún salón coincide con los filtros',
+                'Probá quitando algún filtro, cambiando de rubro o borrando la búsqueda.',
+                { etiqueta: 'Limpiar filtros', alTocar: function () { limpiarFiltrosAvanzados(); } }
+            );
+            cuenta.textContent = '0 salones';
+            return;
+        }
+
         aviso.hidden = true;
         grilla.hidden = false;
         grilla.textContent = '';
         var usadas = {};
-        estado.salones.forEach(function (fila) { grilla.appendChild(tarjeta(fila, usadas)); });
-        cuenta.textContent = estado.salones.length + (estado.salones.length === 1 ? ' salón' : ' salones');
+        visibles.forEach(function (fila) { grilla.appendChild(tarjeta(fila, usadas)); });
+        cuenta.textContent = visibles.length + (visibles.length === 1 ? ' salón' : ' salones');
         titulo.textContent = estado.rubro ? 'Salones de ' + (NOMBRE_RUBRO[estado.rubro] || estado.rubro) : 'Salones';
     }
 
@@ -2082,6 +2580,7 @@
     // ── arranque ─────────────────────────────────────────────────────────
     leerUrl();
     pintarFiltros();
+    inicializarFiltrosAvanzados();
     cargar();
     checkAuthLogic();
 })();
