@@ -37,6 +37,8 @@
     }
 
     * { box-sizing: border-box; }
+    /* I89 · el CSS de los modales/overlays necesita ganarle al display del navegador */
+    [hidden] { display: none !important; }
     html, body { margin: 0; padding: 0; }
     body {
         background: var(--paper);
@@ -98,8 +100,8 @@
     .btn {
         display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         width: 100%; min-height: 50px; padding: 0 20px;
-        border-radius: 12px; border: 1px solid var(--gold);
-        background: var(--gold); color: #fff;
+        border-radius: 12px; border: 1px solid var(--gold-ink);
+        background: var(--gold); color: var(--ink);
         font-size: 15px; font-weight: 600;
         cursor: pointer;
         transition: filter .16s ease;
@@ -232,11 +234,20 @@
         display: flex; gap: 4px; margin-bottom: 16px;
     }
     .estrella {
-        font-size: 28px; cursor: pointer;
-        color: var(--ink-faint);
+        width: 44px; height: 44px; padding: 0;
+        display: grid; place-items: center;
+        background: none; border: 0;
+        font-size: 28px; line-height: 1;
+        cursor: pointer; color: var(--ink-soft);
         transition: color .16s ease;
     }
-    .estrella.seleccionada { color: var(--gold); }
+    .estrella.seleccionada { color: var(--gold-ink); }
+    .estrella:hover { color: var(--gold-ink); }
+    /* I89 · foco visible para el widget de estrellas y controles */
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+    }
     .campo textarea {
         font-family: inherit;
         font-size: 15px;
@@ -577,6 +588,21 @@
         return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
+    // I89 · 'YYYY-MM-DD' es una fecha sin zona: se arma en hora local para que
+    // no se corra un día al interpretarla como medianoche UTC.
+    function fechaTurno(valor) {
+        if (!valor) return '';
+        var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(valor));
+        var d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(valor);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function horaCorta(valor) {
+        var m = /^(\d{2}):(\d{2})/.exec(String(valor || ''));
+        return m ? m[1] + ':' + m[2] : String(valor || '');
+    }
+
     function crear(tag, clase, texto) {
         var el = document.createElement(tag);
         if (clase) el.className = clase;
@@ -713,7 +739,8 @@
                 var fila = document.createElement('div');
                 fila.className = 'mov';
                 var salon = t.salon_nombre || '';
-                var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                var fecha = fechaTurno(t.fecha);
+                var hora = horaCorta(t.hora);
                 var precio = Number(t.precio || 0);
                 var tope = Number(t.tope_puntos || 0);
                 var saldoSalon = Number(t.saldo_puntos || 0);
@@ -729,7 +756,7 @@
                 texto.appendChild(titulo);
                 var subtitulo = document.createElement('span');
                 subtitulo.className = 'mov-sub';
-                subtitulo.textContent = fecha + ' a las ' + (t.hora || '') + ' - $' + precio;
+                subtitulo.textContent = fecha + ' a las ' + hora + ' - $' + precio;
                 if (puedeCanjear) {
                     subtitulo.textContent += ' · Puedés canjear hasta ' + Math.floor(tope) + ' pts';
                 }
@@ -756,7 +783,7 @@
                             salonId: t.salon_id,
                             salonNombre: salon,
                             fecha: fecha,
-                            hora: t.hora,
+                            hora: hora,
                             servicio: t.servicio || 'Servicio',
                             precio: precio,
                             tope: tope,
@@ -1040,41 +1067,45 @@
 
         // ── resena modal ────────────────────────────────────────────────────────
         var turnoSeleccionado = null;
+        var calificacion = 0;
+
+        function pintarEstrellas(contenedor, valor) {
+            var destino = contenedor.querySelectorAll('.estrella');
+            for (var i = 0; i < destino.length; i++) {
+                var activa = i < valor;
+                destino[i].textContent = activa ? '★' : '☆';
+                destino[i].classList.toggle('seleccionada', activa);
+                destino[i].setAttribute('aria-pressed', activa ? 'true' : 'false');
+            }
+        }
 
         function renderizarEstrellas(contenedor) {
             contenedor.innerHTML = '';
+            calificacion = 0;
             for (var i = 1; i <= 5; i++) {
-                var estrella = document.createElement('span');
+                var estrella = document.createElement('button');
+                estrella.type = 'button';
                 estrella.className = 'estrella';
                 estrella.textContent = '☆';
                 estrella.dataset.valor = i;
+                estrella.setAttribute('aria-label', i + (i === 1 ? ' estrella' : ' estrellas'));
+                estrella.setAttribute('aria-pressed', 'false');
                 estrella.addEventListener('click', function () {
-                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
-                    seleccionados.forEach(function (e) { e.classList.remove('estrellas'); });
-                    for (var j = 0; j <= this.dataset.valor; j++) {
-                        contenedor.children[j].classList.add('estrellas');
-                        contenedor.children[j].textContent = '★';
-                    }
+                    calificacion = Number(this.dataset.valor);
+                    pintarEstrellas(contenedor, calificacion);
                 });
                 estrella.addEventListener('mouseenter', function () {
-                    var valor = this.dataset.valor;
-                    var destino = contenedor.querySelectorAll('.estrella');
-                    for (var k = 0; k < destino.length; k++) {
-                        if (k < valor) {
-                            destino[k].textContent = '★';
-                            destino[k].classList.add('estrellas');
-                        } else {
-                            destino[k].textContent = '☆';
-                            destino[k].classList.remove('estrellas');
-                        }
-                    }
+                    pintarEstrellas(contenedor, Number(this.dataset.valor));
                 });
                 estrella.addEventListener('mouseleave', function () {
-                    var seleccionados = contenedor.querySelectorAll('.estrella.seleccionada');
-                    Array.from(contenedor.children).forEach(function (e) {
-                        e.classList.remove('estrellas');
-                        e.textContent = e.classList.contains('estrellas') ? '★' : '☆';
-                    });
+                    // al salir vuelve a la selección, no a cero
+                    pintarEstrellas(contenedor, calificacion);
+                });
+                estrella.addEventListener('focus', function () {
+                    pintarEstrellas(contenedor, Number(this.dataset.valor));
+                });
+                estrella.addEventListener('blur', function () {
+                    pintarEstrellas(contenedor, calificacion);
                 });
                 contenedor.appendChild(estrella);
             }
@@ -1133,8 +1164,8 @@
                     fila.className = 'mov';
                     var salon = t.salon_nombre || '';
                     var servicio = t.servicio_nombre || '';
-                    var fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-                    var hora = t.hora ? t.hora.toString().slice(0, 8) : '';
+                    var fecha = fechaTurno(t.fecha);
+                    var hora = horaCorta(t.hora);
 
                     var texto = document.createElement('div');
                     texto.className = 'mov-texto';
@@ -1177,7 +1208,7 @@
             if (!turnoSeleccionado) return;
 
             var estrellas = $('estrellas-modal');
-            var estrellasSeleccionadas = Array.from(estrellas.children).filter(function (e) { return e.classList.contains('estrellas'); }).length;
+            var estrellasSeleccionadas = calificacion;
 
             if (estrellasSeleccionadas === 0) {
                 var alerta = $('alerta-resena');
