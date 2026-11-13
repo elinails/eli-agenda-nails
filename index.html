@@ -990,6 +990,9 @@
         .nav-item.active { background: var(--blush-2); color: var(--ink); box-shadow: inset 3px 0 0 var(--gold); }
         .nav-item-danger { color: var(--cancelled); }
         .nav-item-danger:hover { background: var(--cancelled-tint); color: var(--cancelled); }
+        .nav-item.red-item { color: var(--ink); }
+        .nav-item.red-item:hover { background: var(--blush-2); }
+        .nav-item.red-item i { color: var(--ink); }
 
         .bottom-nav {
             display: flex;
@@ -3074,6 +3077,20 @@
                 </button>
             </nav>
             <div class="sidebar-foot">
+                <hr style="border: none; border-top: 1px solid var(--line); margin: 0 12px 8px; opacity: 0.6;">
+                <div class="sidebar-section-title" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); margin: 0 12px 8px;">Red ELIMA HUB</div>
+                <button type="button" class="nav-item red-item" id="nav-perfil-publico">
+                    <i class="fas fa-user" aria-hidden="true"></i> Ver mi Perfil Público
+                </button>
+                <button type="button" class="nav-item red-item" id="nav-marketplace">
+                    <i class="fas fa-store" aria-hidden="true"></i> Explorar Directorio
+                </button>
+                <button type="button" class="nav-item red-item" id="nav-portal">
+                    <i class="fas fa-id-card" aria-hidden="true"></i> Mi Portal de Clientas
+                </button>
+                <button type="button" class="nav-item red-item" id="nav-invitar">
+                    <i class="fas fa-share-alt" aria-hidden="true"></i> Invitar a un Colega
+                </button>
                 <button type="button" id="logout-sidebar" class="nav-item nav-item-danger">
                     <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión
                 </button>
@@ -5529,6 +5546,45 @@
                 logoutSidebar.addEventListener('click', function() {
                     const boton = document.getElementById('logout-btn');
                     if (boton) boton.click();
+                });
+            }
+
+            // Red ELIMA HUB navigation buttons (IXX)
+            const navPerfilPublico = document.getElementById('nav-perfil-publico');
+            const navMarketplace = document.getElementById('nav-marketplace');
+            const navPortal = document.getElementById('nav-portal');
+            const navInvitar = document.getElementById('nav-invitar');
+
+            if (navPerfilPublico) {
+                navPerfilPublico.addEventListener('click', function() {
+                    const url = contexto && contexto.slug
+                        ? 'marketplace.html?slug=' + encodeURIComponent(contexto.slug)
+                        : 'marketplace.html';
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                });
+            }
+
+            if (navMarketplace) {
+                navMarketplace.addEventListener('click', function() {
+                    window.open('marketplace.html', '_blank', 'noopener,noreferrer');
+                });
+            }
+
+            if (navPortal) {
+                navPortal.addEventListener('click', function() {
+                    window.open('portal.html', '_blank', 'noopener,noreferrer');
+                });
+            }
+
+            if (navInvitar) {
+                navInvitar.addEventListener('click', function() {
+                    const texto = encodeURIComponent(
+                        '¡Hola! Te invito a conocer ELIMA HUB, ' +
+                        'la plataforma que uso para gestionar mi salón y fidelizar clientas. ' +
+                        'Podés verla acá: https://eli-agenda-nails.vercel.app/landing.html'
+                    );
+                    const url = 'https://wa.me/5493547469000?text=' + texto;
+                    window.open(url, '_blank', 'noopener,noreferrer');
                 });
             }
 
