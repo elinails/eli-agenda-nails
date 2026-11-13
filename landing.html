@@ -2118,147 +2118,142 @@
     .brand-meta span { display: inline-flex; align-items: center; gap: 7px; }
     .brand-meta span::before { content: ""; width: 3px; height: 3px; border-radius: 50%; background: #AA8A5C; }
     .brands-visual { position: relative; min-height: 545px; }
-    .ad-board {
+    .ad-carousel {
         position: relative;
-        width: min(100%, 395px);
-        height: 480px;
+        width: min(100%, 820px);
         margin-left: auto;
+        overflow: hidden;
     }
+    .ad-track {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scroll-padding: 0 24px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gold) transparent;
+        padding: 8px 24px 16px;
+    }
+    .ad-track::-webkit-scrollbar { height: 8px; }
+    .ad-track::-webkit-scrollbar-track { background: transparent; }
+    .ad-track::-webkit-scrollbar-thumb {
+        background: var(--gold);
+        border-radius: 4px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+    .ad-track::-webkit-scrollbar-thumb:hover { background: var(--gold-bright); }
     .ad-card {
-        position: absolute;
+        flex: 0 0 calc(50% - 10px);
+        min-width: 280px;
+        max-width: 360px;
+        scroll-snap-align: start;
         border: 1px solid rgba(63, 44, 30, .14);
-        border-radius: 15px;
+        border-radius: 18px;
         background: #FFFCF7;
         box-shadow: 0 24px 50px rgba(67, 48, 32, .16);
+        transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease);
     }
-    .ad-card.back {
-        top: 6px; left: 8px;
-        width: 76%; height: 390px;
-        transform: rotate(-4.5deg);
-        background: #E9DCCE;
-        opacity: .72;
+    .ad-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 32px 64px rgba(67, 48, 32, .22);
+        border-color: rgba(140, 107, 58, .28);
     }
-    .ad-card.mid {
-        top: 26px; right: 0;
-        width: 78%; height: 402px;
-        transform: rotate(3.4deg);
-        background: #F4EADD;
-        opacity: .9;
+    .ad-media {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        border-radius: 17px 17px 0 0;
+        background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
     }
-    .ad-card.front {
-        top: 55px; left: 3%;
-        width: 86%;
-        height: 412px;
-        padding: 17px;
-        transform: rotate(-1.2deg);
+    .ad-media img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform .4s var(--ease);
     }
-    .ad-card-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #EEDFD1;
-        color: #9B866F;
+    .ad-card:hover .ad-media img { transform: scale(1.05); }
+    .ad-media::after {
+        content: "";
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 40%, rgba(37, 28, 32, .55) 100%);
+        pointer-events: none;
+    }
+    .ad-tag {
+        position: absolute;
+        top: 14px; left: 14px;
+        z-index: 2;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, .95);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        color: var(--ink);
         font-family: var(--mono);
-        font-size: 6px;
+        font-size: 7.5px;
+        font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
     }
-    .ad-card-head span:first-child { color: #8C6B3A; font-weight: 600; }
-    .ad-product { display: grid; grid-template-columns: .92fr 1fr; gap: 15px; align-items: center; padding: 18px 0 16px; }
-    .ad-product-art {
-        position: relative;
-        overflow: hidden;
-        height: 220px;
-        border-radius: 10px;
-        background:
-            radial-gradient(circle at 56% 22%, rgba(255, 249, 239, .95), transparent 36%),
-            linear-gradient(150deg, #D9C2AD 0%, #C8A88D 52%, #9C7C66 100%);
-    }
-    .ad-product-art::before {
-        content: "";
-        position: absolute;
-        inset: 18px;
-        border: 1px solid rgba(255, 249, 239, .4);
-        border-radius: 50% 50% 8px 50%;
-        transform: rotate(23deg);
-    }
-    .bottle {
-        position: absolute;
-        left: 50%; top: 41px;
-        width: 52px; height: 139px;
-        border-radius: 9px 9px 13px 13px;
-        transform: translateX(-50%) rotate(4deg);
-        background: linear-gradient(100deg, #7F5D49, #B58E72 42%, #6D4D3C 100%);
-        box-shadow: 8px 17px 24px rgba(52, 34, 24, .24), inset 2px 0 3px rgba(255, 255, 255, .18);
-    }
-    .bottle::before {
-        content: "";
-        position: absolute;
-        left: 14px; top: -20px;
-        width: 24px; height: 25px;
-        border-radius: 4px 4px 2px 2px;
-        background: linear-gradient(90deg, #4D3528, #8D6A51);
-    }
-    .bottle::after {
-        content: "RITUAL";
-        position: absolute;
-        left: 50%; top: 55px;
-        width: 34px;
-        transform: translateX(-50%);
-        color: rgba(255, 241, 220, .68);
-        font-family: var(--mono);
-        font-size: 4px;
-        letter-spacing: .12em;
-        text-align: center;
-    }
-    .ad-product-copy { min-width: 0; }
-    .ad-brand {
-        display: block;
-        color: #89735B;
-        font-family: var(--mono);
-        font-size: 6px;
-        letter-spacing: .13em;
-        text-transform: uppercase;
-    }
-    .ad-product-copy h3 {
-        max-width: 8ch;
-        margin: 7px 0 7px;
+    .ad-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    .ad-body { padding: 18px 20px 16px; }
+    .ad-title {
+        margin: 0 0 6px;
         font-family: var(--serif);
-        font-size: 27px;
+        font-size: 22px;
         font-weight: 600;
-        line-height: .93;
-        letter-spacing: -.03em;
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        color: var(--ink);
     }
-    .ad-product-copy p { color: #827166; font-size: 7px; line-height: 1.5; }
-    .ad-price {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 13px;
-        color: #876638;
-        font-family: var(--mono);
-        font-size: 6px;
-        letter-spacing: .05em;
+    .ad-desc {
+        margin: 0 0 14px;
+        color: var(--ink-2);
+        font-size: 12.5px;
+        line-height: 1.5;
     }
-    .ad-price::before { content: ""; width: 13px; height: 1px; background: #CDB89B; }
-    .ad-card-foot {
+    .ad-foot {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        padding-top: 12px;
-        border-top: 1px solid #EEDFD1;
-        color: #7B6550;
+        gap: 12px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(107, 90, 76, .12);
+        color: var(--ink-3);
         font-family: var(--mono);
-        font-size: 6px;
-        letter-spacing: .03em;
+        font-size: 9.5px;
+        letter-spacing: .04em;
     }
-    .ad-card-foot span:last-child { color: #4C382A; font-weight: 600; }
+    .ad-foot span:last-child {
+        color: var(--gold-ink);
+        font-weight: 700;
+    }
+    .ad-scroll-hint {
+        position: absolute;
+        right: -6px; bottom: 6px;
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(18, 14, 16, .85);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        color: var(--gold);
+        font-family: var(--mono);
+        font-size: 7px;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .3s var(--ease);
+    }
+    .ad-carousel:hover .ad-scroll-hint { opacity: 1; }
+    .ad-scroll-hint svg { width: 12px; height: 12px; transform: rotate(-90deg); }
     .ad-note {
         position: absolute;
-        right: 0; bottom: 22px;
+        right: 8px; top: 8px;
         display: inline-flex;
         align-items: center;
         gap: 7px;
@@ -2270,10 +2265,18 @@
         font-family: var(--mono);
         font-size: 6.5px;
         letter-spacing: .08em;
+        transform: rotate(-2.4deg);
         box-shadow: 0 10px 20px rgba(79, 57, 34, .10);
-        transform: rotate(2.4deg);
     }
     .ad-note::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #A9834F; }
+    @media (max-width: 1020px) {
+        .ad-carousel { width: 100%; }
+        .ad-card { flex: 0 0 85%; min-width: 0; }
+        .ad-track { scroll-padding: 0 20px; }
+    }
+    @media (max-width: 600px) {
+        .ad-card { flex: 0 0 92%; }
+    }
 
     /* ── footer ───────────────────────────────────────────────────────────── */
     .footer {
@@ -3053,8 +3056,8 @@
                 <h2 id="brands-title">Tu marca, en la mesa de <em>miles de estudios de belleza.</em></h2>
                 <p>¿Tenés una marca de insumos? <strong>Publicitá en el Marketplace y llegá a miles de profesionales de la belleza.</strong> La publicidad vive donde las dueñas ya están buscando, comparando y comprando.</p>
                 <div class="brand-actions">
-                    <a class="btn btn-dark" href="https://wa.me/?text=Hola%20ELIMA%20HUB%2C%20quiero%20publicitar%20mi%20marca%20en%20el%20Marketplace." target="_blank" rel="noopener noreferrer">Quiero publicitar mi marca <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
-                    <a class="text-link-dark" href="https://wa.me/?text=Hola%20ELIMA%20HUB%2C%20quiero%20coordinar%20una%20demo." target="_blank" rel="noopener noreferrer">Hablar con el equipo <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
+                    <a class="btn btn-dark" href="https://wa.me/5493547469000?text=Hola%20ELIMA%20HUB%2C%20quiero%20publicitar%20mi%20marca%20en%20el%20Marketplace." target="_blank" rel="noopener noreferrer">Quiero publicitar mi marca <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
+                    <a class="text-link-dark" href="https://wa.me/5493547469000?text=Hola%20ELIMA%20HUB%2C%20quiero%20coordinar%20una%20demo." target="_blank" rel="noopener noreferrer">Hablar con el equipo <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
                 </div>
                 <div class="brand-meta" aria-label="Formatos publicitarios">
                     <span>Banner en resultados</span>
@@ -3064,23 +3067,57 @@
             </div>
 
             <div class="brands-visual" data-reveal="right" style="--d:100ms">
-                <div class="ad-board" role="img" aria-label="Ejemplo de una marca de insumos destacada dentro del Marketplace de ELIMA HUB.">
-                    <div class="ad-card back"></div>
-                    <div class="ad-card mid"></div>
-                    <div class="ad-card front">
-                        <div class="ad-card-head"><span>Patrocinado</span><span>Marketplace · Belleza</span></div>
-                        <div class="ad-product">
-                            <div class="ad-product-art"><span class="bottle"></span></div>
-                            <div class="ad-product-copy">
-                                <span class="ad-brand">Ritual Pro</span>
-                                <h3>Aceite de cutícula</h3>
-                                <p>Insumos profesionales para manicura. Una marca, frente a la decisión de compra.</p>
-                                <span class="ad-price">Espacio de marca</span>
+                <div class="ad-carousel" role="region" aria-label="Ejemplos de espacios de marca por rubro en el Marketplace">
+                    <div class="ad-track" id="ad-track">
+                        <article class="ad-card">
+                            <div class="ad-media">
+                                <img src="https://images.unsplash.com/photo-1620712560038-a6f1e1d4e7ad?w=720&h=540&fit=crop&crop=center" alt="Esmalte Semipermanente" loading="lazy" decoding="async">
+                                <span class="ad-tag">MANICURA</span>
                             </div>
-                        </div>
-                        <div class="ad-card-foot"><span>Visible para miles de profesionales</span><span>Ver ficha de marca →</span></div>
+                            <div class="ad-body">
+                                <h3 class="ad-title">Esmalte Semipermanente</h3>
+                                <p class="ad-desc">Colores duraderos, brillo espejo y fácil remoción. La línea profesional que tus clientas piden.</p>
+                                <div class="ad-foot"><span>Insumo profesional</span><span>Espacio de marca</span></div>
+                            </div>
+                        </article>
+                        <article class="ad-card">
+                            <div class="ad-media">
+                                <img src="https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=720&h=540&fit=crop&crop=center" alt="Línea de Shampoo y Tratamiento" loading="lazy" decoding="async">
+                                <span class="ad-tag">PELUQUERÍA</span>
+                            </div>
+                            <div class="ad-body">
+                                <h3 class="ad-title">Línea de Shampoo y Tratamiento</h3>
+                                <p class="ad-desc">Fórmulas sin sulfatos, con keratina y aceites esenciales. Cuidado real para todo tipo de cabello.</p>
+                                <div class="ad-foot"><span>Rutina completa</span><span>Espacio de marca</span></div>
+                            </div>
+                        </article>
+                        <article class="ad-card">
+                            <div class="ad-media">
+                                <img src="https://images.unsplash.com/photo-1620916566398-35f1159fa6d1?w=720&h=540&fit=crop&crop=center" alt="Crema Hidratante Anti-age" loading="lazy" decoding="async">
+                                <span class="ad-tag">ESTÉTICA FACIAL</span>
+                            </div>
+                            <div class="ad-body">
+                                <h3 class="ad-title">Crema Hidratante Anti-age</h3>
+                                <p class="ad-desc">Ácido hialurónico, péptidos y antioxidantes. Hidratación profunda y efecto lifting visible.</p>
+                                <div class="ad-foot"><span>Cosmética activa</span><span>Espacio de marca</span></div>
+                            </div>
+                        </article>
+                        <article class="ad-card">
+                            <div class="ad-media">
+                                <img src="https://images.unsplash.com/photo-1600812436283-06d7b6e2e4c7?w=720&h=540&fit=crop&crop=center" alt="Máquina de Tatuar / Tintas" loading="lazy" decoding="async">
+                                <span class="ad-tag">TATUAJES</span>
+                            </div>
+                            <div class="ad-body">
+                                <h3 class="ad-title">Máquina de Tatuar / Tintas</h3>
+                                <p class="ad-desc">Rotativas y de bobina, tintas veganas certificadas. Precisión y seguridad para cada estilo.</p>
+                                <div class="ad-foot"><span>Equipo profesional</span><span>Espacio de marca</span></div>
+                            </div>
+                        </article>
                     </div>
-                    <span class="ad-note">Tu marca acá</span>
+                    <span class="ad-scroll-hint" aria-hidden="true">
+                        Deslizá para ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </span>
+                    <span class="ad-note" aria-label="Tu marca puede estar aquí">Tu marca acá</span>
                 </div>
             </div>
         </div>
@@ -3095,7 +3132,7 @@
                 <h2>¿Hacemos crecer <em>tu negocio de belleza?</em></h2>
             </div>
             <div class="footer-cta-actions">
-                <a class="btn btn-gold btn-lg" href="https://wa.me/?text=Hola%20ELIMA%20HUB%2C%20quiero%20una%20demo%20del%20ecosistema." target="_blank" rel="noopener noreferrer">Pedir una demo <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
+                <a class="btn btn-gold btn-lg" href="https://wa.me/5493547469000?text=Hola%20ELIMA%20HUB%2C%20quiero%20una%20demo%20del%20ecosistema." target="_blank" rel="noopener noreferrer">Pedir una demo <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
                 <a class="text-link-light" href="index.html">Entrar a la app <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             </div>
         </div>
@@ -3120,8 +3157,8 @@
                 <h3>Contacto</h3>
                 <div class="footer-links">
                     <a href="https://www.instagram.com/elimahub/" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-instagram"></use></svg>Instagram</a>
-                    <a href="https://wa.me/?text=Hola%20ELIMA%20HUB%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20el%20ecosistema." target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>WhatsApp</a>
-                    <a href="https://wa.me/?text=Hola%20ELIMA%20HUB%2C%20quiero%20coordinar%20una%20demo." target="_blank" rel="noopener noreferrer">Contacto / Demo <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
+                    <a href="https://wa.me/5493547469000?text=Hola%20ELIMA%20HUB%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20el%20ecosistema." target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>WhatsApp</a>
+                    <a href="https://wa.me/5493547469000?text=Hola%20ELIMA%20HUB%2C%20quiero%20coordinar%20una%20demo." target="_blank" rel="noopener noreferrer">Contacto / Demo <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg></a>
                 </div>
             </div>
         </div>
