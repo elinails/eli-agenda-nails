@@ -2,21 +2,24 @@
 // Red primero; cache como respaldo. Precarga el shell para que la app abra
 // sin conexión y para no devolver nunca "undefined" en respondWith (iOS muestra
 // "no se puede abrir la página" en ese caso).
-// I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de version
+// I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de versión
 // es lo que dispara la purga de la cache vieja en 'activate'. Subir esta
-// constante siempre que cambie el shell. Ahora v11 para PWA.
-const CACHE = 'elima-hub-v12';
+// constante siempre que cambie el shell. Ahora v13 para PWA.
+const CACHE = 'elima-hub-v13';
 const SHELL = [
     './',
     'index.html',
     'marketplace.html',
     'portal.html',
-    'manifest.json',
     'icon-192.png',
     'icon-512.png',
     'apple-touch-icon.png',
-    'favicon-32.png'
+    'favicon-32.png',
+    'favicon-16.png'
 ];
+
+// Manifest y estilos estáticos se sirven siempre frescos (no cacheados)
+const EXCLUDE_FROM_CACHE = ['manifest.json'];
 
 // I50: permite que la pagina pida activar la version nueva
 self.addEventListener('message', function (evento) {
@@ -50,6 +53,12 @@ self.addEventListener('fetch', function(evento) {
     const peticion = evento.request;
     if (peticion.method !== 'GET') return;
     if (peticion.url.indexOf(self.location.origin) !== 0) return;
+
+    // No cachear manifest ni otros archivos en EXCLUDE_FROM_CACHE
+    const url = new URL(peticion.url);
+    if (EXCLUDE_FROM_CACHE.some(function(path) { return url.pathname.endsWith(path); })) {
+        return fetch(peticion, { cache: 'no-store' });
+    }
 
     const opciones = peticion.mode === 'navigate' ? { cache: 'no-store' } : undefined;
     evento.respondWith(
