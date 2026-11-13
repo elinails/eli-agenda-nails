@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>QA estilos</title>
+<style>
+  body { margin: 0; background: #14100F; padding: 16px; font-family: Inter, sans-serif; }
+  .grilla { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .estilo { position: relative; aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; background: #1B1518; }
+  .estilo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .estilo::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,13,15,.08) 30%, rgba(20,13,15,.72) 100%); }
+  .estilo-name { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    padding: 14px 12px 16px; color: #F9F1E8; font-family: Georgia, serif; font-size: 19px; }
+</style>
+</head>
+<body>
+<div class="grilla">
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Manicura</span></article>
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Peluquería</span></article>
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Maquillaje</span></article>
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Barbería</span></article>
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Estética Facial</span></article>
+  <article class="estilo"><img src="https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?auto=format&fit=crop&w=600&h=800&q=72" alt=""><span class="estilo-name">Tatuajes</span></article>
+</div>
+</body>
+</html>

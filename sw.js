@@ -4,8 +4,8 @@
 // "no se puede abrir la página" en ese caso).
 // I62: v9 · I71: v10 (agrega marketplace/portal al shell). El cambio de versión
 // es lo que dispara la purga de la cache vieja en 'activate'. Subir esta
-// constante siempre que cambie el shell. Ahora v13 para PWA.
-const CACHE = 'elima-hub-v13';
+// constante siempre que cambie el shell. Ahora v15 para PWA con nuevo logo oficial.
+const CACHE = 'elima-hub-v15';
 const SHELL = [
     './',
     'index.html',
