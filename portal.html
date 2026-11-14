@@ -314,6 +314,26 @@
     .boton-mini:hover { border-color: var(--gold); }
     .boton-mini.copiado { border-color: var(--ok); color: var(--ok); }
 
+    /* ── login con Google ── */
+    .btn-google {
+        background: var(--surface);
+        color: var(--ink);
+        border-color: var(--line);
+        font-weight: 600;
+        gap: 10px;
+    }
+    .btn-google:hover { border-color: var(--gold); filter: none; background: var(--surface-2); }
+    .btn-google[disabled] { opacity: .65; cursor: progress; }
+    .separador {
+        display: flex; align-items: center; gap: 12px;
+        margin: 18px 0 16px;
+        color: var(--ink-faint); font-size: 12px;
+        text-transform: uppercase; letter-spacing: .12em;
+    }
+    .separador::before, .separador::after {
+        content: ''; flex: 1 1 auto; height: 1px; background: var(--line);
+    }
+
     .pie { padding: 24px 0 36px; text-align: center; color: var(--ink-faint); font-size: 12.5px; }
     .pie a { color: var(--ink-soft); }
 
@@ -411,9 +431,21 @@
         <section class="vista" id="vista-login">
             <div class="acceso">
                 <h1>Entrá a tus Elima Points</h1>
-                <p>Te mandamos un código de 6 a 10 dígitos al email que le diste a tu salón. Sin contraseñas.</p>
+                <p>Entrá con Google en un toque, o pedí un código a tu email. Sin contraseñas.</p>
 
                 <div class="alerta" id="login-alerta" role="alert" hidden></div>
+
+                <button type="button" class="btn btn-google" id="google-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"/>
+                        <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24Z"/>
+                        <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.6V6.7H1.4a12 12 0 0 0 0 10.7l4-3Z"/>
+                        <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.7l4 3.1C6.3 6.9 8.9 4.8 12 4.8Z"/>
+                    </svg>
+                    Continuar con Google
+                </button>
+
+                <div class="separador"><span>o con tu email</span></div>
 
                 <form id="login-form" novalidate>
                     <div class="campo">
@@ -1085,6 +1117,34 @@
         });
 
         mostrar('vista-login');
+
+        // Login con Google. El proveedor ya está configurado en Supabase
+        // (verificado: /auth/v1/authorize devuelve 302 a Google).
+        // Con PKCE + detectSessionInUrl, al volver la sesión se restaura sola.
+        var googleBtn = $('google-btn');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', async function () {
+                aviso('login-alerta', '', 'ok');
+                googleBtn.disabled = true;
+                try {
+                    var destino = window.location.origin + window.location.pathname;
+                    var res = await cliente.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: destino,
+                            queryParams: { prompt: 'select_account' }
+                        }
+                    });
+                    if (res && res.error) throw res.error;
+                    // Si el navegador no redirige (bloqueo), se reactiva solo.
+                    setTimeout(function () { googleBtn.disabled = false; }, 4000);
+                } catch (error) {
+                    googleBtn.disabled = false;
+                    aviso('login-alerta', 'No se pudo iniciar con Google: ' +
+                        (error.message || 'error de conexión'), 'error');
+                }
+            });
+        }
 
         $('login-form').addEventListener('submit', async function (evento) {
             evento.preventDefault();
